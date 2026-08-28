@@ -1,0 +1,44 @@
+---
+title: Starting Repo
+description: First step in the journey
+---
+
+After running `mkdir` to create the directory for our repo and `cd`ing into it, the **first thing to do is initialize version control**—before scaffolding, installing dependencies, or creating application code.
+
+```bash
+git init -b main
+```
+
+Then immediately verify it:
+
+```bash
+git status
+```
+
+At this point our greenfield project is at:
+
+```text
+project-root/
+└── .git/
+```
+
+Why this should come first: from the moment the project begins, **every architectural decision, bootstrap file, experiment, mistake, and correction can be recorded and reversed**. You don't want the first meaningful part of the project's history to happen before Git exists.
+
+We are **not** going to run `bun init`, `npm init`, `cargo init`, `nx init`, `moon init`, or any framework generator yet.
+
+After Git, the sequence is:
+
+1. **Initialize Git**
+2. **Establish the repository's identity and intent**
+3. **Create the absolute-minimum repository metadata**
+4. **Record the initial baseline commit**
+5. **Define architecture/toolchain decisions**
+6. **Only then bootstrap the actual development environment**
+7. **Only then scaffold applications/packages**
+
+So right now, we do only:
+
+```bash
+git init -b main
+git status
+```

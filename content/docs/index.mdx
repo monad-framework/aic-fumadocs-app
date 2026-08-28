@@ -1,13 +1,244 @@
 ---
-title: Hello World
-description: Your first document
+title: "Start Here"
+description: "An orientation to Building Monad: what is being built, why the work is public, how the site is organized, and where builders, architects, implementers, and historians should begin."
+canonical: "/"
 ---
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
+# Building Monad in public, with the reasoning intact.
 
-## What is Next?
+Welcome. I’m Thomas Carter, and this site is a public record of building software, studying how engineering knowledge survives, and testing whether we can make complex projects easier for humans and AI to understand over time.
 
-<Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
-</Cards>
+The primary project is **Monad**. The deeper subject is everything a serious engineering project comes to know while it is being built: its requirements, architectural decisions, rejected alternatives, experiments, failures, evidence, unresolved questions, implementation history, and the reasoning connecting them.
+
+Most of that knowledge does not live in one place. It becomes scattered across source code, specifications, issue trackers, commits, project boards, documentation, diagrams, review records, and conversations with people and AI. Individual artifacts may survive while their relationships, authority, and meaning become difficult to recover.
+
+This site follows Monad as it develops, but it also investigates that larger problem in the open.
+
+[Read Building Monad →](/building-monad)  
+[Subscribe for updates →](/subscribe)
+
+## Why this site exists
+
+While building Monad, I produced and accumulated a large body of engineering material: ideas, requirements, specifications, architecture documents, ADRs, work packets, implementation evidence, GitHub issues, project records, and long AI-assisted working sessions.
+
+I organized it. Then I organized it more carefully.
+
+That helped, but it did not solve the whole problem.
+
+I could often find a relevant document without being able to answer the more important questions around it:
+
+- Is this still the current decision?
+- Which artifact is authoritative for this particular claim?
+- Was this rejected, superseded, implemented, or merely discussed?
+- What evidence supported the decision?
+- Why did the project change direction?
+- Do these two documents describe the same underlying thing?
+- What did the project believe at an earlier point in time?
+- Which parts of this summary are still fresh?
+- What would another person—or an AI system—need in order to reconstruct the reasoning safely?
+
+AI made this tension more visible. It helped me explore alternatives, generate structured material, challenge designs, decompose work, and move through ideas faster. But producing more artifacts is not the same as integrating them into a coherent body of project knowledge. The faster the material appeared, the more important validation, authority, provenance, and recovery became.
+
+The resulting question is larger than documentation:
+
+> How can a complex engineering project preserve its evolving knowledge and reasoning so that both its current state and its historical process remain intelligible, navigable, and useful?
+
+I do not assume that Monad—or any semantic model emerging from it—has already answered that question. A simpler combination of disciplined documentation, search, indexing, ADRs, Git history, and work tracking may be sufficient for many projects. Part of this work is discovering where those approaches are enough, where they break down, and whether anything more elaborate earns its cost.
+
+**Project Knowledge is therefore an experiment, not a predetermined answer.**
+
+## What is being built
+
+Three closely related efforts appear throughout this site.
+
+### Monad
+
+Monad is the primary software and engineering program.
+
+Its aim is to make engineering knowledge explicit enough that humans, automation, and AI can reason from a shared, governed representation of a software system. The long-term vision includes compilation, inspection, publication, execution, traceability, reproducibility, and AI context assembled from the same underlying knowledge rather than from disconnected interpretations.
+
+That is the direction of the work, not a claim that the entire system already exists. Some parts are implemented, some remain specifications or normative drafts, and others are still hypotheses. The [Project section](/project) records the current boundary between them.
+
+### Project Knowledge
+
+Project Knowledge is the distinct research and engineering effort created from the information-recovery problems encountered while building Monad.
+
+It investigates how to preserve stable identity, multiple representations, scoped authority, current and historical claims, provenance, evidence, relationships, and time across the tools a project already uses. Monad provides the first substantial case study, but Project Knowledge is kept separate so its conclusions can be tested beyond one unusually governed repository.
+
+### Building Monad
+
+Building Monad is the public narrative of the work.
+
+It is not intended to be a stream of promotional updates or a polished retrospective in which every decision appears inevitable. Each installment attempts to preserve the problem visible at that moment, the alternatives considered, the decision made, the uncertainty that remained, and the repository state that followed.
+
+The editorial rule is simple:
+
+> **Chronology first; durable artifacts beside it.**
+
+The narrative explains why the work matters. The specifications, ADRs, architecture records, tests, and evidence remain independently inspectable.
+
+## How this site is organized
+
+The site separates different kinds of truth instead of treating every page as interchangeable.
+
+### [Start Here](/)
+
+You are here. This is the permanent orientation page: what the project is, why it exists, how to navigate it, and where different readers should begin.
+
+### [Building Monad](/building-monad)
+
+Use this section when you want the story of the work.
+
+It contains the curated essays, chronological engineering journal, installments, project phases, and the current edge of the narrative. Begin here if you want to understand not only what Monad is becoming, but how and why it arrived there.
+
+### [System](/system)
+
+Use this section when you want the best current explanation of Monad.
+
+It contains concepts, principles, architecture, components, interfaces, technical documentation, and shared terminology. The System section favors current authoritative understanding over chronological storytelling.
+
+### [Artifacts](/artifacts)
+
+Use this section when you want the underlying engineering record.
+
+It provides access to specifications, requirements, ADRs, experiments, evidence, reviews, verification results, and relationship indexes. These artifacts are not supporting decorations for the essays; they are the durable records against which the narrative can be checked.
+
+### [Project](/project)
+
+Use this section when you want to know where the work stands now.
+
+It contains current status, roadmap, releases, build history, open questions, Project Knowledge, and links to the public source repositories. This is where to distinguish aspiration from active work, active work from completed work, and completed work from verified capability.
+
+### [Search](/search)
+
+Use search when you already know the concept, artifact, decision, or identifier you need. Search can locate material; the surrounding section tells you what role that material plays.
+
+## Choose a reading path
+
+There is no single correct order through the site. Start with the path closest to the question you are trying to answer.
+
+### For builders
+
+Choose this path if you are creating an ambitious project of your own and want to follow the practical journey, including mistakes, revisions, and lessons.
+
+1. Start with [Building Monad](/building-monad) for the narrative.
+2. Read the current installment to see the problem at the active edge of the work.
+3. Visit [System](/system) when an installment introduces a concept you want to understand in its current form.
+4. Follow its links into [Artifacts](/artifacts) when you want the actual decision, specification, or evidence.
+5. Check [Project](/project) for current status and what comes next.
+
+**Your route:** narrative → current system → evidence → status.
+
+### For architects
+
+Choose this path if you care most about system boundaries, semantic models, design pressure, trade-offs, and architectural evolution.
+
+1. Begin with the [System overview](/system).
+2. Continue into the architecture and concept documentation.
+3. Inspect the relevant decisions and ADRs in [Artifacts](/artifacts).
+4. Compare the chosen design with its rejected alternatives and supporting evidence.
+5. Return to [Building Monad](/building-monad) when you want the chronology and circumstances surrounding a decision.
+
+**Your route:** system → architecture → decisions → specifications → history.
+
+### For implementers
+
+Choose this path if you want to understand what is concrete enough to build, test, run, or contribute to.
+
+1. Begin with the specifications and requirements in [Artifacts](/artifacts).
+2. Use [System](/system) for current interfaces, components, and implementation context.
+3. Follow links to tests, verification evidence, and source repositories.
+4. Consult [Project](/project) before assuming that a designed capability has been implemented or authorized.
+5. Use the engineering journal when you need the operational history behind the present implementation.
+
+**Your route:** specifications → implementation context → source and evidence → status.
+
+### For historians
+
+Choose this path if you want to study how a complex engineering project changes over time and how its present state emerged.
+
+1. Begin with the earliest installments in [Building Monad](/building-monad).
+2. Follow the project phases and engineering journal chronologically.
+3. Open linked decisions, research, and experiments in [Artifacts](/artifacts).
+4. Compare historical claims with the current explanations in [System](/system).
+5. Use the build history and release record in [Project](/project) to connect reasoning with repository state.
+
+**Your route:** chronology → decisions → research and evidence → build history → current truth.
+
+## How to interpret what you read
+
+Different parts of the site answer different questions:
+
+| Surface | The question it answers |
+| --- | --- |
+| Building Monad essays | What does this work mean, and why does it matter? |
+| Engineering journal | What happened, in what order, and what changed? |
+| System documentation | What is the best current explanation? |
+| Governed artifacts | What was actually specified, decided, tested, or evidenced? |
+| Project status | What is active, complete, released, or still unresolved? |
+| Project Knowledge | How are identity, authority, provenance, time, and relationships being preserved? |
+
+A published idea is not automatically an accepted decision. An accepted design is not automatically implemented. An implementation is not automatically verified. A historically accurate document may no longer describe current state.
+
+The site should make those distinctions visible. When it does not, that is a defect worth correcting.
+
+## What you can expect here
+
+I intend to publish the work with enough context that readers can inspect both the conclusions and the path that produced them.
+
+That includes:
+
+- Long-form essays explaining major problems and ideas.
+- Chronological installments from the engineering process.
+- Architecture and system documentation.
+- Specifications, ADRs, requirements, and evidence.
+- Experiments that succeed, fail, or produce ambiguous results.
+- Decisions that are later revised or superseded.
+- Open questions that remain open instead of being answered by presentation alone.
+- Clear distinctions between observation, interpretation, evidence, and hypothesis.
+- Links to the public repositories and source material wherever practical.
+
+I will sometimes be wrong. The project may discover that an elaborate idea can be replaced by a simpler one, that a supposed universal problem is local to Monad, or that the cost of preserving certain knowledge exceeds its value. Those findings belong in the record too.
+
+## Join the conversation
+
+This project will be more useful if it attracts people willing to examine it rather than merely agree with it.
+
+If you are an engineer, architect, maintainer, technical writer, researcher, founder, or serious builder, I would like to hear where this model resembles your experience—and where it does not.
+
+You can participate by:
+
+- Following the [Building Monad series](/building-monad).
+- Inspecting the [governed artifacts](/artifacts).
+- Reviewing the [current project state](/project).
+- Exploring the public [Monad repository](https://github.com/monad-framework/monad).
+- Exploring the public [Project Knowledge repository](https://github.com/monad-framework/project-knowledge).
+- Challenging an assumption with a concrete counterexample.
+
+One question captures much of what this work is trying to understand:
+
+> **What did your last software project know that its repository could no longer tell you?**
+
+## Follow the work
+
+Subscribe if you want new Building Monad installments, major architectural decisions, milestone summaries, important Project Knowledge findings, and eventual product announcements delivered by email.
+
+Some parts of this work may eventually become commercial products, services, or paid resources. If that happens, subscribers will be among the first to know. Until then, the list is the most direct way to follow the engineering work and become part of the community forming around it.
+
+[Subscribe for updates →](/subscribe)
+
+Prefer feeds? Follow Building Monad through [RSS](/feeds/building-monad.rss.xml) or [Atom](/feeds/building-monad.atom.xml).
+
+## Begin
+
+If this is your first visit, begin with the Building Monad series overview. It will always identify both the opening installment and the current edge of the narrative.
+
+The opening installment is:
+
+**The Project Knew More Than the Repository Could Tell Me**
+
+It explains the experience that led from organizing a complex project to questioning whether ordinary project records preserve enough of what the project actually knows.
+
+[Explore Building Monad →](/building-monad)
+
+Then choose the path that matches what you came to understand—and follow the evidence as far as you want to go.

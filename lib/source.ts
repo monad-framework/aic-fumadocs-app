@@ -4,64 +4,80 @@ import { defineDocs } from 'fumadocs-mdx/macro';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
 import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
 
-function docsOptions() {
-  return {
-    docs: {
-      schema: pageSchema,
-      postprocess: {
-        includeProcessedMarkdown: true,
-      },
-    },
-    meta: {
-      schema: metaSchema,
-    },
-  } as const;
-}
-
 const docs = defineDocs({
   dir: 'content/docs',
-  ...docsOptions(),
+  docs: {
+    schema: pageSchema,
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
+  },
+  meta: {
+    schema: metaSchema,
+  },
 });
 
 const articles = defineDocs({
   dir: 'content/articles',
-  ...docsOptions(),
+  docs: {
+    schema: pageSchema,
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
+  },
+  meta: {
+    schema: metaSchema,
+  },
 });
 
 const changelogs = defineDocs({
   dir: 'content/changelogs',
-  ...docsOptions(),
+  docs: {
+    schema: pageSchema,
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
+  },
+  meta: {
+    schema: metaSchema,
+  },
 });
 
 const journal = defineDocs({
   dir: 'content/journal',
-  ...docsOptions(),
+  docs: {
+    schema: pageSchema,
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
+  },
+  meta: {
+    schema: metaSchema,
+  },
 });
-
-const sourcePlugins = [lucideIconsPlugin()];
 
 export const source = loader({
   baseUrl: docsRoute,
   source: docs.toFumadocsSource(),
-  plugins: sourcePlugins,
+  plugins: [lucideIconsPlugin()],
 });
 
 export const articlesSource = loader({
   baseUrl: '/articles',
   source: articles.toFumadocsSource(),
-  plugins: sourcePlugins,
+  plugins: [lucideIconsPlugin()],
 });
 
 export const changelogsSource = loader({
   baseUrl: '/changelogs',
   source: changelogs.toFumadocsSource(),
-  plugins: sourcePlugins,
+  plugins: [lucideIconsPlugin()],
 });
 
 export const journalSource = loader({
   baseUrl: '/journal',
   source: journal.toFumadocsSource(),
-  plugins: sourcePlugins,
+  plugins: [lucideIconsPlugin()],
 });
 
 export function getPageImageUrl(page: (typeof source)['$inferPage']) {

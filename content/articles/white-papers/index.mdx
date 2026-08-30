@@ -1,7 +1,143 @@
 ---
 title: White Papers
-description: Home for published white papers
+description: Formal technical publications presenting durable theses, models, proposals, and system-level arguments related to Monad.
 ---
 
 # White Papers
 
+White Papers are the most formal editorial publications in the Monad Articles domain.
+
+They are appropriate when an idea has matured beyond ordinary commentary or exploratory research and deserves a sustained, structured technical treatment intended to remain useful as a durable public reference.
+
+## What belongs here
+
+A White Paper may present:
+
+- a technical thesis,
+- a conceptual model,
+- a system architecture argument,
+- a protocol or interface proposal,
+- a governance model,
+- a product or platform thesis,
+- a synthesis of substantial research,
+- or another formal position that benefits from explicit scope, assumptions, evidence, tradeoffs, and implications.
+
+## Higher burden of structure
+
+A White Paper should generally make it possible for a critical reader to answer:
+
+- What problem is being addressed?
+- What is in scope and out of scope?
+- What assumptions does the argument depend on?
+- What terminology is being used precisely?
+- What prior art or alternatives matter?
+- What exactly is being proposed or claimed?
+- What evidence supports it?
+- What are the strongest alternatives?
+- What tradeoffs are accepted?
+- What limitations remain?
+- What would falsify or weaken the thesis?
+- What implications follow if the argument is correct?
+
+A polished appearance is not enough. Formality should come from clarity and inspectability rather than tone alone.
+
+## White Papers are not specifications
+
+A White Paper can argue that Monad should work a particular way.
+
+That does not make the argument an implementation contract.
+
+If the project accepts the proposal, the enforceable consequences belong in the formal engineering record:
+
+```text
+White Paper
+    ↓
+proposal / thesis
+    ↓
+review + decision
+    ↓
+requirements / ADRs / specifications
+    ↓
+implementation + verification
+    ↓
+System documentation
+```
+
+This separation lets a White Paper remain readable as an argument while the engineering artifacts remain precise and governable.
+
+## White Papers and Research
+
+Research and White Papers overlap, but their center of gravity differs.
+
+Research asks:
+
+> What does the investigation allow us to conclude?
+
+A White Paper more often asks:
+
+> Given the available evidence and assumptions, what coherent technical position, model, or proposal should readers evaluate?
+
+Research may end without a recommendation.
+
+A White Paper usually has a thesis.
+
+## Revision discipline
+
+Because White Papers are intended to be durable references, material revisions should be especially explicit.
+
+Keep the original `published` date stable.
+
+Use:
+
+```yaml
+status: revised
+updated: YYYY-MM-DD
+```
+
+for material changes.
+
+When a revision materially changes the thesis, model, assumptions, or conclusion, the body should explain what changed so readers can interpret older references to the paper.
+
+If a paper is no longer recommended but remains historically meaningful, archive it rather than silently replacing the historical record.
+
+## Recommended structure
+
+A normal White Paper should consider:
+
+1. Abstract
+2. Problem statement
+3. Scope and non-scope
+4. Terminology
+5. Assumptions
+6. Background and prior art
+7. Thesis or proposal
+8. Model, architecture, or mechanism
+9. Evidence and supporting argument
+10. Alternatives
+11. Tradeoffs
+12. Limitations and falsification conditions
+13. Implications
+14. Conclusion
+15. References and related project records
+
+The form should be rigorous without becoming ceremonial.
+
+## Chronology
+
+Published White Papers are listed newest first after this landing page.
+
+The publication record remains separate from current system authority, so an older White Paper can remain valuable even after later engineering decisions modify or reject part of its thesis.
+
+<Cards>
+  <Card title="Blog" href="/articles/blog">
+    Use the Blog for accessible explanation, commentary, synthesis, and narrative writing.
+  </Card>
+
+  <Card title="Research" href="/articles/research">
+    Use Research when the investigation itself—method, evidence, uncertainty, and conclusions—is the central publication.
+  </Card>
+
+  <Card title="How Articles Work" href="/articles/format">
+    Read the shared metadata contract, public publication states, revision policy, and editorial Definition of Done.
+  </Card>
+</Cards>

@@ -1,5 +1,10 @@
 {
   "title": "Engineering Journal",
   "description": "The chronological engineering record of building Monad.",
-  "pages": ["index"]
+  "pages": [
+    "index",
+    "format",
+    "---Journal entries---",
+    "z...a"
+  ]
 }

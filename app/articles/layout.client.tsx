@@ -1,22 +1,20 @@
 'use client';
 
-import type { ComponentProps } from 'react';
+import type * as PageTree from 'fumadocs-core/page-tree';
 import * as Base from 'fumadocs-ui/components/sidebar/base';
-import { cn } from '@/lib/cn';
 
-export function SidebarSeparator({ className, style, children, ...props }: ComponentProps<'p'>) {
+export function SidebarSeparator({ item }: { item: PageTree.Separator }) {
   const depth = Base.useFolderDepth();
 
   return (
     <Base.SidebarSeparator
-      className={cn('[&_svg]:size-4 [&_svg]:shrink-0', className)}
+      className="[&_svg]:size-4 [&_svg]:shrink-0"
       style={{
         paddingInlineStart: `calc(${2 + 3 * depth} * var(--spacing))`,
-        ...style,
       }}
-      {...props}
     >
-      {children}
+      {item.icon}
+      {item.name}
     </Base.SidebarSeparator>
   );
 }

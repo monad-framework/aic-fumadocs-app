@@ -1,0 +1,65 @@
+---
+title: "Installment 001 — Publication Domains Become First-Class"
+description: A curated record of the moment Monad's public knowledge base separated authoritative documentation, engineering history, change communication, editorial publishing, and narrative curation.
+---
+
+# Publication Domains Become First-Class
+
+The public knowledge system originally placed too many kinds of information inside one documentation-shaped hierarchy.
+
+That worked mechanically, but the semantics were wrong. A reader could not reliably tell whether a page represented current authority, historical working notes, editorial explanation, or a release-oriented change record.
+
+The solution was not another naming convention inside `/docs`. The solution was to give the major publication roles separate homes.
+
+## The resulting model
+
+```text
+/docs             current authoritative documentation and engineering artifacts
+/journal          chronological working history
+/changelogs       release and meaningful change communication
+/articles         editorial publishing
+/building-monad   curated narrative and reading paths
+```
+
+## Read the source records
+
+<Cards>
+  <Card title="Engineering Journal" href="/journal/2026-08-30-001-establishing-the-engineering-journal">
+    The historical record of establishing Journal as an independent publication domain.
+  </Card>
+
+  <Card title="Published change set" href="/changelogs/2026-08-30-001-publication-domains">
+    The externally meaningful record of separating the knowledge-base domains.
+  </Card>
+
+  <Card title="Editorial explanation" href="/articles/blog/2026-08-30-001-why-four-publication-domains">
+    The reader-oriented explanation of why distinct publication semantics matter.
+  </Card>
+
+  <Card title="How Articles Work" href="/articles/format">
+    The editorial contract created after Articles became its own domain.
+  </Card>
+</Cards>
+
+## Why this mattered
+
+The change made authority visible in the information architecture.
+
+A Journal entry can now be historically valuable without pretending to be current technical truth. A Changelog can focus on impact without carrying the whole engineering narrative. An Article can interpret the work without becoming a normative specification. Building Monad can connect all of those records without owning duplicate copies.
+
+That separation also makes the site itself a useful example of the broader Monad idea: **records with different semantic roles should remain distinguishable even when they describe the same underlying subject**.
+
+## What this installment changes about Building Monad
+
+Building Monad is no longer described as "part engineering journal, part essay series, part research record."
+
+Those publication forms now have their own homes.
+
+Building Monad becomes the composition layer above them: a place for sequence, context, project phases, thematic series, and bounded historical snapshots.
+
+## Continue
+
+- Use [Series](/building-monad/series) for thematic paths.
+- Use [Project Phases](/building-monad/phases) for lifecycle-oriented navigation.
+- Use [Essays & Editorial Reading](/building-monad/essays) for curated links into Articles.
+- Use [Engineering Journal](/journal) when you want the chronological record itself.

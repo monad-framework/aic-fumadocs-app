@@ -1,0 +1,11 @@
+{
+  "title": "Building Monad",
+  "description": "Curated narrative and reading paths through the design and construction of Monad.",
+  "pages": [
+    "index",
+    "series",
+    "installments",
+    "phases",
+    "essays"
+  ]
+}

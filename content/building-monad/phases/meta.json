@@ -1,6 +1,6 @@
 {
-  "title": "Phases",
-  "description": "Phases",
+  "title": "Project Phases",
+  "description": "Lifecycle-oriented reading paths through the construction and evolution of Monad.",
   "pages": [
     "index",
     "01-inception",

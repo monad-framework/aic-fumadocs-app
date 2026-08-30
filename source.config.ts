@@ -100,6 +100,15 @@ export const { docs, meta } = defineDocs({
   },
 });
 
+export const { docs: buildingMonadDocs, meta: buildingMonadMeta } = defineDocs({
+  dir: 'content/building-monad',
+  docs: {
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
+  },
+});
+
 export const { docs: articleDocs, meta: articleMeta } = defineDocs({
   dir: 'content/articles',
   docs: {

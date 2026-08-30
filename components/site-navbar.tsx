@@ -2,17 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  ChevronDown,
-  Menu,
-  X,
-} from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import {
   FullSearchTrigger,
   SearchTrigger,
 } from 'fumadocs-ui/layouts/shared/slots/search-trigger';
 import { ThemeSwitch } from 'fumadocs-ui/layouts/shared/slots/theme-switch';
 import {
+  type FocusEvent as ReactFocusEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   useEffect,
   useId,
@@ -169,8 +166,14 @@ function DesktopMenu({
     }
   };
 
+  const handleBlur = (event: ReactFocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setOpen(false);
+    }
+  };
+
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative" onBlur={handleBlur}>
       <button
         ref={triggerRef}
         type="button"
@@ -186,7 +189,10 @@ function DesktopMenu({
         {menu.label}
         <ChevronDown
           aria-hidden="true"
-          className={cn('size-3.5 transition-transform motion-reduce:transition-none', open && 'rotate-180')}
+          className={cn(
+            'size-3.5 transition-transform motion-reduce:transition-none',
+            open && 'rotate-180',
+          )}
         />
       </button>
 
@@ -229,7 +235,12 @@ function DesktopMenu({
                   )}
                   onClick={() => setOpen(false)}
                 >
-                  <span className={cn('block text-sm font-medium', itemActive && 'text-fd-primary')}>
+                  <span
+                    className={cn(
+                      'block text-sm font-medium',
+                      itemActive && 'text-fd-primary',
+                    )}
+                  >
                     {item.label}
                   </span>
                   {item.description && (
@@ -252,6 +263,7 @@ export function SiteNavbar() {
   const [isAtTop, setIsAtTop] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const mobileTitleId = useId();
   const homeTransparent = pathname === '/' && isAtTop && !mobileOpen;
 
@@ -287,6 +299,7 @@ export function SiteNavbar() {
 
     if (mobileOpen && !dialog.open) {
       dialog.showModal();
+      requestAnimationFrame(() => closeButtonRef.current?.focus());
     } else if (!mobileOpen && dialog.open) {
       dialog.close();
     }
@@ -378,6 +391,9 @@ export function SiteNavbar() {
         ref={dialogRef}
         aria-labelledby={mobileTitleId}
         className="fixed inset-y-0 left-auto right-0 m-0 h-dvh max-h-dvh w-[min(24rem,100vw)] max-w-none border-l bg-fd-background p-0 text-fd-foreground shadow-2xl backdrop:bg-black/40 xl:hidden"
+        onClick={(event) => {
+          if (event.target === event.currentTarget) closeMobile();
+        }}
         onClose={() => setMobileOpen(false)}
         onCancel={() => setMobileOpen(false)}
       >
@@ -387,8 +403,8 @@ export function SiteNavbar() {
               Navigation
             </h2>
             <button
+              ref={closeButtonRef}
               type="button"
-              autoFocus
               aria-label="Close navigation menu"
               className="ml-auto inline-flex size-9 items-center justify-center rounded-md text-fd-muted-foreground transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring motion-reduce:transition-none"
               onClick={closeMobile}
@@ -398,12 +414,12 @@ export function SiteNavbar() {
           </div>
 
           <div className="border-b p-4">
-            <FullSearchTrigger hideIfDisabled className="w-full" />
+            <FullSearchTrigger hideIfDisabled className="w-full" onClick={closeMobile} />
           </div>
 
           <nav aria-label="Mobile primary navigation" className="flex-1 overflow-y-auto p-4">
             <div className="grid gap-6">
-              {siteNavigation.map((entry) => {
+              {siteNavigation.map((entry, index) => {
                 if (!isNavigationMenu(entry)) {
                   const active = isPathActive(pathname, entry.href);
                   return (
@@ -423,17 +439,23 @@ export function SiteNavbar() {
                 }
 
                 const active = menuIsActive(pathname, entry);
+                const sectionId = `${mobileTitleId}-section-${index}`;
+
                 return (
-                  <section key={entry.label} aria-labelledby={`${mobileTitleId}-${entry.label}`}>
+                  <section key={entry.label} aria-labelledby={sectionId}>
                     <div
-                      id={`${mobileTitleId}-${entry.label}`}
+                      id={sectionId}
                       className={cn(
                         'mb-2 text-xs font-semibold uppercase tracking-wider text-fd-muted-foreground',
                         active && 'text-fd-primary',
                       )}
                     >
                       {entry.href ? (
-                        <Link href={entry.href} onClick={closeMobile} className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring">
+                        <Link
+                          href={entry.href}
+                          onClick={closeMobile}
+                          className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
+                        >
                           {entry.label}
                         </Link>
                       ) : (
@@ -456,7 +478,12 @@ export function SiteNavbar() {
                             )}
                             onClick={closeMobile}
                           >
-                            <span className={cn('block text-sm font-medium', itemActive && 'text-fd-primary')}>
+                            <span
+                              className={cn(
+                                'block text-sm font-medium',
+                                itemActive && 'text-fd-primary',
+                              )}
+                            >
                               {item.label}
                             </span>
                             {item.description && (

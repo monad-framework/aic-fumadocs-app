@@ -100,8 +100,14 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
     items: [
       {
         label: 'Engineering Journal',
-        description: 'Follow the day-to-day engineering record',
+        description: 'Follow the chronological working record',
         href: '/journal',
+        match: 'exact',
+      },
+      {
+        label: 'How the Journal Works',
+        description: 'Entry format, metadata, chronology, and authority rules',
+        href: '/journal/format',
       },
     ],
   },

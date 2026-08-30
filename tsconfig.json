@@ -15,7 +15,10 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "fumadocs-ui/layouts/shared/slots/theme-switch": [
+        "./components/site-theme-switch"
+      ]
     },
     "plugins": [
       {

@@ -1,0 +1,387 @@
+---
+title: How Changelogs Work
+description: Authoring and maintenance contract for Monad release notes and published change records.
+---
+
+# How Changelogs Work
+
+This page defines the authoring contract for `/changelogs`.
+
+The changelog is optimized for release communication, compatibility awareness, and historical change boundaries. It is not intended to preserve every implementation detail.
+
+## Record types
+
+Published changelog records use one of four kinds.
+
+### `release`
+
+A normal published release with a stable version or equivalent release boundary.
+
+### `prerelease`
+
+A preview, candidate, alpha, beta, or other pre-stable release boundary.
+
+### `hotfix`
+
+A narrowly scoped corrective release made outside the normal release cadence.
+
+### `change-set`
+
+A notable externally meaningful set of changes that deserves a durable change boundary but does not correspond to a versioned software release.
+
+This is useful for public documentation architecture, platform policy changes, infrastructure surfaces, or other project-level changes that users need to understand.
+
+## Filenames
+
+Published records use:
+
+```text
+YYYY-MM-DD-NNN-short-slug.mdx
+```
+
+Example:
+
+```text
+2026-08-30-001-publication-domains.mdx
+```
+
+The date-first filename makes ordinary lexical ordering chronological. Changelog navigation reverses the remaining pages so the newest published record appears first.
+
+## Durable IDs
+
+Every published record receives:
+
+```text
+CHG-YYYY-MM-DD-NNN
+```
+
+Example:
+
+```text
+CHG-2026-08-30-001
+```
+
+The ID identifies the record independently of its filename, title, URL slug, or product version.
+
+## Frontmatter
+
+A published record uses normal page metadata plus a `changelog` object.
+
+```yaml
+---
+title: Example Release
+description: Short description of the externally meaningful change.
+changelog:
+  id: CHG-2026-08-30-002
+  date: 2026-08-30
+  kind: release
+  status: released
+  version: v0.4.0
+  channel: stable
+  breaking: false
+  migration: false
+  areas:
+    - cli
+    - execution
+  related:
+    - label: Relevant ADR
+      href: /docs/artifacts/decisions/example
+---
+```
+
+Utility pages such as the overview, Unreleased buffer, and this guide omit the `changelog` object.
+
+## Metadata semantics
+
+### `id`
+
+Required durable identity for a published record.
+
+Format:
+
+```text
+CHG-YYYY-MM-DD-NNN
+```
+
+### `date`
+
+The publication or release boundary date in `YYYY-MM-DD` form.
+
+### `updated`
+
+Optional correction date.
+
+Use this when a published historical record must be corrected or clarified after publication. Do not use it for normal prerelease editing before publication.
+
+### `kind`
+
+One of:
+
+```text
+release
+prerelease
+hotfix
+change-set
+```
+
+### `status`
+
+Published records use:
+
+```text
+released
+superseded
+```
+
+`released` means this is the operative historical record for that boundary.
+
+`superseded` means a later record explicitly replaced or invalidated the change boundary. Supersession should be explained and linked.
+
+### `version`
+
+Optional product/release version.
+
+Use it for versioned releases. A `change-set` may omit it.
+
+The version is not the record's durable identity; `id` is.
+
+### `channel`
+
+Optional publication channel:
+
+```text
+stable
+preview
+experimental
+```
+
+Use it only when channel semantics materially matter.
+
+### `breaking`
+
+Boolean indicating whether the record contains compatibility-breaking changes.
+
+If `true`, the body must contain a **Breaking changes** section explaining the impact.
+
+### `migration`
+
+Boolean indicating whether users or integrators must perform an action to adopt the change.
+
+If `true`, the body must contain a **Migration** section with concrete steps.
+
+### `areas`
+
+Short labels for affected product or project surfaces.
+
+Examples:
+
+```text
+cli
+semantic-model
+execution
+documentation-site
+api
+storage
+```
+
+Keep these useful for scanning rather than turning them into an uncontrolled taxonomy.
+
+### `related`
+
+Links to records that materially explain, authorize, verify, or contextualize the change.
+
+Good targets include:
+
+- ADRs,
+- requirements,
+- specifications,
+- verification records,
+- Journal entries,
+- release artifacts,
+- migration guides,
+- or another changelog record.
+
+Do not add links merely because they are adjacent to the work.
+
+## Body structure
+
+A published record should begin with a concise summary and then include only the categories that apply.
+
+Recommended shape:
+
+```md
+## Summary
+
+What changed and why the reader should care.
+
+## Added
+
+- ...
+
+## Changed
+
+- ...
+
+## Fixed
+
+- ...
+
+## Deprecated
+
+- ...
+
+## Removed
+
+- ...
+
+## Security
+
+- ...
+
+## Performance
+
+- ...
+
+## Breaking changes
+
+- ...
+
+## Migration
+
+1. ...
+```
+
+Omit empty categories in published records.
+
+## Category meanings
+
+### Added
+
+New capability, supported workflow, public surface, or meaningful feature.
+
+### Changed
+
+Existing externally meaningful behavior that now works differently.
+
+### Fixed
+
+A defect whose correction matters to users, integrators, operators, or readers of the public project surface.
+
+### Deprecated
+
+Behavior that still works but is scheduled for removal or replacement.
+
+Deprecations should identify the preferred alternative and, when known, the removal boundary.
+
+### Removed
+
+Behavior, support, or interfaces no longer available.
+
+### Security
+
+Changes that materially affect security posture, threat handling, authorization, data exposure, or security-relevant defaults.
+
+Avoid publishing exploit-enabling operational detail when disclosure would create unnecessary risk.
+
+### Performance
+
+Material changes to latency, throughput, resource usage, scalability, or other performance characteristics.
+
+### Breaking changes
+
+Compatibility changes that can cause existing users, integrations, automation, stored state, or workflows to fail or behave differently.
+
+Breaking changes should never be hidden inside a generic Changed list.
+
+### Migration
+
+Concrete adoption work required because of the release/change set.
+
+Migration instructions should be actionable and should distinguish required steps from optional cleanup.
+
+## The Unreleased buffer
+
+`/changelogs/unreleased` is not a release record.
+
+It is a mutable staging surface. It should contain candidate public changes, not every completed engineering task.
+
+A change enters Unreleased when all of these are true:
+
+1. it is externally meaningful,
+2. it is likely to cross a future publication boundary,
+3. enough is known to describe the effect accurately.
+
+A change leaves Unreleased when it is promoted into a published record or determined not to warrant changelog communication.
+
+## Immutability after publication
+
+Published changelog records are historical boundary records.
+
+After publication:
+
+- do not silently remove an inconvenient change,
+- do not rewrite the record to make the past look cleaner,
+- do correct factual errors when necessary,
+- set `updated` when a material correction is made,
+- explain supersession explicitly,
+- link the replacement or corrective record.
+
+The goal is an accurate history of released change, not an immutable history of typos.
+
+## Relationship to versioning
+
+The changelog can coexist with semantic versioning, calendar versioning, release trains, or another version policy.
+
+This format deliberately does not encode the project's versioning policy into the changelog schema.
+
+A future release policy should define how version numbers are assigned and how breaking changes affect them. Changelog records consume that policy rather than inventing it.
+
+## Relationship to Journal
+
+Journal captures engineering activity and evolving understanding.
+
+Changelogs capture externally meaningful results at publication boundaries.
+
+A useful relationship is:
+
+```text
+JRN entry
+  explains investigation / failure / implementation
+        ↓
+ADR / specification / verification
+  formalizes or validates the resulting change
+        ↓
+CHG record
+  communicates what changed and adoption impact
+```
+
+Not every changelog record needs a Journal link, and not every Journal entry should produce a changelog item.
+
+## Relationship to current documentation
+
+A changelog must not become the only place where a current behavior is documented.
+
+When a release changes the current system:
+
+1. update the authoritative docs,
+2. publish the changelog boundary,
+3. link between them when doing so helps the reader.
+
+The docs explain the resulting state. The changelog explains the transition.
+
+## Definition of done for a published record
+
+A changelog record is ready to publish when:
+
+- the change boundary is real,
+- the date is known,
+- identity is assigned,
+- kind and status are correct,
+- version/channel are recorded when applicable,
+- affected areas are useful and concise,
+- breaking impact is explicitly classified,
+- migration impact is explicitly classified,
+- categories describe externally meaningful changes,
+- required migration steps are actionable,
+- deeper links are included where they add material value,
+- authoritative docs reflect the resulting current state.

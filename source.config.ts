@@ -2,12 +2,34 @@ import { pageSchema } from 'fumadocs-core/source/schema';
 import { defineDocs } from 'fumadocs-mdx/config';
 import { z } from 'zod';
 
-const journalDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const relatedLinkSchema = z.object({
+  label: z.string(),
+  href: z.string(),
+});
+
+const changelogMetadataSchema = z.object({
+  id: z.string().regex(/^CHG-\d{4}-\d{2}-\d{2}-\d{3}$/),
+  date: dateSchema,
+  updated: dateSchema.optional(),
+  kind: z.enum(['release', 'prerelease', 'hotfix', 'change-set']),
+  status: z.enum(['released', 'superseded']),
+  version: z.string().optional(),
+  channel: z.enum(['stable', 'preview', 'experimental']).optional(),
+  breaking: z.boolean().default(false),
+  migration: z.boolean().default(false),
+  areas: z.array(z.string()).default([]),
+  related: z.array(relatedLinkSchema).default([]),
+});
+
+const changelogPageSchema = pageSchema.extend({
+  changelog: changelogMetadataSchema.optional(),
+});
 
 const journalMetadataSchema = z.object({
   id: z.string().regex(/^JRN-\d{4}-\d{2}-\d{2}-\d{3}$/),
-  date: journalDateSchema,
-  updated: journalDateSchema.optional(),
+  date: dateSchema,
+  updated: dateSchema.optional(),
   kind: z.enum([
     'observation',
     'investigation',
@@ -31,14 +53,7 @@ const journalMetadataSchema = z.object({
     ])
     .optional(),
   topics: z.array(z.string()).default([]),
-  related: z
-    .array(
-      z.object({
-        label: z.string(),
-        href: z.string(),
-      }),
-    )
-    .default([]),
+  related: z.array(relatedLinkSchema).default([]),
 });
 
 const journalPageSchema = pageSchema.extend({
@@ -66,6 +81,7 @@ export const { docs: articleDocs, meta: articleMeta } = defineDocs({
 export const { docs: changelogDocs, meta: changelogMeta } = defineDocs({
   dir: 'content/changelogs',
   docs: {
+    schema: changelogPageSchema,
     postprocess: {
       includeProcessedMarkdown: true,
     },

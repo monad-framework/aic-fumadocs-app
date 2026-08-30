@@ -1,6 +1,5 @@
 {
   "title": "Changelogs",
-  "pages": [
-    "index"
-  ]
+  "description": "Release notes and change records for Monad.",
+  "pages": ["index", "unreleased", "format", "z...a"]
 }

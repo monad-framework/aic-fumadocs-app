@@ -1,7 +1,121 @@
 ---
 title: Changelogs
-description: Home for changelogs
+description: Release notes and change records for meaningful changes to Monad and its public engineering surface.
 ---
 
-# Changelog Home
+# Changelogs
 
+Changelogs answer a deliberately narrow question:
+
+**What changed, when did it change, and what does a reader or user need to know because of it?**
+
+They are not the engineering diary and they are not the authoritative system description. They are concise change records organized around releases and externally meaningful change sets.
+
+## Start here
+
+- [Unreleased](/changelogs/unreleased) — changes that are planned or complete but not yet published as a release/change record.
+- [How Changelogs Work](/changelogs/format) — the record format, lifecycle, categories, naming rules, and maintenance policy.
+- Published records appear below these utility pages in newest-first order.
+
+## What belongs here
+
+A changelog record should exist when a change materially affects at least one of these:
+
+- behavior,
+- capabilities,
+- interfaces,
+- compatibility,
+- installation or migration,
+- public documentation structure,
+- supported workflows,
+- security posture,
+- operational expectations,
+- or another user-visible or integrator-visible surface.
+
+Routine internal work does not need a changelog entry merely because a commit occurred.
+
+## The lifecycle
+
+The changelog uses two different kinds of page.
+
+### Unreleased
+
+`/changelogs/unreleased` is a mutable staging area.
+
+Changes accumulate there while they are being prepared. Items may be rewritten, regrouped, removed, or moved between categories as understanding improves.
+
+### Published records
+
+A published record is a snapshot of what changed in a release, prerelease, hotfix, or notable change set.
+
+Once published, its historical claims should remain stable. If a correction is necessary, make the correction explicit rather than silently rewriting history.
+
+Published records are ordered newest first.
+
+## Changelogs are not Journal
+
+[Engineering Journal](/journal) records the work close to where it happened: investigations, failures, experiments, decisions in progress, and implementation discoveries.
+
+Changelogs deliberately compress that history.
+
+A Journal entry might explain why an architecture changed over several days. The changelog should tell a user that the architecture changed, what surface changed, whether compatibility was affected, and whether they must do anything.
+
+## Changelogs are not System documentation
+
+[System](/docs/system) answers **what is true now**.
+
+A changelog answers **what became different at a particular boundary in time**.
+
+A reader should not need to reconstruct current system behavior by reading every historical release note. Current truth belongs in `/docs`.
+
+## Changelogs are not Artifacts
+
+[Artifacts](/docs/artifacts) contains requirements, specifications, ADRs, evidence, schemas, reviews, and verification records.
+
+Those records can explain or justify a change. The changelog summarizes its externally meaningful effect and links to deeper records when useful.
+
+## Change categories
+
+Published records should use only the categories that matter for that change set:
+
+- **Added** — new capabilities or surfaces.
+- **Changed** — existing behavior or interfaces that changed.
+- **Fixed** — defects corrected.
+- **Deprecated** — supported behavior scheduled for removal.
+- **Removed** — behavior or interfaces no longer available.
+- **Security** — security-relevant changes.
+- **Performance** — material performance changes.
+- **Breaking changes** — compatibility-impacting changes that require special attention.
+- **Migration** — concrete actions users or integrators must take.
+
+Empty categories should be omitted.
+
+## Release identity
+
+Published records have a durable changelog ID:
+
+```text
+CHG-YYYY-MM-DD-NNN
+```
+
+A release-like record may also have a product version such as `v0.4.0`, but the changelog ID remains the durable record identity even when the record represents a non-versioned change set.
+
+## Relationship to the rest of the project
+
+The intended flow is:
+
+```text
+Engineering work
+      ↓
+Journal / experiments / decisions / implementation
+      ↓
+Artifacts and verified changes
+      ↓
+Unreleased change buffer
+      ↓
+Published changelog record
+      ↓
+Current docs describe the resulting system
+```
+
+The changelog is therefore a boundary record between **change as engineering activity** and **change as something users need to understand**.

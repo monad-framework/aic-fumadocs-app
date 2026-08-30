@@ -1,21 +1,28 @@
+import type { CSSProperties, ReactNode } from 'react';
 import { SidebarSeparator } from './layout.client';
-import { source } from '@/lib/source';
+import { changelogsSource } from '@/lib/source';
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout.shared';
 import { AISearch, AISearchPanel, AISearchTrigger } from '@/components/ai/search';
 import { MessageCircleIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { buttonVariants } from 'fumadocs-ui/components/ui/button';
-import type { ReactNode } from 'react';
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <DocsLayout 
-      tree={source.getPageTree()} 
+    <DocsLayout
       {...baseOptions()}
-      links={[
-
-        ]}
+      tree={changelogsSource.getPageTree()}
+      nav={{ title: 'Changelogs' }}
+      searchToggle={{ enabled: false }}
+      themeSwitch={{ enabled: false }}
+      containerProps={{
+        style: {
+          '--fd-docs-height': 'calc(100dvh - var(--site-nav-height))',
+          '--fd-docs-row-1':
+            'calc(var(--fd-banner-height, 0px) + var(--site-nav-height))',
+        } as CSSProperties,
+      }}
       sidebar={{
         enabled: true,
         components: {
@@ -38,7 +45,6 @@ export default function Layout({ children }: { children: ReactNode }) {
           Ask AI
         </AISearchTrigger>
       </AISearch>
-
 
       {children}
     </DocsLayout>

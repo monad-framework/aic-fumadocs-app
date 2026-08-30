@@ -1,0 +1,3287 @@
+---
+title: "ADR-0011 — Integration Adapter and Native-System Boundary Model"
+specification ID: "ADR-0011"
+version: "0.1.0"
+status: "Accepted"
+classification: "Architecture Decision Record"
+parent: "RB-001 — Requirements Baseline"
+description: "Monad Architecture Decision Record defining semantic integration contracts, provider-specific adapters, native-system boundaries, capability exposure, translation, compatibility, provenance, and extensibility."
+---
+
+<div className="mb-8">
+  <span className="text-sm text-fd-muted-foreground">
+    Architecture Decision Record · ADR-0011
+  </span>
+</div>
+
+# ADR-0011 — Integration Adapter and Native-System Boundary Model
+
+**Status:** Accepted
+**Decision type:** Foundational architecture
+**Requirements baseline:** RB-001
+**Traceability artifact:** RTM-001
+**Depends on:** ADR-0001 through ADR-0010
+**Primary requirement family:** REQ-INT
+**Consequential consumers:** REQ-ID, REQ-SEM, REQ-AUTH, REQ-PROV, REQ-GOV, REQ-EXEC, REQ-REC, REQ-LOCAL, REQ-REPRO, REQ-AI, REQ-EVD, REQ-VFY
+
+---
+
+## Decision
+
+Monad SHALL integrate with native engineering systems through an explicit layered architecture composed of:
+
+```text
+Monad semantic model
+        │
+        ▼
+semantic integration contract
+        │
+        ▼
+integration binding / connection
+        │
+        ▼
+provider-specific adapter
+        │
+        ▼
+native transport / interface
+        │
+        ▼
+native engineering system
+```
+
+The **semantic integration contract** SHALL define the engineering meaning Monad expects.
+
+The **provider-specific adapter** SHALL define how that semantic meaning maps to the actual concepts, identifiers, operations, errors, consistency guarantees, events, and capabilities of a particular native system.
+
+The architecture SHALL preserve the distinction:
+
+```text
+semantic contract ≠ provider adapter
+
+provider adapter ≠ native system
+
+integration ≠ ownership
+
+integration ≠ execution
+
+integration ≠ synchronization
+
+integration ≠ authority
+```
+
+Monad SHALL NOT force every native system into a lowest-common-denominator abstraction.
+
+Provider-neutral contracts SHALL model genuine semantic commonality.
+
+Provider-specific semantics that materially affect correctness, authority, reproducibility, verification, identity, or operational safety SHALL remain inspectable.
+
+The canonical conceptual model is:
+
+```text
+Monad
+  │
+  ├── semantic identity
+  ├── semantic model
+  ├── authority
+  ├── policy
+  ├── execution
+  ├── reconciliation
+  └── verification
+        │
+        ▼
+Semantic Integration Contract
+        │
+        ├── discovery
+        ├── observation
+        ├── query
+        ├── mutation capability
+        ├── event ingestion
+        ├── native identity
+        ├── translation
+        ├── error semantics
+        └── reconciliation support
+        │
+        ▼
+Integration Binding
+        │
+        ├── provider
+        ├── connection / namespace
+        ├── adapter version
+        ├── capability set
+        ├── credential reference
+        └── configuration
+        │
+        ▼
+Provider Adapter
+        │
+        ├── native mapping
+        ├── native requests
+        ├── native responses
+        ├── provider-specific extensions
+        └── compatibility behavior
+        │
+        ▼
+Native System
+```
+
+Native engineering systems SHALL remain first-class systems with their own identities, semantics, history, authority, and operational behavior.
+
+The adapter layer exists to connect Monad to those systems.
+
+It does not conceptually absorb them into Monad.
+
+---
+
+## Context
+
+Monad exists within an engineering environment that already contains mature systems such as:
+
+* Git,
+* GitHub,
+* GitLab,
+* filesystems,
+* editors,
+* CI systems,
+* build systems,
+* package managers,
+* artifact registries,
+* cloud platforms,
+* infrastructure tools,
+* databases,
+* deployment systems,
+* issue trackers,
+* observability platforms,
+* documentation systems,
+* security scanners,
+* identity providers,
+* communication systems,
+* project-management systems,
+* and AI providers.
+
+These systems already possess significant domain behavior.
+
+For example:
+
+```text
+Git
+```
+
+already understands:
+
+* commits,
+* trees,
+* branches,
+* tags,
+* object identity,
+* merge ancestry,
+* working-tree state,
+* and repository history.
+
+A source-hosting platform may already understand:
+
+* repositories,
+* pull requests,
+* reviews,
+* branch protection,
+* checks,
+* issues,
+* releases,
+* repository permissions,
+* and provider-specific workflow concepts.
+
+A deployment platform may understand:
+
+* environments,
+* deployments,
+* rollbacks,
+* revisions,
+* regions,
+* build artifacts,
+* asynchronous state transitions,
+* health status,
+* and provider-specific deployment semantics.
+
+Monad should not recreate those systems merely so that they fit inside one internal abstraction.
+
+Its architectural role is different.
+
+Monad provides a semantic, governance, provenance, execution, reconciliation, and verification layer **across** engineering systems.
+
+That requires integration.
+
+But naïve integration introduces its own architectural risks.
+
+An overly thin adapter may expose raw provider APIs directly into the semantic core, contaminating the architecture with provider-specific details.
+
+An overly abstract adapter may erase precisely the provider semantics needed for correctness.
+
+A generic interface such as:
+
+```text
+create()
+update()
+delete()
+```
+
+may appear elegant while hiding essential distinctions between:
+
+```text
+merge pull request
+close issue
+delete repository
+cancel deployment
+rollback release
+remove environment
+```
+
+Likewise, a normalized field such as:
+
+```text
+status = "complete"
+```
+
+may hide radically different provider meanings.
+
+Monad therefore needs an integration architecture that achieves provider independence **without pretending providers are semantically identical**.
+
+---
+
+## Problem
+
+Monad must interact with many native engineering systems while preserving several competing architectural requirements.
+
+It must avoid hard-coding its semantic model to one provider.
+
+It must also avoid creating abstractions so generic that important native behavior disappears.
+
+It must allow new providers to be added without modifying unrelated provider implementations.
+
+It must preserve native identity.
+
+It must expose capabilities explicitly.
+
+It must separate technical capability from authority.
+
+It must support observation and mutation.
+
+It must provide enough information for reconciliation.
+
+It must preserve provider-specific errors and consistency behavior.
+
+It must remain compatible with local-first operation.
+
+It must support reproducibility and provenance.
+
+It must tolerate provider evolution.
+
+It must permit third-party adapters without granting them implicit trust or authority.
+
+And it must allow native systems to remain directly usable outside Monad.
+
+Without an explicit integration boundary, implementation pressure tends toward one of two unhealthy extremes.
+
+### Extreme A — Provider leakage
+
+Provider concepts spread directly throughout the semantic core:
+
+```text
+GitHubPullRequest
+GitHubIssue
+GitHubRepository
+GitHubDeployment
+GitHubCheckRun
+```
+
+become foundational Monad concepts.
+
+Adding another provider then requires modifying core logic.
+
+### Extreme B — Semantic flattening
+
+Every provider is forced into generic objects such as:
+
+```text
+Resource
+Item
+Action
+Status
+Metadata
+```
+
+Native meaning disappears.
+
+Correctness becomes dependent on hidden adapter conventions.
+
+Both outcomes violate Monad's architecture.
+
+---
+
+## Decision drivers
+
+### Preserve native systems as first-class
+
+Monad must coordinate mature engineering systems rather than casually replace them.
+
+### Maintain provider independence
+
+Core Monad concepts must not require one specific provider.
+
+### Preserve semantic correctness
+
+Abstraction must not erase provider-specific semantics when they affect correctness.
+
+### Support extensibility
+
+New integrations must be addable without modifying unrelated provider implementations.
+
+### Preserve native identity
+
+Native resource identifiers must survive normalization, translation, historical retention, and provider migration.
+
+### Separate capability from authority
+
+An adapter exposing an operation cannot imply that the operation is authorized.
+
+### Support governed execution
+
+Mutation capabilities must integrate with ADR-0006 and ADR-0010 rather than creating alternative execution paths.
+
+### Support reconciliation
+
+Adapters must expose enough observation and identity semantics for ADR-0007.
+
+### Support local-first operation
+
+Provider unavailability must not invalidate locally useful Monad state or fabricate remote truth.
+
+### Support reproducibility
+
+The adapter, provider, operation, input, and native result must be available where consequential execution requires reconstruction.
+
+### Support provider evolution
+
+Provider APIs and behavior change.
+
+The architecture must detect and expose compatibility changes.
+
+### Avoid lowest-common-denominator APIs
+
+Provider neutrality must preserve meaningful differences.
+
+### Support conformance testing
+
+Semantic contracts must be testable independently from individual provider implementations.
+
+---
+
+# Detailed architecture
+
+## 1. Layered integration boundary
+
+Monad SHALL distinguish four principal integration layers:
+
+```text
+semantic contract
+integration binding
+provider adapter
+native system
+```
+
+Each layer has a different responsibility.
+
+### Semantic contract
+
+Defines:
+
+```text
+what engineering capability means to Monad
+```
+
+### Integration binding
+
+Defines:
+
+```text
+which concrete provider / connection / namespace
+currently satisfies that capability
+```
+
+### Provider adapter
+
+Defines:
+
+```text
+how the semantic contract maps to the provider
+```
+
+### Native system
+
+Defines:
+
+```text
+what actually exists and occurs in the external system
+```
+
+The boundaries SHALL remain explicit.
+
+---
+
+## 2. Semantic integration contracts
+
+A semantic integration contract SHALL represent engineering meaning independently from any one provider implementation.
+
+Contracts SHOULD be capability-oriented.
+
+Examples may include:
+
+```text
+RepositoryObserver
+RepositoryMutator
+
+IssueReader
+IssueWriter
+
+PullRequestReader
+PullRequestMerger
+
+BuildObserver
+BuildTrigger
+
+DeploymentObserver
+DeploymentExecutor
+
+ArtifactReader
+ArtifactPublisher
+
+DocumentationReader
+DocumentationPublisher
+
+ModelGenerator
+EmbeddingProvider
+```
+
+The exact contract catalog belongs in detailed specification.
+
+The architectural requirement is that contracts describe **meaningful engineering capability**, not arbitrary provider endpoint grouping.
+
+---
+
+## 3. Contract contents
+
+A semantic integration contract MAY define:
+
+```text
+operations
+input semantics
+output semantics
+native identity requirements
+capability requirements
+permission expectations
+error categories
+consistency expectations
+precondition support
+side-effect semantics
+idempotency semantics
+event behavior
+pagination behavior
+rate-limit behavior
+reconciliation hooks
+provenance requirements
+compatibility constraints
+```
+
+Not every contract requires every dimension.
+
+However, consequential operations SHALL expose enough semantics for governed execution and verification.
+
+---
+
+## 4. Contract granularity
+
+Integration contracts SHOULD be narrower than the provider's full API.
+
+A provider may expose hundreds or thousands of endpoints.
+
+Monad SHOULD NOT automatically import all of them.
+
+Instead:
+
+```text
+provider API
+     │
+     ├── capability A
+     ├── capability B
+     ├── capability C
+     ├── capability D
+     ├── capability E
+     └── ...
+             │
+             ▼
+      required subset
+             │
+             ▼
+ semantic integration contract
+```
+
+This narrows:
+
+* capability exposure,
+* credential scope,
+* implementation complexity,
+* security surface,
+* testing burden,
+* and architectural coupling.
+
+---
+
+## 5. Integration before reimplementation
+
+Where a mature native system already owns a capability effectively, Monad SHOULD integrate with it before creating a competing implementation.
+
+Examples include:
+
+```text
+version history
+    → Git
+
+issue management
+    → GitHub / GitLab / Jira / native tracker
+
+package publication
+    → package registry
+
+cloud provisioning
+    → provider-native APIs / established tooling
+
+deployment
+    → deployment platform
+
+model inference
+    → AI provider
+```
+
+Reimplementation MAY be justified where integration cannot satisfy requirements.
+
+Potential justification includes:
+
+* unavailable required capability,
+* incompatible semantics,
+* unacceptable security constraints,
+* unacceptable reliability,
+* local-first requirements,
+* portability requirements,
+* reproducibility requirements,
+* unavailable automation interfaces,
+* unacceptable provider lock-in,
+* excessive operational complexity,
+* or demonstrated architectural incompatibility.
+
+Convenience alone SHOULD NOT silently convert native capability into Monad-owned capability.
+
+---
+
+## 6. Provider-specific adapters
+
+Each concrete provider implementation SHALL be represented through a provider-specific adapter where provider behavior differs materially.
+
+Examples include:
+
+```text
+GitHub adapter
+GitLab adapter
+local Git adapter
+AWS adapter
+Azure adapter
+Vercel adapter
+npm registry adapter
+OCI registry adapter
+OpenAI adapter
+```
+
+The adapter SHALL translate between:
+
+```text
+Monad semantic contract
+        ⇅
+provider-native concepts
+```
+
+The adapter SHALL NOT define Monad's semantic authority model.
+
+The adapter SHALL NOT become the canonical semantic model merely because it performs translation.
+
+---
+
+## 7. Native transport remains implementation detail where possible
+
+A provider adapter MAY use:
+
+```text
+REST
+GraphQL
+RPC
+SSH
+local process execution
+CLI invocation
+filesystem access
+database protocol
+SDK
+webhook
+event stream
+```
+
+The transport mechanism SHOULD remain encapsulated where changing it does not change semantic behavior.
+
+For example:
+
+```text
+semantic operation:
+    observe repository revision
+```
+
+might be implemented through:
+
+```text
+local Git CLI
+libgit implementation
+remote API
+```
+
+If the resulting semantics are equivalent for the contract, transport is an adapter implementation concern.
+
+If transport changes correctness, identity, consistency, latency, authority, or observable behavior, that distinction SHALL remain visible.
+
+---
+
+## 8. Provider neutrality
+
+Provider neutrality SHALL mean:
+
+> Monad's semantic architecture does not require one provider to define concepts that are genuinely provider-independent.
+
+It SHALL NOT mean:
+
+> all providers must look identical.
+
+Core invariant:
+
+```text
+Provider-neutral ≠ Lowest common denominator
+```
+
+A generic contract SHOULD represent real shared semantics.
+
+Provider-specific behavior MAY remain available through explicit extension capability.
+
+---
+
+## 9. Provider-specific extensions
+
+Adapters MAY expose provider-specific capabilities that have no meaningful cross-provider equivalent.
+
+For example:
+
+```text
+provider-neutral:
+    merge change request
+
+provider-specific:
+    GitHub merge queue
+    GitLab merge train
+```
+
+Monad SHALL NOT invent an artificial equivalence merely to make both features fit one generic operation.
+
+Provider-specific capabilities SHOULD:
+
+* remain namespaced or otherwise clearly attributable,
+* declare their provider dependency,
+* retain native semantics,
+* avoid contaminating unrelated provider contracts,
+* and remain governed by normal authority and execution rules.
+
+---
+
+## 10. Native semantics preservation
+
+Normalization SHALL NOT discard provider-specific information that materially affects interpretation.
+
+Examples include:
+
+```text
+revision identity
+branch-protection state
+merge method
+deployment environment
+event ordering guarantee
+consistency guarantee
+pagination semantics
+rate-limit state
+native lifecycle status
+provider-specific failure mode
+resource version
+etag / revision token
+```
+
+Normalized state MAY coexist with a provider-specific extension representation.
+
+Conceptually:
+
+```text
+Normalized semantic view
+        │
+        ├── common meaning
+        │
+        └── native extension
+                │
+                ├── provider fields
+                ├── native state
+                └── native references
+```
+
+---
+
+## 11. Native identity preservation
+
+Every consequential native resource SHOULD preserve deterministic native identity where available.
+
+A native reference MAY require more than a local numeric ID.
+
+For example:
+
+```text
+provider
+connection
+organization
+repository
+resource type
+native identifier
+```
+
+may collectively identify a native resource.
+
+Monad SHALL NOT assume:
+
+```text
+native_id = 42
+```
+
+is globally meaningful.
+
+Native identity resolution SHALL consider the namespace in which the identifier exists.
+
+---
+
+## 12. Semantic identity remains independent
+
+A native reference SHALL NOT automatically become semantic identity.
+
+One semantic Subject MAY map to:
+
+* one native resource,
+* multiple native resources,
+* historical native resources,
+* replacement native resources,
+* or no current native resource.
+
+Likewise, a native resource MAY change representation without requiring semantic identity replacement.
+
+ADR-0011 therefore preserves:
+
+```text
+Semantic identity ≠ Native identity
+```
+
+The adapter supplies native identity.
+
+Monad's identity architecture determines semantic binding.
+
+---
+
+## 13. Integration bindings
+
+Monad SHALL distinguish an adapter implementation from a configured integration binding.
+
+For example:
+
+```text
+adapter:
+    github
+
+connections:
+    github-personal
+    github-monad-org
+    github-enterprise
+```
+
+One adapter may serve multiple provider connections.
+
+A binding SHOULD be capable of identifying:
+
+```text
+provider
+adapter
+adapter version
+connection identity
+namespace
+configuration
+credential reference
+declared capabilities
+observed capabilities
+compatibility state
+health state
+```
+
+This prevents "GitHub" from becoming an ambiguous target when several GitHub environments exist.
+
+---
+
+## 14. Multiple providers
+
+Monad SHOULD support multiple providers satisfying similar semantic contracts.
+
+For example:
+
+```text
+IssueReader
+    ├── GitHub
+    ├── GitLab
+    └── Jira
+```
+
+or:
+
+```text
+ModelGenerator
+    ├── provider A
+    ├── provider B
+    └── local model
+```
+
+Selection among providers MAY depend upon:
+
+* project configuration,
+* target identity,
+* policy,
+* locality,
+* data sensitivity,
+* capability,
+* cost,
+* availability,
+* user choice,
+* or other governed criteria.
+
+Provider selection SHALL NOT silently change semantic identity.
+
+---
+
+## 15. Capability model
+
+Integration capabilities SHALL be explicit.
+
+A configured integration MAY expose capabilities such as:
+
+```yaml
+repository:
+  observe: true
+  create: false
+  mutate: false
+
+issues:
+  read: true
+  create: true
+  update: true
+  close: true
+
+pull_requests:
+  read: true
+  merge: false
+```
+
+The concrete schema belongs in specification.
+
+The architectural requirement is that capability be inspectable rather than inferred from implementation existence.
+
+---
+
+## 16. Capability layers
+
+Monad SHALL preserve the distinction among:
+
+```text
+provider capability
+adapter capability
+credential permission
+actor capability
+authority
+policy authorization
+```
+
+Conceptually:
+
+```text
+Provider supports operation
+        │
+        ▼
+Adapter implements operation
+        │
+        ▼
+Credential permits operation
+        │
+        ▼
+Actor has relevant capability
+        │
+        ▼
+Authority permits operation
+        │
+        ▼
+Policy permits operation
+        │
+        ▼
+Authorized operation
+```
+
+Failure at any required stage prevents authorized execution.
+
+Core invariants:
+
+```text
+Provider capability ≠ Adapter capability
+
+Adapter capability ≠ Credential permission
+
+Credential permission ≠ Authority
+
+Adapter availability ≠ Authorization
+```
+
+---
+
+## 17. Unsupported capabilities
+
+Unsupported capability SHALL fail explicitly.
+
+An adapter SHALL NOT silently emulate a materially different operation merely to satisfy a contract.
+
+For example, if a provider does not support atomic merge semantics required by a contract, the adapter SHOULD report:
+
+```text
+unsupported capability
+```
+
+rather than silently approximating behavior with a weaker sequence unless the contract explicitly permits such degradation.
+
+---
+
+## 18. Dynamic capability discovery
+
+Capabilities MAY change because of:
+
+* provider configuration,
+* account plan,
+* repository settings,
+* credential scope,
+* feature enablement,
+* API version,
+* provider rollout,
+* or environment.
+
+Where materially dynamic, adapters SHOULD permit capability re-observation.
+
+Cached capability state SHOULD retain observation time or equivalent freshness information.
+
+---
+
+## 19. Discovery
+
+Adapters MAY support discovery of native resources.
+
+Discovery SHALL preserve uncertainty and partial visibility.
+
+If credentials cannot enumerate some resources, Monad SHALL NOT conclude:
+
+```text
+resource does not exist
+```
+
+merely because:
+
+```text
+resource was not returned
+```
+
+Relevant distinctions include:
+
+```text
+not found
+
+not visible
+
+not authorized
+
+not enumerated
+
+provider unavailable
+
+discovery incomplete
+
+unknown
+```
+
+Discovery MAY be scoped to reduce cost, latency, provider load, and unnecessary data exposure.
+
+---
+
+## 20. Observation
+
+Adapters SHOULD expose native state in an observable form.
+
+Observations SHOULD retain:
+
+```text
+native resource identity
+provider
+connection
+observation time
+native revision where available
+relevant native state
+adapter identity
+freshness information
+```
+
+Observation SHALL remain distinct from semantic interpretation.
+
+Conceptually:
+
+```text
+Native state
+    │
+    ▼
+Adapter observation
+    │
+    ▼
+Translation
+    │
+    ▼
+Monad Claim / representation
+```
+
+The adapter observes.
+
+Monad interprets.
+
+---
+
+## 21. Query versus observation
+
+The architecture MAY distinguish:
+
+```text
+query
+```
+
+from:
+
+```text
+authoritative observation
+```
+
+A query may return:
+
+* cached results,
+* indexed results,
+* partial search output,
+* projections,
+* approximations,
+* or provider-filtered results.
+
+Where freshness or correctness depends on direct native state, the contract SHOULD make stronger observation semantics available where practical.
+
+---
+
+## 22. Mutation
+
+Adapters MAY expose mutation capability.
+
+Mutation SHALL occur through the governed execution architecture established by ADR-0006 and the authority model established by prior ADRs.
+
+The integration architecture SHALL NOT create an alternate privileged path such as:
+
+```text
+adapter.write()
+```
+
+that bypasses:
+
+```text
+intent
+    ↓
+authority
+    ↓
+policy
+    ↓
+preconditions
+    ↓
+governed operation
+    ↓
+execution
+```
+
+Core invariant:
+
+```text
+Integration capability ≠ Execution authority
+```
+
+---
+
+## 23. Mutation preconditions
+
+Where supported by the provider, adapters SHOULD expose native concurrency or revision mechanisms.
+
+Examples include:
+
+```text
+ETag
+revision
+resource version
+commit SHA
+generation number
+lease
+conditional request
+optimistic concurrency token
+```
+
+Consequential mutations SHOULD use those mechanisms where they materially reduce stale-write risk.
+
+A provider-specific precondition MAY be surfaced through the semantic contract if it affects correctness.
+
+---
+
+## 24. Native operation results
+
+Adapters SHALL preserve enough native operation result information to distinguish:
+
+```text
+request accepted
+operation started
+operation completed
+native effect observed
+operation failed
+outcome unknown
+```
+
+Provider-native operation identifiers SHOULD be preserved where available.
+
+A native acknowledgement SHALL NOT be rewritten into semantic success unless the contract actually guarantees that meaning.
+
+---
+
+## 25. Asynchronous operations
+
+Adapters SHALL support asynchronous native operations where the provider uses them.
+
+A mutation may return:
+
+```text
+operation_id
+state = accepted
+```
+
+instead of a final outcome.
+
+The adapter SHOULD expose sufficient information for the execution architecture to:
+
+* poll,
+* observe,
+* resume,
+* cancel where supported,
+* time out,
+* and reconcile.
+
+The adapter SHALL NOT collapse asynchronous acceptance into completion.
+
+---
+
+## 26. Error model
+
+Semantic contracts SHOULD define normalized error categories sufficient for cross-provider reasoning.
+
+Potential categories include:
+
+```text
+authentication failure
+authorization denial
+resource missing
+resource ambiguous
+validation failure
+conflict
+stale revision
+rate limited
+unsupported capability
+provider unavailable
+timeout
+transport failure
+partial failure
+unknown outcome
+provider error
+```
+
+Provider-native error information SHOULD remain inspectable where useful.
+
+Conceptually:
+
+```text
+provider error
+      │
+      ├── normalized category
+      └── native details
+```
+
+The normalized category supports Monad behavior.
+
+Native details preserve diagnosis and provider semantics.
+
+---
+
+## 27. Error normalization must remain loss-aware
+
+Adapters SHALL NOT pretend all errors are semantically equivalent.
+
+A translation MAY therefore preserve:
+
+```text
+normalized_error = "conflict"
+
+native_error:
+    code: GH_409_BRANCH_CHANGED
+    message: ...
+```
+
+Lossy error normalization SHOULD remain identifiable.
+
+---
+
+## 28. Translation
+
+Translation rules SHOULD be explicit enough to test.
+
+Translations may be:
+
+```text
+lossless
+lossy
+partial
+context-dependent
+provider-specific
+unsupported
+```
+
+The architecture SHALL NOT assume:
+
+```text
+native → normalized → native
+```
+
+is lossless.
+
+Core invariant:
+
+```text
+Round trip ≠ Identity automatically
+```
+
+---
+
+## 29. Normalization
+
+Normalization SHOULD represent semantic commonality rather than superficial field similarity.
+
+For example, two providers both exposing:
+
+```text
+status
+```
+
+does not establish that those status fields share the same semantics.
+
+Normalization SHALL be based on engineering meaning.
+
+Provider-specific extension data MAY remain alongside normalized state.
+
+---
+
+## 30. Native events
+
+Adapters MAY consume native events such as:
+
+```text
+webhooks
+event streams
+filesystem notifications
+repository events
+provider callbacks
+message subscriptions
+```
+
+An event SHALL be treated as an observation source, not automatically as complete current truth.
+
+Events may be:
+
+* delayed,
+* duplicated,
+* reordered,
+* lost,
+* partially delivered,
+* redelivered,
+* or provider-version dependent.
+
+The integration contract SHOULD preserve event identity and native metadata where available.
+
+---
+
+## 31. Polling
+
+Adapters MAY use polling when native event mechanisms are unavailable or insufficient.
+
+Polling MAY be used to:
+
+* obtain authoritative refresh,
+* repair event loss,
+* discover missed state,
+* verify asynchronous completion,
+* or satisfy freshness requirements.
+
+This ADR does not mandate one global polling strategy.
+
+Polling cadence belongs to integration and observation specification according to consequence, provider limits, cost, and freshness requirements.
+
+---
+
+## 32. Hybrid observation
+
+Adapters MAY combine:
+
+```text
+events
++
+incremental polling
++
+periodic authoritative refresh
+```
+
+where that combination provides better reliability.
+
+The exact event/polling strategy is intentionally not fixed by this ADR.
+
+The architectural requirement is that adapters expose sufficient semantics for observation freshness and provenance.
+
+---
+
+## 33. Reconciliation support
+
+Mutable integrations SHOULD provide enough capability for ADR-0007 reconciliation.
+
+An adapter used for reconciliation SHOULD permit Monad to determine, where available:
+
+```text
+current native identity
+current native revision
+current native state
+observation time
+supported mutation capability
+native precondition support
+native operation outcome
+```
+
+The adapter itself SHALL NOT determine semantic authority merely because it observes native state.
+
+Reconciliation authority remains governed by ADR-0004 and ADR-0007.
+
+---
+
+## 34. Adapter output and authority
+
+Normalized data produced by an adapter SHALL NOT become authoritative merely because the adapter produced it.
+
+Authority depends upon:
+
+* the property,
+* source,
+* native system,
+* semantic binding,
+* governing policy,
+* and applicable authority model.
+
+Core invariant:
+
+```text
+Adapter output ≠ Semantic authority automatically
+```
+
+For example:
+
+```text
+GitHub adapter says branch exists
+```
+
+may provide authoritative native Evidence that the branch exists in GitHub.
+
+It does not imply that GitHub is authoritative for:
+
+```text
+the project's business requirement
+```
+
+or:
+
+```text
+whether the branch should exist
+```
+
+---
+
+## 35. Direct native use remains valid
+
+Humans and external automation MAY continue using native systems directly.
+
+Monad SHALL NOT require all native-system mutations to flow through Monad unless an explicit governance policy for a specific environment requires that restriction.
+
+Therefore:
+
+```text
+Native system
+    ▲     │
+    │     ▼
+Human   Monad
+```
+
+is a valid architecture.
+
+Direct native changes become reconciliation inputs rather than architectural violations by default.
+
+---
+
+## 36. Integration does not imply ownership
+
+Connecting Monad to a system SHALL NOT imply that Monad owns:
+
+* every native resource,
+* every native property,
+* every mutation,
+* every lifecycle transition,
+* or every source of authority.
+
+Core invariant:
+
+```text
+Integration ≠ Ownership
+```
+
+Ownership or governance relationships SHALL be modeled separately.
+
+---
+
+## 37. Managed versus observed systems
+
+An integration MAY be used in several relationships, including:
+
+```text
+managed
+observed
+referenced
+imported
+external
+```
+
+This ADR establishes that those relationships must remain distinguishable where consequential.
+
+It does not require one universal enumeration.
+
+A later specification or ADR MAY formalize the complete managed/reference relationship model.
+
+The adapter itself SHALL NOT infer management authority merely from connectivity.
+
+---
+
+## 38. Local-first behavior
+
+Provider unavailability SHALL NOT invalidate locally useful Monad state.
+
+When offline, Monad MAY continue to use:
+
+* locally authoritative state,
+* prior observations,
+* historical native references,
+* cached provider data,
+* pending intent,
+* and local semantic relationships.
+
+However, the integration layer SHALL NOT represent inaccessible remote state as freshly observed.
+
+Core invariant:
+
+```text
+Provider unavailable ≠ Resource absent
+```
+
+and:
+
+```text
+Cached state ≠ Fresh observation
+```
+
+ADR-0008 governs reconnection and revalidation.
+
+---
+
+## 39. Deferred execution
+
+Offline or unavailable integration MAY cause a desired native mutation to become deferred intent.
+
+The adapter SHALL NOT represent the intended native effect as completed.
+
+When connectivity returns, deferred operations SHALL pass through the ordinary:
+
+```text
+re-observation
+revalidation
+reconciliation
+authority evaluation
+execution
+verification
+```
+
+pipeline.
+
+---
+
+## 40. Provider drift
+
+Native providers change.
+
+Examples include:
+
+* API removal,
+* field renaming,
+* authentication changes,
+* permission-model changes,
+* webhook format changes,
+* pagination changes,
+* consistency changes,
+* rate-limit changes,
+* status-model changes,
+* feature deprecation,
+* and behavior changes.
+
+Adapters SHOULD detect material provider drift where practical.
+
+Compatibility failures SHALL be explicit.
+
+---
+
+## 41. Adapter compatibility state
+
+Adapters SHOULD expose compatibility state sufficiently to distinguish:
+
+```text
+compatible
+
+degraded
+
+unsupported
+
+temporarily unavailable
+
+misconfigured
+
+authentication failed
+
+provider changed
+```
+
+A transport-level success SHALL NOT automatically imply semantic compatibility.
+
+Core invariant:
+
+```text
+Healthy transport ≠ Semantically correct integration
+```
+
+---
+
+## 42. Adapter versioning
+
+Adapter implementations SHOULD be independently versionable where practical.
+
+Adapter version changes MAY affect:
+
+* translation,
+* capability support,
+* provider compatibility,
+* error mapping,
+* event interpretation,
+* native operation behavior,
+* or reproducibility.
+
+Consequential execution provenance SHOULD therefore identify the adapter implementation and version where material.
+
+---
+
+## 43. Adapter upgrades
+
+Adapter upgrades SHALL preserve semantic identity where the underlying native resource remains the same.
+
+An implementation change from:
+
+```text
+adapter v1
+```
+
+to:
+
+```text
+adapter v2
+```
+
+SHALL NOT itself create a new semantic Subject or native resource identity.
+
+Historical native references SHOULD remain resolvable where practical.
+
+---
+
+## 44. Deprecated adapters
+
+A deprecated adapter SHALL remain distinguishable from an unavailable provider.
+
+These are different states:
+
+```text
+adapter deprecated
+
+adapter missing
+
+provider unavailable
+
+credential invalid
+
+resource deleted
+```
+
+The architecture SHALL preserve those distinctions.
+
+---
+
+## 45. Extensibility
+
+New integrations SHOULD be addable without modifying unrelated provider implementations.
+
+Conceptually:
+
+```text
+Semantic Contract
+      │
+      ├── Adapter A
+      ├── Adapter B
+      ├── Adapter C
+      └── Adapter D
+```
+
+Adding Adapter D SHOULD NOT require rewriting A, B, or C.
+
+Core semantic code SHOULD depend upon semantic contracts rather than concrete provider classes where provider neutrality applies.
+
+---
+
+## 46. Built-in versus third-party adapters
+
+Monad MAY support both:
+
+```text
+built-in adapters
+third-party adapters
+```
+
+The architecture SHALL preserve their provenance and trust status.
+
+Third-party adapters SHALL NOT become trusted merely because they implement a valid contract.
+
+Adapter origin MAY affect:
+
+* installation policy,
+* capability exposure,
+* credential access,
+* execution isolation,
+* update policy,
+* signing requirements,
+* or approval.
+
+The exact plugin-loading and code-isolation mechanism is intentionally deferred to detailed architecture.
+
+---
+
+## 47. Adapter trust
+
+Adapter trust SHALL be explicit where adapter code can:
+
+* access credentials,
+* read sensitive data,
+* mutate native systems,
+* execute subprocesses,
+* access local files,
+* communicate externally,
+* or influence consequential execution.
+
+Core invariant:
+
+```text
+Installed ≠ Trusted
+
+Trusted ≠ Authorized for every capability
+```
+
+An installed adapter MAY remain capability-restricted.
+
+---
+
+## 48. Plugin capability declaration
+
+Extensible adapters SHOULD declare capabilities before use.
+
+Installation SHALL NOT implicitly enable every implemented capability.
+
+A plugin implementing:
+
+```text
+repository.read
+repository.delete
+deployment.execute
+```
+
+may be configured or governed to expose only:
+
+```text
+repository.read
+```
+
+Capability declaration therefore remains distinct from capability authorization.
+
+---
+
+## 49. Credential references
+
+Adapters SHOULD receive credential references or governed credential access rather than requiring secret material to become part of semantic state.
+
+The architecture SHOULD prefer:
+
+```text
+credential_ref = "github-monad-org"
+```
+
+over:
+
+```text
+token = "..."
+```
+
+inside semantic artifacts, provenance records, AI context, or generated configuration.
+
+Credential storage mechanism belongs to security and implementation specification.
+
+---
+
+## 50. Least privilege
+
+Integration bindings SHOULD operate with the least provider permission sufficient for their intended capability.
+
+Where supported:
+
+```text
+read
+```
+
+and:
+
+```text
+write
+```
+
+permissions SHOULD remain separable.
+
+A read-only integration SHALL NOT require write credentials merely because the adapter implementation supports write capabilities.
+
+---
+
+## 51. Provenance
+
+Consequential integration activity SHOULD preserve sufficient provenance to answer:
+
+```text
+which semantic contract?
+which provider?
+which connection?
+which adapter?
+which adapter version?
+which capability?
+which native operation?
+which native resource?
+which Actor?
+which authority?
+which credentials or credential reference?
+which revision?
+when?
+what request?
+what native result?
+what observed effect?
+```
+
+Secret values SHALL NOT be retained merely to satisfy provenance.
+
+---
+
+## 52. Requested versus resolved origin
+
+The architecture SHOULD distinguish requested origin from resolved origin when they differ.
+
+For example:
+
+```text
+requested:
+    "main repository"
+
+resolved:
+    provider = GitHub
+    organization = monad-framework
+    repository_id = 123456
+```
+
+This distinction is especially important for:
+
+* AI requests,
+* aliases,
+* default connections,
+* multi-provider environments,
+* and historical reconstruction.
+
+---
+
+## 53. Evidence
+
+Native integration outputs MAY serve as Evidence.
+
+An adapter SHOULD retain enough provenance for Evidence consumers to determine:
+
+* which native system produced the underlying information,
+* how it was observed,
+* when it was observed,
+* which resource it described,
+* which adapter translated it,
+* and whether the translation was lossy.
+
+Adapter-produced Evidence SHALL remain subject to ordinary Evidence and Verification semantics.
+
+---
+
+## 54. Reproducibility
+
+Consequential integration execution SHALL integrate with ADR-0009.
+
+Where material, reproduction context SHOULD retain:
+
+```text
+provider
+provider endpoint or environment identity
+adapter
+adapter version
+semantic operation
+native operation
+inputs
+native resource identity
+native revision
+configuration
+external observations
+result
+timestamps
+```
+
+Exact reproduction MAY remain impossible when provider state has changed.
+
+The purpose is reconstructability and explainability.
+
+---
+
+## 55. AI-provider integrations
+
+AI providers SHALL use the same architectural integration principles.
+
+An AI provider adapter MAY expose semantic capabilities such as:
+
+```text
+text generation
+structured generation
+reasoning
+tool calling
+embeddings
+reranking
+image generation
+```
+
+Provider-neutral AI contracts SHALL NOT imply identical model behavior.
+
+Provider-specific:
+
+* model identity,
+* context limits,
+* tool semantics,
+* streaming behavior,
+* structured-output guarantees,
+* reasoning behavior,
+* and safety constraints
+
+MAY remain visible where material.
+
+AI provider integration SHALL NOT itself grant operational authority.
+
+ADR-0010 remains authoritative for consequential AI participation.
+
+---
+
+## 56. Integration health
+
+Integration health SHOULD distinguish technical connectivity from semantic health.
+
+Potential health dimensions include:
+
+```text
+transport
+authentication
+authorization
+provider availability
+rate-limit state
+adapter compatibility
+last successful observation
+last reconciliation
+event-delivery health
+capability freshness
+```
+
+A single Boolean:
+
+```yaml
+healthy: true
+```
+
+MAY be insufficient for consequential integrations.
+
+---
+
+## 57. Telemetry
+
+Integration telemetry MAY record:
+
+```text
+provider
+adapter
+operation
+duration
+outcome
+retry count
+rate-limit state
+error category
+```
+
+Telemetry SHALL NOT expose secret material.
+
+Telemetry SHALL NOT replace provenance where durable reconstruction is required.
+
+---
+
+## 58. Contract conformance testing
+
+Semantic integration contracts SHOULD support reusable adapter conformance tests.
+
+For example, every adapter implementing:
+
+```text
+IssueReader
+```
+
+SHOULD satisfy the semantic obligations of that contract.
+
+Contract tests MAY verify:
+
+* output semantics,
+* missing-resource behavior,
+* identity preservation,
+* capability reporting,
+* normalized errors,
+* pagination semantics,
+* freshness behavior,
+* and provenance requirements.
+
+---
+
+## 59. Provider-specific testing
+
+Passing generic contract tests SHALL NOT replace provider-specific testing.
+
+Provider-specific tests remain necessary for:
+
+* actual API behavior,
+* provider edge cases,
+* native error mappings,
+* permission behavior,
+* event delivery,
+* rate limits,
+* concurrency,
+* consistency,
+* and provider drift.
+
+Core invariant:
+
+```text
+Contract conformance ≠ Provider correctness automatically
+```
+
+---
+
+## 60. Integration fixtures
+
+Adapters SHOULD maintain representative native fixtures where licensing, security, and privacy permit.
+
+Fixtures MAY include:
+
+* provider responses,
+* event payloads,
+* error payloads,
+* pagination cases,
+* missing fields,
+* legacy formats,
+* malformed responses,
+* and compatibility versions.
+
+Fixtures SHOULD preserve enough native detail to detect accidental semantic loss during translation changes.
+
+---
+
+## 61. Destructive integration tests
+
+Tests that mutate or delete native resources SHOULD operate only against explicitly designated safe targets.
+
+A test adapter SHALL NOT infer that production resources are acceptable test fixtures.
+
+Core invariant:
+
+```text
+Test capability ≠ Permission to mutate arbitrary native state
+```
+
+---
+
+## 62. Adapter failure isolation
+
+Failure of one provider adapter SHOULD NOT unnecessarily invalidate unrelated integrations.
+
+For example:
+
+```text
+GitHub unavailable
+```
+
+SHOULD NOT imply:
+
+```text
+local Git unavailable
+```
+
+or:
+
+```text
+deployment provider unavailable
+```
+
+unless an actual dependency exists.
+
+Integration health SHOULD therefore be scoped rather than treated as one global Boolean.
+
+---
+
+## 63. Historical integration state
+
+Removing an integration SHALL NOT imply deletion of historical native identity or provenance.
+
+Monad MAY retain:
+
+* historical native references,
+* prior observations,
+* adapter identity,
+* execution provenance,
+* Evidence,
+* and reconciliation history
+
+after the connection is removed.
+
+Core invariant:
+
+```text
+Integration removed ≠ Historical resource deleted
+```
+
+---
+
+## 64. Integration replacement
+
+Replacing one provider with another SHALL NOT automatically replace semantic identity.
+
+For example:
+
+```text
+GitHub repository
+      │
+      │ migrated-to
+      ▼
+GitLab repository
+```
+
+may represent:
+
+```text
+same semantic project
+different native resource
+```
+
+The identity architecture determines continuity.
+
+The integration architecture preserves the native references necessary to establish that relationship.
+
+---
+
+## 65. Integration architecture and reconciliation
+
+ADR-0011 and ADR-0007 have distinct responsibilities.
+
+ADR-0011 answers:
+
+> How does Monad observe and operate against native systems through provider-specific boundaries?
+
+ADR-0007 answers:
+
+> What does Monad do when modeled and native states disagree?
+
+Therefore:
+
+```text
+integration supplies observations and capabilities
+                  │
+                  ▼
+reconciliation evaluates divergence
+```
+
+The adapter SHALL NOT silently resolve semantic conflicts that belong to reconciliation.
+
+---
+
+## 66. Integration architecture and execution
+
+ADR-0011 and ADR-0006 also remain distinct.
+
+ADR-0011 answers:
+
+> How is a semantic operation translated to and from a provider?
+
+ADR-0006 answers:
+
+> How is consequential execution governed, attempted, observed, and verified?
+
+Therefore:
+
+```text
+governed operation
+      │
+      ▼
+execution architecture
+      │
+      ▼
+integration contract
+      │
+      ▼
+provider adapter
+      │
+      ▼
+native system
+```
+
+An adapter is a participant in execution.
+
+It is not the execution architecture itself.
+
+---
+
+## 67. Integration architecture and authority
+
+Adapters provide information relevant to authority evaluation.
+
+They do not define authority merely through technical access.
+
+For example:
+
+```text
+provider supports repository deletion
++
+credential permits repository deletion
+```
+
+still does not establish:
+
+```text
+Actor is authorized to delete repository
+```
+
+Authority remains governed by ADR-0004 and related policy.
+
+---
+
+## 68. Integration architecture and AI
+
+AI MAY reason over adapter capabilities and native observations.
+
+AI MAY request operations through semantic integration contracts.
+
+AI SHALL NOT directly convert tool availability into authority.
+
+ADR-0010 therefore overlays ADR-0011:
+
+```text
+AI proposal
+      │
+      ▼
+authority + policy
+      │
+      ▼
+governed operation
+      │
+      ▼
+semantic integration contract
+      │
+      ▼
+provider adapter
+      │
+      ▼
+native system
+```
+
+---
+
+## 69. Explicit non-decisions
+
+ADR-0011 intentionally does **not** decide:
+
+* the programming language of adapter implementations,
+* the exact plugin ABI,
+* the dynamic-loading mechanism,
+* whether adapters run in-process or out-of-process,
+* the secret-storage engine,
+* one universal event architecture,
+* one universal polling interval,
+* one universal retry policy,
+* one universal provider-selection algorithm,
+* one universal integration configuration format,
+* or one universal managed/reference taxonomy.
+
+Those decisions belong in later specifications or ADRs where architectural consequence justifies them.
+
+---
+
+# Alternatives considered
+
+## Alternative 1 — Direct provider APIs throughout Monad
+
+Core components would call provider APIs directly.
+
+### Rejected because
+
+Provider details would spread throughout the architecture.
+
+Provider replacement would require widespread changes.
+
+Testing would become provider-specific.
+
+Semantic concepts would gradually become defined by whichever provider was integrated first.
+
+---
+
+## Alternative 2 — One universal generic resource API
+
+All providers would expose operations such as:
+
+```text
+getResource
+createResource
+updateResource
+deleteResource
+```
+
+### Rejected because
+
+The abstraction erases meaningful engineering semantics.
+
+A repository, issue, deployment, package, model invocation, and cloud resource are not merely interchangeable "resources."
+
+Correctness would migrate into undocumented adapter conventions.
+
+---
+
+## Alternative 3 — Lowest-common-denominator contracts
+
+Only operations supported identically by every provider would appear in contracts.
+
+### Rejected because
+
+The resulting architecture would discard useful provider-specific capability and fail to preserve native semantics.
+
+Provider neutrality does not require feature impoverishment.
+
+---
+
+## Alternative 4 — Model every provider concept directly in the semantic core
+
+The semantic model would contain provider-specific domain objects for every native concept.
+
+### Rejected because
+
+Core architecture would become coupled to provider evolution.
+
+Adding integrations would require modifying unrelated semantic code.
+
+Native API design would accidentally determine Monad's domain model.
+
+---
+
+## Alternative 5 — Reimplement mature native systems inside Monad
+
+Monad would replace version control, issue tracking, deployment, registries, and similar systems with native implementations.
+
+### Rejected because
+
+It dramatically expands scope, duplicates mature ecosystems, increases maintenance burden, and weakens native-system interoperability.
+
+Replacement remains possible only where explicit engineering justification demonstrates integration cannot satisfy requirements.
+
+---
+
+## Alternative 6 — Let adapters define semantic authority
+
+An adapter that produced a normalized value would determine which value is authoritative.
+
+### Rejected because
+
+Translation does not confer authority.
+
+Authority is contextual and property-scoped.
+
+This would allow infrastructure implementation to silently override governance.
+
+---
+
+## Alternative 7 — Infer capability from adapter methods
+
+If adapter code contains a method, Monad would assume the operation is available.
+
+### Rejected because
+
+Provider support, credential permission, configuration, environment, feature state, and policy may all differ.
+
+Capability must remain explicit and observable.
+
+---
+
+## Alternative 8 — Hide all provider-native error information
+
+Only generic Monad error codes would be retained.
+
+### Rejected because
+
+Native diagnostics frequently contain information required to understand provider-specific failure.
+
+Normalized error semantics are useful, but native detail must remain available where material.
+
+---
+
+## Alternative 9 — Treat provider events as authoritative current state
+
+Incoming webhook or event payloads would directly establish current native truth.
+
+### Rejected because
+
+Events can be delayed, reordered, duplicated, lost, or superseded.
+
+They are observations, not infallible present-state truth.
+
+---
+
+## Alternative 10 — Require all native mutations to flow through Monad
+
+Users and automation would be prohibited architecturally from modifying native systems directly.
+
+### Rejected because
+
+Monad deliberately preserves native engineering systems as first-class.
+
+Direct native operation remains valid unless explicit governance for a particular environment imposes stronger control.
+
+Reconciliation handles external mutation.
+
+---
+
+## Alternative 11 — Installation implies adapter trust
+
+Any installed adapter would receive its full technical capability.
+
+### Rejected because
+
+Third-party adapter code may access credentials, sensitive information, or consequential native operations.
+
+Installation, trust, capability, and authority must remain separate.
+
+---
+
+## Alternative 12 — One adapter instance per provider type
+
+The architecture would assume one GitHub, one GitLab, one cloud, or one AI-provider connection.
+
+### Rejected because
+
+Real systems routinely contain multiple:
+
+* organizations,
+* accounts,
+* regions,
+* projects,
+* tenants,
+* environments,
+* endpoints,
+* and credential scopes.
+
+Adapter implementation and integration binding must remain distinct.
+
+---
+
+# Consequences
+
+## Positive consequences
+
+### Provider independence becomes structural
+
+Core semantic contracts can remain stable while provider implementations evolve independently.
+
+### Native semantics remain visible
+
+Correctness-relevant provider behavior is not erased merely for abstraction purity.
+
+### New integrations become easier to add
+
+Providers can implement existing contracts without modifying unrelated adapters.
+
+### Native systems remain first-class
+
+Monad coordinates rather than unnecessarily absorbs mature engineering systems.
+
+### Capability becomes inspectable
+
+The system can distinguish what providers, adapters, credentials, Actors, and policies actually permit.
+
+### Authority remains governable
+
+Adapters cannot turn technical access into semantic legitimacy.
+
+### Reconciliation obtains reliable inputs
+
+Adapters expose identity, observation, revision, and native-result semantics required by ADR-0007.
+
+### Local-first operation remains coherent
+
+Provider unavailability does not become fabricated absence or invalidate historical/local state.
+
+### Reproducibility improves
+
+Consequential operations can identify the provider and adapter path through which they occurred.
+
+### Provider drift becomes manageable
+
+Compatibility becomes explicit rather than surfacing only as mysterious runtime failures.
+
+---
+
+## Negative consequences
+
+### More architectural layers
+
+A semantic contract plus binding plus adapter is more explicit than direct SDK calls.
+
+### More metadata
+
+Native identity, adapter versions, capability state, provider extensions, and provenance must be retained.
+
+### Contract design requires judgment
+
+Poor semantic contracts can still become either too provider-specific or too generic.
+
+### Testing increases
+
+Both provider-neutral contract tests and provider-specific tests are necessary.
+
+### Some provider differences remain visible
+
+The architecture intentionally does not promise perfect interchangeability.
+
+### Adapter lifecycle becomes its own concern
+
+Versioning, compatibility, migration, deprecation, and trust require explicit management.
+
+---
+
+# Operational implications
+
+Implementations conforming to ADR-0011 SHOULD provide architectural support for:
+
+* semantic capability contracts,
+* provider-specific adapters,
+* multiple integration bindings per provider,
+* deterministic native references,
+* capability declaration and discovery,
+* provider-specific extensions,
+* loss-aware normalization,
+* explicit translation behavior,
+* normalized and native errors,
+* observation timestamps,
+* native revision preservation,
+* event metadata,
+* mutation preconditions,
+* asynchronous native operations,
+* adapter versioning,
+* provider compatibility state,
+* adapter provenance,
+* integration health,
+* conformance tests,
+* provider-specific tests,
+* and trust distinction for extension adapters.
+
+Core semantic components SHOULD avoid direct dependencies upon concrete provider SDKs where a semantic contract is appropriate.
+
+Provider-specific SDKs, APIs, and protocols SHOULD generally remain inside adapter boundaries.
+
+---
+
+# Definition of Ready
+
+Implementation work governed by ADR-0011 is ready when:
+
+* [ ] the native system being integrated is identified,
+* [ ] the engineering capability being requested is defined semantically,
+* [ ] the native responsibility boundary is understood,
+* [ ] native identity semantics are known,
+* [ ] relevant provider-specific correctness semantics are documented,
+* [ ] capability requirements are understood,
+* [ ] authentication and credential requirements are known,
+* [ ] observation behavior is understood,
+* [ ] mutation semantics are understood where applicable,
+* [ ] consistency and concurrency behavior are known where material,
+* [ ] provider error behavior has been considered,
+* [ ] translation loss has been considered,
+* [ ] reconciliation requirements are known,
+* [ ] provenance requirements are known,
+* [ ] local/offline behavior has been considered,
+* [ ] provider compatibility assumptions are explicit,
+* [ ] relevant semantic contracts exist or their creation is in scope.
+
+---
+
+# Definition of Done
+
+An implementation governed by ADR-0011 is complete when:
+
+* [ ] the adapter implements explicit semantic contract(s),
+* [ ] provider-specific code remains behind the integration boundary where appropriate,
+* [ ] native identity is preserved,
+* [ ] semantic identity is not replaced by native identity,
+* [ ] provider capability is distinguishable from adapter capability,
+* [ ] credential permission is distinguishable from authority,
+* [ ] unsupported capability fails explicitly,
+* [ ] provider-specific correctness semantics remain inspectable,
+* [ ] normalization does not silently discard material native information,
+* [ ] lossy translation can be identified,
+* [ ] observations preserve provenance and freshness,
+* [ ] mutation operations use governed execution,
+* [ ] native preconditions are exposed where relevant,
+* [ ] asynchronous operation semantics are preserved,
+* [ ] unknown outcomes remain representable,
+* [ ] provider-native errors remain inspectable where useful,
+* [ ] adapter version and provider identity can be retained in consequential provenance,
+* [ ] provider drift has an explicit compatibility outcome,
+* [ ] local provider unavailability does not fabricate native absence,
+* [ ] direct native mutation can be reconciled,
+* [ ] third-party adapter trust can be distinguished,
+* [ ] generic conformance tests exist where applicable,
+* [ ] provider-specific integration tests exist where applicable,
+* [ ] the adapter satisfies the acceptance criteria of this ADR.
+
+---
+
+# Acceptance criteria
+
+## AC-INT-001 — Semantic contract is distinct from provider implementation
+
+Given multiple providers can satisfy the same engineering capability, core consumers can depend upon the semantic contract without depending directly upon a specific provider adapter.
+
+---
+
+## AC-INT-002 — Provider details remain encapsulated
+
+Given a provider-specific SDK or API changes, unrelated semantic consumers do not require modification unless the semantic contract itself changes.
+
+---
+
+## AC-INT-003 — Material native semantics remain visible
+
+Given a provider-specific behavior materially affects correctness, the adapter does not erase that behavior through generic normalization.
+
+---
+
+## AC-INT-004 — Lowest-common-denominator design is not required
+
+Given one provider exposes a meaningful capability absent from other providers, Monad can expose it as a provider-specific extension without corrupting unrelated contracts.
+
+---
+
+## AC-INT-005 — Native identity is preserved
+
+Given a native resource is observed, its provider and namespace-qualified native identity can be retained.
+
+---
+
+## AC-INT-006 — Semantic identity remains separate
+
+Given the adapter implementation or native provider changes while the semantic Subject remains continuous, semantic identity does not need to change solely because the integration changed.
+
+---
+
+## AC-INT-007 — Multiple connections are distinguishable
+
+Given two connections use the same provider type, native targets remain resolvable to the correct configured connection.
+
+---
+
+## AC-INT-008 — Provider capability is explicit
+
+Given a provider supports some operations but not others, the integration exposes the supported capability set rather than relying on method existence.
+
+---
+
+## AC-INT-009 — Adapter capability remains distinct
+
+Given the provider supports an operation the current adapter does not implement, the system can distinguish provider support from adapter support.
+
+---
+
+## AC-INT-010 — Credential permission remains distinct
+
+Given an adapter implements a write capability but configured credentials are read-only, the integration does not report the write operation as currently executable.
+
+---
+
+## AC-INT-011 — Authority remains external to the adapter
+
+Given the provider, adapter, and credentials technically permit an operation but Monad governance denies it, the operation does not proceed.
+
+---
+
+## AC-INT-012 — Unsupported capability fails explicitly
+
+Given a semantic operation has no valid provider implementation, the adapter reports unsupported capability rather than silently approximating materially different behavior.
+
+---
+
+## AC-INT-013 — Partial discovery is not absence
+
+Given provider permissions prevent complete enumeration, undiscovered resources are not automatically classified as nonexistent.
+
+---
+
+## AC-INT-014 — Observation provenance is retained
+
+Given native state is observed, the resulting record can identify provider, connection, native resource, observation time, and adapter where material.
+
+---
+
+## AC-INT-015 — Cached observation is distinguishable from fresh observation
+
+Given a provider is unavailable and cached state remains locally accessible, that state is not represented as a fresh native observation.
+
+---
+
+## AC-INT-016 — Mutation uses governed execution
+
+Given an adapter exposes a destructive native operation, invocation remains subject to the execution, authority, policy, and approval architecture.
+
+---
+
+## AC-INT-017 — Native concurrency controls are preserved
+
+Given a provider exposes revision or optimistic-concurrency mechanisms, the adapter can make them available for consequential stale-write protection.
+
+---
+
+## AC-INT-018 — Asynchronous acceptance is not completion
+
+Given a provider returns an accepted asynchronous operation, the adapter does not report the final semantic effect as completed until appropriate observation establishes it.
+
+---
+
+## AC-INT-019 — Native errors remain inspectable
+
+Given a provider-specific failure occurs, the system may use a normalized category while retaining the native error information needed for diagnosis.
+
+---
+
+## AC-INT-020 — Translation loss is explicit
+
+Given native information cannot be represented losslessly in a semantic contract, the adapter does not imply that round-trip translation is lossless.
+
+---
+
+## AC-INT-021 — Provider events are not assumed current truth
+
+Given a delayed or reordered provider event arrives, the architecture can retain it as an observation without automatically replacing newer authoritative native state.
+
+---
+
+## AC-INT-022 — Provider drift is detectable
+
+Given a provider makes a material incompatible change, the adapter can represent incompatibility or degraded operation rather than silently continuing under invalid assumptions.
+
+---
+
+## AC-INT-023 — Adapter upgrade preserves resource identity
+
+Given an adapter implementation is upgraded while the native resource remains unchanged, the resource does not receive a new semantic identity solely because of the adapter version change.
+
+---
+
+## AC-INT-024 — Integration removal preserves history
+
+Given an integration binding is removed, historical provenance and native references can remain available.
+
+---
+
+## AC-INT-025 — Third-party adapter installation does not grant authority
+
+Given a third-party adapter is installed, its implemented mutation capabilities are not automatically authorized.
+
+---
+
+## AC-INT-026 — Generic contract testing is possible
+
+Given two adapters implement the same semantic contract, both can be evaluated against common contract-level semantics.
+
+---
+
+## AC-INT-027 — Provider-specific testing remains possible
+
+Given a provider has unique behavior not represented by generic contract tests, provider-specific tests can verify those semantics.
+
+---
+
+## AC-INT-028 — Direct native changes remain reconcilable
+
+Given a human modifies the native system outside Monad, later observation can surface the change for reconciliation without treating the external mutation itself as an architectural violation.
+
+---
+
+## AC-INT-029 — Provider migration preserves semantic continuity
+
+Given a semantic Subject moves from one native provider to another, historical native references remain distinct while semantic continuity can be preserved.
+
+---
+
+## AC-INT-030 — Consequential integration activity is reconstructable
+
+Given a consequential native operation, a reviewer can identify the semantic operation, integration binding, provider adapter, native operation, native target, execution result, and resulting Evidence where required.
+
+---
+
+# Verification obligations
+
+## VO-INT-001 — Contract boundary verification
+
+Tests SHALL demonstrate that semantic consumers can operate through an integration contract without requiring direct knowledge of a concrete provider implementation.
+
+**Primary consumers:** REQ-INT, REQ-SEM
+
+---
+
+## VO-INT-002 — Native-semantics preservation verification
+
+Tests SHALL demonstrate that provider-specific information required for correctness survives normalization or is explicitly available through native extension data.
+
+**Primary consumers:** REQ-INT, REQ-VFY
+
+---
+
+## VO-INT-003 — Identity preservation verification
+
+Tests SHALL demonstrate preservation of native identity across:
+
+```text
+observation
+normalization
+adapter upgrade
+reconciliation
+historical retention
+```
+
+**Primary consumers:** REQ-ID, REQ-PROV, REQ-INT
+
+---
+
+## VO-INT-004 — Capability separation verification
+
+Tests SHALL distinguish:
+
+```text
+provider capability
+adapter capability
+credential permission
+Monad authority
+policy authorization
+```
+
+**Primary consumers:** REQ-INT, REQ-AUTH, REQ-GOV
+
+---
+
+## VO-INT-005 — Translation verification
+
+Tests SHALL cover:
+
+```text
+lossless translation
+lossy translation
+partial translation
+unsupported translation
+provider extension preservation
+```
+
+**Primary consumers:** REQ-INT, REQ-SEM
+
+---
+
+## VO-INT-006 — Error-model verification
+
+Tests SHALL demonstrate normalized error classification while preserving provider-native diagnostic information where required.
+
+**Primary consumers:** REQ-INT, REQ-EXEC
+
+---
+
+## VO-INT-007 — Asynchronous-operation verification
+
+Tests SHALL demonstrate that provider acceptance, completion, observation, and Verification remain distinct.
+
+**Primary consumers:** REQ-INT, REQ-EXEC, REQ-VFY
+
+---
+
+## VO-INT-008 — Provider-drift verification
+
+Compatibility tests SHALL detect representative provider changes that invalidate adapter assumptions.
+
+**Primary consumers:** REQ-INT, REQ-GOV
+
+---
+
+## VO-INT-009 — Offline-state verification
+
+Tests SHALL demonstrate that provider unavailability does not cause cached state to masquerade as fresh observation or inaccessible resources to masquerade as deleted resources.
+
+**Primary consumers:** REQ-INT, REQ-LOCAL, REQ-REC
+
+---
+
+## VO-INT-010 — Adapter provenance verification
+
+Consequential native execution SHALL demonstrate retention of provider, binding, adapter, native operation, and target identity sufficient for ADR-0009.
+
+**Primary consumers:** REQ-PROV, REQ-REPRO
+
+---
+
+## VO-INT-011 — External mutation verification
+
+Tests SHALL demonstrate that changes performed directly through supported native systems can later be observed and supplied to reconciliation.
+
+**Primary consumers:** REQ-INT, REQ-REC
+
+---
+
+## VO-INT-012 — Extension trust verification
+
+Tests SHALL demonstrate that installing or discovering a third-party adapter does not automatically grant unrestricted credentials, capabilities, or authority.
+
+**Primary consumers:** REQ-INT, REQ-AUTH, REQ-GOV, REQ-AI
+
+---
+
+# Anti-patterns
+
+The following patterns violate or undermine ADR-0011.
+
+## Raw provider leakage
+
+```text
+Core semantic service imports every provider SDK directly.
+```
+
+---
+
+## Provider-defined domain model
+
+```text
+GitHub's API shape becomes Monad's semantic schema.
+```
+
+---
+
+## Lowest-common-denominator abstraction
+
+```text
+Everything is a Resource with create/update/delete.
+```
+
+---
+
+## Native-semantics erasure
+
+```text
+Provider-specific revision semantics are dropped because another provider lacks them.
+```
+
+---
+
+## Capability-by-method-existence
+
+```text
+Adapter has delete(), therefore deletion is available.
+```
+
+---
+
+## Capability-as-authority
+
+```text
+Adapter can merge pull requests, therefore the Actor may merge them.
+```
+
+---
+
+## Credential-as-authority
+
+```text
+Provider token permits deletion, therefore deletion is authorized.
+```
+
+---
+
+## Adapter-as-authority
+
+```text
+The normalized value came from the adapter, therefore it is canonical.
+```
+
+---
+
+## Ambiguous connection targeting
+
+```text
+Use GitHub.
+```
+
+when several GitHub connections exist and the target is consequential.
+
+---
+
+## Native ID without namespace
+
+```text
+issue_id = 42
+```
+
+with no provider or repository context.
+
+---
+
+## Silent unsupported emulation
+
+```text
+Provider lacks the requested semantics, so approximate them without telling anyone.
+```
+
+---
+
+## Lossy normalization presented as lossless
+
+```text
+native → normalized → native
+```
+
+assumed to reproduce the original state automatically.
+
+---
+
+## Event-as-truth
+
+```text
+Webhook says state X, therefore current native state is X.
+```
+
+---
+
+## Transport-health-as-integration-health
+
+```text
+HTTP endpoint responds, therefore adapter semantics remain compatible.
+```
+
+---
+
+## API-success-as-semantic-success
+
+```text
+Provider returned 200, therefore desired engineering state exists.
+```
+
+---
+
+## Provider-unavailable-as-resource-missing
+
+```text
+Could not reach provider, therefore resource does not exist.
+```
+
+---
+
+## Integration-removal-as-resource-deletion
+
+```text
+Connection was removed, therefore historical native resources should disappear from provenance.
+```
+
+---
+
+## Plugin-installation-as-trust
+
+```text
+Adapter installed successfully, therefore it may access all credentials and invoke all capabilities.
+```
+
+---
+
+## Direct-native-change rejection
+
+```text
+Monad did not perform the change, therefore the native change is invalid.
+```
+
+without an explicit policy establishing that restriction.
+
+---
+
+## Adapter-version identity churn
+
+```text
+Adapter upgraded, therefore create new Subjects for all native resources.
+```
+
+---
+
+# Core invariants
+
+The following invariants are normative architectural constraints.
+
+```text
+Integration ≠ Ownership
+
+Integration ≠ Synchronization
+
+Integration ≠ Execution
+
+Integration ≠ Authority
+
+Integration ≠ Native system
+
+Semantic contract ≠ Provider adapter
+
+Provider adapter ≠ Native system
+
+Semantic identity ≠ Native identity
+
+Provider-neutral ≠ Lowest common denominator
+
+Normalized ≠ Native
+
+Normalized ≠ Lossless automatically
+
+Round trip ≠ Identity automatically
+
+Provider capability ≠ Adapter capability
+
+Adapter capability ≠ Credential permission
+
+Credential permission ≠ Authority
+
+Capability ≠ Authorization
+
+Adapter availability ≠ Authorization
+
+Adapter output ≠ Semantic authority automatically
+
+Installed ≠ Trusted
+
+Trusted ≠ Authorized for every capability
+
+Provider unavailable ≠ Resource absent
+
+Cached state ≠ Fresh observation
+
+Event received ≠ Current native truth
+
+Request accepted ≠ Operation completed
+
+Provider success ≠ Semantic success
+
+Healthy transport ≠ Semantically correct integration
+
+Integration removed ≠ Historical resource deleted
+
+Adapter upgraded ≠ Native resource replaced
+
+Adapter upgraded ≠ Semantic Subject replaced
+
+Contract conformance ≠ Provider correctness automatically
+
+Provider-specific ≠ Architecturally invalid
+
+Direct native mutation ≠ Invalid mutation automatically
+
+Provider migration ≠ Semantic identity replacement automatically
+
+Native observation ≠ Desired state
+
+Native fact ≠ Governance decision
+```
+
+These distinctions SHALL remain preserved across implementations even where concrete adapter APIs differ.
+
+---
+
+# Governing principle
+
+> **Monad should integrate with native engineering systems through semantic contracts that preserve genuine engineering meaning while allowing provider-specific adapters to retain every native distinction required for correctness, authority, provenance, execution, reconciliation, and verification.**
+
+More operationally:
+
+> **Abstract what is genuinely common; preserve what is materially different.**
+
+---
+
+# Related Cards
+
+* **RB-001** — Accepted Requirements Baseline
+* **RTM-001** — Requirements Traceability Matrix
+* **REQ-ID** — Identity
+* **REQ-SEM** — Semantic Model
+* **REQ-AUTH** — Authority
+* **REQ-PROV** — Provenance
+* **REQ-GOV** — Governance
+* **REQ-EXEC** — Execution
+* **REQ-INT** — Integrations
+* **REQ-REC** — Reconciliation
+* **REQ-LOCAL** — Local-First
+* **REQ-REPRO** — Reproducibility
+* **REQ-AI** — AI Interaction
+* **REQ-EVD** — Evidence
+* **REQ-VFY** — Verification
+* **ADR-0001 through ADR-0005** — Prior foundational semantic, identity, authority, and provenance decisions
+* **ADR-0006** — Execution, Effect, and Operational State Model
+* **ADR-0007** — Reconciliation and Convergence Model
+* **ADR-0008** — Local-First Authority, Availability, and Offline Operation Model
+* **ADR-0009** — Reproducible Execution and Environment Capture Model
+* **ADR-0010** — AI Interaction, Delegation, and Consequential Action Model
+
+---
+
+## Final architectural statement
+
+Monad is not an alternative universe in which Git, source hosts, CI systems, deployment platforms, cloud providers, package registries, databases, issue trackers, and AI providers cease to exist.
+
+Those systems remain real.
+
+Their native objects remain real.
+
+Their identities remain real.
+
+Their APIs, errors, consistency models, permissions, events, lifecycle behavior, and operational effects remain real.
+
+Monad's responsibility is to establish a governed semantic layer capable of understanding and coordinating those systems without either surrendering its architecture to provider-specific API shapes or erasing the native distinctions required to reason correctly.
+
+The integration boundary SHALL therefore preserve a durable chain:
+
+```text
+semantic intent
+      │
+      ▼
+semantic integration contract
+      │
+      ▼
+resolved integration binding
+      │
+      ▼
+provider-specific adapter
+      │
+      ▼
+native operation / observation
+      │
+      ▼
+native system
+      │
+      ▼
+native result
+      │
+      ▼
+provenance-preserving translation
+      │
+      ▼
+Monad observation / Evidence
+```
+
+At every consequential integration boundary, Monad SHALL remain capable of determining:
+
+```text
+what semantic capability was requested,
+which provider was selected,
+which connection resolved the target,
+which adapter performed the translation,
+which native resource was addressed,
+which native operation occurred,
+which provider semantics applied,
+which capabilities were technically available,
+which authority actually permitted action,
+what native response occurred,
+what state was later observed,
+and what Evidence or Verification followed.
+```
+
+That boundary allows Monad to become provider-independent without becoming provider-blind.
+
+It also preserves the principle that makes the broader architecture coherent:
+
+> **Native systems retain their reality; Monad adds semantic understanding and governance without pretending that abstraction makes native differences disappear.**

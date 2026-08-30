@@ -5,6 +5,7 @@ export type SiteNavigationLink = {
   href: string;
   description?: string;
   external?: boolean;
+  match?: 'exact' | 'nested';
 };
 
 export type SiteNavigationMenu = {
@@ -24,6 +25,7 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
         label: 'Getting Started',
         description: 'Start here',
         href: '/docs',
+        match: 'exact',
       },
       {
         label: 'Artifacts',
@@ -59,6 +61,7 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
         label: 'Monad Docs',
         description: 'Browse the documentation',
         href: '/docs',
+        match: 'exact',
       },
     ],
   },

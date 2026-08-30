@@ -2,7 +2,51 @@ import { loader } from 'fumadocs-core/source';
 import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
 import { defineDocs } from 'fumadocs-mdx/macro';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
+import { z } from 'zod';
 import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
+
+const journalDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+const journalMetadataSchema = z.object({
+  id: z.string().regex(/^JRN-\d{4}-\d{2}-\d{2}-\d{3}$/),
+  date: journalDateSchema,
+  updated: journalDateSchema.optional(),
+  kind: z.enum([
+    'observation',
+    'investigation',
+    'experiment',
+    'implementation',
+    'failure',
+    'decision-in-progress',
+    'retrospective',
+  ]),
+  status: z.enum(['working', 'resolved', 'superseded', 'retrospective']),
+  phase: z
+    .enum([
+      'inception',
+      'domain-discovery',
+      'product-definition',
+      'architecture',
+      'specification',
+      'implementation',
+      'verification',
+      'release-and-evolution',
+    ])
+    .optional(),
+  topics: z.array(z.string()).default([]),
+  related: z
+    .array(
+      z.object({
+        label: z.string(),
+        href: z.string(),
+      }),
+    )
+    .default([]),
+});
+
+const journalPageSchema = pageSchema.extend({
+  journal: journalMetadataSchema.optional(),
+});
 
 const docs = defineDocs({
   dir: 'content/docs',
@@ -46,7 +90,7 @@ const changelogs = defineDocs({
 const journal = defineDocs({
   dir: 'content/journal',
   docs: {
-    schema: pageSchema,
+    schema: journalPageSchema,
     postprocess: {
       includeProcessedMarkdown: true,
     },

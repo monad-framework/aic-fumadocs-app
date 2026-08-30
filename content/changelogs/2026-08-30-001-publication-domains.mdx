@@ -42,25 +42,9 @@ The change clarifies what each section is responsible for and prevents historica
 - `/journal` reads from its own journal collection rather than the docs source.
 - The Engineering Journal moved conceptually out of Building Monad's docs subtree and became a top-level publication domain.
 - Old `/docs/building-monad/journal` navigation is preserved through a redirect to `/journal`.
+- New content now follows an explicit authoring boundary: current authoritative documentation belongs in `content/docs`, editorial writing in `content/articles`, release/change communication in `content/changelogs`, and chronological engineering records in `content/journal`.
 
 ## Fixed
 
 - Corrected the changelog source configuration from the old singular `content/changelog` path to the actual `content/changelogs` directory.
 - Removed misleading docs-scoped AI controls from publication domains whose content is not currently searched by the docs AI endpoint.
-
-## Breaking changes
-
-None.
-
-Existing public documentation URLs remain under `/docs`, and the previous Building Monad Journal URL redirects to the new Journal location.
-
-## Migration
-
-No user migration is required.
-
-Authors should place new content according to its responsibility:
-
-- current authoritative Monad documentation → `content/docs`,
-- editorial writing → `content/articles`,
-- release/change communication → `content/changelogs`,
-- chronological engineering work record → `content/journal`.

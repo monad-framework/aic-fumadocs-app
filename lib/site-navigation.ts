@@ -18,38 +18,27 @@ export type SiteNavigationEntry = SiteNavigationLink | SiteNavigationMenu;
 
 export const siteNavigation: readonly SiteNavigationEntry[] = [
   {
-    label: 'About',
-    href: '/docs/about',
+    label: 'Start Here',
     items: [
       {
-        label: 'Getting Started',
-        description: 'Start here',
-        href: '/docs',
+        label: 'Home',
+        description: 'Choose a path through the project by intent',
+        href: '/',
         match: 'exact',
       },
       {
-        label: 'Artifacts',
-        description: 'Inspect the engineering record',
-        href: '/docs/artifacts',
-      },
-      {
-        label: 'Building Monad',
-        description: 'Follow the curated project narrative',
-        href: '/building-monad',
+        label: 'About Monad',
+        description: 'Understand the thesis, boundaries, and principles',
+        href: '/docs/about',
       },
       {
         label: 'Project',
-        description: 'Understand the project and its boundaries',
+        description: 'See current status, boundaries, roadmap, and open questions',
         href: '/docs/project',
       },
       {
-        label: 'System',
-        description: 'Read the authoritative system documentation',
-        href: '/docs/system',
-      },
-      {
         label: 'Author',
-        description: 'About the author',
+        description: 'About the author and project steward',
         href: '/docs/author',
       },
     ],
@@ -58,10 +47,20 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
     label: 'Documentation',
     items: [
       {
-        label: 'Monad Docs',
-        description: 'Browse the authoritative documentation',
+        label: 'Documentation Home',
+        description: 'Enter the authoritative technical knowledge domain',
         href: '/docs',
         match: 'exact',
+      },
+      {
+        label: 'System',
+        description: 'Read the current authoritative system explanation',
+        href: '/docs/system',
+      },
+      {
+        label: 'Artifacts',
+        description: 'Inspect requirements, specifications, decisions, and evidence',
+        href: '/docs/artifacts',
       },
     ],
   },
@@ -70,13 +69,13 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
     items: [
       {
         label: 'Building Monad Home',
-        description: 'Start with the curated project narrative',
+        description: 'Enter the curated narrative and reading-path layer',
         href: '/building-monad',
         match: 'exact',
       },
       {
         label: 'Series',
-        description: 'Follow thematic reading paths across project records',
+        description: 'Follow stable thematic reading paths across the record',
         href: '/building-monad/series',
       },
       {
@@ -86,17 +85,12 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
       },
       {
         label: 'Project Phases',
-        description: 'Traverse the project by lifecycle stage',
+        description: 'Navigate the work through lifecycle-oriented reading paths',
         href: '/building-monad/phases',
       },
       {
-        label: 'Essays & Editorial Reading',
-        description: 'Follow curated paths into the Articles corpus',
-        href: '/building-monad/essays',
-      },
-      {
         label: 'How Building Monad Works',
-        description: 'Read the curation and source-ownership contract',
+        description: 'Read the curation, source-ownership, and authority rules',
         href: '/building-monad/format',
       },
     ],

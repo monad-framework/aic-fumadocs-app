@@ -1,6 +1,9 @@
 {
   "title": "Articles",
   "pages": [
-    "index"
+    "index",
+    "blog",
+    "research",
+    "white-papers"
   ]
 }

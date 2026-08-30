@@ -1,5 +1,1909 @@
 ---
-title: ADR Catalog
-description: ADR catalog
+title: "Architecture Decision Record Catalog"
+description: "The authoritative backlog of architectural decisions that must be resolved as Monad moves from requirements into precise system definition."
 ---
 
+# Architecture Decision Record Catalog
+
+The Architecture Decision Record Catalog is the authoritative backlog of consequential architectural decisions that remain unresolved in Monad.
+
+The Requirements corpus establishes **what Monad must accomplish and what properties it must preserve**.
+
+The ADR corpus establishes **which architectural choices Monad makes in order to satisfy those requirements**.
+
+The Specifications corpus will then establish **the precise contracts, structures, behaviors, invariants, and interfaces that implement those decisions**.
+
+This separation is intentional:
+
+> Requirements establish obligations. ADRs resolve consequential choices. Specifications define exact contracts.
+
+An unresolved question should not remain indefinitely embedded at the bottom of a requirements document. Once the question is understood well enough to affect architecture, it belongs here.
+
+---
+
+## Purpose
+
+This catalog exists to:
+
+* make unresolved architectural choices visible,
+* prevent important decisions from being made implicitly during implementation,
+* consolidate overlapping questions from multiple requirement families,
+* establish dependency order among decisions,
+* distinguish architecture decisions from specification questions,
+* preserve rejected alternatives and decision rationale,
+* identify assumptions requiring experimentation,
+* connect requirements to architecture,
+* and provide the decision foundation from which specifications can be derived.
+
+The ADR backlog is not a list of everything Monad does not yet know.
+
+Only questions whose answers materially constrain the architecture belong here.
+
+---
+
+## Decision Boundary
+
+A question belongs in an ADR when different reasonable answers would materially change one or more of:
+
+* system boundaries,
+* semantic architecture,
+* persistence architecture,
+* authority or governance behavior,
+* execution semantics,
+* integration strategy,
+* consistency guarantees,
+* lifecycle behavior,
+* portability,
+* extensibility,
+* security boundaries,
+* local-first behavior,
+* AI autonomy boundaries,
+* or major implementation constraints.
+
+A question generally belongs in a Specification instead when it asks:
+
+* what fields an entity contains,
+* the exact shape of a record,
+* the exact API payload,
+* allowed enum values,
+* validation rules,
+* exact state-transition tables after the architectural model is chosen,
+* exact error codes,
+* serialization details,
+* schema syntax,
+* command syntax,
+* or other implementable details inside an already-selected architecture.
+
+For example:
+
+> Should semantic relationships be modeled as a graph?
+
+may be architectural.
+
+> Should the graph be persisted using a graph database?
+
+is architectural.
+
+> What fields exist on a `Relationship` record?
+
+is specification-level.
+
+---
+
+# ADR Lifecycle
+
+Each ADR SHALL move through a deliberate lifecycle.
+
+```text
+Backlog
+   ↓
+Proposed
+   ↓
+Under Review
+   ↓
+Accepted
+   ↓
+Implemented
+```
+
+Alternative terminal or transitional states may include:
+
+```text
+Rejected
+Superseded
+Deferred
+Experimental
+Withdrawn
+```
+
+An ADR marked **Accepted** represents the current architectural decision unless another accepted ADR explicitly supersedes it.
+
+Acceptance does not imply implementation.
+
+Implementation does not make an undocumented architectural choice acceptable retroactively.
+
+---
+
+# Decision Priority
+
+The backlog is divided into dependency waves.
+
+```text
+Wave 1 — Semantic Foundation
+        ↓
+Wave 2 — State, Time, and Persistence
+        ↓
+Wave 3 — Authority and Governance
+        ↓
+Wave 4 — Execution
+        ↓
+Wave 5 — Integration and Reconciliation
+        ↓
+Wave 6 — Locality and Reproducibility
+        ↓
+Wave 7 — AI Interaction
+        ↓
+Wave 8 — Verification and Assurance
+```
+
+Later ADRs may be explored before earlier ones are accepted, but they SHOULD NOT be finalized when their answer depends on an unresolved upstream architectural decision.
+
+---
+
+# Wave 1 — Semantic Foundation
+
+## ADR-001 — Semantic Identifier Strategy
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-ID`, `REQ-SEM`
+
+Determine the fundamental identifier strategy for semantic Subjects.
+
+Questions include:
+
+* What concrete identifier format should Monad use?
+* Should identifiers be opaque or meaning-bearing?
+* Should identifiers be UUID-like, URI-like, content-derived, hierarchical, or another form?
+* Which properties, if any, may safely be encoded into identifiers?
+* How should identifiers survive rename, relocation, representation replacement, and native-system migration?
+
+### Decision must establish
+
+* identifier invariants,
+* generation strategy,
+* collision behavior,
+* durability expectations,
+* serialization expectations,
+* and what identifiers deliberately do **not** mean.
+
+---
+
+## ADR-002 — Semantic Identity Scope and Namespace Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-ID`, `REQ-LOCAL`
+
+Determine the scope in which semantic identifiers are guaranteed to be unique.
+
+Alternatives include:
+
+* repository-local,
+* project-local,
+* workspace-local,
+* organization-local,
+* globally unique,
+* or layered identity.
+
+### Decision must establish
+
+how identity behaves when Subjects move or are referenced across:
+
+* repositories,
+* projects,
+* workspaces,
+* machines,
+* organizations,
+* exported datasets,
+* and federated systems.
+
+---
+
+## ADR-003 — Native Identifier Binding Strategy
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-ID`, `REQ-INT`
+
+Determine how Monad relates native-system identifiers to semantic identity.
+
+Examples include:
+
+* GitHub issue IDs,
+* Git commit hashes,
+* ADR IDs,
+* filesystem paths,
+* package names,
+* database identifiers,
+* CI run IDs,
+* and external tracker identifiers.
+
+Alternatives include:
+
+* reuse,
+* alias,
+* derive,
+* wrap,
+* or independent semantic identity with explicit binding.
+
+The architecture must preserve the distinction:
+
+> Native Reference ≠ Semantic Identity.
+
+---
+
+## ADR-004 — Identity Continuity, Split, and Merge Model
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-ID`, `REQ-PROV`
+
+Determine how semantic identity behaves when engineering entities:
+
+* split,
+* merge,
+* are superseded,
+* are duplicated,
+* are later discovered to be identical,
+* or are incorrectly identified.
+
+The decision must preserve historical provenance without pretending uncertain continuity is known.
+
+---
+
+## ADR-005 — Subject, Representation, and Native Reference Persistence Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-ID`, `REQ-SEM`
+
+Determine whether `Subject`, `Representation`, and `Native Reference` are:
+
+* independently persisted entities,
+* persisted bindings,
+* embedded values,
+* projections,
+* or some hybrid.
+
+This decision establishes the architectural realization of:
+
+> Subject ≠ Representation ≠ Native Reference.
+
+---
+
+## ADR-006 — Canonical Semantic Kernel Boundary
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-SEM`
+
+Determine the minimum set of concepts that form Monad's canonical semantic kernel.
+
+Candidate concepts include:
+
+```text
+Subject
+Representation
+Native Reference
+Relationship
+Claim
+Evidence
+Provenance
+Authority
+```
+
+The decision must answer:
+
+* which concepts are foundational,
+* which are extensions,
+* which are derived,
+* which are projections,
+* and which can remain native-system constructs.
+
+The kernel should remain as small as possible without collapsing distinctions required by the Requirements corpus.
+
+---
+
+## ADR-007 — Claim Representation Architecture
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-SEM`, `REQ-PROV`
+
+Determine the architectural representation of Claims.
+
+Alternatives include:
+
+* opaque natural-language propositions,
+* predicate/value forms,
+* typed propositions,
+* structured claim objects,
+* or a progressive hybrid.
+
+The decision should explicitly consider whether semantic equivalence requires shared Claim identity.
+
+---
+
+## ADR-008 — Relationship Semantic Architecture
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-SEM`
+
+Determine how relationships behave as first-class semantic constructs.
+
+The architecture must establish whether relationships may possess:
+
+* identity,
+* provenance,
+* authority,
+* temporal validity,
+* confidence,
+* lifecycle,
+* properties,
+* and relationships to other semantic objects.
+
+Exact relationship fields and type catalogs belong in later Specifications.
+
+---
+
+# Wave 2 — State, Time, and Persistence
+
+## ADR-009 — Canonical Model Persistence Architecture
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-SEM`, `REQ-LOCAL`, `REQ-REP`
+
+Determine how Monad's canonical semantic state is persisted.
+
+Candidate architectures may include:
+
+* relational storage,
+* embedded relational storage,
+* document storage,
+* graph storage,
+* event-sourced storage,
+* filesystem-native records,
+* hybrid persistence,
+* or another architecture.
+
+This decision concerns canonical ownership of semantic state, not merely the implementation library used to store it.
+
+---
+
+## ADR-010 — Graph-Shaped Semantics vs Graph Database
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-SEM`
+
+Determine whether Monad's graph-shaped semantic model requires graph-native persistence.
+
+The default assumption SHALL NOT be:
+
+> graph-shaped domain = graph database.
+
+The decision must compare graph-native persistence against simpler alternatives including relational and indexed representations.
+
+A graph database should be selected only if it provides material value that cannot be achieved adequately through simpler persistence.
+
+---
+
+## ADR-011 — Temporal Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-SEM`, `REQ-PROV`, `REQ-VER`
+
+Determine Monad's treatment of time.
+
+The architecture must distinguish where necessary between concepts such as:
+
+* observation time,
+* valid time,
+* recording time,
+* execution time,
+* supersession time,
+* verification time,
+* and revision identity.
+
+The decision must determine whether Monad requires:
+
+* valid-time semantics,
+* transaction-time semantics,
+* bitemporal semantics,
+* event history,
+* revision snapshots,
+* or some combination.
+
+---
+
+## ADR-012 — Historical State Reconstruction Strategy
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-PROV`, `REQ-REP`, `REQ-VER`
+
+Determine the extent to which Monad must reconstruct prior semantic state.
+
+Questions include:
+
+* Must arbitrary historical state be reconstructable?
+* Is event replay sufficient?
+* Are snapshots required?
+* Which derived states must be reproducible?
+* What information may be safely discarded?
+
+---
+
+## ADR-013 — Read-Model Architecture
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-SEM`, `REQ-LOCAL`
+
+Determine how optimized read representations relate to canonical state.
+
+The decision must establish:
+
+* whether read models are persisted,
+* how they are generated,
+* how freshness is represented,
+* how invalidation occurs,
+* whether multiple specialized projections are permitted,
+* and how canonical and derived state remain distinguishable.
+
+---
+
+## ADR-014 — Projection and Derived-State Architecture
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-SEM`, `REQ-PROV`
+
+Determine the system-wide architecture for derived data.
+
+The decision must define the boundary among:
+
+```text
+canonical
+derived
+generated
+cached
+projected
+observed
+external
+```
+
+Derived state must never acquire canonical authority merely because it is convenient to query.
+
+---
+
+## ADR-015 — Event and Change-Feed Strategy
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-SEM`, `REQ-EXEC`, `REQ-INT`
+
+Determine how meaningful state changes are exposed to other Monad components.
+
+Alternatives include:
+
+* append-only event log,
+* transactional outbox,
+* change-data capture,
+* internal event bus,
+* persisted change feed,
+* polling,
+* or hybrid strategies.
+
+The decision must distinguish:
+
+> replaying knowledge about effects
+
+from
+
+> replaying the effects themselves.
+
+---
+
+## ADR-016 — Schema and Semantic Versioning Strategy
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-SEM`, `REQ-REP`, `REQ-LOCAL`
+
+Determine how Monad versions:
+
+* persisted semantic structures,
+* interfaces,
+* schemas,
+* policy representations,
+* operation contracts,
+* and exported artifacts.
+
+The architecture must allow evolution without silently changing historical meaning.
+
+---
+
+## ADR-017 — Semantic Migration and Canonicalization Strategy
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-ID`, `REQ-SEM`, `REQ-LOCAL`
+
+Determine how persisted semantic state evolves across incompatible model revisions.
+
+This includes:
+
+* migration ownership,
+* canonical serialization,
+* normalization,
+* migration provenance,
+* rollback expectations,
+* compatibility windows,
+* and migration of derived versus canonical state.
+
+---
+
+## ADR-018 — Multi-Project and Workspace Identity Model
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-ID`, `REQ-LOCAL`
+
+Determine the architectural relationship among:
+
+```text
+Repository
+Project
+Workspace
+Organization
+System
+```
+
+The decision must establish:
+
+* where semantic identity lives,
+* whether one Subject may span projects,
+* how cross-project relationships work,
+* how local workspaces project broader state,
+* and how exported/imported state preserves identity.
+
+---
+
+# Wave 3 — Provenance, Authority, and Governance
+
+## ADR-019 — Provenance Storage Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-PROV`
+
+Determine whether provenance is represented through:
+
+* embedded metadata,
+* dedicated provenance records,
+* derivation edges,
+* event records,
+* a provenance graph,
+* or a hybrid.
+
+The architecture must support meaningful upstream and downstream provenance queries without requiring every trivial event to become heavyweight graph structure.
+
+---
+
+## ADR-020 — Provenance Granularity and Retention Strategy
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-PROV`, `REQ-LOCAL`
+
+Determine how much provenance Monad preserves and for how long.
+
+The decision must balance:
+
+* auditability,
+* reproducibility,
+* storage cost,
+* privacy,
+* sensitive metadata,
+* performance,
+* and operational usefulness.
+
+---
+
+## ADR-021 — Authority Evaluation Architecture
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-AUTH`, `REQ-GOV`
+
+Determine how Monad resolves whether an Actor has legitimate authority for a proposed operation within a particular scope.
+
+The architecture must support:
+
+* scope,
+* inheritance,
+* delegation,
+* revocation,
+* temporal validity,
+* revision awareness,
+* conflicts,
+* and explainable outcomes.
+
+It must preserve:
+
+> Capability ≠ Authority.
+
+---
+
+## ADR-022 — Authority Hierarchy, Delegation, and Conflict Resolution
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-AUTH`
+
+Determine how multiple potentially competing authority sources compose.
+
+The decision must address:
+
+* precedence,
+* specificity,
+* inheritance,
+* explicit denial,
+* delegated authority,
+* revocation,
+* conflicting authorities,
+* and unresolved authority.
+
+---
+
+## ADR-023 — Policy Evaluation Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-GOV`
+
+Determine how policies are selected, composed, and evaluated.
+
+The architecture must distinguish outcomes such as:
+
+```text
+Permit
+Deny
+Conditional
+Unresolved
+Not Applicable
+```
+
+and define how conflicting policies are handled.
+
+---
+
+## ADR-024 — Policy Representation and Evaluation Language
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-GOV`
+
+Determine whether governance policies are represented using:
+
+* native structured data,
+* a purpose-built policy model,
+* an existing policy language,
+* declarative rules,
+* executable code,
+* or a hybrid.
+
+The decision should prefer the simplest representation capable of satisfying governance requirements.
+
+---
+
+## ADR-025 — Approval and Obligation Architecture
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-AUTH`, `REQ-GOV`
+
+Determine how Monad represents and evaluates:
+
+* approvals,
+* approval scope,
+* revision-bound approvals,
+* prerequisites,
+* post-execution obligations,
+* separation of duties,
+* evidence requirements,
+* and obligation completion.
+
+---
+
+## ADR-026 — Exception and Break-Glass Architecture
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-GOV`
+
+Determine how emergency exceptions interact with normal governance.
+
+The decision must ensure that an exception is:
+
+* explicit,
+* scoped,
+* attributable,
+* time-bounded where appropriate,
+* reviewable,
+* and incapable of silently becoming normal policy.
+
+> An exception is part of governance, not the absence of it.
+
+---
+
+## ADR-027 — Governance Revalidation Boundary
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-GOV`, `REQ-EXEC`
+
+Determine when authority, policy, approval, evidence, revision, and preconditions must be revalidated before effects occur.
+
+The architecture must address time-of-check/time-of-use risk.
+
+Authorization that was valid during planning may no longer be valid during execution.
+
+---
+
+# Wave 4 — Execution
+
+## ADR-028 — Canonical Operation Representation
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-EXEC`
+
+Determine the architectural representation of an intended operation.
+
+The model must distinguish:
+
+```text
+Intent
+Resolved Operation
+Execution Plan
+Authorization
+Execution Attempt
+Observed Effect
+Verification Result
+```
+
+Exact operation fields belong in the Operation Specification.
+
+---
+
+## ADR-029 — Execution State Machine
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-EXEC`
+
+Determine the canonical lifecycle of execution.
+
+The architecture must represent outcomes including:
+
+* planned,
+* authorized,
+* started,
+* partially completed,
+* succeeded,
+* failed,
+* cancelled,
+* timed out,
+* compensated,
+* rolled back,
+* and unknown.
+
+The design must preserve:
+
+> Execution ≠ Authorization ≠ Success ≠ Verification.
+
+---
+
+## ADR-030 — Execution Journal Architecture
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-EXEC`, `REQ-PROV`
+
+Determine how execution attempts and their meaningful effects are durably recorded.
+
+The decision must support:
+
+* crash recovery,
+* provenance,
+* diagnostics,
+* reconciliation,
+* asynchronous execution,
+* partial failure,
+* and verification.
+
+---
+
+## ADR-031 — Idempotency and Retry Architecture
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-EXEC`
+
+Determine system-wide semantics for:
+
+* retries,
+* duplicate detection,
+* idempotency keys,
+* retry-safe operations,
+* retry-unsafe operations,
+* and ambiguous prior outcomes.
+
+Monad must not assume retrying an operation is safe merely because the previous response was lost.
+
+---
+
+## ADR-032 — Transaction, Compensation, and Rollback Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-EXEC`
+
+Determine how Monad handles multi-step operations when atomic transactions are unavailable.
+
+The architecture must distinguish:
+
+* transactional rollback,
+* compensating actions,
+* reversal,
+* restoration,
+* and irreversibility.
+
+> Rollback is itself execution.
+
+---
+
+## ADR-033 — Asynchronous Execution and Cancellation Model
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-EXEC`
+
+Determine how long-running native operations are:
+
+* identified,
+* tracked,
+* polled,
+* resumed,
+* cancelled,
+* timed out,
+* and reconciled.
+
+The architecture must distinguish command acceptance from completed effect.
+
+---
+
+## ADR-034 — Concurrency and Execution Coordination Model
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-EXEC`
+
+Determine how Monad handles conflicting concurrent operations.
+
+Possible mechanisms include:
+
+* optimistic concurrency,
+* revision preconditions,
+* leases,
+* locks,
+* serialized scopes,
+* native transaction facilities,
+* or combinations thereof.
+
+---
+
+## ADR-035 — Execution Isolation and Sandboxing Strategy
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-EXEC`, `REQ-AI`
+
+Determine when execution should occur inside:
+
+* process isolation,
+* filesystem isolation,
+* containers,
+* virtual environments,
+* restricted shells,
+* native sandboxing,
+* or no additional sandbox.
+
+Isolation should be risk-proportional rather than universally expensive.
+
+---
+
+## ADR-036 — Secret and Credential Reference Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-EXEC`, `REQ-INT`
+
+Determine how operations reference credentials without placing secret material into:
+
+* canonical semantic state,
+* provenance logs,
+* execution journals,
+* AI context,
+* generated artifacts,
+* or audit output.
+
+---
+
+# Wave 5 — Integration and Reconciliation
+
+## ADR-037 — Integration Adapter Contract
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-INT`, `REQ-EXEC`
+
+Determine the architectural contract through which Monad integrates with native engineering systems.
+
+The contract must distinguish capabilities including:
+
+```text
+Discovery
+Observation
+Query
+Execution
+Event ingestion
+Reconciliation
+```
+
+Adapters must not erase native-system semantics merely to present a superficially uniform API.
+
+---
+
+## ADR-038 — Managed vs Referenced Integration Model
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-INT`
+
+Determine how Monad distinguishes systems it actively governs from systems it merely observes or references.
+
+Examples:
+
+```text
+Managed
+Observed
+Referenced
+Imported
+External
+```
+
+The distinction affects authority, freshness, execution, reconciliation, and trust.
+
+---
+
+## ADR-039 — Reconciliation Architecture
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-INT`, reconciliation requirements, `REQ-AUTH`
+
+Determine how Monad reconciles semantic state against native-system reality.
+
+The architecture must address:
+
+* external changes,
+* stale observations,
+* missing native objects,
+* conflicting updates,
+* derived-state invalidation,
+* authority,
+* and uncertainty.
+
+Reconciliation must not silently choose whichever state was observed last.
+
+---
+
+## ADR-040 — Reconciliation Conflict-Resolution Strategy
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** reconciliation requirements, `REQ-AUTH`
+
+Determine how Monad resolves—or explicitly refuses to resolve—conflicts among:
+
+* canonical semantic state,
+* native state,
+* generated state,
+* external observations,
+* user edits,
+* and inferred state.
+
+Authority and provenance must participate in conflict evaluation.
+
+---
+
+## ADR-041 — External Native Mutation Detection Strategy
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-INT`, `REQ-EXEC`
+
+Determine how Monad detects changes made directly through native tools rather than through Monad.
+
+Possible mechanisms include:
+
+* filesystem watching,
+* polling,
+* webhooks,
+* native event streams,
+* repository history,
+* reconciliation scans,
+* or combinations.
+
+Direct native editing remains a supported part of the architecture.
+
+---
+
+# Wave 6 — Local-First and Reproducibility
+
+## ADR-042 — Local-First Persistence Strategy
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-LOCAL`
+
+Determine which state must remain locally available and what local storage constitutes the authoritative working substrate.
+
+The architecture must consider:
+
+* disconnected operation,
+* portability,
+* inspectability,
+* backups,
+* synchronization,
+* performance,
+* recovery,
+* and migration.
+
+---
+
+## ADR-043 — Offline Authority and Governance Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-LOCAL`, `REQ-AUTH`, `REQ-GOV`
+
+Determine what governed operations remain legitimate while remote authority sources are unavailable.
+
+The architecture must distinguish:
+
+* cached authority,
+* locally authoritative policy,
+* expired authority,
+* unverifiable authority,
+* and operations requiring remote confirmation.
+
+Offline availability must not silently become authorization.
+
+---
+
+## ADR-044 — Synchronization and Replication Architecture
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-LOCAL`, reconciliation requirements
+
+Determine whether and how semantic state is synchronized between machines or broader system scopes.
+
+This decision must address:
+
+* identity preservation,
+* divergent histories,
+* conflicts,
+* authority,
+* ordering,
+* deletions,
+* and reconciliation.
+
+It should not assume distributed synchronization is necessary for the first implementation.
+
+---
+
+## ADR-045 — Reproducible Execution Context Strategy
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-REP`, `REQ-EXEC`, `REQ-PROV`
+
+Determine the minimum execution context Monad must capture to support meaningful reproducibility.
+
+Potential context includes:
+
+* source revision,
+* operation inputs,
+* tool versions,
+* dependency versions,
+* environment characteristics,
+* configuration,
+* platform,
+* working directory,
+* and external dependencies.
+
+Perfect environmental capture is not automatically required.
+
+---
+
+## ADR-046 — Content Addressing and Integrity Strategy
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-PROV`, `REQ-REP`
+
+Determine where hashes or content-addressed identity should be used for:
+
+* artifacts,
+* evidence,
+* inputs,
+* generated outputs,
+* execution plans,
+* and reproducibility records.
+
+The architecture must preserve:
+
+> Integrity ≠ Truth.
+
+A matching digest demonstrates byte identity, not semantic correctness or authority.
+
+---
+
+# Wave 7 — AI Interaction
+
+## ADR-047 — AI Actor and Agent Identity Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-AI`, `REQ-AUTH`
+
+Determine how AI systems are represented as Actors.
+
+The architecture must distinguish where necessary among:
+
+* provider,
+* model,
+* agent,
+* agent configuration,
+* session,
+* delegated role,
+* tool-using process,
+* and human principal.
+
+AI Actors must participate in the same authority and provenance foundations as human Actors.
+
+---
+
+## ADR-048 — AI Delegation and Autonomy Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-AI`, `REQ-AUTH`, `REQ-GOV`
+
+Determine how humans or systems delegate bounded authority to AI Actors.
+
+The model must support:
+
+* scope,
+* duration,
+* capability boundaries,
+* policy constraints,
+* approval thresholds,
+* revocation,
+* escalation,
+* and explainability.
+
+An AI system's technical ability to perform an operation must never establish authority to perform it.
+
+---
+
+## ADR-049 — AI Context-Package Architecture
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-AI`, `REQ-SEM`, `REQ-PROV`
+
+Determine how Monad constructs explicit context for AI interaction.
+
+A context package may contain:
+
+* Subjects,
+* representations,
+* Claims,
+* evidence,
+* relationships,
+* requirements,
+* decisions,
+* policies,
+* current state,
+* historical state,
+* unresolved questions,
+* provenance,
+* authority,
+* and freshness metadata.
+
+The decision must avoid treating arbitrary context-window accumulation as a semantic architecture.
+
+---
+
+## ADR-050 — AI Provenance and Attribution Architecture
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-AI`, `REQ-PROV`
+
+Determine what information Monad records about AI-assisted artifacts and actions.
+
+The architecture must distinguish:
+
+* human authored,
+* AI generated,
+* AI transformed,
+* AI suggested,
+* human confirmed,
+* machine observed,
+* and inferred state.
+
+AI generation alone establishes neither truth nor authority.
+
+---
+
+# Wave 8 — Verification and Assurance
+
+## ADR-051 — Verification Result Model
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-VER`
+
+Determine the architectural representation of verification.
+
+The model must distinguish verification from:
+
+* evidence,
+* tests,
+* approval,
+* execution,
+* review,
+* and assertion.
+
+Potential result concepts include:
+
+```text
+Satisfied
+Unsatisfied
+Indeterminate
+Not Applicable
+Stale
+Invalidated
+```
+
+Exact fields belong in the Verification Specification.
+
+---
+
+## ADR-052 — Verification Freshness and Invalidation Architecture
+
+**Status:** Backlog
+**Priority:** Critical
+**Primary requirements:** `REQ-VER`, `REQ-PROV`
+
+Determine when previously valid verification ceases to support the current system state.
+
+The decision must account for changes to:
+
+* implementation,
+* dependencies,
+* environment,
+* requirements,
+* specifications,
+* configuration,
+* evidence,
+* and verification procedure.
+
+---
+
+## ADR-053 — Conformance Architecture
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-VER`, all requirement families
+
+Determine how normative requirements and specifications become executable or otherwise repeatable conformance checks.
+
+The architecture should support the chain:
+
+```text
+Requirement
+    ↓
+Specification
+    ↓
+Conformance Scenario
+    ↓
+Implementation
+    ↓
+Verification
+    ↓
+Evidence
+```
+
+---
+
+## ADR-054 — Verification Evidence Retention Strategy
+
+**Status:** Backlog
+**Priority:** High
+**Primary requirements:** `REQ-VER`, `REQ-PROV`
+
+Determine which verification evidence must be retained, referenced, regenerated, or discarded.
+
+The architecture must balance:
+
+* reproducibility,
+* auditability,
+* storage cost,
+* sensitivity,
+* evidence freshness,
+* and deterministic regeneration.
+
+---
+
+# Cross-Cutting Extension Decisions
+
+These decisions may be finalized after the foundational waves stabilize.
+
+## ADR-055 — Plugin and Extension Architecture
+
+**Status:** Backlog
+**Priority:** Medium
+**Primary requirements:** `REQ-SEM`, `REQ-INT`, `REQ-EXEC`
+
+Determine how third-party or project-local extensions may add capabilities without weakening semantic invariants or governance boundaries.
+
+---
+
+## ADR-056 — Interface Transport Architecture
+
+**Status:** Backlog
+**Priority:** Medium
+**Primary requirements:** interface requirements, `REQ-EXEC`
+
+Determine which transport mechanisms expose Monad functionality after semantic interfaces have been defined.
+
+Candidates may include:
+
+* in-process APIs,
+* CLI,
+* local IPC,
+* HTTP,
+* RPC,
+* MCP,
+* event streams,
+* or combinations.
+
+Transport must remain subordinate to interface semantics.
+
+---
+
+# Consolidated Dependency Graph
+
+The highest-dependency path through the ADR catalog is approximately:
+
+```text
+ADR-001 Semantic Identifier Strategy
+    ↓
+ADR-002 Identity Scope
+    ↓
+ADR-003 Native Identifier Bindings
+    ↓
+ADR-005 Subject / Representation / Native Reference
+    ↓
+ADR-006 Semantic Kernel
+    ↓
+ADR-007 Claims
+ADR-008 Relationships
+    ↓
+ADR-009 Canonical Persistence
+    ↓
+ADR-010 Graph Persistence Decision
+    ↓
+ADR-011 Temporal Model
+    ↓
+ADR-013 Read Models
+ADR-014 Derived State
+ADR-015 Events
+    ↓
+ADR-016 Versioning
+ADR-017 Migration
+ADR-018 Multi-Project Model
+```
+
+Governance builds on that semantic foundation:
+
+```text
+ADR-019 Provenance
+    ↓
+ADR-021 Authority Evaluation
+    ↓
+ADR-022 Authority Composition
+    ↓
+ADR-023 Policy Evaluation
+    ↓
+ADR-024 Policy Representation
+    ↓
+ADR-025 Approvals and Obligations
+    ↓
+ADR-027 Governance Revalidation
+```
+
+Execution then builds on governance:
+
+```text
+ADR-028 Operation Representation
+    ↓
+ADR-029 Execution State Machine
+    ↓
+ADR-030 Execution Journal
+    ↓
+ADR-031 Retry / Idempotency
+    ↓
+ADR-032 Compensation / Rollback
+    ↓
+ADR-033 Async Execution
+ADR-034 Concurrency
+ADR-035 Isolation
+ADR-036 Secrets
+```
+
+Native integration follows:
+
+```text
+ADR-037 Adapter Contract
+    ↓
+ADR-038 Integration Ownership Model
+    ↓
+ADR-039 Reconciliation Architecture
+    ↓
+ADR-040 Conflict Resolution
+    ↓
+ADR-041 External Mutation Detection
+```
+
+Locality, AI, and verification build across those foundations:
+
+```text
+ADR-042 Local Persistence
+ADR-043 Offline Governance
+ADR-045 Reproducibility
+
+ADR-047 AI Actor Identity
+ADR-048 AI Delegation
+ADR-049 AI Context
+ADR-050 AI Provenance
+
+ADR-051 Verification Result
+ADR-052 Verification Invalidation
+ADR-053 Conformance
+ADR-054 Evidence Retention
+```
+
+---
+
+# First Decision Set
+
+The full backlog should not be decided simultaneously.
+
+The first decision packet SHOULD contain only the decisions necessary to define the semantic kernel.
+
+Recommended first packet:
+
+```text
+ADR-001 Semantic Identifier Strategy
+ADR-002 Semantic Identity Scope and Namespace Model
+ADR-003 Native Identifier Binding Strategy
+ADR-004 Identity Continuity, Split, and Merge Model
+ADR-005 Subject, Representation, and Native Reference Persistence Model
+ADR-006 Canonical Semantic Kernel Boundary
+ADR-007 Claim Representation Architecture
+ADR-008 Relationship Semantic Architecture
+ADR-011 Temporal Model
+```
+
+These decisions establish enough foundation to begin writing a meaningful Semantic Kernel Specification.
+
+Persistence technology SHOULD NOT be selected before the semantic model it must persist is sufficiently understood.
+
+Therefore:
+
+```text
+ADR-009 Canonical Model Persistence Architecture
+ADR-010 Graph-Shaped Semantics vs Graph Database
+```
+
+should follow the semantic decision packet rather than precede it.
+
+---
+
+# Questions Routed to Specifications
+
+Not every unresolved requirement question should become an ADR.
+
+The following categories should move into Specifications instead.
+
+## Identity Specification
+
+Examples:
+
+* exact Subject record fields,
+* alias field structure,
+* identifier serialization,
+* binding record fields,
+* confidence representation,
+* native-reference encoding,
+* validation constraints.
+
+---
+
+## Semantic Kernel Specification
+
+Examples:
+
+* exact entity properties,
+* required versus optional fields,
+* relationship type definitions,
+* cardinality constraints,
+* lifecycle fields,
+* semantic validation rules.
+
+---
+
+## Claim Specification
+
+Examples:
+
+* exact Claim schema,
+* predicate/value encoding,
+* typed-value representation,
+* equivalence metadata,
+* confidence fields.
+
+---
+
+## Provenance Specification
+
+Examples:
+
+* exact provenance record schema,
+* provenance edge types,
+* transformation metadata,
+* tool/version field names,
+* timestamps,
+* digest fields.
+
+---
+
+## Authority Specification
+
+Examples:
+
+* authority grant record fields,
+* scope expression syntax,
+* delegation record schema,
+* revocation representation,
+* evaluation result schema.
+
+---
+
+## Policy Specification
+
+Examples:
+
+* policy document schema,
+* rule syntax after ADR-024,
+* obligation fields,
+* evaluation response structure,
+* error representation.
+
+---
+
+## Operation Specification
+
+Examples:
+
+* canonical operation fields,
+* precondition syntax,
+* target representation,
+* side-effect classification,
+* operation identifiers.
+
+---
+
+## Execution Specification
+
+Examples:
+
+* exact execution-state enumeration,
+* transition table,
+* execution journal fields,
+* result taxonomy,
+* timeout fields,
+* cancellation response,
+* retry metadata.
+
+---
+
+## Integration Contract Specification
+
+Examples:
+
+* adapter methods,
+* capability descriptors,
+* request/response schemas,
+* error codes,
+* discovery schema,
+* event schema.
+
+---
+
+## Reconciliation Specification
+
+Examples:
+
+* reconciliation result record,
+* conflict record schema,
+* freshness fields,
+* reconciliation event types,
+* unresolved-state representation.
+
+---
+
+## AI Interaction Specification
+
+Examples:
+
+* context-package schema,
+* AI Actor fields,
+* tool-call envelope,
+* AI provenance fields,
+* context selection metadata.
+
+---
+
+## Verification Specification
+
+Examples:
+
+* verification record fields,
+* verification result enum,
+* evidence references,
+* invalidation fields,
+* conformance scenario schema.
+
+---
+
+# Questions Routed to Experiments
+
+Some unresolved architectural questions should not be answered by opinion alone.
+
+They require evidence.
+
+Candidate experiments include:
+
+### EXP-001 — Graph Persistence Value Test
+
+Determine whether graph-native persistence materially outperforms simpler relational/indexed alternatives for realistic Monad queries and mutation patterns.
+
+Supports:
+
+```text
+ADR-009
+ADR-010
+ADR-013
+```
+
+### EXP-002 — Semantic Kernel Complexity Test
+
+Determine whether the proposed semantic kernel creates enough practical value to justify its formalization cost.
+
+Supports:
+
+```text
+ADR-006
+ADR-007
+ADR-008
+```
+
+### EXP-003 — Search vs Explicit Semantic Modeling
+
+Determine which target workflows can be satisfactorily supported by conventional indexing/search and which require explicit semantic relationships.
+
+Supports:
+
+```text
+ADR-006
+ADR-010
+ADR-013
+```
+
+### EXP-004 — Provenance Granularity Cost Test
+
+Measure the usefulness and operational cost of several provenance granularities.
+
+Supports:
+
+```text
+ADR-019
+ADR-020
+```
+
+### EXP-005 — Reconciliation Strategy Test
+
+Evaluate detection and reconciliation behavior under direct external changes, conflicting writes, stale state, and incomplete observations.
+
+Supports:
+
+```text
+ADR-039
+ADR-040
+ADR-041
+```
+
+### EXP-006 — AI Context Package Evaluation
+
+Compare structured semantic context packages with naive document/context accumulation for representative engineering tasks.
+
+Supports:
+
+```text
+ADR-049
+```
+
+---
+
+# Questions That Should Remain Open
+
+Some questions need neither an ADR nor a Specification yet.
+
+They should remain explicit research questions when:
+
+* current evidence is insufficient,
+* the decision is not yet consequential,
+* no near-term implementation depends on the answer,
+* or resolving the question now would create premature architecture.
+
+The backlog should therefore resist the temptation to make every uncertainty immediately decidable.
+
+> Making uncertainty explicit is preferable to disguising it as architecture.
+
+---
+
+# ADR Creation Standard
+
+When an ADR moves from **Backlog** to **Proposed**, its document SHOULD contain at minimum:
+
+```text
+Title
+ADR ID
+Status
+Date
+Decision owners
+Requirement drivers
+
+Context
+Problem
+Decision drivers
+Constraints
+Options considered
+Analysis
+Decision
+Consequences
+Risks
+Rejected alternatives
+Validation / falsification criteria
+Migration implications
+Security implications
+Local-first implications
+AI implications, where relevant
+Open follow-up questions
+Affected specifications
+Affected requirements
+Supersedes / superseded-by
+```
+
+A decision is not complete merely because an option was selected.
+
+A good ADR should preserve enough reasoning that a future engineer can determine:
+
+> Given what we knew and valued at the time, why was this decision reasonable?
+
+---
+
+# Traceability Expectation
+
+Every accepted ADR SHOULD eventually trace upstream to the requirements that forced or constrained it and downstream to the specifications that implement it.
+
+Conceptually:
+
+```text
+Requirement
+    ↓ constrains
+ADR
+    ↓ determines
+Specification
+    ↓ defines
+Implementation
+    ↓ evaluated by
+Verification
+    ↓ supported by
+Evidence
+```
+
+Examples:
+
+```text
+REQ-ID-* ──────→ ADR-001 ──────→ Identity Specification
+REQ-SEM-* ─────→ ADR-006 ──────→ Semantic Kernel Specification
+REQ-AUTH-* ────→ ADR-021 ──────→ Authority Specification
+REQ-GOV-* ─────→ ADR-023 ──────→ Policy Specification
+REQ-EXEC-* ────→ ADR-029 ──────→ Execution Specification
+REQ-INT-* ─────→ ADR-037 ──────→ Integration Contract Specification
+REQ-AI-* ──────→ ADR-049 ──────→ AI Interaction Specification
+REQ-VER-* ─────→ ADR-051 ──────→ Verification Specification
+```
+
+This traceability is itself part of the engineering argument.
+
+---
+
+# Baseline
+
+This catalog establishes the initial architectural decision backlog.
+
+```text
+ADR Backlog Baseline: ADB-001
+Status: Proposed
+Range: ADR-001 through ADR-056
+```
+
+The catalog SHOULD change as understanding improves.
+
+New ADRs may be added.
+
+Existing ADRs may be consolidated.
+
+Some decisions may prove unnecessary.
+
+Some questions may move back into research.
+
+What should not happen is for consequential architectural decisions to disappear into implementation without an inspectable record.
+
+> Architecture should emerge from explicit requirements and explicit decisions—not from the accumulated accidents of implementation.

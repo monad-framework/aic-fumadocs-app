@@ -1,4 +1,2683 @@
 ---
-title: semantic-kernel.mdx
-description: semantic-kernel
+title: "Semantic Kernel Specification"
+specification ID: "SPEC-SEM-001"
+version: "0.1.0"
+status: "Draft"
+classification: "Normative Specification"
+parent: "RB-001 — Requirements Baseline"
+description: "Normative definition of Monad's minimal semantic object model, shared record envelope, canonical-state rules, and core semantic invariants."
 ---
+
+# Semantic Kernel Specification
+
+## 1. Purpose
+
+This specification defines the smallest normative semantic foundation shared by Monad.
+
+It establishes:
+
+* what semantic things exist,
+* how those things are identified,
+* which properties every semantic record possesses,
+* which properties are specific to each core entity,
+* what relationships may exist among entities,
+* which invariants always hold,
+* how record state is represented,
+* how canonical state differs from observed and derived state,
+* how revisions are represented,
+* what information is required,
+* what information is optional,
+* and which concerns are deliberately delegated to downstream specifications.
+
+This specification does **not** define storage technology, database architecture, transport protocols, CLI commands, UI behavior, or native-system adapters.
+
+Those concerns are downstream.
+
+The semantic kernel exists so that every later component operates over the same conceptual system.
+
+> Storage may change. Interfaces may change. Tools may change. The meaning of the system must remain stable.
+
+---
+
+## 2. Normative Language
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY**, and **OPTIONAL** are normative.
+
+A conforming implementation MUST satisfy all MUST and SHALL requirements in this specification.
+
+A SHOULD requirement may be violated only when the implementation documents why the alternative better preserves the intent of the specification.
+
+---
+
+## 3. Status and Architectural Dependencies
+
+This specification is currently **Draft**.
+
+It establishes the proposed normative semantic contract from which the remaining foundational specifications will be derived.
+
+Before this specification becomes **Accepted**, it MUST be reconciled with accepted decisions for at least:
+
+* ADR-001 — Semantic Identifier Strategy
+* ADR-002 — Semantic Identity Scope and Namespace Model
+* ADR-003 — Native Identifier Binding Strategy
+* ADR-004 — Identity Continuity, Split, and Merge Model
+* ADR-005 — Subject, Representation, and Native Reference Persistence Model
+* ADR-006 — Canonical Semantic Kernel Boundary
+* ADR-007 — Claim Representation Architecture
+* ADR-008 — Relationship Semantic Architecture
+* ADR-011 — Temporal Model
+
+If an accepted ADR conflicts with this Draft specification, the specification MUST be revised.
+
+An implementation MUST NOT treat Draft status as permission to erase distinctions established by the Requirements corpus.
+
+---
+
+# 4. Scope
+
+The semantic kernel consists of seven normative entity kinds:
+
+```text
+Subject
+Representation
+NativeReference
+Relationship
+Claim
+Evidence
+ProvenanceRecord
+```
+
+These entities constitute the minimum shared semantic vocabulary.
+
+Other Monad concepts—including:
+
+```text
+Actor
+Authority
+Policy
+Lifecycle
+Operation
+Execution
+Integration
+Reconciliation
+Verification
+AI Interaction
+```
+
+build upon this kernel but are defined by their respective specifications.
+
+Those concepts MAY possess semantic identity and MAY themselves be represented as Subjects where appropriate, but this specification does not define their domain-specific structure.
+
+---
+
+# 5. Core Distinctions
+
+A conforming implementation MUST preserve the following distinctions.
+
+```text
+Identity          ≠ Location
+Subject           ≠ Representation
+Representation    ≠ Native Reference
+Native Reference  ≠ Semantic Identity
+
+Claim             ≠ Evidence
+Evidence          ≠ Verification
+Provenance        ≠ Authority
+Authority         ≠ Capability
+Capability        ≠ Permission
+
+Observed          ≠ Canonical
+Derived           ≠ Canonical
+Generated         ≠ Canonical
+Current           ≠ Historical
+
+Unknown           ≠ False
+Inference         ≠ Observation
+Inference         ≠ Confirmation
+Existence         ≠ Authority
+Integrity         ≠ Truth
+```
+
+These distinctions are semantic invariants.
+
+An implementation MAY optimize their physical representation but MUST NOT collapse their meaning.
+
+---
+
+# 6. Semantic Entity
+
+A **Semantic Entity** is an identity-bearing object represented within the Monad semantic system.
+
+Every semantic entity MUST:
+
+1. possess a stable semantic identifier,
+2. declare its entity kind,
+3. be revisionable,
+4. expose its record status,
+5. expose its state role,
+6. preserve provenance sufficient to explain its origin,
+7. preserve historical identity when superseded,
+8. and conform to the invariants associated with its entity kind.
+
+The following are Semantic Entities:
+
+```text
+Subject
+Representation
+NativeReference
+Relationship
+Claim
+Evidence
+```
+
+`ProvenanceRecord` is a kernel record but is not itself required to participate in ordinary domain relationships.
+
+---
+
+# 7. Semantic Record Envelope
+
+Every persisted kernel record MUST conform to a common semantic record envelope.
+
+Conceptually:
+
+```ts
+interface SemanticRecord {
+  id: SemanticId
+  kind: RecordKind
+  revision: RevisionId
+  status: RecordStatus
+  stateRole: StateRole
+  createdAt: Timestamp
+  createdBy: ActorId
+  provenance: ProvenanceRecordId
+  extensions?: ExtensionMap
+}
+```
+
+The representation above is conceptual.
+
+It does not prescribe a programming language, serialization format, or database schema.
+
+---
+
+## 7.1 Required Common Properties
+
+| Property     | Required | Meaning                                          |
+| ------------ | -------: | ------------------------------------------------ |
+| `id`         |      Yes | Stable semantic identity of the logical record   |
+| `kind`       |      Yes | Kernel entity kind                               |
+| `revision`   |      Yes | Identity of this immutable record revision       |
+| `status`     |      Yes | Lifecycle status of this record revision         |
+| `stateRole`  |      Yes | Canonical, observed, or derived semantic role    |
+| `createdAt`  |      Yes | Time at which this revision was created          |
+| `createdBy`  |      Yes | Actor responsible for creating the revision      |
+| `provenance` |      Yes | Provenance describing the origin of the revision |
+| `extensions` |       No | Namespaced non-core extension data               |
+
+---
+
+# 8. Semantic Identifiers
+
+`SemanticId` represents stable semantic identity.
+
+This specification intentionally does not prescribe its concrete encoding.
+
+The Identity Specification SHALL define that encoding.
+
+Regardless of encoding, a Semantic Identifier MUST be:
+
+* immutable,
+* durable,
+* unambiguous within its defined identity scope,
+* independent of filesystem location,
+* independent of display name,
+* independent of mutable native-system locators,
+* independent of entity revision,
+* and suitable for persistent references.
+
+A semantic identifier MUST NOT change merely because:
+
+* a file moves,
+* a file is renamed,
+* a repository moves,
+* a display label changes,
+* a native URL changes,
+* a representation is regenerated,
+* or the entity receives a new revision.
+
+Semantic identifiers SHOULD be treated as opaque by consumers.
+
+Consumers MUST NOT infer unsupported semantics from identifier syntax.
+
+---
+
+# 9. Record Revisions
+
+Every mutable logical semantic entity MUST support revision.
+
+A `RevisionId` identifies one immutable version of a semantic entity.
+
+For logical entity:
+
+```text
+S
+```
+
+the system may contain:
+
+```text
+S@r1
+S@r2
+S@r3
+```
+
+where:
+
+```text
+S
+```
+
+remains the stable semantic identity and:
+
+```text
+r1
+r2
+r3
+```
+
+identify specific historical revisions.
+
+Once a revision becomes part of persisted semantic history, its normative contents MUST NOT be mutated in place.
+
+A change to normative content MUST produce a new revision.
+
+This requirement does not prescribe whether physical persistence uses:
+
+* copy-on-write records,
+* event sourcing,
+* temporal tables,
+* append-only files,
+* database rows,
+* or another implementation strategy.
+
+---
+
+# 10. Record Status
+
+Every semantic record revision MUST have one of the following kernel statuses:
+
+```text
+draft
+active
+superseded
+withdrawn
+tombstoned
+```
+
+## 10.1 `draft`
+
+The revision exists but is not yet part of current canonical operational state.
+
+Draft revisions MAY be edited or replaced according to the owning specification.
+
+---
+
+## 10.2 `active`
+
+The revision is eligible to participate in current semantic state.
+
+For a canonical logical record, at most one revision MAY be the active canonical revision at a time.
+
+---
+
+## 10.3 `superseded`
+
+The revision was previously valid but has been replaced by another revision or semantic entity.
+
+Superseded records MUST remain historically inspectable when retention policy permits.
+
+---
+
+## 10.4 `withdrawn`
+
+The revision has been intentionally removed from current use without asserting that the underlying semantic identity never existed.
+
+---
+
+## 10.5 `tombstoned`
+
+The logical entity has been intentionally deleted from active semantic use while preserving enough identity and history to prevent accidental resurrection or identity reuse.
+
+Tombstoning MUST NOT imply erasure of historical provenance.
+
+---
+
+# 11. State Role
+
+Every semantic entity revision MUST declare one of three state roles:
+
+```text
+canonical
+observed
+derived
+```
+
+These roles describe the epistemic and ownership relationship of the record to Monad's semantic state.
+
+They are not interchangeable.
+
+---
+
+## 11.1 Canonical State
+
+`canonical` state represents semantic state that Monad currently recognizes as part of its governed system model.
+
+Canonical does **not** necessarily mean:
+
+* objectively true,
+* globally authoritative,
+* verified,
+* approved,
+* immutable,
+* or externally synchronized.
+
+It means:
+
+> this is the state Monad currently treats as its operative semantic representation for the applicable scope.
+
+Canonical state MUST be explicit.
+
+Canonicality MUST NOT arise merely because a record:
+
+* exists,
+* was observed,
+* was generated,
+* was inferred,
+* was cached,
+* was most recently written,
+* or came from a technically privileged system.
+
+---
+
+## 11.2 Observed State
+
+`observed` state records something observed from a native or external system.
+
+Examples include:
+
+* a file discovered at a path,
+* a GitHub issue currently marked closed,
+* a branch head observed at a commit,
+* a test process returning an exit code,
+* or an external service reporting a status.
+
+Observation records what a source reported or what Monad detected.
+
+Observation does not automatically establish canonical semantic truth.
+
+An observed record MAY later contribute to a canonical revision through an explicit reconciliation or confirmation process.
+
+The original observation MUST remain distinguishable from the resulting canonical state.
+
+---
+
+## 11.3 Derived State
+
+`derived` state is computed from other state.
+
+Examples include:
+
+* indexes,
+* dependency summaries,
+* impact sets,
+* graph projections,
+* cached aggregates,
+* inferred relationships,
+* generated reports,
+* risk scores,
+* or AI-produced interpretations.
+
+Derived state MUST identify the source information from which it was derived.
+
+Derived state MUST NOT silently become canonical.
+
+If derived state is promoted into canonical state, the promotion MUST create an explicit canonical record or revision with provenance linking to the derived source.
+
+---
+
+# 12. Current Canonical State
+
+For a logical semantic entity identified by `id`, current canonical state is defined as:
+
+> the unique revision of that identity whose `stateRole` is `canonical` and whose `status` is `active`.
+
+Therefore:
+
+```text
+current(id) =
+  exactly one active canonical revision
+```
+
+The following conditions are valid:
+
+```text
+0 active canonical revisions
+1 active canonical revision
+```
+
+The following condition is an integrity violation:
+
+```text
+>1 active canonical revisions for the same logical identity
+```
+
+Zero active canonical revisions means the entity has no current canonical state.
+
+This may occur because it is:
+
+* draft,
+* withdrawn,
+* tombstoned,
+* observed only,
+* derived only,
+* or unresolved.
+
+---
+
+# 13. Subject
+
+A **Subject** represents a semantic thing Monad reasons about independently of any particular representation or native-system locator.
+
+Examples may include:
+
+* a software component,
+* requirement,
+* architectural decision,
+* specification,
+* feature,
+* repository,
+* service,
+* package,
+* interface,
+* policy,
+* release,
+* experiment,
+* or another meaningful engineering concept.
+
+A Subject exists semantically even if its representations change.
+
+---
+
+## 13.1 Subject Properties
+
+Conceptually:
+
+```ts
+interface Subject extends SemanticRecord {
+  kind: "subject"
+
+  subjectType: TypeId
+
+  name?: string
+  description?: string
+  labels?: string[]
+}
+```
+
+### Required
+
+```text
+id
+revision
+status
+stateRole
+createdAt
+createdBy
+provenance
+subjectType
+```
+
+### Optional
+
+```text
+name
+description
+labels
+extensions
+```
+
+---
+
+## 13.2 Subject Invariants
+
+A Subject MUST NOT derive its semantic identity solely from:
+
+* its name,
+* path,
+* URI,
+* Git ref,
+* issue number,
+* database row location,
+* or current representation.
+
+A Subject MAY exist without any current Representation.
+
+Removing a Representation MUST NOT automatically remove its Subject.
+
+Changing a Subject's name MUST NOT change its semantic identifier.
+
+`subjectType` MUST identify a defined semantic type.
+
+Display properties such as `name` and `labels` MUST NOT be treated as identity.
+
+Domain facts SHOULD generally be modeled through defined properties, Claims, or Relationships rather than accumulated indefinitely in an untyped property bag.
+
+---
+
+# 14. Representation
+
+A **Representation** is a concrete manifestation of a Subject.
+
+Examples include:
+
+* a source file,
+* document,
+* database record,
+* generated artifact,
+* serialized object,
+* configuration document,
+* web page,
+* compiled artifact,
+* or addressable fragment.
+
+A Representation is not the Subject itself.
+
+---
+
+## 14.1 Representation Properties
+
+Conceptually:
+
+```ts
+interface Representation extends SemanticRecord {
+  kind: "representation"
+
+  subjectId: SemanticId
+  representationType: TypeId
+
+  role?: TypeId
+  mediaType?: string
+  contentDigest?: Digest
+  encoding?: string
+}
+```
+
+### Required
+
+```text
+id
+revision
+status
+stateRole
+createdAt
+createdBy
+provenance
+subjectId
+representationType
+```
+
+### Optional
+
+```text
+role
+mediaType
+contentDigest
+encoding
+extensions
+```
+
+---
+
+## 14.2 Representation Invariants
+
+Every Representation MUST represent exactly one Subject.
+
+A Subject MAY have:
+
+```text
+0..N Representations
+```
+
+A Representation MUST NOT become the semantic identity of its Subject.
+
+A Representation MAY disappear while its Subject continues to exist.
+
+A Representation MAY be replaced by another Representation without changing Subject identity.
+
+Multiple Representations MAY simultaneously represent the same Subject.
+
+Examples:
+
+```text
+Requirement Subject
+ ├── Markdown Representation
+ ├── HTML Representation
+ └── Search-index Representation
+```
+
+A digest MAY establish content identity or integrity.
+
+A digest MUST NOT establish semantic identity or truth.
+
+---
+
+# 15. Native Reference
+
+A **NativeReference** identifies or locates an object using the native identity or addressing scheme of another system.
+
+Examples include:
+
+```text
+filesystem path
+Git commit hash
+Git ref
+GitHub issue number
+GitHub URL
+database primary key
+CI run identifier
+package coordinate
+external API resource ID
+```
+
+A NativeReference is not semantic identity.
+
+---
+
+## 15.1 NativeReference Properties
+
+Conceptually:
+
+```ts
+interface NativeReference extends SemanticRecord {
+  kind: "native-reference"
+
+  system: string
+  resourceType: string
+  locator: string
+
+  nativeId?: string
+
+  subjectId?: SemanticId
+  representationId?: SemanticId
+
+  bindingState: NativeBindingState
+}
+```
+
+### Required
+
+```text
+id
+revision
+status
+stateRole
+createdAt
+createdBy
+provenance
+system
+resourceType
+locator
+bindingState
+```
+
+### Optional
+
+```text
+nativeId
+subjectId
+representationId
+extensions
+```
+
+---
+
+# 16. Native Binding State
+
+A NativeReference MUST have one of the following binding states:
+
+```text
+unbound
+candidate
+confirmed
+conflicted
+retired
+```
+
+## `unbound`
+
+The native object has been discovered but is not associated with a semantic entity.
+
+## `candidate`
+
+Monad believes the native reference may correspond to a semantic entity, but the binding is not confirmed.
+
+## `confirmed`
+
+The binding has been accepted according to applicable identity and governance rules.
+
+## `conflicted`
+
+Available evidence supports incompatible identity bindings.
+
+The system MUST preserve the conflict rather than arbitrarily selecting one binding.
+
+## `retired`
+
+The NativeReference is historical and is no longer the current native locator.
+
+---
+
+## 16.1 Binding Invariants
+
+A confirmed NativeReference MUST identify at least one of:
+
+```text
+subjectId
+representationId
+```
+
+A candidate binding MUST NOT be treated as confirmed semantic identity.
+
+A native rename or move SHOULD normally create or revise NativeReference state rather than change Subject identity.
+
+Conflicting bindings MUST remain explicit until resolved.
+
+---
+
+# 17. Relationship
+
+A **Relationship** represents a typed semantic relation between two semantic entities.
+
+Relationship itself has identity.
+
+Conceptually:
+
+```ts
+interface Relationship extends SemanticRecord {
+  kind: "relationship"
+
+  relationshipType: TypeId
+
+  sourceId: SemanticId
+  targetId: SemanticId
+
+  qualifiers?: QualifierMap
+}
+```
+
+### Required
+
+```text
+id
+revision
+status
+stateRole
+createdAt
+createdBy
+provenance
+relationshipType
+sourceId
+targetId
+```
+
+### Optional
+
+```text
+qualifiers
+extensions
+```
+
+---
+
+# 18. Relationship Endpoints
+
+A relationship endpoint MAY refer to:
+
+```text
+Subject
+Representation
+NativeReference
+Claim
+Evidence
+Relationship
+```
+
+Relationship types MUST define which endpoint kinds they permit.
+
+This allows Monad to represent domain relationships such as:
+
+```text
+Component A
+    depends-on
+Component B
+```
+
+and semantic relationships such as:
+
+```text
+Evidence E
+    supports
+Claim C
+```
+
+without treating every relationship as the same kind of fact.
+
+---
+
+# 19. Relationship Direction
+
+Relationships are directed.
+
+Therefore:
+
+```text
+A --depends-on--> B
+```
+
+is not automatically equivalent to:
+
+```text
+B --depends-on--> A
+```
+
+A relationship type MAY define:
+
+* an inverse,
+* symmetry,
+* transitivity,
+* exclusivity,
+* cardinality,
+* or other semantic constraints.
+
+Those constraints belong in the Relationships Specification.
+
+Consumers MUST NOT infer inverse or transitive relationships unless the relationship type explicitly permits them.
+
+---
+
+# 20. Relationship Invariants
+
+Relationship identity MUST remain distinct from endpoint identity.
+
+Removing a Relationship MUST NOT remove its endpoints.
+
+A Relationship MUST NOT imply authority merely because it is present.
+
+Derived Relationships MUST remain distinguishable from canonical Relationships.
+
+Inferred Relationships MUST NOT silently become canonical.
+
+Two Relationships with identical endpoints are not necessarily duplicates if their:
+
+* type,
+* provenance,
+* qualifiers,
+* temporal scope,
+* or semantic meaning differs.
+
+---
+
+# 21. Claim
+
+A **Claim** represents a proposition about some semantic entity.
+
+Claims allow Monad to represent information without requiring the system to pretend every proposition is unquestionably true.
+
+The kernel adopts a minimal structured proposition:
+
+```text
+subject
+predicate
+object
+```
+
+Conceptually:
+
+```ts
+interface Claim extends SemanticRecord {
+  kind: "claim"
+
+  subjectId: SemanticId
+  predicate: PredicateId
+  object: ClaimValue
+
+  assertionMode: AssertionMode
+  confidence?: Confidence
+}
+```
+
+---
+
+## 21.1 Required Claim Properties
+
+```text
+id
+revision
+status
+stateRole
+createdAt
+createdBy
+provenance
+subjectId
+predicate
+object
+assertionMode
+```
+
+Optional:
+
+```text
+confidence
+extensions
+```
+
+---
+
+# 22. Claim Values
+
+A Claim value MUST be one of:
+
+```text
+LiteralValue
+SemanticReference
+StructuredValue
+```
+
+A literal may represent data such as:
+
+```text
+string
+boolean
+integer
+decimal
+timestamp
+duration
+```
+
+A SemanticReference points to another Semantic Entity.
+
+A StructuredValue MUST conform to a registered schema.
+
+The Claims Specification SHALL define the exact value model.
+
+---
+
+# 23. Assertion Mode
+
+Every Claim MUST distinguish how the proposition entered the system.
+
+The kernel defines:
+
+```text
+asserted
+observed
+inferred
+hypothesized
+```
+
+## `asserted`
+
+An Actor explicitly asserted the proposition.
+
+## `observed`
+
+The proposition was produced from a direct observation.
+
+## `inferred`
+
+The proposition was derived algorithmically, logically, heuristically, or by AI from other information.
+
+## `hypothesized`
+
+The proposition is intentionally represented as something to investigate rather than something currently accepted as established state.
+
+Assertion mode does not establish truth.
+
+---
+
+# 24. Claim Invariants
+
+Multiple Claims MAY make incompatible assertions about the same Subject and predicate.
+
+For example:
+
+```text
+Claim A:
+service-X.status = healthy
+
+Claim B:
+service-X.status = unhealthy
+```
+
+The existence of Claim A MUST NOT require Claim B to be deleted.
+
+Conflict is representable state.
+
+A Claim MUST preserve provenance.
+
+An inferred Claim MUST remain distinguishable from an observed or human-asserted Claim.
+
+Confidence MUST NOT be treated as authority.
+
+High confidence MUST NOT automatically promote a Claim into canonical truth.
+
+The Claims Specification SHALL define claim acceptance, equivalence, contradiction, supersession, and normalization.
+
+---
+
+# 25. Evidence
+
+**Evidence** represents inspectable information that may support, challenge, qualify, or otherwise bear on a Claim, Verification, Decision, or other engineering assertion.
+
+Evidence is not the assertion itself.
+
+Conceptually:
+
+```ts
+interface Evidence extends SemanticRecord {
+  kind: "evidence"
+
+  evidenceType: TypeId
+  payload: EvidencePayload
+
+  observedAt?: Timestamp
+}
+```
+
+### Required
+
+```text
+id
+revision
+status
+stateRole
+createdAt
+createdBy
+provenance
+evidenceType
+payload
+```
+
+### Optional
+
+```text
+observedAt
+extensions
+```
+
+---
+
+# 26. Evidence Payload
+
+Evidence MUST contain or reference inspectable material.
+
+An evidence payload MAY contain:
+
+```text
+Representation reference
+NativeReference
+Semantic Entity reference
+structured measurement
+structured result
+literal observation
+content-addressed artifact reference
+```
+
+Large binary or documentary evidence SHOULD normally be represented through a Representation or native artifact reference rather than embedded directly into the semantic record.
+
+---
+
+# 27. Evidence Relationships
+
+Evidence MUST NOT encode support or contradiction merely by existing.
+
+Its semantic relationship to another entity MUST be explicit.
+
+Examples include:
+
+```text
+supports
+contradicts
+qualifies
+fails-to-confirm
+derived-from
+observed-during
+```
+
+Example:
+
+```text
+Evidence E-101
+    --supports-->
+Claim C-202
+```
+
+Evidence MAY support multiple Claims.
+
+A Claim MAY have zero or more Evidence relationships.
+
+---
+
+# 28. Evidence Invariants
+
+Evidence MUST remain distinct from:
+
+```text
+Claim
+Verification
+Approval
+Authority
+Provenance
+```
+
+Evidence MAY be valid but irrelevant.
+
+Evidence MAY be relevant but insufficient.
+
+Evidence MAY become stale.
+
+Evidence MAY later be invalidated.
+
+Evidence MUST NOT automatically establish the truth of the proposition it supports.
+
+> Engineering Claims should be as strong as the Evidence supporting them—and no stronger.
+
+---
+
+# 29. Provenance Record
+
+A **ProvenanceRecord** describes meaningful origin, production, observation, derivation, or transformation history.
+
+Conceptually:
+
+```ts
+interface ProvenanceRecord {
+  id: ProvenanceRecordId
+  revision: RevisionId
+
+  targetId: SemanticId
+  targetRevision: RevisionId
+
+  activity: ProvenanceActivity
+  actorId: ActorId
+
+  sourceRefs?: ProvenanceSource[]
+  occurredAt: Timestamp
+
+  tool?: ToolReference
+  notes?: string
+}
+```
+
+---
+
+## 29.1 Required Provenance Properties
+
+```text
+id
+revision
+targetId
+targetRevision
+activity
+actorId
+occurredAt
+```
+
+Optional:
+
+```text
+sourceRefs
+tool
+notes
+```
+
+---
+
+# 30. Provenance Activities
+
+The kernel recognizes at least the following broad provenance activities:
+
+```text
+created
+observed
+imported
+derived
+generated
+transformed
+confirmed
+corrected
+migrated
+reconciled
+superseded
+```
+
+The Provenance Specification SHALL define their exact semantics and extension model.
+
+---
+
+# 31. Provenance Invariants
+
+Every persisted semantic revision MUST have provenance sufficient to determine:
+
+```text
+what revision was produced
+who or what produced it
+how it was produced at a meaningful level
+when it was produced
+```
+
+When derivation materially depends on source records, provenance SHOULD identify those source revisions.
+
+Provenance MUST remain distinct from authority.
+
+For example:
+
+```text
+createdBy = AI-Agent-17
+```
+
+does not imply:
+
+```text
+AI-Agent-17 was authorized to make the change
+```
+
+Similarly:
+
+```text
+source = GitHub
+```
+
+does not imply:
+
+```text
+GitHub owns semantic authority for the fact
+```
+
+> Provenance explains origin, not truth.
+
+---
+
+# 32. Canonicalization
+
+Canonicalization is the explicit process by which Monad recognizes semantic state as current canonical state.
+
+Canonicalization MUST NOT occur merely because:
+
+* an observation is newest,
+* an inference is confident,
+* an Actor has technical write access,
+* a generator produced output,
+* a remote system returned success,
+* or an AI system recommended a change.
+
+Canonicalization MAY depend on:
+
+* authority,
+* policy,
+* reconciliation,
+* human confirmation,
+* verification,
+* evidence,
+* lifecycle,
+* or other domain-specific rules.
+
+Those rules are defined downstream.
+
+---
+
+# 33. Promotion of Observed or Derived State
+
+Observed or derived state MUST NOT be mutated in place into canonical state.
+
+Promotion MUST produce an explicit canonical revision.
+
+For example:
+
+```text
+Observed O-1
+     │
+     │ evaluated / reconciled
+     ▼
+Canonical C-1
+```
+
+The resulting canonical revision MUST preserve provenance linking it to the source observation or derivation.
+
+This maintains the distinction between:
+
+```text
+what was observed
+```
+
+and:
+
+```text
+what Monad concluded should be canonical
+```
+
+---
+
+# 34. Canonical vs Derived Example
+
+Suppose Monad observes:
+
+```text
+GitHub Issue #42
+state = closed
+```
+
+The native observation may be represented as:
+
+```text
+stateRole = observed
+```
+
+A derived project status may then calculate:
+
+```text
+Feature F-17
+completion = 100%
+```
+
+That value is:
+
+```text
+stateRole = derived
+```
+
+Neither observation nor calculation automatically changes the canonical lifecycle state of Feature F-17.
+
+A lifecycle rule, authority decision, or reconciliation operation may eventually establish:
+
+```text
+Feature F-17
+lifecycle = complete
+stateRole = canonical
+```
+
+The three states remain distinguishable.
+
+---
+
+# 35. Unknown State
+
+The semantic kernel MUST support the absence of knowledge without replacing it with falsehood.
+
+Therefore:
+
+```text
+unknown
+```
+
+MUST remain semantically distinguishable from:
+
+```text
+false
+none
+empty
+zero
+rejected
+not applicable
+```
+
+A missing Claim MUST NOT automatically be interpreted as the negation of that Claim.
+
+---
+
+# 36. Uncertainty
+
+The kernel MUST permit uncertainty to remain explicit.
+
+Examples include:
+
+```text
+candidate native identity binding
+conflicting Claims
+inferred Relationship
+incomplete Evidence
+unresolved authority
+stale observation
+unknown native state
+```
+
+A system MUST NOT fabricate certainty merely to satisfy a schema.
+
+> Preserve uncertainty when the system does not yet know.
+
+---
+
+# 37. Required vs Optional Information
+
+The kernel follows this rule:
+
+> Information required to preserve semantic identity, provenance, state classification, and core meaning is mandatory. Convenience metadata is optional.
+
+Therefore, every Semantic Entity requires:
+
+```text
+identity
+kind
+revision
+record status
+state role
+creation time
+creating Actor
+provenance
+entity-specific semantic type or content
+```
+
+Convenience information such as:
+
+```text
+display names
+descriptions
+labels
+notes
+UI metadata
+cached summaries
+```
+
+MUST NOT be required for semantic validity unless a downstream specification explicitly requires it.
+
+---
+
+# 38. Extension Data
+
+Kernel entities MAY contain namespaced extensions.
+
+Conceptually:
+
+```text
+extensions:
+  org.example.feature-x:
+    ...
+```
+
+Extension fields:
+
+* MUST be namespaced,
+* MUST NOT override core fields,
+* MUST NOT alter the meaning of core invariants,
+* SHOULD survive round-trip serialization when unknown,
+* and MUST NOT be relied upon as universal Monad semantics unless standardized.
+
+When extension information becomes necessary for interoperable behavior, it SHOULD graduate into a formal Specification.
+
+---
+
+# 39. Type System
+
+The kernel references semantic type identifiers such as:
+
+```text
+subjectType
+representationType
+relationshipType
+evidenceType
+predicate
+```
+
+Type definitions MUST be explicit and versionable.
+
+A type definition SHOULD establish:
+
+* semantic meaning,
+* permitted fields,
+* endpoint constraints where relevant,
+* validation rules,
+* compatibility expectations,
+* and ownership.
+
+Unknown types MAY be preserved.
+
+Unknown types MUST NOT silently be interpreted as known types.
+
+The exact type registry belongs in the Schema and relevant domain Specifications.
+
+---
+
+# 40. Semantic Integrity
+
+Structural validity is necessary but insufficient.
+
+A record may be structurally valid while semantically invalid.
+
+For example:
+
+```text
+Relationship {
+  relationshipType: "implements",
+  source: Evidence,
+  target: NativeReference
+}
+```
+
+may satisfy generic serialization requirements while violating the endpoint rules of the `implements` relationship type.
+
+Therefore conformance MUST distinguish:
+
+```text
+serialization validity
+schema validity
+semantic validity
+governance validity
+```
+
+These are not equivalent.
+
+---
+
+# 41. Deletion
+
+Physical deletion SHOULD NOT be the default mechanism for removing semantic state.
+
+Where historical identity matters, logical deletion SHOULD use:
+
+```text
+withdrawn
+```
+
+or:
+
+```text
+tombstoned
+```
+
+Historical records MAY eventually be physically removed according to retention policy.
+
+Physical removal MUST NOT permit accidental reuse of a semantic identity whose previous use remains meaningful.
+
+---
+
+# 42. Supersession
+
+Supersession MUST preserve historical continuity.
+
+A revision or entity may be superseded because:
+
+* a new revision replaces it,
+* a different entity replaces its role,
+* a model migration occurs,
+* an identity correction occurs,
+* or a new decision invalidates the old one.
+
+Supersession SHOULD identify the replacing revision or entity when known.
+
+Supersession MUST NOT rewrite history to pretend the earlier state never existed.
+
+---
+
+# 43. Correction
+
+Incorrect semantic state MUST be corrected through explicit new state rather than destructive historical mutation whenever historical integrity matters.
+
+Conceptually:
+
+```text
+incorrect revision
+      ↓
+correction provenance
+      ↓
+corrected revision
+```
+
+A correction MUST preserve enough provenance to determine:
+
+* what was incorrect,
+* what replaced it,
+* and why the replacement occurred.
+
+---
+
+# 44. Identity Split
+
+When one previously modeled Subject is later determined to represent multiple distinct semantic Subjects, the system MUST NOT silently reuse the original identity for all descendants.
+
+The Identity Specification SHALL define the exact split procedure.
+
+At minimum, the operation MUST preserve:
+
+* the original identity,
+* the resulting identities,
+* provenance,
+* historical representations,
+* and the nature of the transition.
+
+---
+
+# 45. Identity Merge
+
+When multiple Subjects are later determined to represent the same semantic thing, the system MUST preserve their prior independent histories.
+
+Merge MUST NOT simply delete duplicate identities.
+
+The Identity Specification SHALL determine whether merge is represented through:
+
+* canonical replacement,
+* aliasing,
+* equivalence,
+* supersession,
+* or another mechanism.
+
+---
+
+# 46. Representation Replacement
+
+Replacing a Representation MUST NOT imply replacement of the Subject.
+
+Example:
+
+```text
+Subject S-101
+
+old:
+  Representation R-1 -> docs/architecture.md
+
+new:
+  Representation R-2 -> content/docs/system/architecture.mdx
+```
+
+Subject identity may remain:
+
+```text
+S-101
+```
+
+even though its concrete representation changes entirely.
+
+---
+
+# 47. Native Reference Replacement
+
+Native References MAY change independently of both Subject and Representation identity.
+
+For example:
+
+```text
+filesystem:
+docs/foo.md
+```
+
+may become:
+
+```text
+content/docs/foo.mdx
+```
+
+without changing the represented Subject.
+
+The old NativeReference SHOULD remain historically inspectable where useful.
+
+---
+
+# 48. No Implicit Identity Through Equality
+
+Two records containing identical content MUST NOT automatically be treated as the same Subject.
+
+Likewise, two Subjects with the same name MUST NOT automatically be treated as identical.
+
+Content equality may be evidence of identity.
+
+It is not identity itself.
+
+---
+
+# 49. No Implicit Truth Through Recency
+
+The most recently observed value MUST NOT automatically override other values merely because it is newer.
+
+Recency may contribute to reconciliation.
+
+Authority, provenance, evidence, state role, and applicable policy may be more important than timestamp order.
+
+Therefore:
+
+> Last write wins is not a semantic law.
+
+---
+
+# 50. No Implicit Authority Through Native Ownership
+
+A native system may remain authoritative for certain native facts.
+
+For example:
+
+```text
+Git may own commit topology.
+GitHub may own its issue identifiers.
+The filesystem may own current byte location.
+```
+
+That native authority MUST be explicitly scoped.
+
+Native ownership of one fact MUST NOT imply global semantic authority.
+
+---
+
+# 51. Derived State Invalidity
+
+Derived state depends on its source state.
+
+When an input revision changes, dependent derived state MUST be:
+
+* recomputed,
+* marked stale,
+* invalidated,
+* or otherwise prevented from masquerading as current.
+
+A derived record MUST NOT remain silently trusted after its declared inputs are no longer current.
+
+---
+
+# 52. Projections
+
+Read models, indexes, caches, search documents, rendered pages, and graph views MAY project semantic state.
+
+A Projection:
+
+* is not automatically canonical,
+* may be disposable,
+* may denormalize data,
+* may combine multiple semantic records,
+* and SHOULD be reconstructable from source state where practical.
+
+Projection architecture is defined by the Read-Model ADR and later implementation specifications.
+
+The kernel does not require projections to possess semantic identity unless they are themselves meaningful engineering entities.
+
+---
+
+# 53. Generated Artifacts
+
+Generated artifacts are not canonical merely because Monad produced them.
+
+A generated artifact MAY be:
+
+```text
+derived
+representation
+evidence
+projection
+```
+
+depending on purpose.
+
+Generation provenance MUST be preserved when the artifact has engineering significance.
+
+---
+
+# 54. Actor References
+
+Kernel records reference an `ActorId`.
+
+An Actor may ultimately represent:
+
+```text
+human
+AI agent
+automation
+service
+tool
+system process
+organization
+```
+
+The Actor model is defined elsewhere.
+
+This kernel requires only that attribution be explicit.
+
+A human and an AI system MUST use the same conceptual provenance foundation.
+
+---
+
+# 55. Authority Independence
+
+No kernel entity acquires authority merely by existing.
+
+This applies to:
+
+```text
+Subject
+Representation
+NativeReference
+Relationship
+Claim
+Evidence
+ProvenanceRecord
+```
+
+Authority is evaluated independently.
+
+For example:
+
+```text
+Claim exists
+```
+
+does not imply:
+
+```text
+Claim is authoritative
+```
+
+Likewise:
+
+```text
+Representation exists in the repository
+```
+
+does not necessarily imply:
+
+```text
+Representation is canonical
+```
+
+---
+
+# 56. Persistence Independence
+
+This specification defines semantics, not physical persistence.
+
+A conforming implementation MAY persist kernel state using:
+
+* relational databases,
+* document databases,
+* graph databases,
+* embedded databases,
+* filesystem records,
+* event logs,
+* hybrid architectures,
+* or another mechanism.
+
+The persistence architecture MUST preserve the semantic distinctions and invariants in this specification.
+
+> Graph-shaped semantics do not require graph-native persistence.
+
+---
+
+# 57. Serialization Independence
+
+The kernel does not require:
+
+```text
+JSON
+YAML
+TOML
+Protocol Buffers
+SQL rows
+RDF
+JSON-LD
+```
+
+or another serialization technology.
+
+Canonical serialization rules SHALL be established by downstream schema and persistence decisions.
+
+Serialization choices MUST NOT redefine semantic identity.
+
+---
+
+# 58. Local-First Compatibility
+
+Kernel state MUST be capable of existing locally without requiring a continuously available central service.
+
+At minimum, local operation MUST permit inspection of:
+
+* semantic identity,
+* current locally available canonical state,
+* relevant Representations,
+* NativeReferences,
+* Claims,
+* Relationships,
+* Evidence,
+* and Provenance available in the local dataset.
+
+The Local-First Specification SHALL define synchronization and offline-governance behavior.
+
+---
+
+# 59. Portability
+
+Kernel data SHOULD be exportable without losing semantic meaning.
+
+An exported semantic dataset SHOULD preserve:
+
+```text
+identities
+revisions
+entity kinds
+state roles
+record statuses
+relationships
+claims
+evidence links
+provenance
+type identifiers
+```
+
+Transport-specific or storage-specific implementation details SHOULD NOT be necessary to understand the core model.
+
+---
+
+# 60. Kernel Integrity Rules
+
+A conforming implementation MUST enforce at least the following invariants.
+
+## Identity
+
+1. A SemanticId MUST NOT identify two unrelated logical semantic entities.
+2. A SemanticId MUST remain stable across revisions.
+3. Revision identity MUST be distinct from semantic identity.
+4. Display names MUST NOT function as semantic identifiers.
+
+## Revision
+
+5. Historical persisted revisions MUST be immutable.
+6. Material normative changes MUST create a new revision.
+7. A logical identity MUST NOT have more than one active canonical revision.
+
+## Canonicality
+
+8. Canonicality MUST be explicit.
+9. Observed state MUST NOT silently become canonical.
+10. Derived state MUST NOT silently become canonical.
+11. Projection state MUST NOT silently become canonical.
+12. Generated state MUST NOT silently become canonical.
+
+## Subject
+
+13. Subject identity MUST remain independent of Representation identity.
+14. Subject identity MUST remain independent of NativeReference identity.
+15. A Subject MAY exist without a Representation.
+
+## Representation
+
+16. Every Representation MUST reference exactly one Subject.
+17. Representation replacement MUST NOT automatically replace Subject identity.
+18. Content equality MUST NOT imply Subject identity.
+
+## Native Reference
+
+19. NativeReference identity MUST remain distinct from semantic identity.
+20. Candidate bindings MUST NOT be treated as confirmed.
+21. Conflicted bindings MUST remain explicitly conflicted.
+
+## Relationship
+
+22. Relationship type MUST be explicit.
+23. Relationship direction MUST be explicit.
+24. Relationship existence MUST NOT imply unsupported inverse relationships.
+25. Derived Relationships MUST remain distinguishable from canonical Relationships.
+
+## Claims
+
+26. A Claim MUST identify its assertion mode.
+27. Conflicting Claims MAY coexist.
+28. Confidence MUST NOT imply authority.
+29. Inference MUST remain distinguishable from observation.
+30. Missing Claims MUST NOT automatically imply falsehood.
+
+## Evidence
+
+31. Evidence MUST remain distinct from Claims.
+32. Evidence relationships MUST be explicit.
+33. Evidence MUST NOT automatically establish truth.
+
+## Provenance
+
+34. Persisted revisions MUST preserve meaningful provenance.
+35. Provenance MUST NOT imply authority.
+36. Derivations SHOULD identify meaningful source revisions.
+
+## History
+
+37. Correction MUST preserve historical explanation.
+38. Supersession MUST NOT erase prior existence.
+39. Tombstoning MUST NOT permit accidental identity reuse.
+
+## Extensions
+
+40. Extensions MUST NOT override kernel semantics.
+41. Unknown extension data SHOULD be preserved when safely possible.
+
+---
+
+# 61. Minimal Valid Subject
+
+A minimal Subject contains:
+
+```yaml
+id: sem:example:01
+kind: subject
+revision: rev:01
+status: active
+stateRole: canonical
+createdAt: 2026-08-30T12:00:00Z
+createdBy: actor:human:01
+provenance: prov:01
+subjectType: software-component
+```
+
+The identifier syntax above is illustrative only.
+
+It is not the identifier strategy selected by this specification.
+
+---
+
+# 62. Subject With Representation
+
+Conceptually:
+
+```text
+Subject
+  id: S-1
+  type: requirement
+
+        │ represented-by
+        ▼
+
+Representation
+  id: R-1
+  subjectId: S-1
+  type: markdown-document
+
+        │ located-by
+        ▼
+
+NativeReference
+  id: N-1
+  system: filesystem
+  locator: content/docs/artifacts/requirements/identity.mdx
+```
+
+The three identities remain distinct.
+
+Moving the file may replace or revise `N-1`.
+
+Changing the document format may replace `R-1`.
+
+Neither necessarily changes `S-1`.
+
+---
+
+# 63. Claim and Evidence Example
+
+```text
+Subject S-20
+  "Execution subsystem"
+
+Claim C-31
+  S-20
+  predicate: satisfies
+  object: REQ-EXEC-042
+  assertionMode: asserted
+
+Evidence E-44
+  evidenceType: integration-test-result
+
+Relationship REL-52
+  E-44
+  --supports-->
+  C-31
+```
+
+The Evidence supports the Claim.
+
+It does not automatically prove it.
+
+A Verification record may later evaluate whether the evidence is sufficient.
+
+---
+
+# 64. Observed and Canonical Example
+
+```text
+Native System
+     │
+     │ observation
+     ▼
+Observed Claim O-10
+     │
+     │ reconciliation
+     ▼
+Canonical Claim C-11
+```
+
+`O-10` and `C-11` are not the same epistemic event.
+
+The canonical record SHOULD retain provenance to the observation used to establish it.
+
+---
+
+# 65. Derived Relationship Example
+
+A dependency analyzer may infer:
+
+```text
+Package A --depends-on--> Package B
+```
+
+The resulting Relationship may initially be:
+
+```text
+stateRole: derived
+```
+
+If Monad later decides the dependency relationship is part of canonical system state, a canonical Relationship MUST be explicitly created or established through reconciliation.
+
+The inference itself MUST remain attributable.
+
+---
+
+# 66. Invalid Modeling Examples
+
+The following patterns violate this specification.
+
+## Path as semantic identity
+
+```text
+subject.id = "src/auth/login.ts"
+```
+
+when moving the file is expected to preserve Subject identity.
+
+Invalid because location has been collapsed into semantic identity.
+
+---
+
+## Generated state treated as canonical
+
+```text
+AI predicts lifecycle = complete
+→ lifecycle automatically changed to complete
+```
+
+Invalid because inference has been collapsed into canonical state.
+
+---
+
+## Evidence treated as verification
+
+```text
+tests.log exists
+→ requirement automatically marked verified
+```
+
+Invalid because Evidence has been collapsed into Verification.
+
+---
+
+## Native permission treated as authority
+
+```text
+GitHub API accepted request
+→ operation was therefore authorized
+```
+
+Invalid because technical permission has been collapsed into authority.
+
+---
+
+## Destructive correction
+
+```text
+incorrect historical Claim deleted
+and replaced without provenance
+```
+
+Invalid because correction history has been erased.
+
+---
+
+# 67. Semantic Validation Levels
+
+A kernel implementation SHOULD expose validation at multiple levels.
+
+## Level 1 — Structural
+
+Can the record be parsed?
+
+## Level 2 — Schema
+
+Are required fields and field types valid?
+
+## Level 3 — Referential
+
+Do referenced semantic identities exist where required?
+
+## Level 4 — Semantic
+
+Do entity-specific invariants hold?
+
+## Level 5 — Historical
+
+Are revision and supersession rules valid?
+
+## Level 6 — Canonicality
+
+Is current canonical state unambiguous?
+
+Governance and authorization validation occur outside the semantic kernel.
+
+---
+
+# 68. Conformance Requirements
+
+An implementation conforms to this specification only if it can demonstrate all of the following.
+
+### Identity continuity
+
+Moving or replacing a Representation does not automatically change Subject identity.
+
+### Native-reference independence
+
+Changing a native locator does not automatically change semantic identity.
+
+### Revision preservation
+
+Changing normative semantic content produces a new revision.
+
+### Canonical uniqueness
+
+No logical semantic identity has multiple simultaneous active canonical revisions.
+
+### Observation separation
+
+Observed state remains distinguishable from canonical state.
+
+### Derivation separation
+
+Derived state remains distinguishable from canonical state.
+
+### Claim conflict preservation
+
+Conflicting Claims can coexist without destructive overwrite.
+
+### Provenance preservation
+
+The origin of every persisted semantic revision can be inspected.
+
+### Historical preservation
+
+Superseded and corrected state can remain historically understandable.
+
+### Extension safety
+
+Unknown extension data cannot override kernel semantics.
+
+---
+
+# 69. Non-Requirements
+
+This specification does **not** require:
+
+* a graph database,
+* RDF,
+* a globally distributed semantic graph,
+* globally unique identifiers,
+* event sourcing,
+* immutable physical storage,
+* a central server,
+* a specific database,
+* a specific programming language,
+* a specific schema language,
+* every repository object to become a Subject,
+* every property to become a Claim,
+* every native-system record to be copied into Monad,
+* every relationship to become canonical,
+* every inference to be persisted,
+* or every historical event to be retained forever.
+
+The kernel defines semantic obligations, not maximal formalization.
+
+---
+
+# 70. Progressive Formalization
+
+Monad SHOULD formalize semantic information only when doing so creates enough value to justify the cost.
+
+The kernel is therefore deliberately small.
+
+An implementation SHOULD NOT create semantic entities for information that is:
+
+* transient,
+* trivial,
+* already adequately represented elsewhere,
+* never queried semantically,
+* irrelevant to governance,
+* irrelevant to traceability,
+* or cheaper to rediscover than persist.
+
+> Formalization should earn its cost.
+
+---
+
+# 71. Falsifiability
+
+The semantic kernel is an architectural hypothesis.
+
+Evidence may show that:
+
+* some distinctions are unnecessary,
+* some concepts are too expensive,
+* explicit Claims provide insufficient value,
+* conventional indexing solves enough workflows,
+* the Relationship model is too broad,
+* provenance requirements are too granular,
+* or the kernel should become smaller.
+
+Such evidence SHOULD cause the kernel to evolve.
+
+The architecture MUST NOT preserve complexity merely because that complexity was documented.
+
+---
+
+# 72. Downstream Specification Boundaries
+
+This specification establishes the shared foundation.
+
+The following specifications refine it.
+
+## Identity Specification
+
+Defines:
+
+* concrete identifier strategy,
+* namespace rules,
+* aliases,
+* bindings,
+* split and merge,
+* continuity,
+* native identity mapping,
+* and identity resolution.
+
+---
+
+## Claims Specification
+
+Defines:
+
+* Claim schema,
+* predicates,
+* value types,
+* equivalence,
+* contradiction,
+* confidence,
+* acceptance,
+* and Claim lifecycle.
+
+---
+
+## Relationships Specification
+
+Defines:
+
+* relationship type definitions,
+* allowed endpoint kinds,
+* inverses,
+* symmetry,
+* transitivity,
+* qualifiers,
+* cardinality,
+* and semantic validation.
+
+---
+
+## Provenance Specification
+
+Defines:
+
+* provenance activity types,
+* source models,
+* derivation graphs,
+* transformation provenance,
+* provenance queries,
+* retention,
+* and correction.
+
+---
+
+## Authority Specification
+
+Defines:
+
+* Actors,
+* authority grants,
+* scopes,
+* delegation,
+* revocation,
+* precedence,
+* and authority evaluation.
+
+---
+
+## Policy Specification
+
+Defines:
+
+* policy representation,
+* policy applicability,
+* evaluation,
+* obligations,
+* approvals,
+* exceptions,
+* and governance outcomes.
+
+---
+
+## Lifecycle Specification
+
+Defines:
+
+* domain lifecycle models,
+* lifecycle transitions,
+* transition constraints,
+* and lifecycle authority.
+
+Kernel `RecordStatus` MUST NOT be confused with domain lifecycle state.
+
+---
+
+## Operation Specification
+
+Defines:
+
+* Intent,
+* resolved operations,
+* targets,
+* inputs,
+* preconditions,
+* side effects,
+* and operation identity.
+
+---
+
+## Execution Specification
+
+Defines:
+
+* execution attempts,
+* execution states,
+* retries,
+* cancellation,
+* partial failure,
+* rollback,
+* compensation,
+* and execution journals.
+
+---
+
+## Integration Contract Specification
+
+Defines:
+
+* native-system adapters,
+* capability discovery,
+* observation,
+* query,
+* execution,
+* and event contracts.
+
+---
+
+## Reconciliation Specification
+
+Defines:
+
+* freshness,
+* drift,
+* conflict detection,
+* conflict resolution,
+* canonicalization,
+* and external mutation handling.
+
+---
+
+## Verification Specification
+
+Defines:
+
+* verification procedures,
+* result models,
+* evidence evaluation,
+* freshness,
+* invalidation,
+* and conformance.
+
+---
+
+## AI Interaction Specification
+
+Defines:
+
+* AI Actor behavior,
+* delegation,
+* context packages,
+* AI provenance,
+* agent interaction,
+* and bounded autonomy.
+
+---
+
+# 73. Specification Dependency Model
+
+The foundational specification dependency structure is:
+
+```text
+                    semantic-kernel
+                           │
+          ┌────────────────┼────────────────┐
+          ▼                ▼                ▼
+       identity          claims       relationships
+          │                │                │
+          └─────────┬──────┴────────┬───────┘
+                    ▼               ▼
+               provenance        lifecycle
+                    │
+                    ▼
+                 authority
+                    │
+                    ▼
+                  policy
+                    │
+                    ▼
+                operation
+                    │
+                    ▼
+                execution
+                    │
+          ┌─────────┴─────────┐
+          ▼                   ▼
+integration-contract    reconciliation
+          │                   │
+          └─────────┬─────────┘
+                    ▼
+                verification
+                    │
+                    ▼
+             ai-interaction
+```
+
+This diagram expresses specification dependency, not runtime deployment architecture.
+
+---
+
+# 74. Minimum Semantic Kernel
+
+A minimal conforming Monad semantic system therefore needs to understand:
+
+```text
+Semantic identity
+Revision
+Record status
+State role
+
+Subject
+Representation
+NativeReference
+Relationship
+Claim
+Evidence
+Provenance
+```
+
+Everything else may build from those foundations.
+
+This is intentionally much smaller than the complete Monad system model.
+
+---
+
+# 75. Kernel Principle
+
+The semantic kernel exists to preserve meaning across changing tools, files, representations, implementations, humans, and AI systems.
+
+Its success is therefore not measured by how many concepts it models.
+
+Its success is measured by whether it preserves the distinctions necessary for trustworthy engineering reasoning.
+
+> Preserve identity where identity is real. Preserve distinction where distinction is real. Preserve uncertainty where knowledge is incomplete. Add structure only when that structure earns its cost.
+
+---
+
+## Related Specifications
+
+<Cards>
+  <Card
+    href="/docs/artifacts/specifications/identity"
+    title="Identity Specification"
+  >
+    Semantic identity, namespaces, native bindings, continuity, split, and merge.
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/claims"
+title="Claims Specification"
+>
+Structured propositions, epistemic state, equivalence, conflict, and acceptance.
+</Card>
+
+<Card
+href="/docs/artifacts/specifications/relationships"
+title="Relationships Specification"
+>
+Relationship types, endpoints, constraints, qualifiers, and semantic validation.
+</Card>
+
+<Card
+href="/docs/artifacts/specifications/provenance"
+title="Provenance Specification"
+>
+Origin, derivation, transformation, attribution, and historical explanation.
+</Card>
+</Cards>

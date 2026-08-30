@@ -1,0 +1,3078 @@
+---
+title: "AI-Native Engineering Operating System — Workflow & Lifecycle Baseline Review"
+specification ID: "AIEOS-REV-005"
+version: "0.1.0"
+status: "Draft"
+classification: "Normative Workflow Reconciliation and Baseline-Gate Review"
+parent: "AIEOS-WF-001 — AI-Native Engineering Operating System — Workflow & Lifecycle Specification"
+description: "AIEOS Workflow & Lifecycle Baseline Review — Red-team review and disposition of workflow findings before Workflow Baseline WB-001"
+---
+
+# AI-Native Engineering Operating System — Workflow & Lifecycle Baseline Review
+
+# 1. Purpose
+
+This review challenges:
+
+```text
+AIEOS-WF-001 v0.1.0
+```
+
+before establishment of the first accepted AIEOS Workflow Baseline.
+
+The review determines whether the workflow model:
+
+* conforms to `RB-001`,
+* conforms to `AB-001`,
+* preserves `AIEOS-DOM-001`,
+* defines lifecycle state unambiguously,
+* prevents unauthorized progression,
+* handles human and agent participation correctly,
+* survives concurrent mutation,
+* survives restart,
+* handles waiting and blocking coherently,
+* handles failure and retry safely,
+* handles cancellation without losing control of active side effects,
+* handles workflow migration without violating state invariants,
+* preserves deterministic governance across Policy changes,
+* handles durable timers,
+* supports emergency behavior safely,
+* remains feasible for the MVP.
+
+The review also determines whether:
+
+```text
+Workflow Baseline:
+WB-001
+```
+
+may be accepted.
+
+---
+
+# 2. Review Inputs
+
+The review corpus is:
+
+```text
+AIEOS-FOUND-001
+
+Requirements Baseline RB-001
+
+AIEOS-DOM-001 v0.2.0
+
+Architecture Baseline AB-001
+
+AIEOS-WF-001 v0.1.0
+```
+
+Supporting review artifacts include:
+
+```text
+AIEOS-REV-001
+AIEOS-REV-002
+AIEOS-REV-003
+AIEOS-REV-004
+```
+
+---
+
+# 3. Review Method
+
+The workflow model is evaluated for:
+
+```text
+semantic consistency
+
+state ownership
+
+state transition correctness
+
+authority separation
+
+Policy interaction
+
+Decision interaction
+
+Evidence gating
+
+Risk interaction
+
+agent participation
+
+human participation
+
+concurrency
+
+idempotency
+
+time-of-check/time-of-use safety
+
+failure handling
+
+waiting semantics
+
+blocking semantics
+
+retry behavior
+
+cancellation safety
+
+rollback / compensation
+
+workflow migration
+
+workflow versioning
+
+timer durability
+
+cross-workflow coordination
+
+emergency behavior
+
+historical reconstruction
+
+restart safety
+
+MVP feasibility
+```
+
+Each finding receives one of:
+
+```text
+ACCEPT
+
+ACCEPT-WITH-MODIFICATION
+
+NO-CHANGE
+
+DEFER
+
+REJECT
+```
+
+and is classified:
+
+```text
+BLOCKING
+
+NON-BLOCKING
+```
+
+for `WB-001`.
+
+---
+
+# 4. Workflow Baseline Decision
+
+## Decision
+
+**CHANGES REQUIRED**
+
+`AIEOS-WF-001 v0.1.0` is structurally sound and establishes the correct overall lifecycle model.
+
+However, it is **not yet ready to become Workflow Baseline WB-001**.
+
+The following major concepts survive review without redesign:
+
+```text
+Workflow Definition
+
+Workflow Instance
+
+version pinning
+
+Transition Proposal
+
+deterministic Transition Evaluation
+
+Artifact Gates
+
+Evidence Gates
+
+Review Gates
+
+Decision Gates
+
+Operational Authorization Gates
+
+human gates
+
+agent participation
+
+risk-adaptive progression
+
+retry
+
+rollback / compensation
+
+emergency workflow
+
+concurrency control
+
+idempotency
+
+historical traceability
+
+reference engineering-change workflow
+```
+
+The required progression is:
+
+```text
+AIEOS-WF-001 v0.1.0
+        ↓
+AIEOS-REV-005
+        ↓
+workflow corrections
+        ↓
+AIEOS-WF-001 v0.2.0
+        ↓
+Workflow Baseline Verification
+        ↓
+WB-001
+```
+
+---
+
+# 5. Executive Finding Summary
+
+| Finding                                                                       | Disposition              | Blocking | Required Action                                          |
+| ----------------------------------------------------------------------------- | ------------------------ | -------: | -------------------------------------------------------- |
+| FIND-WF-001 Waiting vs Blocked semantics conflict                             | ACCEPT                   |      Yes | Define orthogonal waiting/blocking semantics             |
+| FIND-WF-002 Generic `BLOCKED` state can destroy phase information             | ACCEPT                   |      Yes | Do not require generic lifecycle-state replacement       |
+| FIND-WF-003 Transition “Decision” conflicts with governed Decision            | ACCEPT                   |      Yes | Rename to Transition Disposition                         |
+| FIND-WF-004 Proposal source conflates trigger with Actor                      | ACCEPT                   |      Yes | Separate trigger/source from proposing Actor             |
+| FIND-WF-005 Evaluation-to-commit race is under-specified                      | ACCEPT                   |      Yes | Add Transition Evaluation Basis and commit revalidation  |
+| FIND-WF-006 Concurrency token is only SHOULD                                  | ACCEPT                   |      Yes | Require state revision/version precondition              |
+| FIND-WF-007 Workflow migration violates state-transition invariant            | ACCEPT                   |      Yes | Define Migration Transition                              |
+| FIND-WF-008 Published Workflow Definition immutability missing                | ACCEPT                   |      Yes | Require immutable accepted versions                      |
+| FIND-WF-009 Workflow publication governance missing                           | ACCEPT                   |      Yes | Define governed publication/activation                   |
+| FIND-WF-010 Workflow bootstrap circularity                                    | ACCEPT                   |      Yes | Define bootstrap workflow authority                      |
+| FIND-WF-011 Cancellation can complete before active execution is safe         | ACCEPT                   |      Yes | Add cancellation-request/pending/final semantics         |
+| FIND-WF-012 Durable timer semantics missing                                   | ACCEPT                   |      Yes | Require persisted timer/deadline state                   |
+| FIND-WF-013 Retry responsibility is under-specified                           | ACCEPT-WITH-MODIFICATION |       No | Split definition, policy, and execution responsibilities |
+| FIND-WF-014 External unknown state must block successful completion           | ACCEPT                   |      Yes | Add completion invariant                                 |
+| FIND-WF-015 Policy/version inputs to transition history insufficiently pinned | ACCEPT                   |      Yes | Persist evaluation basis                                 |
+| FIND-WF-016 Block/wait resolution should re-evaluate, not force resume        | ACCEPT                   |       No | Require fresh transition evaluation                      |
+| FIND-WF-017 Cross-workflow atomicity should not be implied                    | ACCEPT                   |       No | Explicitly avoid cross-workflow transaction assumption   |
+| FIND-WF-018 Parent/child cancellation propagation unspecified                 | ACCEPT-WITH-MODIFICATION |       No | Require explicit propagation policy                      |
+| FIND-WF-019 Emergency retrospective obligation needs durable state            | ACCEPT                   |       No | Represent retrospective obligation explicitly            |
+| FIND-WF-020 Transition evaluation persistence insufficiently explicit         | ACCEPT                   |       No | Persist consequential dispositions                       |
+| FIND-WF-021 Continuous workflows remain valid                                 | NO-CHANGE                |       No | Retain                                                   |
+| FIND-WF-022 Risk-adaptive lifecycle model                                     | NO-CHANGE                |       No | Retain                                                   |
+| FIND-WF-023 Human-attention model                                             | NO-CHANGE                |       No | Retain                                                   |
+| FIND-WF-024 Agent transition proposal model                                   | NO-CHANGE                |       No | Retain                                                   |
+
+---
+
+# 6. FIND-WF-001 — Waiting and Blocked Semantics Conflict
+
+## Finding
+
+`AIEOS-WF-001` currently defines:
+
+```text
+WAITING
+
+=
+progress intentionally suspended
+pending an expected event
+```
+
+and:
+
+```text
+BLOCKED
+
+=
+progress cannot proceed
+because mandatory prerequisites
+cannot be satisfied
+```
+
+Later, however, a **Blocked Transition** is described as a Transition that could proceed once satisfiable prerequisites are supplied.
+
+Examples include:
+
+```text
+waiting for Evidence
+
+waiting for human Decision
+
+waiting for dependency
+
+waiting for external system
+```
+
+Those examples substantially overlap `WAITING`.
+
+The distinction is therefore not deterministic.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 7. Required Waiting/Blocking Semantics
+
+The baseline SHALL distinguish:
+
+## Waiting
+
+A Workflow Instance is **waiting** when:
+
+```text
+progress is paused
+
+because
+
+a known expected event,
+time condition,
+Decision,
+Execution,
+or external result
+has not yet occurred
+```
+
+and no exceptional remediation is presently required.
+
+Examples:
+
+```text
+waiting for Decision
+
+waiting for scheduled window
+
+waiting for running CI
+
+waiting for external result
+```
+
+---
+
+## Blocked
+
+A Workflow Instance is **blocked** when:
+
+```text
+ordinary progression cannot continue
+
+and
+
+an identified condition requires
+intervention, remediation,
+resolution, or changed governed state
+```
+
+Examples:
+
+```text
+Authority Conflict
+
+Policy conflict
+
+missing required Artifact with no producer scheduled
+
+dependency failed
+
+required Evidence invalid
+
+required external system unavailable indefinitely
+
+required capability cannot be granted
+```
+
+---
+
+# 8. Waiting Is Not Blocked
+
+The baseline SHALL preserve:
+
+```text
+WAITING
+    =
+expected pause
+
+BLOCKED
+    =
+exceptional inability to progress
+```
+
+The same workflow may become:
+
+```text
+waiting
+        ↓
+timeout / failure / conflict
+        ↓
+blocked
+```
+
+---
+
+# 9. FIND-WF-002 — Generic `BLOCKED` Lifecycle State Can Destroy Phase Information
+
+## Finding
+
+The reference lifecycle lists:
+
+```text
+BLOCKED
+```
+
+as an exceptional state.
+
+A generic transition:
+
+```text
+VERIFYING
+    ↓
+BLOCKED
+```
+
+loses information about the lifecycle phase unless the previous state is stored separately.
+
+That creates awkward behavior when the blocking condition resolves.
+
+The specification currently suggests:
+
+```text
+return to previous active state
+```
+
+but does not define how that state is authoritatively preserved.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 10. Blocking Condition Shall Be Orthogonal
+
+A **Blocking Condition** SHOULD be modeled as an orthogonal governed condition attached to a Workflow Instance rather than requiring replacement of the primary Lifecycle State.
+
+Conceptually:
+
+```text
+Lifecycle State:
+VERIFYING
+
+Progress Condition:
+BLOCKED
+
+Reason:
+security scanner unavailable
+```
+
+rather than necessarily:
+
+```text
+Lifecycle State:
+BLOCKED
+```
+
+---
+
+# 11. Explicit Waiting/Blocked States Remain Permitted
+
+A Workflow Definition MAY define an explicit state such as:
+
+```text
+WAITING_FOR_DECISION
+```
+
+or:
+
+```text
+BLOCKED_SECURITY_REVIEW
+```
+
+where such a state has domain-specific lifecycle meaning.
+
+What SHALL NOT be required is one universal generic `BLOCKED` state that erases phase information.
+
+---
+
+# 12. Work Unit Coordination
+
+A Work Unit may therefore expose:
+
+```text
+blocked
+waiting-human
+waiting-external
+```
+
+as coordination status derived from:
+
+```text
+Workflow Instance
++
+Blocking Conditions
++
+Waiting Conditions
+```
+
+without changing the ownership of Lifecycle State.
+
+---
+
+# 13. FIND-WF-003 — Transition “Decision” Conflicts With Governed Decision
+
+## Finding
+
+The core transition model currently says:
+
+```text
+Proposal
+   ↓
+Evaluation
+   ↓
+Decision
+   ↓
+State Mutation
+```
+
+But `Decision` already has a specific AIEOS domain meaning.
+
+Using the same term for the deterministic result of a Transition Evaluation creates ambiguity.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 14. Transition Disposition
+
+The workflow model SHALL use:
+
+```text
+Transition Disposition
+```
+
+for the result of Transition Evaluation.
+
+The sequence becomes:
+
+```text
+Transition Proposal
+        ↓
+Transition Evaluation
+        ↓
+Transition Disposition
+        ↓
+State Mutation if accepted
+        ↓
+Event + Provenance
+```
+
+A Transition Disposition MAY be:
+
+```text
+ACCEPTED
+
+DENIED
+
+BLOCKED
+
+FAILED_TO_EVALUATE
+
+STALE
+```
+
+A governed `Decision` remains a distinct domain concept.
+
+---
+
+# 15. FIND-WF-004 — Proposal Source Conflates Trigger With Actor
+
+## Finding
+
+The specification says a Transition Proposal MAY originate from:
+
+```text
+Human Actor
+Agent Actor
+Automation Actor
+External System Actor
+scheduler
+Observation
+completed Execution
+Verification Result
+```
+
+But:
+
+```text
+Observation
+
+Execution
+
+Verification Result
+
+scheduler event
+```
+
+are not necessarily Actors.
+
+The model therefore conflates:
+
+```text
+what triggered the proposal
+
+with
+
+who or what submitted it
+```
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 16. Trigger and Proposer Separation
+
+A Transition Proposal SHALL distinguish where applicable:
+
+```text
+Trigger
+```
+
+from:
+
+```text
+Proposing Actor
+```
+
+Example:
+
+```text
+Trigger:
+Verification Result VR-42 = passed
+
+Proposing Actor:
+automation:workflow-controller
+```
+
+Another:
+
+```text
+Trigger:
+Observation OBS-19
+
+Proposing Actor:
+automation:incident-router
+```
+
+---
+
+# 17. Transition Proposal Model
+
+A Transition Proposal SHOULD therefore identify:
+
+```text
+Workflow Instance
+
+expected source state
+
+expected state revision
+
+target state
+
+proposing Actor
+
+trigger
+
+reason
+
+related Artifacts
+
+relevant Evidence
+
+requested time
+
+idempotency identity
+```
+
+where applicable.
+
+---
+
+# 18. FIND-WF-005 — Evaluation-to-Commit Race
+
+## Finding
+
+A Transition may be evaluated against:
+
+```text
+Policy
+
+Evidence
+
+Risk
+
+Decision
+
+Operational Authorization
+
+Environment
+
+external facts
+```
+
+but these inputs may change between:
+
+```text
+evaluation
+```
+
+and:
+
+```text
+authoritative commit
+```
+
+Example:
+
+```text
+Authorization valid
+        ↓
+Transition evaluation passes
+        ↓
+Authorization revoked
+        ↓
+Transition commits
+```
+
+Without stronger semantics, this creates a time-of-check/time-of-use failure.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 19. Transition Evaluation Basis
+
+Every accepted Transition SHALL retain a **Transition Evaluation Basis** sufficient to identify the authoritative inputs against which eligibility was determined.
+
+The basis SHOULD include, where applicable:
+
+```text
+Workflow Definition version
+
+Workflow Instance state revision
+
+Policy versions
+
+Configuration version
+
+Risk Assessment version/state
+
+Evidence identities + validity state
+
+Decision identities
+
+Operational Authorization identity + validity
+
+Actor identity
+
+Environment identity/classification
+
+external authoritative revisions
+
+evaluation time
+```
+
+---
+
+# 20. Commit-Time Revalidation
+
+Before an accepted Transition becomes authoritative, AIEOS SHALL ensure that required time-sensitive or mutable governance inputs remain valid.
+
+This MAY be implemented through:
+
+```text
+transactional locking
+
+revision checking
+
+compare-and-swap
+
+governance re-evaluation
+
+version predicates
+
+equivalent consistency mechanism
+```
+
+The exact mechanism is implementation-specific.
+
+The semantic requirement is not.
+
+---
+
+# 21. Evaluation Does Not Reserve Authority
+
+A successful eligibility query SHALL NOT reserve or guarantee future permission.
+
+Therefore:
+
+```text
+CanTransition() = eligible
+```
+
+does not mean:
+
+```text
+future Transition must succeed
+```
+
+If governing state changes before commit, the final Transition MAY become:
+
+```text
+STALE
+
+BLOCKED
+
+DENIED
+```
+
+or require re-evaluation.
+
+---
+
+# 22. FIND-WF-006 — Concurrency Token Is Too Weak
+
+## Finding
+
+The current specification says a Transition:
+
+> SHOULD be evaluated against a state version, revision, sequence, or equivalent concurrency token.
+
+For authoritative Lifecycle State, this is a correctness property rather than an optimization.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 23. State Revision Requirement
+
+Every authoritative Transition Proposal SHALL be evaluated against a specific authoritative Workflow Instance state revision or equivalent concurrency identity.
+
+Conceptually:
+
+```text
+Workflow Instance:
+WF-42
+
+state:
+PLAN_ACCEPTED
+
+state_revision:
+17
+```
+
+Proposal:
+
+```text
+expected_state:
+PLAN_ACCEPTED
+
+expected_revision:
+17
+```
+
+---
+
+# 24. Concurrent Mutation Rule
+
+A Transition SHALL NOT commit if its expected state revision is no longer current.
+
+The proposal SHALL become:
+
+```text
+STALE
+```
+
+or equivalent.
+
+---
+
+# 25. FIND-WF-007 — Workflow Migration Violates Existing Invariant
+
+## Finding
+
+The specification states:
+
+```text
+WF-INV-003
+
+Authoritative Lifecycle State
+SHALL change only through
+an accepted Transition.
+```
+
+But Workflow Migration may change:
+
+```text
+Workflow Definition version
+
+and
+
+Lifecycle State mapping
+```
+
+without being defined as a Transition.
+
+That is a direct semantic contradiction.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 26. Migration Transition
+
+Workflow migration SHALL be represented as a specialized governed:
+
+```text
+Migration Transition
+```
+
+A Migration Transition SHALL identify:
+
+```text
+Workflow Instance
+
+old Workflow Definition version
+
+new Workflow Definition version
+
+old Lifecycle State
+
+mapped Lifecycle State
+
+migration rule
+
+initiating Actor
+
+applicable Decision
+
+Operational Authorization where required
+
+Policy Evaluation
+
+reason
+
+time
+
+Provenance
+```
+
+---
+
+# 27. Migration Transition Is Exceptional
+
+A Migration Transition is not required to correspond to an ordinary edge inside the old Workflow Definition.
+
+It is a special governed lifecycle transition whose permission comes from an explicit migration rule and applicable governance.
+
+This preserves:
+
+```text
+Lifecycle State changes only
+through governed Transition
+```
+
+without pretending that ordinary lifecycle edges can describe definition migration.
+
+---
+
+# 28. FIND-WF-008 — Published Workflow Definition Immutability
+
+## Finding
+
+Workflow versions are pinned, but the specification does not explicitly state that an accepted/published Workflow Definition version becomes semantically immutable.
+
+If:
+
+```text
+workflow v1.2.0
+```
+
+can be modified in place, version pinning becomes meaningless.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 29. Accepted Version Immutability
+
+Once a Workflow Definition version becomes accepted for instantiation, its normative semantics SHALL NOT be modified in place.
+
+Changes SHALL produce a new identifiable Workflow Definition version.
+
+Historical correction MAY append metadata or correction records.
+
+It SHALL NOT silently redefine prior workflow semantics.
+
+---
+
+# 30. Workflow Definition Version Identity
+
+The following relationship SHALL hold:
+
+```text
+same semantic workflow family
+        ↓
+multiple immutable versions
+
+engineering-change
+    ├── v1
+    ├── v2
+    └── v3
+```
+
+---
+
+# 31. FIND-WF-009 — Workflow Publication Governance Missing
+
+## Finding
+
+The specification defines validation before a Workflow Definition is accepted but does not define who or what may cause a Workflow Definition version to become active for new Workflow Instances.
+
+This is consequential because workflow definitions determine governance behavior.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 32. Workflow Publication
+
+A Workflow Definition SHALL have lifecycle semantics sufficient to distinguish at least:
+
+```text
+draft
+
+accepted / active
+
+superseded
+
+withdrawn / invalid
+```
+
+or equivalent.
+
+Activation for new Workflow Instances SHALL require governed publication.
+
+---
+
+# 33. Workflow Publication Governance
+
+Publishing or activating a Workflow Definition version SHALL require:
+
+```text
+valid Workflow Definition
+
+authorized Actor or governed automation
+
+applicable Policy
+
+required Decision
+
+required Provenance
+```
+
+where configured.
+
+An Agent SHALL NOT unilaterally publish a Workflow Definition merely because it generated one.
+
+---
+
+# 34. FIND-WF-010 — Workflow Bootstrap Circularity
+
+## Finding
+
+If Workflow Definitions themselves require governed workflow to become accepted, the first Workflow Definition creates a bootstrapping question:
+
+> Which Workflow governs the Workflow that creates Workflow Definitions?
+
+This is a real system bootstrap issue.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 35. Bootstrap Governance
+
+AIEOS SHALL define a minimal bootstrap governance mechanism for establishing the initial trusted Workflow Definitions.
+
+The bootstrap mechanism MAY be:
+
+```text
+installation-time trusted baseline
+
+System Constitution rule
+
+signed built-in definition set
+
+explicit human administrative Decision
+
+other governed bootstrap authority
+```
+
+The implementation choice is deferred.
+
+The architecture SHALL NOT rely on an infinite chain of workflows creating workflows.
+
+---
+
+# 36. Bootstrap Boundary
+
+The bootstrap mechanism SHALL be:
+
+```text
+minimal
+
+explicit
+
+auditable
+
+versioned where applicable
+
+unable to silently grant unrestricted future authority
+```
+
+Once ordinary workflow governance is established, normal changes SHOULD proceed through governed Workflow Definition evolution.
+
+---
+
+# 37. FIND-WF-011 — Cancellation Safety
+
+## Finding
+
+The specification states that cancellation of a Workflow Instance and termination of active Execution are separate.
+
+This is correct.
+
+However, it does not prevent this unsafe sequence:
+
+```text
+Workflow marked CANCELLED
+        ↓
+Execution still running
+        ↓
+external side effect occurs
+```
+
+The terminal workflow status would falsely imply the governed process is over.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 38. Cancellation Request
+
+Cancellation SHALL begin as a governed request.
+
+Conceptually:
+
+```text
+Cancellation Requested
+        ↓
+active work signaled
+        ↓
+execution disposition determined
+        ↓
+external side effects reconciled
+        ↓
+compensation obligations determined
+        ↓
+terminal cancellation
+```
+
+---
+
+# 39. Cancellation Pending
+
+Where an active Execution or external operation remains unresolved, the Workflow Instance SHALL remain non-terminal.
+
+A workflow MAY use semantics equivalent to:
+
+```text
+CANCELLATION_PENDING
+```
+
+or retain its Lifecycle State with a cancellation condition.
+
+---
+
+# 40. Terminal Cancellation
+
+A Workflow Instance SHALL enter terminal:
+
+```text
+CANCELLED
+```
+
+only when applicable cancellation completion criteria are satisfied.
+
+Those MAY include:
+
+```text
+active Executions terminated
+
+external operations reconciled
+
+required compensation initiated or completed
+
+residual side effects recorded
+
+required Decisions recorded
+```
+
+---
+
+# 41. Cancellation Does Not Erase Effects
+
+If work already altered external reality:
+
+```text
+CANCELLED
+```
+
+means:
+
+```text
+the governed workflow has been terminated
+```
+
+not:
+
+```text
+nothing happened
+```
+
+Historical Effects, Executions, Evidence, and compensating work SHALL remain visible.
+
+---
+
+# 42. FIND-WF-012 — Durable Timers Are Missing
+
+## Finding
+
+The workflow model allows:
+
+```text
+timeouts
+
+scheduled transitions
+
+Decision expiration
+
+authorization expiration
+
+temporary exceptions
+```
+
+but does not require timers or deadlines to survive process restart.
+
+This conflicts with restart-safe workflow semantics.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 43. Durable Workflow Time
+
+A time-dependent workflow condition SHALL be represented durably when loss of that condition could affect consequential lifecycle behavior.
+
+Examples include:
+
+```text
+Decision deadline
+
+retry-after time
+
+scheduled transition
+
+temporary gate expiration
+
+escalation deadline
+
+Workflow timeout
+
+authorization-related wakeup
+```
+
+---
+
+# 44. Timer Semantics
+
+A durable timer or deadline record SHOULD identify:
+
+```text
+Workflow Instance
+
+timer purpose
+
+effective time
+
+created time
+
+governing Workflow Definition version
+
+associated Transition or condition
+
+status
+```
+
+The implementation does not need a specific timer service.
+
+---
+
+# 45. Timer Wakeup Is a Proposal Trigger
+
+Expiration of a timer SHALL normally create or trigger:
+
+```text
+Transition Proposal
+
+re-evaluation
+
+escalation
+
+or blocking-condition update
+```
+
+It SHALL NOT directly mutate Lifecycle State outside Transition Evaluation.
+
+---
+
+# 46. FIND-WF-013 — Retry Responsibility Is Under-Specified
+
+## Finding
+
+The specification leaves open whether retry budgets belong to:
+
+```text
+Workflow
+
+Policy
+
+Risk
+
+Execution
+```
+
+This can be resolved semantically without choosing technology.
+
+## Disposition
+
+**ACCEPT-WITH-MODIFICATION — NON-BLOCKING**
+
+---
+
+# 47. Retry Responsibility Model
+
+The baseline SHOULD assign:
+
+```text
+Workflow Definition
+    → defines whether retry path exists
+
+Policy
+    → constrains whether retry is permitted
+
+Risk
+    → influences allowable retry bounds
+
+Execution
+    → records concrete attempt count/outcome
+```
+
+Configuration MAY provide default retry parameters.
+
+---
+
+# 48. Effective Retry Budget
+
+The effective retry budget SHALL be no more permissive than the most restrictive applicable governed constraint.
+
+Conceptually:
+
+```text
+Workflow retry allowance
+        ∩
+Policy limit
+        ∩
+Risk limit
+        ∩
+Execution/resource limit
+        =
+Effective Retry Budget
+```
+
+---
+
+# 49. FIND-WF-014 — Unknown External State and Completion
+
+## Finding
+
+The reference workflow correctly reconciles ambiguous merge results.
+
+However, the general completion invariant does not explicitly prohibit successful completion while a required consequential external operation remains:
+
+```text
+unknown
+
+or
+
+reconciliation-required
+```
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 50. Completion Requires Resolved Required Effects
+
+A Workflow Instance SHALL NOT enter successful terminal completion while a mandatory consequential external operation remains:
+
+```text
+unknown
+
+partially-applied
+
+reconciliation-required
+```
+
+unless an explicit Workflow Definition defines successful completion without resolution of that external effect.
+
+For ordinary engineering-change workflows, unresolved merge state SHALL prevent `COMPLETED`.
+
+---
+
+# 51. FIND-WF-015 — Governance Inputs Are Not Sufficiently Pinned in History
+
+## Finding
+
+Workflow history records which Policy applied but does not explicitly require preservation of the exact versions or evaluation inputs needed to reproduce why a Transition was accepted.
+
+Given that:
+
+```text
+Policy changes
+
+Configuration changes
+
+Risk changes
+
+Evidence expires
+
+Authority changes
+```
+
+the historical explanation may otherwise become ambiguous.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+---
+
+# 52. Historical Transition Basis
+
+Every consequential Transition record SHOULD identify or reference the exact governed basis used for evaluation, including where applicable:
+
+```text
+Workflow Definition version
+
+Policy version
+
+Configuration version
+
+Risk state
+
+Decision identities
+
+Authorization identity
+
+Evidence identities
+
+Environment classification
+
+Actor identity
+
+authoritative external revision
+
+state revision
+```
+
+---
+
+# 53. Historical Re-Evaluation Is Not Reinterpretation
+
+A later system MAY ask:
+
+> Would this Transition be accepted under today's governance?
+
+That is a new analysis.
+
+It SHALL remain distinct from:
+
+> Why was this Transition accepted when it occurred?
+
+Historical Transition legitimacy SHALL be interpreted using the recorded historical evaluation basis.
+
+---
+
+# 54. FIND-WF-016 — Block Resolution Must Re-Evaluate
+
+## Finding
+
+The specification says resolving a block MAY:
+
+```text
+return to previous active state
+
+re-evaluate pending Transition
+
+enter another state
+```
+
+Automatically returning to an earlier active state could bypass new Policy, Risk, Evidence, or Authorization conditions that changed while blocked.
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+---
+
+# 55. Resolution Rule
+
+Resolving a Blocking Condition SHALL NOT by itself authorize forward lifecycle progression.
+
+Where resolution enables a previously blocked Transition:
+
+```text
+block resolved
+        ↓
+Transition Proposal re-evaluated
+        ↓
+current governance applied
+```
+
+AIEOS MAY restore a suspended state marker where no state mutation is involved.
+
+It SHALL NOT bypass deterministic Transition Evaluation.
+
+---
+
+# 56. FIND-WF-017 — Cross-Workflow Atomicity
+
+## Finding
+
+Workflow composition permits one Workflow Instance to depend upon another.
+
+The specification does not explicitly say whether transitions spanning multiple Workflow Instances are atomic.
+
+Assuming such atomicity would contradict the architecture's preference for bounded transactional ownership and asynchronous coordination.
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+---
+
+# 57. Cross-Workflow Coordination Rule
+
+AIEOS SHALL NOT require one atomic state transition spanning multiple independent Workflow Instances.
+
+Cross-workflow coordination SHOULD use:
+
+```text
+dependencies
+
+events
+
+conditions
+
+state observations
+
+re-evaluation
+```
+
+unless a later architecture explicitly defines a shared authoritative transaction boundary.
+
+---
+
+# 58. Cross-Workflow Dependency Example
+
+Preferred:
+
+```text
+Security Workflow
+    ↓ reaches COMPLETED
+event / authoritative state visible
+    ↓
+Engineering Workflow
+re-evaluates prerequisite
+    ↓
+next Transition becomes eligible
+```
+
+rather than a mandatory distributed workflow transaction.
+
+---
+
+# 59. FIND-WF-018 — Parent/Child Cancellation Propagation
+
+## Finding
+
+Parent/child workflows and Work Units are supported, but cancellation propagation is undefined.
+
+Possible behaviors differ materially:
+
+```text
+cancel parent only
+
+cancel all children
+
+cancel only dependent children
+
+allow children to complete
+
+require Decision per child
+```
+
+## Disposition
+
+**ACCEPT-WITH-MODIFICATION — NON-BLOCKING**
+
+---
+
+# 60. Explicit Propagation Policy
+
+Workflow or Work Unit cancellation SHALL NOT implicitly cascade to related Workflow Instances unless an explicit propagation rule defines that behavior.
+
+A cancellation relationship MAY specify:
+
+```text
+none
+
+request-child-cancellation
+
+require-child-completion
+
+detach-child
+
+policy-evaluated
+```
+
+or equivalent.
+
+---
+
+# 61. FIND-WF-019 — Emergency Retrospective Obligation
+
+## Finding
+
+Emergency workflows may defer normal Review or Decision requirements.
+
+The specification correctly states that retrospective governance must occur.
+
+However, the retrospective obligation itself is not required to become durable governed state.
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+---
+
+# 62. Emergency Governance Debt
+
+When emergency progression defers a normally mandatory governance action, AIEOS SHALL create a durable outstanding obligation.
+
+Examples:
+
+```text
+retrospective Review required
+
+post-hoc Decision required
+
+Risk Acceptance required
+
+Incident review required
+
+Evidence supplementation required
+```
+
+---
+
+# 63. Emergency Completion Rule
+
+An emergency lifecycle MAY complete the urgent operational action before retrospective governance is finished.
+
+However, the retrospective obligation SHALL remain:
+
+```text
+visible
+
+traceable
+
+owned
+
+non-silently dismissible
+```
+
+until explicitly disposed.
+
+---
+
+# 64. FIND-WF-020 — Transition Evaluation Persistence
+
+## Finding
+
+Accepted transitions clearly produce history.
+
+The persistence expectations for:
+
+```text
+DENIED
+
+BLOCKED
+
+FAILED_TO_EVALUATE
+
+STALE
+```
+
+are less explicit.
+
+For consequential governance, rejected attempts can themselves be important evidence.
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+---
+
+# 65. Consequential Transition Attempt History
+
+AIEOS SHOULD retain Transition Evaluation records for consequential:
+
+```text
+accepted
+
+denied
+
+blocked
+
+failed-to-evaluate
+```
+
+attempts.
+
+Stale or duplicate idempotent proposals MAY be retained according to audit policy.
+
+---
+
+# 66. FIND-WF-021 — Continuous Workflows
+
+## Finding
+
+The specification permits non-terminal continuous workflows.
+
+## Disposition
+
+**NO-CHANGE — NON-BLOCKING**
+
+This is correct.
+
+Examples such as:
+
+```text
+continuous reconciliation
+
+monitoring
+
+production observation
+```
+
+do not naturally fit a finite terminal lifecycle.
+
+The explicit declaration requirement should remain.
+
+---
+
+# 67. FIND-WF-022 — Risk-Adaptive Workflow
+
+## Finding
+
+Risk may alter required gates during the lifecycle.
+
+## Disposition
+
+**NO-CHANGE — NON-BLOCKING**
+
+This is consistent with:
+
+```text
+RB-001
+AB-001
+```
+
+and should remain.
+
+Risk elevation applying to future progression without rewriting prior valid transitions is especially important.
+
+---
+
+# 68. FIND-WF-023 — Human Attention Model
+
+## Finding
+
+The specification centers the human experience around:
+
+> What requires my judgment or authority?
+
+## Disposition
+
+**NO-CHANGE — NON-BLOCKING**
+
+This is a defining product behavior.
+
+Human Actors SHOULD participate through explicit meaningful governance events rather than act as manual workflow schedulers.
+
+---
+
+# 69. FIND-WF-024 — Agent Transition Proposal Model
+
+## Finding
+
+Agents may propose lifecycle progression but cannot directly mutate Lifecycle State.
+
+## Disposition
+
+**NO-CHANGE — NON-BLOCKING**
+
+This remains one of the most important control boundaries in AIEOS.
+
+---
+
+# 70. Revised Core Workflow Model
+
+After reconciliation, the canonical workflow control model SHOULD become:
+
+```text
+Workflow Definition Version
+        ↓
+Workflow Instance
+        ↓
+Authoritative Lifecycle State
+        +
+Progress Conditions
+        ↓
+Transition Proposal
+        ↓
+Transition Evaluation
+        ↓
+Transition Disposition
+        ↓
+Commit-Time Revalidation
+        ↓
+Accepted Transition
+        ↓
+Lifecycle State Mutation
+        ↓
+Event + Provenance
+```
+
+---
+
+# 71. Progress Conditions
+
+Progress conditions SHOULD represent orthogonal state such as:
+
+```text
+RUNNABLE
+
+WAITING
+
+BLOCKED
+
+CANCELLATION_REQUESTED
+```
+
+where useful.
+
+They SHALL NOT replace domain-specific Lifecycle States where the Workflow Definition intentionally models those states explicitly.
+
+---
+
+# 72. Revised Transition Proposal
+
+The baseline candidate SHOULD require Transition Proposals to support:
+
+```text
+proposal identity
+
+Workflow Instance
+
+expected Lifecycle State
+
+expected state revision
+
+target Lifecycle State
+
+proposing Actor
+
+trigger/source
+
+reason
+
+related Artifacts
+
+referenced Evidence
+
+requested time
+
+idempotency identity
+```
+
+where applicable.
+
+---
+
+# 73. Revised Transition Evaluation
+
+Transition Evaluation SHOULD resolve:
+
+```text
+Workflow Definition version
+
+Workflow Instance state revision
+
+Transition definition
+
+Actor
+
+Policy versions
+
+Configuration version
+
+Risk state
+
+Artifact prerequisites
+
+Evidence + validity
+
+Review prerequisites
+
+Decision prerequisites
+
+Operational Authorization
+
+Environment
+
+external authoritative facts
+
+Blocking Conditions
+
+cross-domain invariants
+```
+
+---
+
+# 74. Revised Transition Output
+
+Transition Evaluation produces:
+
+```text
+Transition Disposition
+```
+
+with semantics equivalent to:
+
+```text
+ACCEPTED
+
+DENIED
+
+BLOCKED
+
+FAILED_TO_EVALUATE
+
+STALE
+```
+
+The output SHALL identify the reasons sufficient to explain the result.
+
+---
+
+# 75. Accepted Transition Commit
+
+For an `ACCEPTED` disposition:
+
+```text
+evaluation basis
+        ↓
+commit-time validation
+        ↓
+atomic authoritative transition
+        ↓
+state revision increments
+        ↓
+Event
+        ↓
+Provenance
+```
+
+The new state SHALL not become authoritative before this commit succeeds.
+
+---
+
+# 76. Revised Workflow Version Model
+
+The accepted version model SHALL be:
+
+```text
+Workflow Family
+        ↓
+Workflow Definition Version
+        ↓
+validated
+        ↓
+governed publication
+        ↓
+immutable accepted version
+        ↓
+Workflow Instance pins version
+```
+
+Changes produce:
+
+```text
+new version
+```
+
+not mutation of the accepted version.
+
+---
+
+# 77. Revised Migration Model
+
+Migration becomes:
+
+```text
+Workflow Instance
+        ↓
+Migration Transition proposed
+        ↓
+migration mapping validated
+        ↓
+Policy / Decision / Authorization
+        ↓
+commit:
+    old definition
+    old state
+    new definition
+    mapped state
+        ↓
+history preserved
+```
+
+---
+
+# 78. Revised Cancellation Model
+
+Cancellation becomes:
+
+```text
+Cancellation Request
+        ↓
+governance evaluation
+        ↓
+Cancellation Pending
+        ↓
+signal active Execution
+        ↓
+reconcile external effects
+        ↓
+compensate if required
+        ↓
+terminal CANCELLED
+```
+
+The exact state representation MAY vary.
+
+The semantic phases SHALL remain distinct.
+
+---
+
+# 79. Revised Timer Model
+
+Time-based lifecycle behavior becomes:
+
+```text
+durable deadline/timer
+        ↓
+time reached
+        ↓
+trigger
+        ↓
+Transition Proposal / re-evaluation
+        ↓
+ordinary governance
+```
+
+Time itself SHALL NOT bypass governance.
+
+---
+
+# 80. Reference Engineering-Change Workflow Review
+
+The reference lifecycle remains valid in principle:
+
+```text
+PROPOSED
+    ↓
+INTENT_READY
+    ↓
+INTENT_ACCEPTED
+    ↓
+SPEC_READY
+    ↓
+SPEC_ACCEPTED
+    ↓
+PLAN_READY
+    ↓
+PLAN_ACCEPTED
+    ↓
+EXECUTION_AUTH_PENDING
+    ↓
+IMPLEMENTING
+    ↓
+VERIFYING
+    ↓
+REVIEW_READY
+    ↓
+REVIEW_ACCEPTED
+    ↓
+MERGE_AUTH_PENDING
+    ↓
+MERGING
+    ↓
+RECONCILING
+    ↓
+COMPLETED
+```
+
+No structural redesign is required.
+
+---
+
+# 81. Reference Workflow Correction
+
+The generic exceptional list SHOULD no longer imply that:
+
+```text
+BLOCKED
+```
+
+must always be a primary Lifecycle State.
+
+Instead:
+
+```text
+Blocking Condition
+```
+
+is first-class lifecycle control state.
+
+Domain-specific Workflow Definitions MAY still define explicit blocked states.
+
+---
+
+# 82. Reference Cancellation Addition
+
+The reference workflow SHOULD support semantics equivalent to:
+
+```text
+CANCELLATION_REQUESTED
+
+CANCELLATION_PENDING
+
+CANCELLED
+```
+
+or an equivalent orthogonal cancellation condition model.
+
+Terminal `CANCELLED` SHALL not be entered prematurely.
+
+---
+
+# 83. Reference Unknown External Result
+
+The existing path remains:
+
+```text
+MERGING
+    ↓
+UNKNOWN_EXTERNAL_RESULT
+    ↓
+RECONCILING
+```
+
+and is accepted.
+
+The system SHALL NOT:
+
+```text
+UNKNOWN_EXTERNAL_RESULT
+    ↓
+COMPLETED
+```
+
+without resolution of mandatory external state.
+
+---
+
+# 84. Workflow Definition Publication Lifecycle
+
+A reference publication model SHOULD support:
+
+```text
+DRAFT
+    ↓
+VALIDATED
+    ↓
+ACCEPTED
+    ↓
+ACTIVE
+    ↓
+SUPERSEDED
+```
+
+The exact literal statuses MAY differ.
+
+`VALIDATED` means structurally valid.
+
+`ACCEPTED` means governance requirements are satisfied.
+
+`ACTIVE` means eligible for creation of new Workflow Instances.
+
+A single implementation MAY combine `ACCEPTED` and `ACTIVE`.
+
+---
+
+# 85. Workflow Definition Safety
+
+A new Workflow Definition version SHALL NOT be activatable if structural validation detects a mandatory-invalid definition.
+
+Examples:
+
+```text
+missing entry state
+
+Transition references missing state
+
+duplicate identity
+
+invalid terminal declaration
+
+unresolved mandatory Policy reference
+```
+
+---
+
+# 86. Workflow Bootstrap Rule
+
+The initial trusted workflow-definition baseline SHALL be identifiable.
+
+Conceptually:
+
+```text
+Bootstrap Governance
+        ↓
+Initial Workflow Definition Set
+        ↓
+normal governed workflow evolution
+```
+
+This initial set becomes part of the trusted system bootstrap surface and SHALL eventually be covered by implementation/security specifications.
+
+---
+
+# 87. Revised Workflow Correctness Invariants
+
+The baseline candidate SHOULD contain at least:
+
+```text
+WF-INV-001
+Every Workflow Instance identifies an exact governing
+Workflow Definition version.
+
+WF-INV-002
+A Workflow Instance has one authoritative current
+Lifecycle State.
+
+WF-INV-003
+Authoritative Lifecycle State changes only through
+an accepted governed Transition, including specialized
+Migration Transitions.
+
+WF-INV-004
+Transition Proposal is not mutation.
+
+WF-INV-005
+Agent recommendation is not Transition authority.
+
+WF-INV-006
+Ordinary accepted Transitions correspond to permitted
+Workflow Definition edges.
+
+WF-INV-007
+Mandatory prerequisites must hold at authoritative commit.
+
+WF-INV-008
+Approval is not Operational Authorization.
+
+WF-INV-009
+Operational Authorization is not Capability.
+
+WF-INV-010
+Evidence remains bound to governed state.
+
+WF-INV-011
+Failure does not silently advance Workflow.
+
+WF-INV-012
+Human silence is not Approval except where explicit
+Policy deliberately defines otherwise.
+
+WF-INV-013
+Retry is bounded and governed.
+
+WF-INV-014
+Unknown external state remains unknown until reconciled.
+
+WF-INV-015
+Workflow history is additive.
+
+WF-INV-016
+Published Workflow Definition versions are immutable
+in normative semantics.
+
+WF-INV-017
+Workflow migration is explicit and governed.
+
+WF-INV-018
+Emergency progression remains attributable and governed.
+
+WF-INV-019
+Concurrent Transition conflicts cannot silently overwrite.
+
+WF-INV-020
+Successful terminal completion requires completion
+conditions to hold.
+
+WF-INV-021
+Transition commit requires current expected state revision.
+
+WF-INV-022
+Time-sensitive governance is revalidated before
+authoritative Transition commit where applicable.
+
+WF-INV-023
+Terminal cancellation requires safe disposition of
+required active Executions and external effects.
+
+WF-INV-024
+Mandatory unresolved external operations prevent
+successful terminal completion.
+
+WF-INV-025
+Time-driven workflow behavior is durable when loss
+could change consequential lifecycle outcome.
+
+WF-INV-026
+Workflow Definition activation is governed.
+
+WF-INV-027
+Trigger source is distinct from proposing Actor.
+
+WF-INV-028
+Resolving a block does not bypass Transition Evaluation.
+```
+
+---
+
+# 88. Revised Fitness Functions
+
+The existing fitness functions remain useful.
+
+The review recommends adding the following.
+
+### Fitness Function 11 — Evaluation/commit race
+
+```text
+Transition evaluated
+
+Authorization revoked before commit
+
+Expected:
+Transition does not commit using stale Authorization
+```
+
+---
+
+### Fitness Function 12 — Workflow Definition immutability
+
+```text
+Workflow Definition v1 active
+
+attempt to modify v1 normative state in place
+
+Expected:
+rejected; new version required
+```
+
+---
+
+### Fitness Function 13 — Migration Transition
+
+```text
+Workflow Instance pinned to v1
+
+migration to v2 requested
+
+Expected:
+governed Migration Transition required
+```
+
+---
+
+### Fitness Function 14 — Cancellation with active Execution
+
+```text
+Cancellation requested
+
+Execution still active
+
+Expected:
+Workflow not terminally CANCELLED
+until cancellation disposition is safe
+```
+
+---
+
+### Fitness Function 15 — Durable timer
+
+```text
+Decision deadline persisted
+
+AIEOS process restarts
+
+deadline passes
+
+Expected:
+timer behavior still occurs
+```
+
+---
+
+### Fitness Function 16 — Generic block phase preservation
+
+```text
+Workflow state = VERIFYING
+
+Blocking Condition added
+
+Expected:
+phase remains identifiable as VERIFYING
+```
+
+---
+
+### Fitness Function 17 — Trigger/proposer distinction
+
+```text
+CI result triggers progression
+
+Expected:
+CI result recorded as trigger
+
+Automation Actor recorded as proposer
+```
+
+---
+
+### Fitness Function 18 — Unknown external result completion
+
+```text
+required merge result = unknown
+
+Expected:
+COMPLETED unavailable
+until reconciliation
+```
+
+---
+
+### Fitness Function 19 — Concurrent revision mismatch
+
+```text
+Proposal expects revision 17
+
+current revision = 18
+
+Expected:
+STALE
+```
+
+---
+
+### Fitness Function 20 — Workflow publication governance
+
+```text
+Agent generates valid Workflow Definition
+
+no publication authority
+
+Expected:
+definition remains non-active
+```
+
+---
+
+# 89. Workflow Baseline Acceptance Gate
+
+`WB-001` SHALL NOT be accepted until:
+
+```text
+[ ] WAITING semantics defined
+
+[ ] BLOCKED semantics defined
+
+[ ] generic blocking does not erase lifecycle phase
+
+[ ] Transition Decision renamed Transition Disposition
+
+[ ] Transition trigger separated from proposing Actor
+
+[ ] Transition Evaluation Basis defined
+
+[ ] commit-time governance revalidation defined
+
+[ ] state revision/concurrency precondition made mandatory
+
+[ ] Migration Transition defined
+
+[ ] accepted Workflow Definition versions immutable
+
+[ ] Workflow Definition publication governed
+
+[ ] bootstrap workflow authority defined
+
+[ ] cancellation request/pending/final semantics defined
+
+[ ] durable timer semantics defined
+
+[ ] retry responsibility model clarified
+
+[ ] mandatory unresolved external effects prevent completion
+
+[ ] historical evaluation basis pinned
+
+[ ] block resolution requires fresh evaluation
+
+[ ] cross-workflow coordination avoids implied atomicity
+
+[ ] cancellation propagation is explicit
+
+[ ] emergency retrospective obligation is durable
+
+[ ] consequential transition attempts retain audit semantics
+
+[ ] revised invariants incorporated
+
+[ ] additional fitness functions incorporated
+
+[ ] no blocking contradiction remains
+```
+
+---
+
+# 90. Proposed Workflow Baseline Metadata
+
+After successful remediation and verification:
+
+```text
+Workflow Baseline:
+WB-001
+
+Status:
+Accepted
+
+Parent Architecture Baseline:
+AB-001
+
+Workflow Specification:
+AIEOS-WF-001 v0.2.0
+
+Workflow Reconciliation Review:
+AIEOS-REV-005
+
+Workflow Baseline Verification:
+AIEOS-REV-006
+```
+
+---
+
+# 91. Workflow Change Rule
+
+Once `WB-001` is accepted, material changes to normative workflow semantics SHALL proceed deliberately.
+
+Conceptually:
+
+```text
+Workflow Change Proposal
+        ↓
+Requirements impact
+        ↓
+Architecture impact
+        ↓
+Workflow impact
+        ↓
+Review
+        ↓
+new Workflow Specification version
+        ↓
+new Workflow Baseline
+```
+
+Example:
+
+```text
+WB-001
+    ↓
+accepted workflow changes
+    ↓
+WB-002
+```
+
+---
+
+# 92. Subordinate Specification Gate
+
+Normative decomposition beyond workflow SHOULD remain paused until `WB-001` is accepted.
+
+The intended sequence is:
+
+```text
+AIEOS-WF-001 v0.1.0
+        ↓
+AIEOS-REV-005
+        ↓
+AIEOS-WF-001 v0.2.0
+        ↓
+AIEOS-REV-006
+        ↓
+WB-001
+        ↓
+AIEOS-ART-001
+```
+
+Exploratory work MAY continue.
+
+The baseline should be established before downstream specifications depend upon workflow semantics.
+
+---
+
+# 93. Requirements Impact
+
+The review finds no current need to revise:
+
+```text
+RB-001
+```
+
+The findings refine subordinate workflow semantics rather than expose missing system requirements.
+
+---
+
+# 94. Domain Impact
+
+Most findings can be resolved entirely within `AIEOS-WF-001`.
+
+One semantic clarification is important:
+
+```text
+Migration Transition
+```
+
+must be treated as a specialized form of governed Transition so that:
+
+```text
+DOM-INV-013
+Workflow state changes through Transition
+```
+
+remains valid.
+
+No revision to `AIEOS-DOM-001` is currently required if that interpretation is adopted.
+
+---
+
+# 95. Architecture Impact
+
+The review does not require revision of:
+
+```text
+AB-001
+```
+
+The following findings refine implementation of already accepted architecture principles:
+
+```text
+state concurrency
+
+transactional governance
+
+restart safety
+
+Workflow Definition versioning
+
+Policy/version traceability
+```
+
+They are compatible with `AIEOS-ARCH-001 v0.2.0`.
+
+---
+
+# 96. Most Important Finding
+
+The most important workflow correction is:
+
+```text
+Transition eligibility
+        ≠
+Transition authority at a later time
+```
+
+A workflow cannot simply:
+
+```text
+evaluate prerequisites
+        ↓
+remember "allowed"
+        ↓
+mutate later
+```
+
+because:
+
+```text
+Policy
+
+Authorization
+
+Risk
+
+Evidence
+
+Environment
+
+external authority
+```
+
+may change.
+
+The correct model is:
+
+```text
+evaluate
+        ↓
+capture evaluation basis
+        ↓
+validate current authoritative state
+        ↓
+commit
+```
+
+This prevents time-of-check/time-of-use governance failure.
+
+---
+
+# 97. Second Most Important Finding
+
+The second major correction is:
+
+```text
+BLOCKED
+```
+
+should generally be understood as an orthogonal inability to progress rather than a universal lifecycle phase.
+
+Otherwise:
+
+```text
+VERIFYING
+    ↓
+BLOCKED
+```
+
+destroys the information that the work was blocked **while verifying**.
+
+The stronger model is:
+
+```text
+Lifecycle State:
+VERIFYING
+
+Condition:
+BLOCKED
+```
+
+This is significantly easier to reason about and implement correctly.
+
+---
+
+# 98. Third Most Important Finding
+
+The third major correction is cancellation.
+
+The system must not confuse:
+
+```text
+we want this work to stop
+```
+
+with:
+
+```text
+all consequential activity has safely stopped.
+```
+
+Therefore:
+
+```text
+Cancellation Requested
+        ≠
+Cancellation Complete
+```
+
+That distinction becomes especially important once Agents and external systems can continue operating asynchronously.
+
+---
+
+# 99. Fourth Most Important Finding
+
+Workflow Definitions themselves are governance machinery.
+
+They therefore cannot be treated like ordinary editable configuration.
+
+The safe chain is:
+
+```text
+Draft Workflow Definition
+        ↓
+Validation
+        ↓
+Governed acceptance
+        ↓
+Activation
+        ↓
+Immutable version
+        ↓
+Workflow Instances pin version
+```
+
+If Agents could silently edit active Workflow Definitions, they could indirectly modify the rules governing their own progression.
+
+---
+
+# 100. Workflow Thesis After Review
+
+The refined workflow architecture can be stated as:
+
+> **AIEOS Workflow is a version-pinned, concurrency-safe, deterministic lifecycle-governance system in which Actors propose progression, authoritative state and governance inputs are evaluated against explicit rules, accepted transitions commit against current authoritative revisions, and asynchronous human, agent, temporal, and external-system activity remains observable without bypassing lifecycle authority.**
+
+This is more precise than:
+
+> "a state machine for agent workflows."
+
+---
+
+# 101. Review Conclusion
+
+The Workflow & Lifecycle specification is fundamentally sound.
+
+The review concludes:
+
+```text
+Workflow architecture:
+    SOUND
+
+Workflow Definition / Instance distinction:
+    SOUND
+
+Lifecycle ownership:
+    SOUND
+
+Transition Proposal model:
+    SOUND BUT REQUIRES TRIGGER/ACTOR CLARIFICATION
+
+Transition Evaluation:
+    SOUND BUT REQUIRES COMMIT-TIME CONSISTENCY
+
+Policy integration:
+    SOUND
+
+Decision integration:
+    SOUND
+
+Operational Authorization integration:
+    SOUND
+
+Agent boundary:
+    SOUND
+
+Human gate model:
+    SOUND
+
+Risk adaptation:
+    SOUND
+
+Evidence gating:
+    SOUND
+
+Waiting / Blocking:
+    REQUIRES CORRECTION
+
+Concurrency:
+    REQUIRES STRONGER REQUIREMENT
+
+Migration:
+    CONTAINS BLOCKING INVARIANT CONFLICT
+
+Cancellation:
+    REQUIRES SAFETY CORRECTION
+
+Timers:
+    REQUIRES DURABILITY SEMANTICS
+
+Workflow publication:
+    REQUIRES GOVERNANCE
+
+Bootstrap:
+    REQUIRES EXPLICIT RULE
+
+MVP lifecycle:
+    FEASIBLE
+
+Blocking contradictions:
+    PRESENT BUT LOCALIZED
+
+Workflow Baseline WB-001:
+    NOT YET ACCEPTED
+```
+
+---
+
+# 102. Required Next Action
+
+The next action SHALL be to revise:
+
+```text
+AIEOS-WF-001
+v0.1.0 → v0.2.0
+```
+
+by incorporating the blocking and accepted non-blocking findings in this review.
+
+The revision SHOULD remain targeted.
+
+The existing specification structure should remain recognizable.
+
+After revision, the next artifact SHALL be:
+
+```text
+AIEOS-REV-006
+AI-Native Engineering Operating System
+Workflow Baseline Verification Review
+```
+
+If that review succeeds:
+
+```text
+Workflow Baseline:
+WB-001
+
+Status:
+Accepted
+```
+
+and normative decomposition may proceed to:
+
+```text
+AIEOS-ART-001
+Artifact & Knowledge Model Specification
+```
+
+---
+
+# 103. Review Status
+
+**Review Result:** Changes Required
+
+**Workflow Direction:** Accepted
+
+**Workflow Baseline:** Not Accepted
+
+**Requirements Impact:** None currently required
+
+**Domain Impact:** Clarification only
+
+**Architecture Impact:** None requiring new baseline
+
+**Workflow Gate:** Open for Revision
+
+**Downstream Normative Gate:** Closed pending `WB-001`
+
+**Required Remediation:**
+
+```text
+Revise AIEOS-WF-001 to v0.2.0
+
+Verify workflow reconciliation
+
+Accept WB-001
+
+Begin AIEOS-ART-001
+```
+
+`AIEOS-REV-005 v0.1.0` therefore establishes the authoritative reconciliation plan for producing the first AIEOS Workflow Baseline.

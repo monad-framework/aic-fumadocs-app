@@ -1,0 +1,878 @@
+---
+title: "Engineering at Anthropic"
+description: "a description of the SDLC as followed at Anthropic"
+---
+
+Anthropic is especially interesting because, as of 2026, it has publicly documented something much closer to an **explicit AI-native software engineering lifecycle** than the reconstruction I gave you for OpenAI.
+
+There is an important caveat: Anthropic has not published an internal engineering handbook saying “every Anthropic team follows exactly these steps.” Its August 21, 2026 **AI-Native SDLC Playbook** says it reflects practices from Anthropic's Applied AI work and internal use of Claude, informed by customer experience. So we should treat it as a strong indication of Anthropic's engineering philosophy, not a literal organization-wide process chart. ([Claude][1])
+
+## The fundamental Anthropic model
+
+Anthropic explicitly describes the traditional SDLC as:
+
+```text
+Plan
+  ↓
+Design
+  ↓
+Build
+  ↓
+Test
+  ↓
+Deploy
+  ↓
+Maintain
+```
+
+But argues that AI makes the linear, human-handoff-oriented version increasingly obsolete.
+
+Its AI-native version is effectively:
+
+```text
+                 ┌──────────────┐
+                 │    Intent    │
+                 └──────┬───────┘
+                        ↓
+                 ┌──────────────┐
+                 │     Spec     │
+                 └──────┬───────┘
+                        ↓
+                 ┌──────────────┐
+                 │     Plan     │
+                 └──────┬───────┘
+                        ↓
+                 ┌──────────────┐
+                 │ Implement    │
+                 │ + Verify     │
+                 └──────┬───────┘
+                        ↓
+                 ┌──────────────┐
+                 │ Review/Evals │
+                 └──────┬───────┘
+                        ↓
+                 ┌──────────────┐
+                 │    Deploy    │
+                 └──────┬───────┘
+                        ↓
+                 ┌──────────────┐
+                 │   Observe    │
+                 └──────┬───────┘
+                        │
+                 incident/change
+                        │
+                        └────────────→ new Intent
+```
+
+The important thing is that **every stage produces an artifact that the next stage can consume**.
+
+Anthropic's playbook explicitly names artifacts such as:
+
+```text
+intent.md
+    ↓
+spec.md
+    ↓
+plan.md
+    ↓
+code + tests
+    ↓
+PR + review findings
+    ↓
+deployment records
+    ↓
+incident record
+    ↓
+new intent.md
+```
+
+Those commits collectively become an audit trail of what was requested, what the agent produced, and who approved it. ([Claude][1])
+
+That is a very significant engineering idea.
+
+---
+
+# 1. Start with intent, not a ticket
+
+The Anthropic model starts earlier than implementation.
+
+Instead of immediately creating:
+
+```text
+Epic
+Story
+Ticket
+Task
+```
+
+the originating person works with Claude to capture the actual problem.
+
+Anthropic calls the resulting artifact:
+
+```text
+intent.md
+```
+
+It contains things such as:
+
+```text
+Problem
+
+Why it matters
+
+Desired outcome
+
+Affected users
+
+Affected systems
+
+Constraints
+
+Open questions
+```
+
+The human who originated the idea reviews and corrects it before it becomes accepted intent.
+
+Anthropic's playbook explicitly proposes that the original idea can come from a human conversation, a ticket, or even an automatically detected production incident. ([Claude][1])
+
+So:
+
+```text
+raw thought
+    ↓
+Claude-assisted interrogation
+    ↓
+structured intent
+    ↓
+human correction
+    ↓
+accepted intent
+```
+
+That is quite different from starting engineering with “write me feature X.”
+
+---
+
+# 2. Intent becomes specification
+
+Once `intent.md` is accepted, the next step is a proper specification.
+
+Claude reads:
+
+```text
+intent.md
++
+organizational policies
++
+design constraints
++
+security requirements
++
+UX conventions
++
+domain knowledge
+```
+
+and produces something like:
+
+```text
+spec.md
+```
+
+The human product owner reviews the specification rather than necessarily writing it manually.
+
+Anthropic's striking claim is that **requirements and design can increasingly collapse into a single interactive session**, because the agent can simultaneously consider requirements, architecture, security, UX and organizational rules. ([Claude][1])
+
+That gives:
+
+```text
+intent
+  ↓
+requirements analysis
+  ↓
+design analysis
+  ↓
+policy application
+  ↓
+concerns / unresolved questions
+  ↓
+specification
+  ↓
+human decision
+```
+
+---
+
+# 3. No implementation before a plan
+
+This part is particularly strong.
+
+Anthropic recommends starting Claude Code in **plan mode**.
+
+The agent can investigate:
+
+```text
+repository
+architecture
+dependencies
+tests
+existing implementations
+```
+
+but cannot yet modify things.
+
+It then writes an implementation plan identifying:
+
+```text
+files to change
+order of changes
+tests required
+risks
+alternatives
+proof of correctness
+```
+
+The engineer interrogates that plan.
+
+Anthropic explicitly suggests asking things like what the change could break, what part is most risky, and which alternative designs Claude rejected.
+
+Only after the engineer accepts the plan does implementation begin. ([Claude][1])
+
+So the control point moves from:
+
+```text
+review code after somebody writes it
+```
+
+toward:
+
+```text
+review intended change
+        ↓
+review design
+        ↓
+review implementation plan
+        ↓
+THEN generate code
+```
+
+That potentially eliminates a large amount of expensive rework.
+
+---
+
+# 4. The repository becomes part of the engineering system
+
+Anthropic makes heavy use of:
+
+```text
+CLAUDE.md
+```
+
+It isn't merely documentation.
+
+It is operational context for the agent.
+
+Anthropic recommends putting things into it such as:
+
+```text
+build commands
+test commands
+lint commands
+
+architecture
+
+repository conventions
+
+important constraints
+
+things Claude repeatedly gets wrong
+```
+
+and checking it into version control so that changes to the instructions themselves receive normal code review. ([Claude][1])
+
+Their suggested learning loop is essentially:
+
+```text
+Claude makes mistake
+        ↓
+human corrects it
+        ↓
+mistake happens again
+        ↓
+encode correction into CLAUDE.md
+        ↓
+future Claude sessions inherit knowledge
+```
+
+That's fascinating because organizational learning becomes executable.
+
+---
+
+# 5. More important rules become Skills
+
+Anthropic distinguishes repository-specific knowledge from broader institutional policy.
+
+For reusable knowledge, it uses **Skills**.
+
+For example:
+
+```text
+security rules
+API conventions
+compliance rules
+design standards
+deployment policy
+```
+
+can become:
+
+```text
+.claude/
+    skills/
+        secure-api-review/
+            SKILL.md
+```
+
+The agent automatically loads the relevant knowledge when the situation requires it. ([Claude][1])
+
+Conceptually:
+
+```text
+human policy
+     ↓
+machine-readable Skill
+     ↓
+agent encounters relevant task
+     ↓
+policy automatically enters context
+     ↓
+policy affects implementation
+```
+
+This means governance starts moving from:
+
+> “Hopefully the engineer remembers the security wiki.”
+
+to:
+
+> “The engineering environment supplies the policy when the work occurs.”
+
+---
+
+# 6. Hard constraints become Hooks
+
+Anthropic makes an important distinction:
+
+```text
+Skill = advisory knowledge
+
+Hook = deterministic enforcement
+```
+
+A Skill might tell Claude:
+
+```text
+Never edit generated classes.
+```
+
+But a Hook can actually prevent Claude from editing those files.
+
+Hooks can also:
+
+```text
+block protected files
+prevent credential leakage
+run formatters
+run linters
+enforce approval requirements
+prevent unsafe shell commands
+require tests
+block production deployments
+```
+
+Anthropic explicitly says that policy that **must always hold** shouldn't depend solely on instructions to the model; there should be deterministic enforcement behind it. ([Claude][1])
+
+That creates a very useful architecture:
+
+```text
+CONSTITUTION / POLICY
+         ↓
+      Skills
+         ↓
+ agent reasoning
+         ↓
+      Hooks
+         ↓
+deterministic enforcement
+```
+
+---
+
+# 7. Claude implements and verifies its own work
+
+Implementation increasingly becomes agent work.
+
+But Anthropic emphasizes something more important than code generation:
+
+**the agent must be able to observe whether its change works.**
+
+For example:
+
+```text
+write code
+   ↓
+run build
+   ↓
+run tests
+   ↓
+inspect output
+   ↓
+fix failure
+   ↓
+run again
+```
+
+For UI work:
+
+```text
+implement
+   ↓
+open application
+   ↓
+screenshot
+   ↓
+compare against design
+   ↓
+adjust
+   ↓
+repeat
+```
+
+For a bug, Anthropic recommends:
+
+```text
+reproduce bug with test
+        ↓
+confirm test fails
+        ↓
+freeze/protect test
+        ↓
+fix implementation
+        ↓
+confirm original test passes
+```
+
+The test output, build result or screenshot becomes **evidence**, not merely the agent saying that it succeeded. ([Claude][1])
+
+This is a crucial principle:
+
+```text
+agent claim ≠ proof
+
+external observable evidence = proof
+```
+
+---
+
+# 8. Evals become part of CI
+
+Anthropic pushes beyond ordinary testing.
+
+Changes to the AI engineering environment itself—
+
+```text
+CLAUDE.md
+Skills
+Hooks
+prompts
+models
+agent configuration
+```
+
+—can be subjected to evaluation suites.
+
+Anthropic recommends collecting real engineering tasks and converting them into evals with objectively checkable outcomes.
+
+Then:
+
+```text
+agent configuration changes
+          ↓
+eval suite runs
+          ↓
+performance measured
+          ↓
+regression?
+      ↙         ↘
+    yes          no
+     ↓            ↓
+   block         merge
+```
+
+Production incidents should also become new permanent eval cases. ([Claude][1])
+
+Thus an incident creates learning:
+
+```text
+failure
+  ↓
+diagnosis
+  ↓
+fix
+  ↓
+test
+  ↓
+new eval
+  ↓
+future regression protection
+```
+
+---
+
+# 9. AI reviews AI-generated code
+
+Claude participates on both sides of PR review.
+
+The basic model is:
+
+```text
+Claude implementation
+        ↓
+PR
+        ↓
+independent Claude review
+        ↓
+bugs/security/compliance findings
+        ↓
+Claude addresses findings
+        ↓
+checks pass
+        ↓
+human code owner
+        ↓
+approval
+```
+
+Anthropic explicitly preserves separation of duties: the agent that wrote the code does **not** get the authority to approve its own PR.
+
+Human branch-protection approval remains the authorization boundary. ([Claude][1])
+
+That distinction is important:
+
+```text
+execution authority ≠ approval authority
+```
+
+---
+
+# 10. Production remains a hard authority boundary
+
+Anthropic's model is not simply “give Claude shell access to everything.”
+
+Quite the opposite.
+
+Agents can receive substantial autonomy **inside bounded environments**.
+
+Anthropic describes patterns involving:
+
+```text
+containers
+sandboxing
+network restrictions
+short-lived credentials
+scoped tokens
+branch protection
+environment-specific permissions
+human production authorization
+```
+
+An agent might have:
+
+```text
+Development
+    → broad autonomous execution
+
+Staging
+    → controlled autonomy
+
+Production
+    → prepare everything
+    → human authorization required
+```
+
+The agent can potentially prepare the deployment right up to the production boundary, but a deterministic hook prevents it crossing that boundary without the proper authorization. ([Claude][1])
+
+This creates:
+
+```text
+Capability
+    ≠
+Authority
+```
+
+Claude might technically be capable of deploying something.
+
+That doesn't imply it has permission to do so.
+
+---
+
+# 11. Maintenance closes the loop
+
+This may be the most advanced part of Anthropic's proposed lifecycle.
+
+Traditional operations:
+
+```text
+monitoring alert
+       ↓
+human notices
+       ↓
+human investigates
+       ↓
+human creates ticket
+       ↓
+engineering starts
+```
+
+Anthropic proposes:
+
+```text
+deterministic monitor
+        ↓
+abnormal condition
+        ↓
+invoke agent
+        ↓
+agent investigates
+        ↓
+create intent.md
+        ↓
+spec
+        ↓
+plan
+        ↓
+implementation
+        ↓
+tests/evals
+        ↓
+PR
+        ↓
+human gate where necessary
+```
+
+Anthropic explicitly describes production observations re-entering the lifecycle as new intent. ([Claude][1])
+
+So the SDLC becomes a **closed control loop** rather than a sequence of projects.
+
+---
+
+# And Anthropic is already using agents at very large scale internally
+
+This isn't entirely theoretical.
+
+Anthropic says its teams use Claude Code for codebase exploration, testing, PR corrections, debugging production problems, feature development, documentation and automation. Product Engineering described Claude Code as its first stop for programming tasks; Security Engineering uses it in TDD-style workflows; designers have used autonomous loops where Claude implements, tests and iterates. ([Anthropic][2])
+
+More strikingly, in July 2026 Anthropic said its `@Claude` Slack integration was opening **roughly 65% of Anthropic's pull requests**. ([Anthropic][3])
+
+So this is already moving toward:
+
+```text
+Human
+  │
+  ├──── Slack discussion
+  ├──── issue
+  ├──── specification
+  └──── direct request
+             │
+             ▼
+           Claude
+             │
+      investigate
+             │
+          modify
+             │
+           test
+             │
+         open PR
+             │
+       agent review
+             │
+       human judgment
+             │
+           merge
+```
+
+---
+
+# Research and engineering are also deliberately blurred
+
+Anthropic says this explicitly on its careers site:
+
+> engineers do lots of research, and researchers do lots of engineering.
+
+It notes that engineers regularly appear as authors, including first authors, on Anthropic research papers. ([Anthropic][4])
+
+So, much like OpenAI, there isn't a clean wall between:
+
+```text
+Researcher
+Engineer
+Infrastructure Engineer
+ML Engineer
+```
+
+Instead:
+
+```text
+research question
+      ↓
+experiment
+      ↓
+software
+      ↓
+evaluation
+      ↓
+analysis
+      ↓
+new research question
+```
+
+The current organization includes teams around pretraining, RL, interpretability, model evaluations, research infrastructure, inference, performance, safeguards, frontier red teaming and research productivity. ([Anthropic][5])
+
+---
+
+# Safety is even more visibly encoded into Anthropic's lifecycle
+
+Anthropic's Responsible Scaling Policy is a formal layer above ordinary development.
+
+Its current RSP was updated on **August 14, 2026**. Anthropic uses capability thresholds, risk assessments and increasingly strong safeguards as model capability increases. ([Anthropic][6])
+
+So frontier-model development is roughly:
+
+```text
+research hypothesis
+       ↓
+training experiment
+       ↓
+model
+       ↓
+capability evaluations
+       ↓
+safety evaluations
+       ↓
+frontier red teaming
+       ↓
+risk analysis
+       ↓
+required safeguards
+       ↓
+safeguard assessment
+       ↓
+deployment decision
+       ↓
+monitoring
+```
+
+Meaning ordinary software-engineering correctness is only one dimension.
+
+They are simultaneously asking:
+
+```text
+Does the implementation work?
+
+Is it reliable?
+
+Does the model perform better?
+
+What new capabilities appeared?
+
+What new risks appeared?
+
+Are safeguards sufficient?
+
+What authority should the deployed system have?
+```
+
+---
+
+# OpenAI versus Anthropic
+
+The two organizations appear to be converging on many of the same principles, but their public descriptions have somewhat different emphases.
+
+```text
+OPENAI                         ANTHROPIC
+
+Harness engineering           AI-native SDLC
+
+Agents execute                Agents execute
+
+Humans steer                  Humans specify + authorize
+
+AGENTS.md / environment       CLAUDE.md / Skills
+
+Automated verification        Tests + evals + evidence
+
+Agent orchestration           Parallel sessions / subagents
+
+Codex / Symphony              Claude Code / @Claude
+
+Repository legibility         Machine-readable institutional knowledge
+
+Guardrails                    Skills + deterministic Hooks
+
+Human review                  Human authority boundaries
+
+Observability                 Closed operational feedback loop
+```
+
+I would characterize the difference this way:
+
+**OpenAI's public engineering material emphasizes the environment that makes autonomous software engineering possible.**
+
+```text
+Harness
+Tools
+Environment
+Agent
+Feedback
+Orchestration
+```
+
+Whereas **Anthropic's newest material goes further in explicitly describing the lifecycle and artifact flow through that environment**:
+
+```text
+Intent
+ ↓
+Specification
+ ↓
+Plan
+ ↓
+Implementation
+ ↓
+Evidence
+ ↓
+Review
+ ↓
+Authorization
+ ↓
+Deployment
+ ↓
+Observation
+ ↓
+Intent
+```
+
+And that second formulation is remarkably close to a genuine **Engineering Operating System for human-agent software development**, rather than merely “using AI to code.”
+
+The most important idea I would take from Anthropic is therefore not Claude Code itself. It's this:
+
+> **Make intent, knowledge, constraints, plans, evidence and authority machine-readable and versioned, then let agents move work between those artifacts while humans retain judgment and authorization.**
+
+That is a substantially more profound change to software engineering than faster code generation.
+
+[1]: https://claude.com/blog/the-ai-native-sdlc-playbook "The AI-Native SDLC playbook | Claude by Anthropic"
+[2]: https://www.anthropic.com/news/how-anthropic-teams-use-claude-code?trk=article-ssr-frontend-pulse_little-text-block "How Anthropic teams use Claude Code | Claude by Anthropic"
+[3]: https://www.anthropic.com/webinars/how-anthropic-works-with-claude-tag-in-slack "How Anthropic works with Claude Tag in Slack | Webinars \ Anthropic"
+[4]: https://www.anthropic.com/careers?utm_source=chatgpt.com "Careers \ Anthropic"
+[5]: https://www.anthropic.com/careers/jobs?utm_source=chatgpt.com "Jobs \ Anthropic"
+[6]: https://www.anthropic.com/responsible-scaling-policy "Anthropic’s Responsible Scaling Policy \ Anthropic"

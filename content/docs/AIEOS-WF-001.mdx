@@ -1,0 +1,3705 @@
+---
+title: "AI-Native Engineering Operating System — Workflow & Lifecycle Specification"
+specification ID: "AIEOS-WF-001"
+version: "0.1.0"
+status: "Draft"
+classification: "Normative Workflow & Lifecycle Specification"
+parent: "AB-001 — AI-Native Engineering Operating System Architecture Baseline"
+description: "AIEOS Normative Workflow & Lifecycle Specification — Workflow definitions, workflow instances, lifecycle states, transitions, gates, failure semantics, human and agent participation, authorization, evidence, risk, and deterministic lifecycle governance"
+---
+
+# AI-Native Engineering Operating System — Workflow & Lifecycle Specification
+
+# 1. Purpose
+
+This specification defines the normative workflow and lifecycle semantics of the **AI-Native Engineering Operating System (AIEOS)**.
+
+It translates the architectural control model established by:
+
+```text
+AIEOS-FOUND-001
+        ↓
+Requirements Baseline RB-001
+        ↓
+Architecture Baseline AB-001
+        ↓
+AIEOS-WF-001
+```
+
+into an executable lifecycle model.
+
+This specification defines:
+
+* Workflow Definitions;
+* Workflow Instances;
+* Lifecycle States;
+* Transitions;
+* Transition Proposals;
+* Transition Evaluation;
+* transition prerequisites;
+* human gates;
+* agent participation;
+* Policy integration;
+* Risk integration;
+* Evidence gates;
+* Decision gates;
+* Operational Authorization gates;
+* Capability-related lifecycle behavior;
+* blocked states;
+* failure states;
+* retries;
+* cancellation;
+* timeouts;
+* rollback;
+* compensation;
+* emergency workflows;
+* workflow composition;
+* workflow versioning;
+* workflow migration;
+* concurrency;
+* idempotency;
+* lifecycle history;
+* workflow completion semantics.
+
+This specification defines **how governed work progresses**.
+
+It does not select a concrete workflow engine or orchestration technology.
+
+---
+
+# 2. Normative Context
+
+This specification SHALL conform to:
+
+```text
+Requirements Baseline:
+RB-001
+
+Architecture Baseline:
+AB-001
+
+Requirements:
+AIEOS-REQ-001 v0.2.0
+
+Domain Model:
+AIEOS-DOM-001 v0.2.0
+
+Architecture:
+AIEOS-ARCH-001 v0.2.0
+```
+
+Where this specification reveals a contradiction with an accepted baseline, the contradiction SHALL be surfaced through formal change governance.
+
+It SHALL NOT be silently resolved by implementation.
+
+---
+
+# 3. Scope
+
+`AIEOS-WF-001` governs lifecycle progression for engineering activities including:
+
+```text
+feature development
+defect remediation
+security remediation
+dependency upgrades
+architecture evolution
+documentation changes
+research experiments
+incident response
+deployment
+operational remediation
+organizational learning
+```
+
+Different workflow classes MAY define different states and transitions.
+
+AIEOS SHALL NOT require every engineering activity to use one universal lifecycle.
+
+---
+
+# 4. Out of Scope
+
+This specification does not determine:
+
+```text
+workflow-engine product
+database product
+message broker
+programming language
+API framework
+persistence encoding
+workflow DSL syntax
+user-interface framework
+agent provider
+source-control provider
+CI provider
+deployment provider
+```
+
+It also does not define the complete semantics of:
+
+```text
+Policy
+Authority
+Capabilities
+Evidence
+Agents
+Provenance
+Integrations
+Risk
+```
+
+Those concerns are defined by their respective subordinate specifications.
+
+This document defines how workflow consumes them.
+
+---
+
+# 5. Workflow North Star
+
+AIEOS SHALL be capable of answering deterministically:
+
+> **Given this Workflow Instance, its current Lifecycle State, governing Workflow Definition version, Transition Proposal, Actor, Policy state, Risk, Evidence, Decisions, Operational Authorization, Environment, and other required authoritative inputs, may the proposed Transition occur?**
+
+Conceptually:
+
+```text
+Workflow Instance
+      +
+Current State
+      +
+Transition Proposal
+      +
+Workflow Definition
+      +
+Actor
+      +
+Policy
+      +
+Risk
+      +
+Evidence
+      +
+Decision State
+      +
+Operational Authorization
+      +
+Environment
+      ↓
+Deterministic Transition Evaluation
+      ↓
+accepted
+denied
+blocked
+failed
+```
+
+This evaluation is the central lifecycle-governance function of AIEOS.
+
+---
+
+# 6. Core Workflow Model
+
+The canonical workflow hierarchy is:
+
+```text
+Workflow Definition
+        ↓ instantiated-as
+Workflow Instance
+        ↓ possesses
+Lifecycle State
+        ↓ changed-by
+Transition
+```
+
+A Transition begins with:
+
+```text
+Transition Proposal
+```
+
+and proceeds through:
+
+```text
+Proposal
+   ↓
+Evaluation
+   ↓
+Decision
+   ↓
+State Mutation
+   ↓
+Event + Provenance
+```
+
+---
+
+# 7. Workflow Definition
+
+## 7.1 Definition
+
+A **Workflow Definition** is a versioned Artifact describing permitted lifecycle behavior for a class of governed work.
+
+A Workflow Definition answers:
+
+> **Under what conditions may this kind of governed work move between lifecycle states?**
+
+---
+
+# 8. Workflow Definition Identity
+
+Every Workflow Definition SHALL possess stable semantic identity.
+
+A change to:
+
+```text
+filename
+repository path
+serialization
+storage location
+rendered representation
+```
+
+SHALL NOT by itself create a new Workflow Definition identity.
+
+---
+
+# 9. Workflow Definition Version
+
+Every accepted Workflow Definition SHALL have an identifiable version.
+
+A Workflow Instance SHALL be bound to an exact governing Workflow Definition version.
+
+Conceptually:
+
+```text
+Workflow:
+engineering-change
+
+Version:
+1.3.0
+```
+
+---
+
+# 10. Workflow Definition Content
+
+A Workflow Definition SHALL be capable of specifying:
+
+```text
+identity
+version
+workflow class
+entry states
+states
+terminal states
+transitions
+transition prerequisites
+permitted actors
+Policy requirements
+Risk conditions
+Evidence requirements
+Decision requirements
+Operational Authorization requirements
+timeout behavior
+retry behavior
+cancellation behavior
+failure behavior
+compensation behavior
+emergency paths
+completion criteria
+```
+
+where applicable.
+
+---
+
+# 11. Workflow Definition Is Not an Execution
+
+A Workflow Definition describes permitted behavior.
+
+A Workflow Instance records one concrete governed lifecycle.
+
+Therefore:
+
+```text
+Workflow Definition
+    ≠
+Workflow Instance
+```
+
+and:
+
+```text
+Workflow Definition
+    ≠
+Execution
+```
+
+---
+
+# 12. Workflow Instance
+
+## 12.1 Definition
+
+A **Workflow Instance** is a governed runtime Subject representing one concrete application of a specific Workflow Definition version.
+
+A Workflow Instance SHALL identify:
+
+```text
+Workflow Instance identity
+Workflow Definition identity
+Workflow Definition version
+associated Work Unit
+current Lifecycle State
+created time
+current status
+```
+
+---
+
+# 13. Workflow Instance Identity
+
+Workflow Instance identity SHALL remain stable for the lifetime of that instance.
+
+Restarting a process, moving infrastructure, or changing a worker SHALL NOT create a new Workflow Instance unless a genuinely new workflow execution is intended.
+
+---
+
+# 14. Work Unit Relationship
+
+A Workflow Instance SHALL be associated with a Work Unit or equivalent governed coordination Subject.
+
+A Work Unit MAY participate in more than one Workflow Instance.
+
+Examples include:
+
+```text
+engineering lifecycle workflow
+security review workflow
+deployment workflow
+incident workflow
+```
+
+---
+
+# 15. MVP Workflow Multiplicity
+
+The MVP MAY support only one primary lifecycle Workflow Instance per Work Unit.
+
+However, the domain and persistence model SHALL NOT make future multiple Workflow Instances impossible.
+
+---
+
+# 16. Lifecycle State
+
+A **Lifecycle State** represents the current authoritative position of a Workflow Instance.
+
+Lifecycle State belongs to:
+
+```text
+Workflow Instance
+```
+
+not directly to:
+
+```text
+Work Unit
+Artifact
+Agent session
+Pull Request
+```
+
+Those may expose derived coordination status.
+
+---
+
+# 17. State Categories
+
+A Workflow Definition SHOULD classify Lifecycle States according to semantic category.
+
+The baseline categories are:
+
+```text
+INITIAL
+ACTIVE
+WAITING
+BLOCKED
+FAILURE
+TERMINAL_SUCCESS
+TERMINAL_NON_SUCCESS
+```
+
+These categories describe state semantics.
+
+They do not require those literal names.
+
+---
+
+# 18. Initial State
+
+Every Workflow Definition SHALL define at least one legal entry state.
+
+A Workflow Instance SHALL NOT begin in an arbitrary state.
+
+Creation SHALL identify the selected valid entry state.
+
+---
+
+# 19. Active State
+
+An **Active State** indicates that governed work may currently progress through automated, human, or mixed activity.
+
+Example:
+
+```text
+IMPLEMENTING
+VERIFYING
+REVIEWING
+```
+
+---
+
+# 20. Waiting State
+
+A **Waiting State** indicates that progression is intentionally suspended pending an expected event or condition.
+
+Examples:
+
+```text
+WAITING_FOR_DECISION
+WAITING_FOR_EXTERNAL_RESULT
+WAITING_FOR_SCHEDULE
+WAITING_FOR_DEPENDENCY
+```
+
+Waiting is not failure.
+
+---
+
+# 21. Blocked State
+
+A **Blocked State** indicates that progression cannot currently proceed because one or more mandatory prerequisites cannot be satisfied.
+
+A Blocked State SHALL identify its blocking conditions.
+
+Examples:
+
+```text
+missing required Evidence
+
+Authority Conflict
+
+unavailable external dependency
+
+required Decision absent
+
+Policy conflict
+
+required Operational Authorization unavailable
+```
+
+---
+
+# 22. Failure State
+
+A **Failure State** represents unsuccessful lifecycle progression caused by an attempted operation or process failure.
+
+Examples:
+
+```text
+Execution failed
+
+Verification failed
+
+Deployment failed
+
+Integration failed
+```
+
+Failure SHALL remain distinguishable from Blocked.
+
+---
+
+# 23. Terminal State
+
+A terminal Lifecycle State indicates that no ordinary forward transition remains under the current Workflow Definition.
+
+Terminal states MAY include:
+
+```text
+COMPLETED
+CANCELLED
+REJECTED
+SUPERSEDED
+ABANDONED
+FAILED_FINAL
+```
+
+A terminal state does not imply deletion.
+
+---
+
+# 24. Work Unit Coordination Status
+
+A Work Unit MAY expose a coordination status derived from its Workflow Instances.
+
+For example:
+
+```text
+active
+blocked
+waiting-human
+failed
+completed
+```
+
+This status SHALL NOT replace the authoritative Lifecycle State of any Workflow Instance.
+
+---
+
+# 25. Transition
+
+A **Transition** is the governed attempt to move a Workflow Instance from one Lifecycle State to another.
+
+A Transition SHALL identify:
+
+```text
+Transition identity
+Workflow Instance
+source state
+target state
+initiating Actor
+Transition Proposal
+evaluation result
+Recorded Time
+```
+
+and, where applicable:
+
+```text
+Policy Evaluations
+Evidence
+Decisions
+Operational Authorization
+Risk state
+Environment
+reason
+```
+
+---
+
+# 26. Transition Proposal
+
+A **Transition Proposal** is a request that a Workflow Instance move from its current Lifecycle State to another state.
+
+A Transition Proposal does not itself change state.
+
+Therefore:
+
+```text
+Transition Proposal
+    ≠
+Transition acceptance
+```
+
+---
+
+# 27. Transition Proposal Sources
+
+A Transition Proposal MAY originate from:
+
+```text
+Human Actor
+Agent Actor
+Automation Actor
+External System Actor
+scheduler
+Observation
+completed Execution
+Verification Result
+Policy-controlled automation
+```
+
+Proposal origin SHALL NOT by itself establish authority to perform the Transition.
+
+---
+
+# 28. Transition Proposal Content
+
+A Transition Proposal SHOULD identify:
+
+```text
+Workflow Instance
+expected source state
+target state
+initiating Actor
+reason
+related artifacts
+relevant evidence
+requested time
+idempotency identity
+```
+
+where applicable.
+
+---
+
+# 29. Optimistic State Expectation
+
+A Transition Proposal SHOULD identify the Lifecycle State against which it was created.
+
+Example:
+
+```text
+expected_state:
+PLAN_ACCEPTED
+
+target_state:
+IMPLEMENTING
+```
+
+If the Workflow Instance no longer occupies the expected source state, the proposal SHALL be treated as stale, conflicting, or otherwise invalid according to Policy.
+
+---
+
+# 30. Transition Evaluation
+
+A Transition Proposal SHALL undergo deterministic Transition Evaluation before authoritative Lifecycle State mutation.
+
+The evaluation SHALL determine whether the Transition is:
+
+```text
+allowed
+denied
+blocked
+failed-to-evaluate
+```
+
+before mutation.
+
+---
+
+# 31. Transition Evaluation Inputs
+
+Transition Evaluation SHALL be capable of considering:
+
+```text
+Workflow Definition identity
+Workflow Definition version
+Workflow Instance
+current authoritative Lifecycle State
+proposed target state
+initiating Actor
+Actor role/qualification
+applicable Policy
+Risk
+required Artifacts
+Artifact validity
+required Evidence
+Evidence validity
+required Decisions
+Operational Authorization
+Environment
+blocking conditions
+external authoritative facts
+```
+
+where applicable.
+
+---
+
+# 32. Transition Evaluation Order
+
+The logical evaluation order SHOULD be:
+
+```text
+Resolve Workflow Instance
+        ↓
+Verify Definition version
+        ↓
+Verify current State
+        ↓
+Verify Transition exists
+        ↓
+Resolve Actor
+        ↓
+Resolve applicable Policy
+        ↓
+Evaluate structural prerequisites
+        ↓
+Evaluate Risk
+        ↓
+Evaluate Artifact prerequisites
+        ↓
+Evaluate Evidence prerequisites
+        ↓
+Evaluate Decision prerequisites
+        ↓
+Evaluate Operational Authorization
+        ↓
+Evaluate external authoritative facts
+        ↓
+Evaluate cross-domain invariants
+        ↓
+Return disposition
+```
+
+The implementation MAY optimize evaluation while preserving equivalent semantics.
+
+---
+
+# 33. Transition Existence
+
+A state change SHALL NOT occur unless the governing Workflow Definition contains a valid Transition from the current Lifecycle State to the proposed target Lifecycle State.
+
+Agents SHALL NOT invent lifecycle edges at runtime.
+
+---
+
+# 34. Transition Preconditions
+
+A Transition MAY require any combination of:
+
+```text
+Artifact presence
+Artifact status
+Assertion state
+Policy satisfaction
+Evidence
+Verification Result
+Review outcome
+Decision / Approval
+Operational Authorization
+Actor qualification
+Risk classification
+Environment state
+dependency completion
+time condition
+external authoritative fact
+```
+
+---
+
+# 35. Structural Preconditions
+
+Structural Preconditions describe lifecycle facts independent of policy.
+
+Examples:
+
+```text
+source state must equal PLAN_ACCEPTED
+
+target state must equal IMPLEMENTING
+
+Workflow Definition version must equal 1.2.0
+```
+
+Failure of a structural prerequisite SHALL prevent the Transition.
+
+---
+
+# 36. Artifact Gates
+
+A Transition MAY require specific Artifacts.
+
+Example:
+
+```text
+SPEC_ACCEPTED
+    ↓
+PLAN_READY
+```
+
+may require:
+
+```text
+accepted Specification
+```
+
+Artifact existence alone SHALL NOT imply required status or validity.
+
+---
+
+# 37. Evidence Gates
+
+A Transition MAY require Evidence meeting defined conditions.
+
+Example:
+
+```text
+VERIFYING
+    ↓
+REVIEW_READY
+```
+
+may require:
+
+```text
+build Evidence = valid
+test Evidence = valid
+type-check Evidence = valid
+```
+
+Required Evidence SHALL be independently inspectable.
+
+---
+
+# 38. Evidence Binding
+
+Evidence satisfying a gate SHALL be bound to the governed Subject or state to which it applies.
+
+For example:
+
+```text
+Evidence:
+tests passed for commit A
+```
+
+SHALL NOT automatically satisfy:
+
+```text
+Change now at commit B
+```
+
+unless an explicit validity basis exists.
+
+---
+
+# 39. Evidence Freshness
+
+A Workflow Definition or applicable Policy MAY require Evidence freshness.
+
+Example:
+
+```text
+security scan
+must be valid
+for current revision
+```
+
+Stale Evidence SHALL NOT satisfy the gate unless Policy explicitly permits it.
+
+---
+
+# 40. Verification Gates
+
+A Transition MAY require one or more successful Verification Results.
+
+Verification SHALL remain distinct from:
+
+```text
+Execution
+Review
+Approval
+```
+
+---
+
+# 41. Review Gates
+
+A Workflow Definition MAY require a Review with a specific outcome.
+
+Example:
+
+```text
+Review:
+security-review
+
+Required outcome:
+accepted
+```
+
+Review acceptance SHALL NOT automatically create Operational Authorization.
+
+---
+
+# 42. Decision Gates
+
+A Transition MAY require a governed Decision.
+
+Examples:
+
+```text
+Intent Approval
+Specification Approval
+Plan Approval
+Risk Acceptance
+Policy Exception Approval
+Release Approval
+```
+
+A Decision gate SHALL identify the required decision class and applicable authority.
+
+---
+
+# 43. Approval Is Not Operational Authorization
+
+The workflow model SHALL preserve:
+
+```text
+Approval
+    ≠
+Operational Authorization
+```
+
+Example:
+
+```text
+Plan approved
+```
+
+does not inherently mean:
+
+```text
+Agent authorized to mutate repository
+```
+
+unless Policy explicitly establishes that derivation.
+
+---
+
+# 44. Operational Authorization Gates
+
+A Transition MAY require valid Operational Authorization for a protected action.
+
+Authorization SHALL identify or derive:
+
+```text
+Actor
+action
+target
+scope
+conditions
+validity
+granting authority
+```
+
+---
+
+# 45. Authorization Revalidation
+
+Where material time elapses between:
+
+```text
+Authorization
+```
+
+and:
+
+```text
+protected execution
+```
+
+AIEOS SHALL revalidate all time-sensitive authorization conditions before Capability use.
+
+---
+
+# 46. Capability and Workflow
+
+Workflow MAY determine when a Capability Grant is eligible to be issued.
+
+Workflow SHALL NOT treat a Capability Grant as normative permission.
+
+The protected execution sequence remains:
+
+```text
+Workflow permits action
+        +
+Policy satisfied
+        +
+Operational Authorization valid
+        ↓
+Capability Grant
+        ↓
+Execution
+```
+
+---
+
+# 47. Actor Qualification
+
+A Transition MAY restrict permitted initiating or approving Actors.
+
+Qualification MAY depend on:
+
+```text
+role
+team
+ownership
+authority scope
+independence
+certification
+environment
+```
+
+Role alone SHALL NOT imply unlimited authority.
+
+---
+
+# 48. Human Gates
+
+A **Human Gate** is a workflow prerequisite requiring a Decision or other governed action attributable to a Human Actor.
+
+Human Gates SHOULD be used where meaningful judgment or accountability is required.
+
+They SHOULD NOT be added merely because a traditional process historically used manual status transitions.
+
+---
+
+# 49. Agent Participation
+
+Agents MAY:
+
+```text
+propose transitions
+produce Artifacts
+execute Plans
+produce Evidence
+perform Reviews
+identify blockers
+recommend Decisions
+recommend Risk changes
+request Operational Authorization
+```
+
+Agents SHALL NOT directly bypass deterministic Transition Evaluation.
+
+---
+
+# 50. Agent Self-Progression
+
+An Agent MAY trigger a Transition Proposal following successful work.
+
+Example:
+
+```text
+Implementation Agent completes execution
+        ↓
+proposes:
+IMPLEMENTING → VERIFYING
+```
+
+AIEOS SHALL independently evaluate the Transition.
+
+---
+
+# 51. Agent Self-Certification
+
+Where Policy requires independent assurance:
+
+```text
+Implementation Agent
+    ≠
+sole Verification authority
+
+Implementation Agent
+    ≠
+sole Review authority
+
+Implementation Agent
+    ≠
+Approval authority
+```
+
+---
+
+# 52. Automation Actors
+
+Deterministic Automation Actors MAY initiate Transitions when the Workflow Definition and Policy permit.
+
+Examples:
+
+```text
+test suite passed
+        ↓
+propose VERIFYING → REVIEW_READY
+
+deployment health check failed
+        ↓
+propose OBSERVING → ROLLBACK_REQUIRED
+```
+
+Automation remains subject to Transition Evaluation.
+
+---
+
+# 53. External-System Events
+
+External systems MAY produce events that cause Transition Proposals.
+
+Examples:
+
+```text
+PR merged
+
+CI passed
+
+deployment completed
+
+security scan failed
+
+production alert triggered
+```
+
+The external event SHALL be validated against configured Semantic Authority and freshness requirements before protected progression relies upon it.
+
+---
+
+# 54. Transition Dispositions
+
+A Transition Evaluation SHALL produce a disposition with semantics equivalent to:
+
+```text
+ACCEPTED
+DENIED
+BLOCKED
+FAILED_TO_EVALUATE
+STALE
+```
+
+The implementation MAY use different labels if semantics remain preserved.
+
+---
+
+# 55. Accepted Transition
+
+An **Accepted Transition** means:
+
+```text
+all mandatory transition conditions were satisfied
+```
+
+and the authoritative Lifecycle State may be updated.
+
+---
+
+# 56. Denied Transition
+
+A **Denied Transition** means:
+
+```text
+the proposed transition is not permissible
+under the governing rules
+```
+
+Examples include:
+
+```text
+Actor lacks authority
+
+transition edge does not exist
+
+Policy explicitly forbids action
+
+self-approval prohibited
+```
+
+Denial is not necessarily temporary.
+
+---
+
+# 57. Blocked Transition
+
+A **Blocked Transition** means that the Transition is conceptually permitted but cannot currently proceed because one or more satisfiable prerequisites are missing.
+
+Examples:
+
+```text
+waiting for Evidence
+
+waiting for human Decision
+
+waiting for dependency
+
+waiting for external system
+```
+
+---
+
+# 58. Failed-to-Evaluate Transition
+
+`FAILED_TO_EVALUATE` means AIEOS could not reliably determine whether the Transition is permissible.
+
+Examples:
+
+```text
+mandatory Policy evaluation unavailable
+
+authority source unavailable
+
+corrupt Workflow Definition
+
+required external authoritative state unknown
+```
+
+Protected progression SHALL fail closed unless an explicit emergency Policy permits otherwise.
+
+---
+
+# 59. Stale Transition Proposal
+
+A Transition Proposal SHALL be considered stale when its assumptions no longer match authoritative Workflow Instance state.
+
+Example:
+
+```text
+proposal assumes:
+PLAN_READY
+
+actual current state:
+PLAN_ACCEPTED
+```
+
+Stale proposals SHALL NOT silently mutate current state.
+
+---
+
+# 60. Atomic Transition Commit
+
+An accepted authoritative Transition SHOULD commit atomically with:
+
+```text
+previous state reference
+
+new Lifecycle State
+
+Transition record
+
+required Event
+
+required Provenance
+```
+
+within the AIEOS authoritative persistence boundary.
+
+---
+
+# 61. Transition Events
+
+AIEOS SHALL record consequential Transition Events.
+
+Examples include:
+
+```text
+transition.proposed
+transition.accepted
+transition.denied
+transition.blocked
+transition.failed-evaluation
+transition.cancelled
+```
+
+---
+
+# 62. Transition Provenance
+
+Transition provenance SHOULD permit reconstruction of:
+
+```text
+who proposed transition
+
+what state existed
+
+what target was requested
+
+what Policy applied
+
+what Evidence was considered
+
+what Decisions existed
+
+what Operational Authorization existed
+
+what result occurred
+
+when it occurred
+```
+
+---
+
+# 63. Deterministic Governance
+
+The authoritative Transition disposition SHALL NOT depend solely upon an AI Agent's judgment.
+
+AI MAY assist with:
+
+```text
+interpretation
+recommendation
+classification
+analysis
+explanation
+```
+
+but deterministic workflow and policy rules SHALL establish whether an authoritative Transition is permitted where rules are required to be deterministic.
+
+---
+
+# 64. Risk-Adaptive Workflow
+
+A Workflow Definition MAY vary required gates according to Risk.
+
+Conceptually:
+
+```text
+R0
+    → minimal gates
+
+R1
+    → ordinary verification + review
+
+R2
+    → additional human/security authority
+
+R3
+    → strong review, risk acceptance,
+      explicit authorization,
+      controlled rollout
+```
+
+---
+
+# 65. Risk Elevation
+
+Risk MAY increase during a Workflow Instance.
+
+When Risk increases:
+
+```text
+newly applicable gates
+```
+
+SHALL apply before future protected progression.
+
+Past legitimate Transitions SHALL not be rewritten.
+
+---
+
+# 66. Risk Reduction
+
+Risk MAY decrease only through an explicitly governed reassessment where applicable.
+
+Risk SHALL NOT be silently reduced solely to bypass a gate.
+
+---
+
+# 67. Dynamic Gate Application
+
+A Workflow Definition MAY contain conditional gates.
+
+Example:
+
+```text
+if risk >= R2:
+    require security-review
+
+if environment == production:
+    require production-authorization
+```
+
+The exact policy syntax is deferred.
+
+---
+
+# 68. Waiting for Human Decision
+
+When a Human Gate is unsatisfied, the Workflow Instance MAY enter a waiting state such as:
+
+```text
+WAITING_FOR_DECISION
+```
+
+The pending Decision SHALL remain explicit.
+
+Absence of response SHALL NOT become approval unless Policy explicitly defines timeout behavior.
+
+---
+
+# 69. Decision Timeout
+
+A Human Decision request MAY have an expiration or escalation rule.
+
+Possible outcomes include:
+
+```text
+remain waiting
+
+escalate
+
+expire
+
+cancel workflow
+
+invoke emergency path
+```
+
+Timeout SHALL NOT silently create Approval.
+
+---
+
+# 70. Blocking Condition
+
+A Blocking Condition SHALL identify:
+
+```text
+type
+reason
+source
+affected Workflow Instance
+created time
+resolvability
+```
+
+where applicable.
+
+---
+
+# 71. Block Resolution
+
+When a Blocking Condition is resolved, AIEOS MAY:
+
+```text
+return to previous active state
+
+re-evaluate pending Transition
+
+enter another state
+
+request new Decision
+```
+
+according to Workflow Definition.
+
+---
+
+# 72. Failure
+
+A failure SHALL be represented explicitly.
+
+Failure MAY originate from:
+
+```text
+Agent Execution
+
+deterministic automation
+
+Verification
+
+external integration
+
+deployment
+
+Policy evaluation
+
+persistence
+
+reconciliation
+```
+
+---
+
+# 73. Failure Does Not Imply Terminal Workflow Failure
+
+An individual operation failure MAY be recoverable.
+
+Example:
+
+```text
+IMPLEMENTING
+   ↓
+Execution failed
+   ↓
+IMPLEMENTATION_FAILED
+   ↓
+Retry permitted
+   ↓
+IMPLEMENTING
+```
+
+The Workflow Definition SHALL determine recovery paths.
+
+---
+
+# 74. Retry
+
+Retry SHALL be explicit and bounded.
+
+Retry Policy MAY consider:
+
+```text
+failure type
+attempt count
+Actor
+Risk
+Environment
+cost
+elapsed time
+side-effect safety
+```
+
+---
+
+# 75. Retry Identity
+
+Each retry attempt SHALL have distinct Execution identity.
+
+The relationship between attempts SHOULD remain traceable.
+
+---
+
+# 76. Retry of External Mutations
+
+A consequential external mutation SHALL NOT be blindly retried when its result is unknown.
+
+The sequence SHALL be:
+
+```text
+unknown external result
+        ↓
+Reconciliation
+        ↓
+determine actual state
+        ↓
+retry only if safe and required
+```
+
+---
+
+# 77. Cancellation
+
+A Workflow Instance SHALL support explicit cancellation where semantically permissible.
+
+Cancellation SHALL identify:
+
+```text
+initiating Actor
+reason
+time
+current state
+required authority
+```
+
+---
+
+# 78. Cancellation During Execution
+
+If cancellation is requested during an active Execution:
+
+```text
+Workflow cancellation
+        ≠
+immediate guaranteed execution termination
+```
+
+The Workflow SHALL represent the cancellation request and actual Execution termination separately.
+
+---
+
+# 79. Cancellation and External Side Effects
+
+Cancellation SHALL NOT imply reversal of external changes already completed.
+
+Those changes may require:
+
+```text
+rollback
+compensation
+or explicit acceptance
+```
+
+---
+
+# 80. Rollback
+
+A **Rollback** is a governed action intended to return operational or engineering state to a prior known state where technically possible.
+
+Rollback SHALL itself be represented as governed work or governed Execution.
+
+---
+
+# 81. Compensation
+
+A **Compensation** is a governed action intended to counteract the effects of an earlier action where direct transactional rollback is unavailable.
+
+Example:
+
+```text
+deployment completed
+        ↓
+undesired result
+        ↓
+deploy previous Release
+```
+
+---
+
+# 82. Compensation Is Not Historical Erasure
+
+Rollback or Compensation SHALL NOT delete the historical fact that the original action occurred.
+
+The historical chain SHALL remain:
+
+```text
+Action A
+   ↓
+Result
+   ↓
+Compensation B
+```
+
+---
+
+# 83. Rollback Authorization
+
+Rollback MAY require different authority than the original operation.
+
+Emergency rollback policy MAY intentionally permit faster authority paths than forward deployment.
+
+Such rules SHALL be explicit.
+
+---
+
+# 84. Emergency Workflow
+
+A Workflow Definition MAY define an emergency lifecycle for conditions in which normal governance would create unacceptable risk.
+
+Emergency workflows SHALL remain governed.
+
+They SHALL NOT mean:
+
+```text
+disable governance
+```
+
+---
+
+# 85. Emergency Path Requirements
+
+An emergency path SHOULD define:
+
+```text
+entry conditions
+permitted Actors
+reduced or altered gates
+mandatory safeguards
+time bounds
+required retrospective review
+required provenance
+exit conditions
+```
+
+---
+
+# 86. Emergency Invocation
+
+Entering an emergency path SHALL be an explicit Transition.
+
+It SHALL identify:
+
+```text
+why emergency behavior was invoked
+who invoked it
+what authority permitted it
+```
+
+---
+
+# 87. Emergency Retrospective
+
+An emergency Workflow MAY permit delayed review or delayed Decision requirements.
+
+Where so configured, the required retrospective governance SHALL itself become explicit pending work.
+
+Emergency behavior SHALL NOT erase accountability.
+
+---
+
+# 88. Workflow Composition
+
+One Workflow Instance MAY depend upon or coordinate with another Workflow Instance.
+
+Examples:
+
+```text
+Engineering Change Workflow
+        ↓ requires
+Security Review Workflow
+
+Release Workflow
+        ↓ requires
+Deployment Workflow
+```
+
+---
+
+# 89. Parent/Child Workflow Relationships
+
+Workflow relationships MAY include:
+
+```text
+parent-of
+child-of
+depends-on
+blocks
+triggered-by
+coordinates-with
+```
+
+---
+
+# 90. Workflow Dependency
+
+A Workflow Instance MAY require another Workflow Instance to reach a specified state before progression.
+
+Example:
+
+```text
+release workflow
+requires:
+security workflow = COMPLETED
+```
+
+---
+
+# 91. Cross-Workflow Deadlock
+
+AIEOS SHOULD be capable of detecting obvious cyclic blocking relationships among Workflow Instances.
+
+Example:
+
+```text
+Workflow A waits for B
+
+Workflow B waits for A
+```
+
+Such conditions SHOULD be surfaced explicitly.
+
+---
+
+# 92. Workflow Versioning
+
+Workflow Definitions SHALL be versionable.
+
+Publishing a new version SHALL NOT silently modify the semantics of existing historical transitions.
+
+---
+
+# 93. Workflow Instance Version Pinning
+
+A Workflow Instance SHALL identify the exact Workflow Definition version governing its transitions.
+
+Example:
+
+```text
+workflow:
+engineering-change
+
+version:
+1.2.0
+```
+
+---
+
+# 94. Definition Update
+
+Changes to a Workflow Definition MAY include:
+
+```text
+new states
+new transitions
+removed transitions
+new gates
+changed Risk rules
+changed timeout behavior
+```
+
+Such changes SHALL result in a new identifiable version once accepted.
+
+---
+
+# 95. In-Flight Workflow Stability
+
+An existing Workflow Instance SHALL remain governed by its pinned Workflow Definition unless a governed migration explicitly changes that relationship.
+
+---
+
+# 96. Workflow Migration
+
+AIEOS MAY support migration of an in-flight Workflow Instance from one Workflow Definition version to another.
+
+Migration SHALL NOT occur implicitly.
+
+---
+
+# 97. Workflow Migration Record
+
+A migration SHALL identify:
+
+```text
+Workflow Instance
+old definition version
+new definition version
+old state
+mapped new state
+initiating Actor
+Decision / Authorization where required
+reason
+time
+```
+
+---
+
+# 98. Invalid Migration
+
+A Workflow migration SHALL be denied when no valid semantic mapping exists and no explicit exceptional procedure authorizes the change.
+
+---
+
+# 99. Historical Semantics After Migration
+
+Transitions performed under the old Workflow Definition version SHALL remain interpreted using the old version.
+
+Later transitions SHALL use the new governing version.
+
+---
+
+# 100. Workflow Definition Supersession
+
+A Workflow Definition version MAY be superseded for creation of new Workflow Instances.
+
+Supersession SHALL NOT invalidate historical Workflow Instances.
+
+---
+
+# 101. Concurrency
+
+AIEOS SHALL protect authoritative Workflow State from conflicting concurrent mutation.
+
+Two accepted Transitions SHALL NOT simultaneously claim the same source state and produce incompatible successor states without explicit workflow semantics permitting such concurrency.
+
+---
+
+# 102. Transition Concurrency Control
+
+A Transition SHOULD be evaluated against a state version, revision, sequence, or equivalent concurrency token.
+
+Conceptually:
+
+```text
+Workflow Instance
+state = PLAN_ACCEPTED
+revision = 17
+```
+
+Transition acceptance may require:
+
+```text
+expected_revision = 17
+```
+
+---
+
+# 103. Concurrent Transition Conflict
+
+If two Transition Proposals race:
+
+```text
+Proposal A:
+PLAN_ACCEPTED → IMPLEMENTING
+
+Proposal B:
+PLAN_ACCEPTED → CANCELLED
+```
+
+only a legitimately committed first transition SHALL determine the next authoritative state unless Workflow semantics explicitly permit another mechanism.
+
+The losing proposal SHALL be stale or conflicting.
+
+---
+
+# 104. Idempotency
+
+Repeated submission of the same logical Transition Proposal SHOULD NOT create duplicate authoritative Transitions.
+
+---
+
+# 105. Transition Idempotency Identity
+
+A Transition Proposal MAY carry an idempotency identity.
+
+Repeated requests using the same identity SHALL return the existing disposition or equivalent result rather than duplicating the lifecycle mutation.
+
+---
+
+# 106. Restart Safety
+
+Workflow processing SHALL survive application or worker interruption without losing authoritative Lifecycle State.
+
+In-memory execution state SHALL NOT be the sole authoritative source of Workflow Instance state.
+
+---
+
+# 107. Scheduled Transitions
+
+A Workflow Definition MAY permit time-driven Transition Proposals.
+
+Examples:
+
+```text
+review period expired
+
+scheduled deployment window opened
+
+temporary exception expired
+```
+
+Time-based proposal does not bypass normal Transition Evaluation.
+
+---
+
+# 108. Expiration
+
+Workflow-related records MAY expire.
+
+Examples:
+
+```text
+Operational Authorization
+
+Capability Grant
+
+Decision request
+
+temporary Exception
+
+Evidence validity
+```
+
+Expiration MAY cause a Workflow Instance to become blocked or require re-evaluation.
+
+---
+
+# 109. Re-Evaluation
+
+A Workflow Instance MAY require re-evaluation when relevant authoritative state changes.
+
+Examples:
+
+```text
+Risk elevated
+
+Policy changed
+
+Evidence became stale
+
+Authorization revoked
+
+Environment classification changed
+```
+
+---
+
+# 110. Policy Change During Workflow
+
+A Policy change SHALL NOT rewrite historical Transition validity.
+
+Future Transitions SHALL use the applicable Policy semantics defined by the governing configuration and effective time.
+
+---
+
+# 111. Workflow Definition and Policy Separation
+
+Workflow Definition describes:
+
+```text
+possible lifecycle structure
+```
+
+Policy determines:
+
+```text
+context-sensitive governance requirements
+```
+
+Therefore:
+
+```text
+Workflow Definition
+    ≠
+Policy
+```
+
+A Workflow MAY reference Policy rather than embedding every organizational rule directly.
+
+---
+
+# 112. Workflow Definition and Configuration Separation
+
+Configuration MAY select:
+
+```text
+Workflow Definition version
+Policy set
+Risk defaults
+Actor bindings
+environment rules
+```
+
+Configuration SHALL NOT silently redefine Workflow Definition semantics.
+
+---
+
+# 113. Workflow Completion
+
+A Workflow Instance SHALL enter successful terminal completion only when its Workflow Definition's completion conditions are satisfied.
+
+Completion MAY require:
+
+```text
+required Artifacts accepted
+
+mandatory Verification passed
+
+required Review completed
+
+required Decisions recorded
+
+required external operation reconciled
+
+required provenance recorded
+```
+
+---
+
+# 114. Work Unit Completion
+
+Work Unit completion MAY be derived from one or more Workflow Instances.
+
+A Work Unit SHALL NOT automatically be considered complete merely because one subordinate Workflow Instance completes when other mandatory workflows remain active.
+
+---
+
+# 115. Definition of Done Relationship
+
+Workflow completion SHALL operationalize the applicable Definition of Done.
+
+A Definition of Done MAY be:
+
+```text
+organization-level
+
+project-level
+
+workflow-specific
+
+risk-specific
+```
+
+The exact artifact model is defined elsewhere.
+
+---
+
+# 116. Standard Engineering Change Workflow
+
+AIEOS SHOULD define an initial reference Workflow Definition for ordinary governed repository changes.
+
+The reference lifecycle is:
+
+```text
+PROPOSED
+    ↓
+INTENT_READY
+    ↓
+INTENT_ACCEPTED
+    ↓
+SPEC_READY
+    ↓
+SPEC_ACCEPTED
+    ↓
+PLAN_READY
+    ↓
+PLAN_ACCEPTED
+    ↓
+EXECUTION_AUTH_PENDING
+    ↓
+IMPLEMENTING
+    ↓
+VERIFYING
+    ↓
+REVIEW_READY
+    ↓
+REVIEW_ACCEPTED
+    ↓
+MERGE_AUTH_PENDING
+    ↓
+MERGING
+    ↓
+RECONCILING
+    ↓
+COMPLETED
+```
+
+This is the initial reference workflow, not a universal lifecycle for all AIEOS workflows.
+
+---
+
+# 117. Reference Exceptional States
+
+The reference engineering-change workflow SHOULD also support semantics equivalent to:
+
+```text
+BLOCKED
+CHANGES_REQUESTED
+EXECUTION_FAILED
+VERIFICATION_FAILED
+REVIEW_REJECTED
+MERGE_FAILED
+UNKNOWN_EXTERNAL_RESULT
+CANCELLED
+SUPERSEDED
+```
+
+---
+
+# 118. PROPOSED
+
+`PROPOSED` indicates that a Work Unit exists but its Intent has not yet been accepted for governed execution.
+
+Expected activities include:
+
+```text
+capture problem
+structure Intent
+clarify scope
+identify owner
+initial Risk estimation
+```
+
+---
+
+# 119. INTENT_READY
+
+`INTENT_READY` means the Intent is sufficiently structured for acceptance Decision.
+
+The Transition:
+
+```text
+INTENT_READY
+    ↓
+INTENT_ACCEPTED
+```
+
+MAY require:
+
+```text
+Human Decision
+
+or
+
+Policy-authorized automated acceptance
+```
+
+according to Risk.
+
+---
+
+# 120. INTENT_ACCEPTED
+
+`INTENT_ACCEPTED` means the desired outcome has been accepted as legitimate engineering work.
+
+It does not imply implementation authorization.
+
+---
+
+# 121. SPEC_READY
+
+`SPEC_READY` means a Specification has been proposed and is available for acceptance.
+
+The Specification MAY be generated by an Agent.
+
+Generated status SHALL remain visible.
+
+---
+
+# 122. SPEC_ACCEPTED
+
+`SPEC_ACCEPTED` means applicable Specification acceptance requirements have been satisfied.
+
+It SHALL NOT by itself authorize repository mutation.
+
+---
+
+# 123. PLAN_READY
+
+`PLAN_READY` means a proposed Plan exists and is ready for applicable review or Decision.
+
+Planning MAY occur with read-only Capability.
+
+---
+
+# 124. PLAN_ACCEPTED
+
+`PLAN_ACCEPTED` means the Plan is accepted as the intended execution strategy.
+
+It remains distinct from Operational Authorization to execute.
+
+---
+
+# 125. EXECUTION_AUTH_PENDING
+
+`EXECUTION_AUTH_PENDING` means the workflow is ready to seek or derive Operational Authorization for mutable implementation work.
+
+The transition to implementation SHALL require:
+
+```text
+applicable Policy satisfied
+
+Risk requirements satisfied
+
+Operational Authorization valid
+
+Actor eligible
+```
+
+---
+
+# 126. IMPLEMENTING
+
+`IMPLEMENTING` means authorized mutable implementation Execution may occur.
+
+The implementation Actor MAY be:
+
+```text
+Human Actor
+Agent Actor
+Automation Actor
+```
+
+depending on Policy.
+
+---
+
+# 127. VERIFYING
+
+`VERIFYING` means the produced Change is undergoing required Verification.
+
+Implementation completion alone SHALL NOT satisfy this state.
+
+---
+
+# 128. Verification Failure
+
+Failed mandatory Verification SHALL prevent progression to `REVIEW_READY`.
+
+The Workflow MAY transition to:
+
+```text
+VERIFICATION_FAILED
+```
+
+or:
+
+```text
+CHANGES_REQUESTED
+```
+
+according to Workflow Definition.
+
+---
+
+# 129. REVIEW_READY
+
+`REVIEW_READY` means required Verification prerequisites are satisfied sufficiently for Review to begin.
+
+---
+
+# 130. REVIEW_ACCEPTED
+
+`REVIEW_ACCEPTED` means mandatory Review requirements have been satisfied.
+
+It SHALL NOT automatically imply merge authorization.
+
+---
+
+# 131. MERGE_AUTH_PENDING
+
+`MERGE_AUTH_PENDING` means the Change has satisfied pre-merge assurance requirements and awaits or evaluates Operational Authorization for merge.
+
+---
+
+# 132. MERGING
+
+`MERGING` means a governed external source-control mutation is underway.
+
+The external operation SHALL have been committed inside AIEOS before dispatch.
+
+---
+
+# 133. UNKNOWN_EXTERNAL_RESULT
+
+If the merge request produces an ambiguous external result:
+
+```text
+MERGING
+    ↓
+UNKNOWN_EXTERNAL_RESULT
+```
+
+AIEOS SHALL reconcile with the authoritative source-control system before retrying or completing the workflow.
+
+---
+
+# 134. RECONCILING
+
+`RECONCILING` confirms that AIEOS is comparing expected result with authoritative native external state.
+
+Completion SHALL not occur until required reconciliation is satisfied.
+
+---
+
+# 135. COMPLETED
+
+`COMPLETED` indicates the reference Workflow Instance has reached successful terminal completion.
+
+For the MVP, this SHOULD mean at minimum:
+
+```text
+Intent accepted
+
+Specification accepted
+
+Plan accepted
+
+authorized implementation completed
+
+Verification passed
+
+required Evidence retained
+
+Review accepted
+
+required human Decision recorded
+
+merge authorized
+
+native merge confirmed
+
+reconciliation succeeded
+
+provenance complete
+```
+
+---
+
+# 136. Reference MVP Workflow
+
+The first implementation SHOULD execute:
+
+```text
+Human creates Intent
+        ↓
+PROPOSED
+        ↓
+Intent structured
+        ↓
+INTENT_READY
+        ↓
+Human accepts
+        ↓
+INTENT_ACCEPTED
+        ↓
+Agent creates Specification
+        ↓
+SPEC_READY
+        ↓
+Human accepts
+        ↓
+SPEC_ACCEPTED
+        ↓
+Planning Agent investigates read-only
+        ↓
+PLAN_READY
+        ↓
+Plan accepted
+        ↓
+PLAN_ACCEPTED
+        ↓
+Execution authorization evaluated
+        ↓
+EXECUTION_AUTH_PENDING
+        ↓
+Operational Authorization
+        ↓
+Capability Grant
+        ↓
+IMPLEMENTING
+        ↓
+Change
+        ↓
+VERIFYING
+        ↓
+Evidence
+        ↓
+REVIEW_READY
+        ↓
+Independent Agent Review
+        ↓
+REVIEW_ACCEPTED
+        ↓
+Human Change Approval
+        ↓
+MERGE_AUTH_PENDING
+        ↓
+Merge Operational Authorization
+        ↓
+Capability Grant
+        ↓
+MERGING
+        ↓
+native result
+        ↓
+RECONCILING
+        ↓
+COMPLETED
+```
+
+This SHALL be the first executable proof that AIEOS is an engineering operating system rather than merely an AI coding interface.
+
+---
+
+# 137. Risk-Adaptive Reference Variants
+
+## R0
+
+A low-risk workflow MAY permit:
+
+```text
+Intent accepted by configured policy
+        ↓
+Agent Specification
+        ↓
+Agent Plan
+        ↓
+Agent Implementation
+        ↓
+Automated Verification
+        ↓
+Independent Agent Review
+        ↓
+Policy-derived merge Authorization
+        ↓
+Merge
+```
+
+---
+
+## R1
+
+A routine workflow MAY require:
+
+```text
+Human Intent acceptance
+        ↓
+Agent Specification
+        ↓
+Plan
+        ↓
+Agent Implementation
+        ↓
+Automated Verification
+        ↓
+Independent Review
+        ↓
+Code-owner Approval
+        ↓
+Merge Authorization
+```
+
+---
+
+## R2
+
+A significant-risk workflow MAY require:
+
+```text
+Human Intent acceptance
+        ↓
+Specification
+        ↓
+Security / architecture analysis
+        ↓
+Human Specification Approval
+        ↓
+Plan
+        ↓
+Human Plan Approval
+        ↓
+Agent Implementation
+        ↓
+Verification
+        ↓
+Independent technical Review
+        ↓
+Security Review
+        ↓
+Human Change Approval
+        ↓
+Explicit Operational Authorization
+```
+
+---
+
+## R3
+
+A critical workflow MAY require:
+
+```text
+Human Intent
+        ↓
+Formal Specification
+        ↓
+Architecture Decision
+        ↓
+Multi-party Review
+        ↓
+Accepted Plan
+        ↓
+Explicit execution Authorization
+        ↓
+Sandboxed Execution
+        ↓
+Extensive Verification
+        ↓
+Independent Review
+        ↓
+Risk Acceptance
+        ↓
+Release Approval
+        ↓
+Explicit production Authorization
+        ↓
+Controlled rollout
+        ↓
+Observation
+```
+
+---
+
+# 138. Workflow Automation Principle
+
+The system SHOULD automate:
+
+```text
+deterministic coordination
+state evaluation
+artifact routing
+agent dispatch
+verification execution
+Evidence collection
+notifications
+reconciliation
+routine transition proposals
+```
+
+where safe.
+
+It SHOULD preserve human judgment where applicable.
+
+---
+
+# 139. Human Attention Principle
+
+The workflow UI SHOULD be designed around:
+
+> **What requires my judgment or authority?**
+
+rather than:
+
+> **Which status should I manually move this ticket into?**
+
+Humans should not normally act as manual workflow engines.
+
+---
+
+# 140. Human Decision Queue
+
+Pending Human Gates SHOULD appear through a unified decision mechanism capable of showing:
+
+```text
+requested Decision
+Work Unit
+current Workflow State
+reason
+Risk
+relevant Artifacts
+relevant Evidence
+Policy
+Agent recommendation
+open questions
+available actions
+```
+
+---
+
+# 141. Transition Explanation
+
+When a Transition is denied or blocked, AIEOS SHOULD explain:
+
+```text
+which Transition was requested
+
+which condition failed
+
+which Policy applied
+
+which Evidence was missing or stale
+
+which Decision was absent
+
+which Authorization was invalid
+
+which authority source produced relevant facts
+```
+
+---
+
+# 142. No Hidden Workflow
+
+Consequential lifecycle progression SHALL NOT depend on undocumented manual steps that exist only outside governed workflow state.
+
+If manual intervention is required, it SHOULD be represented as:
+
+```text
+Decision
+
+Execution
+
+Transition prerequisite
+
+or
+
+Blocking Condition
+```
+
+as appropriate.
+
+---
+
+# 143. External Workflow Representations
+
+A Workflow Instance MAY be represented externally as:
+
+```text
+GitHub Issue
+Jira ticket
+project board card
+Slack notification
+dashboard item
+```
+
+These SHALL remain Representations unless configured Semantic Authority explicitly establishes otherwise.
+
+---
+
+# 144. Native Status Synchronization
+
+External issue or project status MAY be projected from AIEOS Workflow State.
+
+A native external status change SHALL NOT automatically mutate authoritative AIEOS Lifecycle State unless an explicit Integration Policy permits that native system to act as an authoritative transition source.
+
+---
+
+# 145. Workflow Reconciliation
+
+AIEOS SHOULD reconcile workflow-related external Representations with authoritative Workflow Instance state.
+
+Possible results include:
+
+```text
+in-sync
+stale
+conflicting
+missing
+unknown
+```
+
+---
+
+# 146. Workflow Observability
+
+AIEOS SHOULD expose metrics including:
+
+```text
+time per Lifecycle State
+
+transition acceptance rate
+
+transition denial rate
+
+blocked duration
+
+human wait time
+
+agent execution time
+
+verification time
+
+review time
+
+retry count
+
+failure rate
+
+cancellation rate
+
+workflow completion rate
+```
+
+---
+
+# 147. Workflow History Query
+
+AIEOS SHALL permit reconstruction of the consequential lifecycle history of a Workflow Instance.
+
+A history query SHOULD answer:
+
+```text
+which states occurred
+
+which Transitions changed them
+
+who proposed each Transition
+
+why it was accepted or denied
+
+which Policy applied
+
+which Evidence was considered
+
+which Decisions existed
+
+which Operational Authorization existed
+
+when each event occurred
+```
+
+---
+
+# 148. Workflow Correctness Invariants
+
+## WF-INV-001 — Definition binding
+
+Every Workflow Instance SHALL identify its governing Workflow Definition version.
+
+---
+
+## WF-INV-002 — One authoritative current state
+
+A Workflow Instance SHALL have one authoritative current Lifecycle State.
+
+---
+
+## WF-INV-003 — State changes only through Transition
+
+Authoritative Lifecycle State SHALL change only through an accepted Transition.
+
+---
+
+## WF-INV-004 — Proposal is not mutation
+
+A Transition Proposal SHALL NOT directly mutate Lifecycle State.
+
+---
+
+## WF-INV-005 — Agent does not own transition authority
+
+An Agent recommendation SHALL NOT constitute authoritative Transition acceptance.
+
+---
+
+## WF-INV-006 — Transition must exist
+
+An accepted Transition SHALL correspond to a Transition permitted by the governing Workflow Definition.
+
+---
+
+## WF-INV-007 — Mandatory prerequisites must hold
+
+A Transition SHALL NOT be accepted when a mandatory prerequisite is unsatisfied.
+
+---
+
+## WF-INV-008 — Approval is not Authorization
+
+Approval SHALL NOT automatically imply Operational Authorization unless explicit Policy establishes the derivation.
+
+---
+
+## WF-INV-009 — Authorization is not Capability
+
+Operational Authorization SHALL NOT itself provide technical execution Capability.
+
+---
+
+## WF-INV-010 — Evidence remains bound to state
+
+Evidence SHALL NOT silently transfer validity across incompatible governed states.
+
+---
+
+## WF-INV-011 — Failure does not silently advance
+
+A failed Execution SHALL NOT cause forward Workflow progression unless an explicit Workflow rule defines that outcome.
+
+---
+
+## WF-INV-012 — Human silence is not Approval
+
+No Human Gate SHALL be satisfied merely by absence of response unless explicit Policy defines that behavior.
+
+---
+
+## WF-INV-013 — Retry is governed
+
+Retry SHALL be bounded and Policy-controlled.
+
+---
+
+## WF-INV-014 — Unknown external state remains unknown
+
+An ambiguous external mutation result SHALL NOT be treated as success or failure without reconciliation or authoritative Evidence.
+
+---
+
+## WF-INV-015 — History is additive
+
+Workflow history SHALL not be silently rewritten.
+
+---
+
+## WF-INV-016 — Version changes do not rewrite history
+
+A new Workflow Definition version SHALL NOT reinterpret historical Transitions.
+
+---
+
+## WF-INV-017 — Migration is explicit
+
+An in-flight Workflow Instance SHALL NOT change governing Workflow Definition version without an explicit governed migration.
+
+---
+
+## WF-INV-018 — Emergency path is governed
+
+Emergency progression SHALL remain explicit, attributable, and auditable.
+
+---
+
+## WF-INV-019 — Concurrency conflict is explicit
+
+Conflicting concurrent Transition attempts SHALL not silently overwrite each other.
+
+---
+
+## WF-INV-020 — Terminal completion is earned
+
+Successful completion SHALL occur only when required completion conditions are satisfied.
+
+---
+
+# 149. Workflow Fitness Functions
+
+The implementation SHOULD eventually automate tests equivalent to the following.
+
+### Fitness Function 1 — Agent cannot force state
+
+```text
+Agent requests direct state mutation
+
+Expected:
+rejected
+```
+
+### Fitness Function 2 — Stale Transition
+
+```text
+proposal expected state:
+PLAN_READY
+
+actual state:
+PLAN_ACCEPTED
+
+Expected:
+STALE
+```
+
+### Fitness Function 3 — Missing Evidence
+
+```text
+VERIFYING → REVIEW_READY
+
+required Evidence absent
+
+Expected:
+BLOCKED or DENIED according to definition
+```
+
+### Fitness Function 4 — Invalid Authorization
+
+```text
+PLAN_ACCEPTED → IMPLEMENTING
+
+Operational Authorization expired
+
+Expected:
+transition not accepted
+```
+
+### Fitness Function 5 — Approval/Authorization separation
+
+```text
+Plan approved
+
+no repository mutation Authorization
+
+Expected:
+implementation cannot begin
+```
+
+### Fitness Function 6 — Retry after unknown external result
+
+```text
+merge result unknown
+
+Expected:
+reconcile before retry
+```
+
+### Fitness Function 7 — Workflow version pinning
+
+```text
+Instance created on v1
+
+v2 published
+
+Expected:
+instance remains governed by v1
+```
+
+### Fitness Function 8 — Concurrent transition race
+
+```text
+two proposals against same state revision
+
+Expected:
+at most one incompatible transition accepted
+```
+
+### Fitness Function 9 — Human silence
+
+```text
+human approval required
+
+decision deadline passes
+
+Expected:
+not implicitly approved
+```
+
+### Fitness Function 10 — Emergency path
+
+```text
+emergency transition invoked
+
+Expected:
+emergency authority + provenance required
+```
+
+---
+
+# 150. Workflow Requirement Mapping
+
+This specification primarily realizes:
+
+```text
+REQ-WF-001 through REQ-WF-017
+```
+
+and interacts directly with:
+
+```text
+REQ-WU
+REQ-HUM
+REQ-AGENT
+REQ-AUTHORITY
+REQ-AUTHZ
+REQ-CAP
+REQ-DEC
+REQ-POL
+REQ-RISK
+REQ-ENV
+REQ-EXEC
+REQ-VER
+REQ-EVID
+REQ-REV
+REQ-DEP
+REQ-PROV
+REQ-REC
+REQ-NFR
+```
+
+---
+
+# 151. Architecture Mapping
+
+The primary architectural owner is:
+
+```text
+Workflow Service
+```
+
+The AIEOS Kernel coordinates cross-domain evaluation involving:
+
+```text
+Governance Service
+
+Decision Service
+
+Capability Service
+
+Execution Manager
+
+Verification Service
+
+Evidence Service
+
+Review Service
+
+Integration Gateway
+
+Reconciliation Service
+
+Provenance Service
+```
+
+The Workflow Service SHALL remain authoritative for:
+
+```text
+Workflow Definitions
+
+Workflow Instances
+
+Lifecycle State
+
+Transition records
+```
+
+---
+
+# 152. Workflow Command Model
+
+The Control Plane SHOULD expose commands semantically equivalent to:
+
+```text
+CreateWorkflowDefinition
+
+PublishWorkflowDefinitionVersion
+
+CreateWorkflowInstance
+
+ProposeTransition
+
+CancelWorkflowInstance
+
+RetryWorkflowOperation
+
+MigrateWorkflowInstance
+
+ResolveBlock
+
+RecordWorkflowTimeout
+```
+
+The final API contract belongs to `AIEOS-API-001`.
+
+---
+
+# 153. Workflow Query Model
+
+The Control Plane SHOULD support queries equivalent to:
+
+```text
+GetWorkflowDefinition
+
+GetWorkflowInstance
+
+GetCurrentLifecycleState
+
+ListPermittedTransitions
+
+ExplainTransitionEligibility
+
+ListBlockingConditions
+
+GetWorkflowHistory
+
+GetPendingHumanGates
+
+GetWorkflowDependencies
+```
+
+---
+
+# 154. Explain Transition Eligibility
+
+AIEOS SHOULD support a query that answers:
+
+> **What would currently prevent this Transition?**
+
+without performing the Transition.
+
+Conceptually:
+
+```text
+CanTransition(
+    workflow_instance,
+    target_state
+)
+```
+
+returns:
+
+```text
+eligible
+
+or
+
+missing Evidence
+missing Decision
+missing Authorization
+Policy denial
+Risk gate
+Actor not qualified
+external authoritative fact stale
+dependency incomplete
+```
+
+This capability is important for humans and Agents.
+
+---
+
+# 155. Planning Without Mutation
+
+Agents SHOULD be able to inspect:
+
+```text
+available Transitions
+
+Transition prerequisites
+
+current blockers
+
+required Evidence
+
+required Decisions
+```
+
+without acquiring mutation Capability.
+
+This supports read-only planning and investigation.
+
+---
+
+# 156. Workflow Definition Representation
+
+The Workflow Definition SHALL be machine-operable.
+
+The exact serialization is deferred to:
+
+```text
+ADR-AIEOS-004
+Workflow Definition representation
+```
+
+The representation SHOULD eventually support deterministic validation and human review.
+
+---
+
+# 157. Workflow Definition Validation
+
+Before a Workflow Definition version becomes accepted, AIEOS SHOULD validate at least:
+
+```text
+all referenced states exist
+
+all Transition endpoints exist
+
+entry state exists
+
+terminal states are valid
+
+duplicate Transition identity absent
+
+required Policy references resolve
+
+obviously unreachable states surfaced
+
+obvious invalid loops surfaced
+
+required completion semantics exist
+```
+
+---
+
+# 158. Reachability
+
+AIEOS SHOULD support analysis for unreachable Lifecycle States.
+
+An unreachable state MAY indicate:
+
+```text
+definition error
+
+intentional emergency-only path
+
+future extension
+```
+
+and SHOULD therefore be surfaced rather than automatically rejected in all cases.
+
+---
+
+# 159. Terminal Reachability
+
+A Workflow Definition SHOULD have at least one reachable terminal disposition unless it intentionally models a continuous process.
+
+Continuous workflows SHALL explicitly declare their non-terminal nature.
+
+---
+
+# 160. Looping Workflows
+
+Workflow loops MAY be legitimate.
+
+Examples:
+
+```text
+IMPLEMENTING
+    ↓
+VERIFYING
+    ↓ fail
+CHANGES_REQUESTED
+    ↓
+IMPLEMENTING
+```
+
+Loops SHALL be bounded through Policy, Risk, cost, or retry constraints where uncontrolled repetition would be harmful.
+
+---
+
+# 161. Continuous Workflows
+
+Some workflows MAY be long-lived.
+
+Examples:
+
+```text
+production observation
+
+security monitoring
+
+continuous reconciliation
+```
+
+These SHALL not be forced into artificial completion merely because ordinary engineering-change workflows terminate.
+
+---
+
+# 162. Workflow Ownership and Authority
+
+Workflow State ownership SHALL NOT imply authority to define organizational Policy.
+
+The Workflow Service determines:
+
+```text
+what state exists
+```
+
+while Governance determines:
+
+```text
+whether context-sensitive governance conditions are satisfied
+```
+
+---
+
+# 163. No Self-Modifying Workflow by Agents
+
+An Agent participating in a Workflow Instance SHALL NOT modify the governing Workflow Definition in order to bypass a current gate unless the modification is processed as separate governed work under applicable authority.
+
+---
+
+# 164. Learning and Workflow Evolution
+
+Repeated lifecycle friction MAY create a Learning Proposal to modify a Workflow Definition.
+
+Example:
+
+```text
+repeated unnecessary human gate
+        ↓
+Learning Proposal
+        ↓
+workflow analysis
+        ↓
+Decision
+        ↓
+new Workflow Definition version
+```
+
+Existing historical Workflow Instances remain unchanged unless explicitly migrated.
+
+---
+
+# 165. Workflow Baseline
+
+After this specification is reviewed and reconciled, its first accepted baseline SHOULD be:
+
+```text
+Workflow Baseline:
+WB-001
+
+Status:
+Accepted
+
+Parent Architecture Baseline:
+AB-001
+
+Specification:
+AIEOS-WF-001
+```
+
+---
+
+# 166. Workflow Baseline Gate
+
+Before `WB-001` is accepted, review SHALL confirm:
+
+```text
+Workflow Definition / Instance distinction preserved
+
+one authoritative Lifecycle State per instance
+
+Transition Proposal separated from accepted Transition
+
+deterministic Transition Evaluation defined
+
+Actor participation defined
+
+Human Gates defined
+
+Agent boundaries defined
+
+Policy integration coherent
+
+Risk integration coherent
+
+Evidence gates coherent
+
+Decision gates coherent
+
+Operational Authorization distinct from Approval
+
+Capability distinct from Authorization
+
+blocked/failure semantics distinct
+
+retry bounded
+
+cancellation explicit
+
+rollback/compensation explicit
+
+emergency workflows governed
+
+version pinning explicit
+
+migration explicit
+
+concurrency protected
+
+idempotency supported
+
+history additive
+
+MVP lifecycle feasible
+```
+
+---
+
+# 167. Open Workflow Questions
+
+The following questions remain intentionally open after this specification and SHOULD be resolved through review, subordinate specifications, ADRs, or implementation evidence:
+
+```text
+What canonical Workflow Definition serialization should be used?
+
+Should Work Units support multiple concurrent primary workflows in the MVP?
+
+Should transitions themselves always receive globally stable Subject identity?
+
+How should workflow timers be represented persistently?
+
+What workflow conditions belong in Workflow Definitions versus Policy?
+
+How should human-decision escalation chains be represented?
+
+What exact semantics distinguish blocked from waiting in the API?
+
+Should retry budgets belong to Workflow, Policy, Risk, or Execution?
+
+How should cross-workflow transactions be coordinated?
+
+What formal mechanism should express compensation?
+
+How should workflow migrations handle removed states?
+
+How much reachability analysis is required before workflow publication?
+
+Which workflow changes require human approval?
+
+How should organization-specific workflow inheritance work?
+
+Should Workflow Definitions support composition or only explicit references?
+
+How should continuous workflows participate in Work Unit completion?
+```
+
+These questions do not prevent definition of the core workflow semantics.
+
+---
+
+# 168. Decisions Deferred to Later Specifications
+
+The following remain outside this document:
+
+```text
+exact Workflow Definition schema
+    → ADR-AIEOS-004
+
+Policy language
+    → AIEOS-POL-001 / ADR-AIEOS-005
+
+Operational Authorization model
+    → AIEOS-AUTH-001
+
+Capability issuance details
+    → AIEOS-AUTH-001 / ADR-AIEOS-008
+
+Agent task execution
+    → AIEOS-AGENT-001
+
+Evidence sufficiency
+    → AIEOS-VER-001
+
+provenance persistence
+    → AIEOS-PROV-001
+
+external operation reconciliation
+    → AIEOS-INT-001
+
+API representation
+    → AIEOS-API-001
+
+human interaction
+    → AIEOS-UX-001
+```
+
+---
+
+# 169. Workflow Architectural Thesis
+
+AIEOS workflow is not a task-board automation layer.
+
+It is the deterministic governance mechanism that decides when engineering work may legitimately progress.
+
+The essential model is:
+
+```text
+Human / Agent / Automation
+        ↓
+proposes action
+        ↓
+Workflow
+        ↓
+checks structure
+        +
+Policy
+        +
+Risk
+        +
+Evidence
+        +
+Decisions
+        +
+Operational Authorization
+        ↓
+authoritative Transition
+        ↓
+new Lifecycle State
+```
+
+Agents may perform much of the work.
+
+Humans may provide only selected Decisions.
+
+The Workflow system preserves the integrity of the lifecycle.
+
+---
+
+# 170. Workflow Operating Principle
+
+The application SHOULD eventually operate most of the lifecycle itself.
+
+That means:
+
+```text
+AIEOS determines
+    what is ready
+
+AIEOS dispatches
+    permitted automated work
+
+AIEOS waits
+    when human judgment is required
+
+AIEOS evaluates
+    evidence and policy prerequisites
+
+AIEOS blocks
+    impermissible progression
+
+AIEOS records
+    every consequential transition
+
+AIEOS resumes
+    when prerequisites become satisfied
+```
+
+Humans SHOULD interact primarily through meaningful governance boundaries rather than manual state administration.
+
+---
+
+# 171. Final Workflow Model
+
+The lifecycle control loop is:
+
+```text
+             ┌──────────────────────┐
+             │   Workflow Instance  │
+             │   Current State      │
+             └──────────┬───────────┘
+                        │
+               Transition Proposal
+                        │
+                        ▼
+             ┌──────────────────────┐
+             │ Transition Evaluation│
+             └──────────┬───────────┘
+                        │
+       ┌────────────────┼────────────────┐
+       │                │                │
+       ▼                ▼                ▼
+     Policy          Evidence         Decisions
+       │                │                │
+       ├────────────┬───┴────────┬───────┤
+       │            │            │       │
+       ▼            ▼            ▼       ▼
+      Risk       Authority    Actor   Environment
+       │            │            │       │
+       └────────────┴─────┬──────┴───────┘
+                          │
+                          ▼
+                 Transition Decision
+                          │
+        ┌─────────────────┼─────────────────┐
+        ▼                 ▼                 ▼
+     ACCEPTED          BLOCKED            DENIED
+        │
+        ▼
+ Atomic State Mutation
+        │
+        ▼
+ Event + Provenance
+        │
+        ▼
+ New Lifecycle State
+```
+
+This mechanism is the executable heart of AIEOS.
+
+---
+
+# 172. Status
+
+`AIEOS-WF-001 v0.1.0` establishes the first normative Workflow and Lifecycle model for the AI-Native Engineering Operating System under **Architecture Baseline AB-001**.
+
+It defines:
+
+```text
+Workflow Definitions
+Workflow Instances
+Lifecycle States
+Transitions
+Transition Proposals
+Transition Evaluation
+Artifact Gates
+Evidence Gates
+Review Gates
+Decision Gates
+Operational Authorization Gates
+Human Gates
+Agent participation
+Risk-adaptive workflow
+blocking
+failure
+retry
+cancellation
+rollback
+compensation
+emergency workflows
+composition
+versioning
+migration
+concurrency
+idempotency
+history
+reference MVP lifecycle
+```
+
+The specification establishes the mechanism through which AIEOS can actually operate an AI-native software-engineering lifecycle while preserving deterministic governance and explicit human authority.
+
+The immediate next artifact SHOULD be:
+
+```text
+AIEOS-REV-005
+AI-Native Engineering Operating System
+Workflow & Lifecycle Baseline Review
+```
+
+That review SHALL challenge this specification before establishment of:
+
+```text
+Workflow Baseline:
+WB-001
+```
+
+and before normative decomposition proceeds into:
+
+```text
+AIEOS-ART-001
+Artifact & Knowledge Model Specification
+```

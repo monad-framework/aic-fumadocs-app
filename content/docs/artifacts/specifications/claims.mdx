@@ -1,4 +1,3534 @@
 ---
-title: claims.mdx
-description: claims
+title: "Claims Specification"
+description: "Normative specification for assertions, propositions, claim identity, claim state, conflict, support, correction, confidence, and epistemic handling in Monad."
 ---
+
+# Claims Specification
+
+**Specification ID:** `SPEC-CLM-001`
+**Status:** Draft
+**Version:** `0.1.0`
+**Normative:** Yes
+**Primary requirements:** `REQ-SEM-*`
+**Related requirements:** `REQ-EVD-*`, `REQ-PROV-*`, `REQ-AUTH-*`, `REQ-GOV-*`, `REQ-REC-*`
+**Parent specification:** `SPEC-SEM-001 — Semantic Kernel Specification`
+
+## 1. Purpose
+
+This specification defines how Monad represents assertions about an engineering system.
+
+A `Claim` is a first-class semantic assertion that expresses what some actor, source, process, artifact, observation, inference, or system says about some subject.
+
+Claims allow Monad to represent engineering knowledge without prematurely collapsing:
+
+```text
+what was asserted
+        ↓
+what evidence exists
+        ↓
+who had authority
+        ↓
+what Monad currently accepts
+        ↓
+what is actually true
+```
+
+into a single field.
+
+The central distinction is:
+
+> **A Claim is an assertion, not truth itself.**
+
+A Claim may be:
+
+* correct,
+* incorrect,
+* supported,
+* contradicted,
+* unresolved,
+* inferred,
+* authoritative,
+* unauthorized,
+* obsolete,
+* superseded,
+* historically true,
+* currently false,
+* impossible to verify.
+
+The Claim remains useful because it records that the assertion existed and allows Monad to reason explicitly about its epistemic status.
+
+---
+
+# 2. Scope
+
+This specification defines:
+
+* Claim semantics,
+* Claim identity,
+* Claim subjects,
+* propositions,
+* predicates and values,
+* opaque and structured Claims,
+* Claim provenance,
+* Claim producers,
+* Claim attribution,
+* Claim scope,
+* Claim time,
+* Claim revision,
+* Claim confidence,
+* Claim authority,
+* Evidence relationships,
+* support and contradiction,
+* competing Claims,
+* conflicts,
+* uncertainty,
+* observation,
+* inference,
+* confirmation,
+* correction,
+* supersession,
+* invalidation,
+* historical truth,
+* current truth,
+* Claim aggregation,
+* derived Claims,
+* AI-generated Claims,
+* native-system Claims,
+* Claim querying,
+* Claim reconciliation,
+* Claim validation.
+
+This specification does **not** define:
+
+* final JSON field names,
+* persistence schemas,
+* ontology implementation,
+* graph database layout,
+* transport encoding,
+* natural-language inference algorithms,
+* vector embedding models,
+* confidence scoring algorithms,
+* Evidence formats,
+* authority evaluation algorithms,
+* verification procedures.
+
+Those concerns belong to downstream specifications and implementations.
+
+---
+
+# 3. Normative Language
+
+The terms **MUST**, **MUST NOT**, **REQUIRED**, **SHOULD**, **SHOULD NOT**, **MAY**, and **RECOMMENDED** are normative.
+
+Examples are illustrative unless explicitly identified as normative.
+
+---
+
+# 4. Core Claim Model
+
+Conceptually:
+
+```text
+Claim
+ ├── identifies a proposition
+ ├── concerns one or more Subjects
+ ├── has provenance
+ ├── may have Evidence
+ ├── may have authority
+ ├── may have confidence
+ ├── may conflict with other Claims
+ ├── may have temporal scope
+ └── may have lifecycle state
+```
+
+A minimal Claim may be understood as:
+
+```text
+Claim {
+    identity
+    proposition
+    provenance
+}
+```
+
+A richer Claim may include:
+
+```text
+Claim {
+    identity
+    proposition
+    subject
+    predicate
+    value
+    claimType
+    scope
+    validTime
+    observedTime
+    producer
+    provenance
+    confidence
+    authority
+    lifecycle
+}
+```
+
+The final serialized representation is deferred.
+
+---
+
+# 5. Core Claim Invariants
+
+Conforming implementations MUST preserve the following distinctions.
+
+## 5.1 Claim ≠ truth
+
+The existence of a Claim does not establish that its proposition is true.
+
+```text
+Claim exists
+    ≠
+Claim is true
+```
+
+---
+
+## 5.2 Claim ≠ Evidence
+
+A Claim states something.
+
+Evidence supports, contradicts, contextualizes, or otherwise bears on that assertion.
+
+```text
+Claim
+    ≠
+Evidence
+```
+
+---
+
+## 5.3 Claim ≠ authority
+
+A Claim may originate from an authoritative source.
+
+That does not make Claim and authority the same concept.
+
+```text
+Claim
+    ≠
+Authority
+```
+
+---
+
+## 5.4 Claim ≠ provenance
+
+Provenance explains where a Claim came from.
+
+It does not constitute the proposition asserted.
+
+---
+
+## 5.5 Claim ≠ verification
+
+A verification result may generate Claims.
+
+The Claim itself is not the verification procedure.
+
+---
+
+## 5.6 Confidence ≠ truth
+
+A highly confident Claim may be false.
+
+A low-confidence Claim may ultimately be correct.
+
+---
+
+## 5.7 Confidence ≠ authority
+
+An actor may be highly confident while lacking authority.
+
+An authoritative source may issue a Claim with uncertainty.
+
+---
+
+## 5.8 Contradiction ≠ automatic resolution
+
+Two contradictory Claims MAY coexist.
+
+Monad MUST NOT erase one merely because another contradicts it.
+
+---
+
+## 5.9 Unknown ≠ false
+
+Absence of a supported Claim does not necessarily establish the negation of that Claim.
+
+---
+
+## 5.10 Historical truth ≠ current truth
+
+A Claim may have been valid in the past and no longer be valid now.
+
+---
+
+# 6. Claim as a First-Class Entity
+
+Claims that materially participate in engineering reasoning SHOULD be first-class semantic entities.
+
+First-class treatment enables Claims to have:
+
+* stable identity,
+* provenance,
+* relationships,
+* lifecycle,
+* Evidence,
+* authority,
+* temporal semantics,
+* revision history.
+
+Monad MUST NOT require every incidental sentence in every document to become a first-class Claim.
+
+Formalization SHOULD be proportional to engineering value.
+
+---
+
+# 7. Claim Identity
+
+A persisted first-class Claim MUST possess stable identity.
+
+Claim identity MUST remain distinct from:
+
+* textual wording,
+* source location,
+* source artifact identity,
+* Subject identity,
+* Evidence identity,
+* producer identity.
+
+The same proposition MAY be represented by more than one Claim when provenance, temporal scope, authority, or epistemic status materially differs.
+
+---
+
+# 8. Claim Identity and Wording
+
+Changing the wording of a Claim does not necessarily create a new Claim.
+
+For example:
+
+```text
+"Component A depends on Component B."
+```
+
+and:
+
+```text
+"A has a dependency on B."
+```
+
+may express the same proposition.
+
+Whether they are the same Claim depends on:
+
+* Claim provenance,
+* identity continuity,
+* revision semantics,
+* whether the proposition materially changed.
+
+String equality MUST NOT define Claim identity.
+
+---
+
+# 9. Claim Identity and Proposition
+
+A Claim and its proposition MUST remain conceptually distinguishable.
+
+A proposition represents what is being asserted.
+
+A Claim represents an assertion of that proposition in a particular semantic and provenance context.
+
+Conceptually:
+
+```text
+Proposition P:
+    Service A depends on Library B.
+
+Claim C1:
+    Architecture document asserts P.
+
+Claim C2:
+    Dependency scanner asserts P.
+
+Claim C3:
+    AI analysis infers P.
+```
+
+These Claims MAY concern the same proposition while remaining distinct Claims.
+
+---
+
+# 10. Proposition Representation
+
+Monad MUST support a Claim representation capable of preserving the proposition being asserted.
+
+A proposition MAY initially be represented as:
+
+* opaque prose,
+* structured predicate/value form,
+* typed structured expression,
+* another representation defined by a domain specification.
+
+The semantic model MUST NOT require all Claims to reach the same formalization level.
+
+---
+
+# 11. Progressive Formalization
+
+Claims MAY progress from less structured to more structured forms.
+
+For example:
+
+```text
+Level 0
+"Authentication depends on the identity service."
+```
+
+```text
+Level 1
+subject: Authentication
+predicate: depends-on
+object: Identity Service
+```
+
+```text
+Level 2
+subject: subject:auth
+predicate: monad.relationship.depends-on
+object: subject:identity-service
+scope: runtime
+```
+
+Higher formalization MUST be introduced only when it provides sufficient engineering value.
+
+---
+
+# 12. Opaque Claims
+
+Monad MAY preserve Claims whose proposition remains opaque prose.
+
+For example:
+
+```text
+"The current deployment process is too fragile."
+```
+
+An opaque Claim MAY still carry:
+
+* identity,
+* provenance,
+* producer,
+* time,
+* Evidence,
+* confidence,
+* authority,
+* lifecycle.
+
+Opaque Claims MUST NOT be treated as semantically meaningless merely because they are not machine-normalized.
+
+---
+
+# 13. Structured Claims
+
+Where machine reasoning materially benefits, a Claim SHOULD support structured proposition representation.
+
+A common conceptual form is:
+
+```text
+subject
+predicate
+object-or-value
+```
+
+For example:
+
+```text
+subject: Payment Service
+predicate: deployed-to
+object: Production
+```
+
+or:
+
+```text
+subject: Build Pipeline
+predicate: duration
+value: 12m 42s
+```
+
+This specification does not mandate RDF or any particular triple representation.
+
+---
+
+# 14. Typed Values
+
+Structured Claims SHOULD preserve value types where those types affect interpretation.
+
+Examples:
+
+```text
+boolean
+integer
+decimal
+string
+timestamp
+duration
+identifier
+version
+URI
+enumeration
+structured object
+Subject reference
+```
+
+The string `"42"` MUST NOT automatically be assumed equivalent to numeric `42`.
+
+---
+
+# 15. Subject of a Claim
+
+A Claim SHOULD identify the semantic entity or entities to which it applies when such identity is known.
+
+For example:
+
+```text
+Claim:
+    Subject S has lifecycle state "accepted"
+```
+
+The Subject SHOULD be referenced using semantic identity rather than mutable representation location where durable reference is required.
+
+---
+
+# 16. Multi-Subject Claims
+
+A Claim MAY concern multiple Subjects.
+
+Examples:
+
+```text
+A depends on B.
+```
+
+```text
+Release R contains Components A, B, and C.
+```
+
+```text
+Decision D resolves conflict between Requirements X and Y.
+```
+
+The Claim model MUST be capable of representing such propositions without artificially assigning all semantics to one Subject.
+
+---
+
+# 17. Claim Predicate
+
+Structured Claims SHOULD use predicates whose semantics are defined sufficiently for reliable interpretation.
+
+A predicate SHOULD specify, directly or through a vocabulary:
+
+* meaning,
+* expected subject type,
+* expected value/object type,
+* cardinality where relevant,
+* temporal behavior where relevant.
+
+Monad MUST NOT assume predicates are interchangeable merely because their labels are similar.
+
+---
+
+# 18. Predicate Identity
+
+Predicates requiring stable machine interpretation SHOULD possess stable semantic identity.
+
+For example:
+
+```text
+depends-on
+```
+
+must remain distinguishable from:
+
+```text
+caused-by
+```
+
+```text
+implemented-by
+```
+
+```text
+supersedes
+```
+
+even if human prose sometimes uses those terms loosely.
+
+---
+
+# 19. Claim Type
+
+A Claim MAY be classified according to its semantic role.
+
+Possible classes include:
+
+```text
+observation
+assertion
+inference
+hypothesis
+prediction
+measurement
+interpretation
+derived claim
+normative claim
+verification result
+status claim
+```
+
+The final taxonomy MUST be defined through the Schema Catalog or domain specifications.
+
+Claim type MUST NOT substitute for provenance.
+
+---
+
+# 20. Observation
+
+An observation Claim reports state perceived from some source.
+
+Example:
+
+```text
+"GitHub reports issue #42 as closed."
+```
+
+Observation does not necessarily establish broader semantic truth such as:
+
+```text
+"Requirement 42 is satisfied."
+```
+
+The distinction MUST be preserved.
+
+---
+
+# 21. Observation Source
+
+Observation Claims SHOULD identify:
+
+* observed system,
+* observed object,
+* observed revision or state where available,
+* observation time,
+* observing actor or process,
+* relevant provenance.
+
+---
+
+# 22. Observation Time
+
+The time at which a state was observed MUST remain distinguishable from the time during which the asserted state was valid.
+
+Example:
+
+```text
+observedAt: 2026-08-30T14:00:00Z
+```
+
+does not necessarily mean:
+
+```text
+validFrom: 2026-08-30T14:00:00Z
+```
+
+---
+
+# 23. Inference
+
+An inference Claim is derived from other information rather than directly observed.
+
+Examples:
+
+```text
+"These two files likely represent the same Subject."
+```
+
+```text
+"This requirement is probably implemented by module X."
+```
+
+```text
+"This failure is likely caused by configuration drift."
+```
+
+Inference MUST remain distinguishable from observation and confirmation.
+
+---
+
+# 24. Inference Inputs
+
+An inferred Claim SHOULD retain provenance sufficient to identify the Claims, Evidence, observations, or computations from which it was derived.
+
+Conceptually:
+
+```text
+C1 ──┐
+C2 ──┼──► inference process ──► C3
+E1 ──┘
+```
+
+---
+
+# 25. Inference Confidence
+
+An inference MAY carry a confidence measure.
+
+Confidence SHOULD indicate the system's uncertainty about the proposition.
+
+Confidence MUST NOT encode:
+
+* authority,
+* permission,
+* approval,
+* Evidence validity,
+* governance status.
+
+---
+
+# 26. Hypothesis
+
+A hypothesis is a Claim intentionally maintained as a proposition requiring investigation.
+
+Example:
+
+```text
+"Graph traversal will provide materially better impact analysis than indexed search."
+```
+
+Monad SHOULD allow hypotheses to remain first-class so that:
+
+* Evidence may accumulate,
+* experiments may test them,
+* competing hypotheses may coexist,
+* conclusions may later strengthen, weaken, reject, or supersede them.
+
+---
+
+# 27. Hypothesis Lifecycle
+
+A hypothesis MAY transition through states such as:
+
+```text
+proposed
+under investigation
+supported
+weakened
+rejected
+superseded
+unresolved
+```
+
+Lifecycle state MUST remain distinct from truth value.
+
+---
+
+# 28. Normative Claim
+
+A normative Claim expresses what ought to be true rather than what currently is true.
+
+Requirements are examples of normative engineering Claims.
+
+For example:
+
+```text
+"The system MUST preserve stable Subject identity across file moves."
+```
+
+is not equivalent to the observational Claim:
+
+```text
+"The current implementation preserves Subject identity across file moves."
+```
+
+Monad MUST preserve this distinction.
+
+---
+
+# 29. Descriptive Claim
+
+A descriptive Claim asserts something about actual or believed state.
+
+Example:
+
+```text
+"The current implementation stores the graph in SQLite."
+```
+
+A descriptive Claim MAY be current, historical, inferred, or observational.
+
+---
+
+# 30. Claim Scope
+
+A Claim MAY apply only within a defined scope.
+
+Examples:
+
+```text
+repository
+workspace
+branch
+environment
+deployment
+release
+organization
+component
+revision
+time period
+```
+
+Scope MUST be explicit where omission could materially change meaning.
+
+---
+
+# 31. Environment Scope
+
+The following Claims are not necessarily equivalent:
+
+```text
+Service A uses PostgreSQL in development.
+```
+
+```text
+Service A uses PostgreSQL in production.
+```
+
+Environment-scoped facts MUST NOT be collapsed.
+
+---
+
+# 32. Revision Scope
+
+Claims MAY be revision-specific.
+
+Example:
+
+```text
+"Specification S is approved."
+```
+
+may apply only to revision `R3`.
+
+When revision matters, the Claim MUST identify or otherwise bind to the relevant revision.
+
+---
+
+# 33. Claim Valid Time
+
+Where temporal semantics matter, a Claim SHOULD support the interval during which the asserted proposition is considered valid.
+
+Conceptually:
+
+```text
+validFrom
+validUntil
+```
+
+This specification does not require every Claim to carry explicit time intervals.
+
+---
+
+# 34. Claim Recorded Time
+
+Monad SHOULD preserve when a Claim became known or was recorded separately from when the proposition was valid.
+
+This distinction enables retroactive knowledge.
+
+Example:
+
+```text
+Outage began: 10:00
+Incident Claim recorded: 10:07
+```
+
+---
+
+# 35. Historical Claims
+
+Claims that are no longer currently valid MAY remain historically true.
+
+Example:
+
+```text
+"Release 1.4 was deployed to production."
+```
+
+may have been true during one interval even though Release 1.5 is now deployed.
+
+Historical Claims SHOULD remain queryable.
+
+---
+
+# 36. Claim Lifecycle
+
+Claims MAY possess lifecycle state.
+
+Possible lifecycle concepts include:
+
+```text
+candidate
+active
+accepted
+contested
+superseded
+invalidated
+withdrawn
+historical
+archived
+```
+
+The final vocabulary is a schema concern.
+
+Lifecycle state MUST NOT be used as a hidden substitute for Evidence or authority.
+
+---
+
+# 37. Claim Provenance
+
+Every materially consequential Claim SHOULD have provenance sufficient to answer:
+
+> Where did this assertion come from?
+
+Provenance MAY identify:
+
+* producer,
+* source artifact,
+* source native system,
+* transformation,
+* derivation inputs,
+* observation operation,
+* AI model invocation,
+* human action,
+* import,
+* reconciliation run.
+
+---
+
+# 38. Claim Producer
+
+The producer is the actor or process that produced or recorded the Claim.
+
+Possible producers include:
+
+```text
+human
+AI model
+compiler
+scanner
+integration
+test runner
+build system
+deployment system
+reconciliation engine
+importer
+policy engine
+verification engine
+```
+
+Producer identity MUST remain distinct from Claim authority.
+
+---
+
+# 39. Source and Producer
+
+The producer of a Claim MAY differ from its source.
+
+Example:
+
+```text
+Source:
+    GitHub API
+
+Producer:
+    Monad GitHub adapter
+```
+
+Likewise:
+
+```text
+Source:
+    requirements.mdx
+
+Producer:
+    claim extraction engine
+```
+
+This distinction SHOULD be retained where materially useful.
+
+---
+
+# 40. Requested and Resolved Origin
+
+Where a Claim is produced through resolution or indirection, provenance SHOULD distinguish:
+
+```text
+requested origin
+```
+
+from:
+
+```text
+resolved origin
+```
+
+For example:
+
+```text
+requested:
+    main branch
+
+resolved:
+    commit abc123
+```
+
+This supports reproducibility and historical explanation.
+
+---
+
+# 41. Claim Authority
+
+A Claim MAY possess or derive authority within a defined scope.
+
+Authority answers:
+
+> Is this source legitimately entitled to establish this state?
+
+Authority does not answer:
+
+> Is the proposition factually correct?
+
+Both dimensions MAY matter independently.
+
+---
+
+# 42. Authoritative but False Claims
+
+Monad MUST permit representation of a Claim that was authoritative but later found incorrect.
+
+For example:
+
+```text
+authoritative deployment record:
+    deployment successful
+
+later Evidence:
+    service never became healthy
+```
+
+The original authoritative Claim remains part of the historical engineering record.
+
+---
+
+# 43. Correct but Unauthorized Claims
+
+Monad MUST also permit representation of a correct Claim produced without authority.
+
+For example:
+
+```text
+Engineer:
+    "Production is running commit X."
+```
+
+The Claim may be factually correct even if the engineer lacks authority to establish canonical deployment state.
+
+---
+
+# 44. Claim Acceptance
+
+Monad MAY maintain a distinction between:
+
+```text
+Claim exists
+```
+
+and:
+
+```text
+Claim accepted as current canonical state
+```
+
+Acceptance MUST be determined through appropriate authority, policy, Evidence, reconciliation, or domain rules.
+
+It MUST NOT arise merely from insertion order.
+
+---
+
+# 45. Claim Priority
+
+Monad MUST NOT resolve competing Claims using simplistic precedence such as:
+
+```text
+latest timestamp wins
+```
+
+unless a domain specification explicitly establishes that rule.
+
+Priority may depend on:
+
+* authority,
+* source,
+* scope,
+* Evidence,
+* validity period,
+* revision,
+* freshness,
+* policy.
+
+---
+
+# 46. Claim Freshness
+
+A Claim MAY have freshness requirements.
+
+For example:
+
+```text
+"Deployment X is healthy."
+```
+
+may become stale quickly.
+
+By contrast:
+
+```text
+"ADR-0042 was accepted on March 1."
+```
+
+may remain historically stable.
+
+Freshness MUST be interpreted according to Claim semantics.
+
+---
+
+# 47. Stale Claims
+
+A Claim that is stale MUST NOT automatically be treated as false.
+
+Staleness means the available assertion is no longer sufficiently current for a particular use.
+
+---
+
+# 48. Evidence Relationship
+
+Claims MAY be related to Evidence.
+
+Evidence relationships SHOULD indicate how Evidence bears on a Claim.
+
+Possible semantics include:
+
+```text
+supports
+contradicts
+qualifies
+weakens
+corroborates
+fails-to-support
+```
+
+The exact vocabulary belongs to the Evidence or relationship specification.
+
+---
+
+# 49. Evidence Does Not Become Claim State Automatically
+
+Adding supporting Evidence MUST NOT automatically transform a Claim into truth.
+
+Likewise, contradictory Evidence MUST NOT automatically delete the Claim.
+
+Evidence contributes to assessment.
+
+It does not erase the epistemic record.
+
+---
+
+# 50. Multiple Evidence Items
+
+A Claim MAY have many supporting or contradicting Evidence items.
+
+Monad SHOULD preserve individual Evidence identity and provenance rather than reducing all Evidence to a single opaque confidence number.
+
+---
+
+# 51. Evidence Independence
+
+Multiple Evidence items originating from one underlying source MUST NOT automatically be treated as independent corroboration.
+
+For example:
+
+```text
+dashboard
+API result
+generated report
+```
+
+may all derive from the same database row.
+
+Provenance SHOULD allow that dependence to be detected.
+
+---
+
+# 52. Claim Support State
+
+Monad MAY derive an assessment of Claim support.
+
+Possible conceptual states include:
+
+```text
+unsupported
+weakly supported
+supported
+strongly supported
+contradicted
+mixed
+unknown
+```
+
+Such a state MUST be understood as a derived assessment, not the Claim itself.
+
+---
+
+# 53. Conflicting Claims
+
+Monad MUST support multiple Claims whose propositions cannot all be simultaneously true within the same relevant scope and time.
+
+For example:
+
+```text
+C1:
+    production release = 1.4
+
+C2:
+    production release = 1.5
+```
+
+If both concern the same environment and valid time, they may conflict.
+
+Both Claims MUST remain inspectable until reconciliation resolves the state.
+
+---
+
+# 54. Claim Conflict ≠ Data Corruption
+
+Conflicting Claims are not necessarily a storage error.
+
+They may represent real disagreement among:
+
+* native systems,
+* actors,
+* observations,
+* historical records,
+* inferred state,
+* authoritative sources.
+
+Monad's semantic model MUST be capable of representing such disagreement intentionally.
+
+---
+
+# 55. Conflict Detection
+
+Implementations SHOULD detect materially incompatible Claims when enough structured semantics exist.
+
+Conflict detection MAY consider:
+
+* same Subject,
+* incompatible predicate values,
+* overlapping temporal scope,
+* overlapping environment scope,
+* cardinality constraints,
+* domain invariants.
+
+---
+
+# 56. Conflict Resolution
+
+Resolving a Claim conflict MAY result in:
+
+* one Claim accepted,
+* another rejected,
+* temporal separation,
+* scope separation,
+* both Claims retained as unresolved,
+* corrected Claim,
+* new higher-authority Claim,
+* discovery that the Claims concerned different Subjects.
+
+Resolution MUST preserve provenance.
+
+---
+
+# 57. Competing Hypotheses
+
+Multiple hypotheses SHOULD be allowed to coexist without premature resolution.
+
+For example:
+
+```text
+H1:
+    failures caused by network saturation
+
+H2:
+    failures caused by connection pool exhaustion
+
+H3:
+    failures caused by provider throttling
+```
+
+Investigation may gather Evidence bearing differently on each.
+
+---
+
+# 58. Claim Equivalence
+
+Two Claims MAY express semantically equivalent propositions.
+
+Equivalent propositions do not necessarily imply identical Claim identity.
+
+Monad MAY represent:
+
+```text
+same proposition
+different Claim
+```
+
+where provenance differs.
+
+---
+
+# 59. Claim Deduplication
+
+Implementations MAY identify duplicate Claims for usability or storage efficiency.
+
+Deduplication MUST NOT destroy materially distinct:
+
+* provenance,
+* authority,
+* source,
+* temporal scope,
+* revision scope,
+* epistemic status.
+
+---
+
+# 60. Claim Aggregation
+
+Monad MAY derive aggregate Claims from multiple lower-level Claims.
+
+Example:
+
+```text
+test A passed
+test B passed
+test C passed
+        ↓
+"verification suite passed"
+```
+
+The aggregate Claim MUST preserve derivation provenance.
+
+---
+
+# 61. Derived Claims
+
+A derived Claim is generated through a computation, rule, transformation, or inference over other semantic state.
+
+Derived Claims MUST remain distinguishable from source Claims.
+
+The system SHOULD be able to answer:
+
+> From what was this Claim derived?
+
+---
+
+# 62. Materialized Claims
+
+Derived Claims MAY be materialized for:
+
+* performance,
+* querying,
+* reporting,
+* projections.
+
+Materialization MUST NOT silently elevate derived Claims into independently authoritative facts.
+
+---
+
+# 63. Reconstructable Claims
+
+Where practical, derived Claims SHOULD be reconstructable from authoritative inputs and derivation rules.
+
+If reconstruction is impossible, the Claim SHOULD retain enough provenance to explain why.
+
+---
+
+# 64. Claim Correction
+
+When a Claim is found incorrect, Monad SHOULD preserve the original Claim and represent the correction explicitly.
+
+Conceptually:
+
+```text
+C1:
+    Package version = 2.4
+
+C2:
+    Package version = 2.5
+
+C2 corrects C1
+```
+
+The system MUST NOT silently rewrite historical assertions when provenance matters.
+
+---
+
+# 65. Claim Retraction
+
+An actor MAY retract a previously made Claim.
+
+Retraction means:
+
+> The producer no longer stands behind this Claim.
+
+Retraction does not mean:
+
+> The Claim never existed.
+
+---
+
+# 66. Claim Invalidation
+
+A Claim MAY become invalid because:
+
+* its source was corrupted,
+* its derivation was flawed,
+* its scope was incorrect,
+* its Evidence was invalidated,
+* its identity binding was wrong,
+* its predicate interpretation changed.
+
+Invalidation MUST preserve historical traceability.
+
+---
+
+# 67. Claim Supersession
+
+A Claim MAY supersede another Claim.
+
+Supersession SHOULD preserve:
+
+* predecessor identity,
+* successor identity,
+* reason,
+* provenance,
+* applicable temporal boundary.
+
+Supersession MUST NOT imply that the earlier Claim was necessarily false.
+
+---
+
+# 68. Revision of a Claim
+
+A Claim MAY evolve through revisions while retaining Claim identity when the underlying assertion remains materially continuous.
+
+A material change in proposition MAY require a new Claim identity.
+
+Implementations MUST distinguish:
+
+```text
+revision of same Claim
+```
+
+from:
+
+```text
+new Claim
+```
+
+---
+
+# 69. Claim Revision Binding
+
+Where governance or verification applies to a specific Claim revision, the relevant operation MUST bind to that revision rather than an unqualified mutable Claim.
+
+This prevents approval of one proposition revision from being silently applied to another.
+
+---
+
+# 70. Negative Claims
+
+Monad MUST support explicit negative propositions.
+
+Example:
+
+```text
+"Service A does not depend on Service B."
+```
+
+A negative Claim is distinct from absence of a positive Claim.
+
+---
+
+# 71. Absence of Claim
+
+The absence of:
+
+```text
+A depends on B
+```
+
+MUST NOT automatically imply:
+
+```text
+A does not depend on B
+```
+
+unless the relevant domain uses a closed-world assumption.
+
+Closed-world assumptions MUST be explicit.
+
+---
+
+# 72. Unknown Values
+
+Claims MAY explicitly state unknown or unresolved values.
+
+Unknown MUST remain distinguishable from:
+
+* null,
+* false,
+* empty,
+* not applicable,
+* inaccessible,
+* not observed.
+
+---
+
+# 73. Claim Completeness
+
+Monad MUST NOT imply that its Claim set is a complete description of reality unless a domain contract establishes completeness.
+
+The model generally represents what Monad currently knows or records.
+
+---
+
+# 74. Claim Canonicality
+
+A Claim MAY be designated canonical for a particular semantic scope.
+
+Canonicality means:
+
+> This is the Claim Monad currently uses as the governing assertion for this scope.
+
+Canonicality does not mean:
+
+* universal truth,
+* immutable truth,
+* historically exclusive truth.
+
+---
+
+# 75. Canonical Claim Selection
+
+Canonical Claim selection MUST be governed by explicit semantics.
+
+Selection MAY depend on:
+
+* authority,
+* policy,
+* Evidence,
+* temporal validity,
+* scope,
+* source ownership,
+* reconciliation.
+
+It MUST NOT be determined solely by storage order.
+
+---
+
+# 76. Canonical and Historical Claims
+
+Canonical current state MUST NOT erase noncanonical historical Claims.
+
+Monad SHOULD support queries over both:
+
+```text
+current accepted Claims
+```
+
+and:
+
+```text
+all recorded Claims
+```
+
+---
+
+# 77. Native-System Claims
+
+Native systems MAY produce Claims about native state.
+
+Examples:
+
+```text
+GitHub:
+    issue state = closed
+```
+
+```text
+CI:
+    build = passed
+```
+
+```text
+Kubernetes:
+    deployment replicas available = 3
+```
+
+Such Claims SHOULD retain native semantics.
+
+---
+
+# 78. Native Claim ≠ Semantic Conclusion
+
+Monad MUST NOT automatically infer:
+
+```text
+GitHub issue closed
+```
+
+means:
+
+```text
+requirement satisfied
+```
+
+or:
+
+```text
+CI passed
+```
+
+means:
+
+```text
+release verified
+```
+
+Higher-level semantic conclusions require explicit derivation.
+
+---
+
+# 79. Native Authority
+
+A native system may be authoritative for particular native Claims.
+
+For example:
+
+```text
+Git is authoritative for commit content.
+```
+
+That authority does not automatically extend to unrelated semantic Claims.
+
+Authority remains scoped.
+
+---
+
+# 80. Imported Claims
+
+Imported Claims MUST retain source provenance where available.
+
+Import MUST NOT silently convert:
+
+```text
+external assertion
+```
+
+into:
+
+```text
+Monad-confirmed canonical fact
+```
+
+unless applicable governance explicitly permits that promotion.
+
+---
+
+# 81. Filesystem-Derived Claims
+
+The filesystem MAY produce Claims such as:
+
+```text
+file exists
+file path = X
+file content hash = Y
+```
+
+It does not automatically establish:
+
+```text
+document is authoritative
+requirement is approved
+specification is current
+```
+
+Those are separate Claims.
+
+---
+
+# 82. Git-Derived Claims
+
+Git MAY support Claims concerning:
+
+* revisions,
+* commits,
+* authorship metadata,
+* repository state,
+* history.
+
+Git history MUST NOT be treated as complete semantic history.
+
+---
+
+# 83. AI-Generated Claims
+
+AI systems MAY generate Claims.
+
+Every consequential AI-generated Claim SHOULD preserve:
+
+* AI producer identity,
+* model/provider where materially relevant,
+* invocation provenance,
+* source context,
+* epistemic status,
+* confidence if available,
+* applicable authority.
+
+---
+
+# 84. AI Claim Authority
+
+AI generation MUST NOT automatically confer authority.
+
+A model's technical capability to produce a Claim does not authorize the model to establish that Claim as canonical state.
+
+---
+
+# 85. AI Inference
+
+AI-generated semantic interpretation SHOULD default to an epistemic state appropriate to inference unless directly reporting an observation supplied by a trustworthy source.
+
+Examples include:
+
+```text
+"These requirements appear contradictory."
+```
+
+```text
+"This code likely implements REQ-123."
+```
+
+```text
+"This ADR appears superseded."
+```
+
+Such assertions require confirmation or further Evidence according to policy.
+
+---
+
+# 86. AI Hallucination Containment
+
+The Claim model SHOULD allow unsupported AI assertions to remain identifiable as AI-generated Claims rather than contaminating canonical semantic state.
+
+This is a foundational safety property of the semantic system.
+
+---
+
+# 87. Human-Generated Claims
+
+Human Claims SHOULD retain provenance where materially consequential.
+
+Human authorship does not make a Claim automatically:
+
+* correct,
+* authoritative,
+* verified,
+* current.
+
+Human and AI Claims SHOULD be governed through the same semantic distinctions.
+
+---
+
+# 88. Requirement Claims
+
+Requirements express normative Claims.
+
+Monad SHOULD preserve the distinction between:
+
+```text
+Requirement exists
+Requirement accepted
+Requirement currently applicable
+Requirement satisfied
+Requirement verified
+```
+
+These are separate propositions.
+
+---
+
+# 89. Decision Claims
+
+A decision artifact may produce Claims such as:
+
+```text
+Decision D selected PostgreSQL.
+Decision D rejected SQLite.
+Decision D supersedes Decision C.
+```
+
+The existence of the document alone does not necessarily establish all such Claims unless they are semantically extracted or otherwise represented.
+
+---
+
+# 90. Specification Claims
+
+Specifications contain normative and descriptive Claims.
+
+Monad MAY formalize selected specification clauses as Claims where doing so improves:
+
+* traceability,
+* verification,
+* impact analysis,
+* policy enforcement.
+
+It SHOULD NOT require every explanatory sentence to become a structured Claim.
+
+---
+
+# 91. Verification Claims
+
+Verification may produce Claims such as:
+
+```text
+REQ-123 verified against revision abc123
+```
+
+or:
+
+```text
+Acceptance criterion AC-7 failed
+```
+
+Such Claims MUST preserve the verification scope and Evidence on which they depend.
+
+---
+
+# 92. Release Claims
+
+Release records MAY assert:
+
+```text
+Release R contains revision X.
+Release R passed verification V.
+Release R is approved for production.
+```
+
+These propositions MUST remain distinguishable.
+
+---
+
+# 93. Execution Claims
+
+Execution may produce observational Claims such as:
+
+```text
+operation started
+operation completed
+command exited 0
+artifact published
+deployment requested
+```
+
+Execution success MUST NOT automatically produce a Claim that intended system state was verified.
+
+---
+
+# 94. Reconciliation Claims
+
+Reconciliation MAY produce Claims such as:
+
+```text
+native state agrees with canonical state
+native state diverges
+binding is stale
+observed state is unauthorized
+identity is ambiguous
+```
+
+These Claims SHOULD preserve the observations and rules from which they were derived.
+
+---
+
+# 95. Policy Claims
+
+Policy evaluation MAY produce Claims such as:
+
+```text
+operation permitted
+operation denied
+approval required
+Evidence insufficient
+policy not applicable
+```
+
+These are outputs of policy evaluation.
+
+They MUST NOT be confused with the policy definitions themselves.
+
+---
+
+# 96. Claim Relationships
+
+Claims MAY participate in typed relationships such as:
+
+```text
+supports
+contradicts
+corrects
+supersedes
+derived-from
+refines
+weakens
+qualifies
+explains
+caused-by
+corroborates
+```
+
+The Relationship Specification defines the normative relationship model.
+
+---
+
+# 97. Claim-to-Claim Support
+
+A Claim MAY support another Claim without being Evidence itself.
+
+Example:
+
+```text
+C1:
+    database connection count exceeded 500
+
+C2:
+    connection pool exhaustion contributed to outage
+```
+
+C1 may support C2.
+
+Whether C1 also constitutes Evidence depends on the Evidence model and provenance.
+
+---
+
+# 98. Claim Causality
+
+Causal Claims MUST remain distinguishable from:
+
+* correlation,
+* chronology,
+* dependency,
+* rationale,
+* association.
+
+Monad MUST NOT infer causality solely from temporal ordering.
+
+---
+
+# 99. Claim Strengthening
+
+New Evidence or analysis MAY strengthen a Claim without changing its proposition.
+
+Strengthening SHOULD be modeled as changed assessment, Evidence relationships, or epistemic state rather than silently rewriting the Claim proposition.
+
+---
+
+# 100. Claim Weakening
+
+A Claim MAY become less supported without being fully rejected.
+
+Monad SHOULD preserve intermediate epistemic states where useful.
+
+---
+
+# 101. Claim Refinement
+
+A Claim MAY be refined into a more precise Claim.
+
+Example:
+
+```text
+C1:
+    "Performance is slow."
+```
+
+refined by:
+
+```text
+C2:
+    "p95 API latency exceeds 800 ms under workload W."
+```
+
+Refinement MUST NOT imply identity equivalence between C1 and C2.
+
+---
+
+# 102. Claim Generalization
+
+A more general Claim MAY be derived from multiple specific Claims.
+
+Example:
+
+```text
+three provider-specific failures
+        ↓
+"current retry strategy is insufficient"
+```
+
+Derivation MUST remain inspectable.
+
+---
+
+# 103. Claim Partitioning
+
+A Claim discovered to be overly broad MAY be replaced by multiple narrower Claims.
+
+Example:
+
+```text
+"Component A is secure."
+```
+
+may be decomposed into Claims concerning:
+
+* authentication,
+* authorization,
+* encryption,
+* dependency vulnerabilities,
+* secrets handling.
+
+The original broad Claim SHOULD remain historically traceable.
+
+---
+
+# 104. Claim Granularity
+
+Monad SHOULD encourage Claim granularity sufficient to enable useful:
+
+* Evidence relationships,
+* conflict detection,
+* verification,
+* traceability.
+
+It SHOULD NOT force fragmentation so fine that the knowledge system becomes impractical.
+
+---
+
+# 105. Claim Economy
+
+A Claim should earn first-class representation when explicit semantic treatment materially improves:
+
+* reasoning,
+* traceability,
+* governance,
+* verification,
+* reconciliation,
+* AI context,
+* historical understanding.
+
+Not every sentence deserves a Claim node.
+
+---
+
+# 106. Claim Extraction
+
+Monad MAY extract candidate Claims from unstructured artifacts.
+
+Extraction MUST preserve:
+
+* source location,
+* source artifact,
+* extraction process,
+* inferred status.
+
+Automatically extracted candidate Claims MUST NOT silently become canonical.
+
+---
+
+# 107. Claim Parsing Failure
+
+If Monad cannot reliably interpret a proposition, it SHOULD preserve the original assertion rather than invent a structured meaning.
+
+Lossless ambiguity is preferable to false precision.
+
+---
+
+# 108. Semantic Normalization
+
+Monad MAY normalize structured Claims into canonical predicate/value representations.
+
+Normalization MUST NOT discard materially significant source semantics.
+
+Original representation SHOULD remain traceable where normalization may be lossy.
+
+---
+
+# 109. Lossy Transformation
+
+Any transformation that changes or omits material Claim meaning MUST be identifiable as lossy.
+
+Lossy normalized Claims MUST preserve provenance to their source assertion.
+
+---
+
+# 110. Claim Portability
+
+Canonical Claim semantics SHOULD remain portable across conforming Monad implementations.
+
+Portability SHOULD preserve:
+
+* Claim identity,
+* proposition,
+* Subject references,
+* provenance,
+* temporal scope,
+* authority references,
+* Evidence relationships,
+* lifecycle.
+
+---
+
+# 111. Provider-Specific Claims
+
+Provider-specific Claims MAY preserve native extension data.
+
+Portable representations MUST NOT pretend provider-specific semantics have universal equivalents when they do not.
+
+---
+
+# 112. Claim Serialization
+
+The serialized representation of a Claim MUST identify the schema or version necessary for correct interpretation.
+
+Importers MUST NOT silently reinterpret incompatible Claim forms.
+
+---
+
+# 113. Claim Import Conflicts
+
+Importing Claims into an existing system MAY produce:
+
+* duplicate Claims,
+* equivalent Claims,
+* conflicting Claims,
+* identity collisions,
+* unresolved references.
+
+These conditions MUST be detected or explicitly preserved.
+
+---
+
+# 114. Claim Export
+
+Scoped Claim exports SHOULD define whether they include:
+
+* Claims,
+* Subjects,
+* referenced predicates,
+* provenance,
+* Evidence,
+* related Claims,
+* authority data,
+* lifecycle history.
+
+Incomplete dependency closure SHOULD be explicit.
+
+---
+
+# 115. Local-First Claims
+
+Core Claim state MUST remain inspectable and queryable locally where the applicable Monad deployment operates local-first.
+
+Remote service availability MUST NOT be required merely to interpret canonical Claim semantics.
+
+---
+
+# 116. Offline Claims
+
+Actors MAY produce Claims while offline.
+
+When synchronized later, Monad MUST support reconciliation of:
+
+* duplicates,
+* conflicts,
+* stale Claims,
+* divergent authority,
+* identity changes.
+
+---
+
+# 117. Claim Integrity
+
+Claim storage SHOULD provide mechanisms sufficient to detect unintended corruption.
+
+Integrity controls MAY include:
+
+* hashes,
+* transactional persistence,
+* append-only history,
+* checksums,
+* signatures.
+
+Integrity does not prove proposition truth.
+
+---
+
+# 118. Signed Claims
+
+A cryptographic signature MAY establish that a particular key signed particular Claim content.
+
+It does not by itself establish:
+
+* semantic truth,
+* authority,
+* Evidence sufficiency,
+* current validity.
+
+---
+
+# 119. Claim Security
+
+Access to Claims MAY be governed independently for:
+
+* reading,
+* creating,
+* modifying,
+* accepting,
+* retracting,
+* deleting,
+* exporting.
+
+Technical access MUST remain distinct from semantic authority.
+
+---
+
+# 120. Sensitive Claims
+
+Claims MAY contain sensitive information.
+
+Implementations SHOULD support appropriate:
+
+* classification,
+* access control,
+* redaction,
+* retention,
+* export handling.
+
+Redaction SHOULD preserve enough structure to indicate that information was intentionally withheld where appropriate.
+
+---
+
+# 121. Claim Retention
+
+Retention policy SHOULD consider whether Claims participate in:
+
+* decisions,
+* approvals,
+* releases,
+* incidents,
+* verification,
+* governance,
+* identity transitions,
+* historical explanation.
+
+Consequential historical Claims SHOULD generally not be destructively discarded without policy justification.
+
+---
+
+# 122. Claim Deletion
+
+Deleting a Claim MUST NOT silently delete:
+
+* Subjects,
+* Evidence,
+* provenance records,
+* other Claims.
+
+Relationship consequences MUST be explicit.
+
+---
+
+# 123. Claim Querying
+
+The system SHOULD support queries such as:
+
+* What Claims exist about Subject S?
+* Which Claims are currently canonical?
+* Which Claims conflict?
+* Which Claims lack Evidence?
+* Which Claims are stale?
+* Which Claims are AI-generated?
+* Which Claims are inferred?
+* Which Claims are authoritative?
+* Which Claims changed since revision R?
+* Which Claims support this decision?
+* Which Claims were invalidated?
+* What did Monad believe at time T?
+
+---
+
+# 124. Epistemic Querying
+
+Monad SHOULD support queries that distinguish:
+
+```text
+observed
+inferred
+asserted
+confirmed
+authoritative
+supported
+contradicted
+unresolved
+historical
+```
+
+This distinction is necessary for trustworthy human and AI reasoning over the system model.
+
+---
+
+# 125. Current-State Queries
+
+A query for current state SHOULD return Claims selected under the applicable canonicality, authority, scope, freshness, and temporal rules.
+
+It MUST NOT simply return the most recently inserted Claim.
+
+---
+
+# 126. Historical Queries
+
+Monad SHOULD support queries equivalent to:
+
+> What Claims were considered valid or canonical at time T?
+
+where retained history permits.
+
+Historical reconstruction MUST NOT use only present-day state if doing so would misrepresent past truth.
+
+---
+
+# 127. Provenance Queries
+
+The system SHOULD support answering:
+
+> Why does Monad contain this Claim?
+
+and:
+
+> From what sources was this Claim derived?
+
+---
+
+# 128. Impact Analysis
+
+Claims MAY participate in impact analysis.
+
+For example, changing:
+
+```text
+Claim:
+    Component A depends on B
+```
+
+may affect:
+
+* architecture,
+* build ordering,
+* release planning,
+* verification,
+* ownership,
+* security analysis.
+
+Impact analysis MUST distinguish explicit relationships from speculative inference.
+
+---
+
+# 129. Claim Reconciliation
+
+Reconciliation SHOULD compare Claims against newly observed native state where those Claims concern externally observable facts.
+
+Potential outcomes include:
+
+```text
+confirmed
+divergent
+stale
+contradicted
+unobservable
+unknown
+```
+
+Reconciliation MUST NOT treat agreement as automatic correctness.
+
+---
+
+# 130. Claim Revalidation
+
+Claims whose correctness depends on mutable external state MAY require periodic revalidation.
+
+Revalidation frequency SHOULD be proportional to:
+
+* volatility,
+* consequence,
+* freshness requirements,
+* cost.
+
+---
+
+# 131. Claim Obsolescence
+
+A Claim MAY become obsolete because the question it answers is no longer relevant.
+
+Obsolescence MUST remain distinguishable from falsehood.
+
+---
+
+# 132. Claim Applicability
+
+A true Claim may still be inapplicable to a particular operation.
+
+Example:
+
+```text
+"Component X supports Windows."
+```
+
+may be true but irrelevant to a Linux-only release.
+
+Applicability SHOULD remain contextual.
+
+---
+
+# 133. Context
+
+Claims MAY require Context for correct interpretation.
+
+Context MUST NOT silently become part of Subject identity.
+
+Examples include:
+
+```text
+environment
+workspace
+tenant
+branch
+release
+execution
+actor
+```
+
+---
+
+# 134. Context Loss
+
+A Claim whose meaning depends on context MUST NOT be detached from that context during normalization, export, or projection.
+
+For example:
+
+```text
+"status = ready"
+```
+
+is meaningless if the relevant lifecycle or environment scope is lost.
+
+---
+
+# 135. Claim Projection
+
+Read models MAY project Claims into simpler forms.
+
+Example:
+
+```text
+currentProductionRelease = "1.5"
+```
+
+Such projections MUST remain derivable or traceable to the Claims that produced them.
+
+The projection is not a substitute for the underlying epistemic model.
+
+---
+
+# 136. UI Presentation
+
+User interfaces SHOULD communicate material epistemic distinctions where omission could mislead users.
+
+For example, UI SHOULD avoid presenting:
+
+```text
+AI-inferred dependency
+```
+
+as visually indistinguishable from:
+
+```text
+authoritatively declared dependency
+```
+
+when the difference affects engineering action.
+
+---
+
+# 137. AI Context Construction
+
+When Claims are provided to AI systems, Monad SHOULD preserve enough metadata for the model or orchestration layer to distinguish:
+
+* canonical Claims,
+* historical Claims,
+* inference,
+* uncertainty,
+* conflict,
+* provenance,
+* authority,
+* Evidence status.
+
+Flattening all Claims into undifferentiated prose risks epistemic corruption.
+
+---
+
+# 138. AI Output Ingestion
+
+When AI output is ingested into Monad, candidate Claims SHOULD retain:
+
+```text
+producer = AI
+status = inferred or proposed
+```
+
+unless a stronger epistemic classification is justified.
+
+---
+
+# 139. Claim Explanation
+
+For consequential Claims, the system SHOULD support a human-understandable explanation including:
+
+* proposition,
+* source,
+* producer,
+* relevant Evidence,
+* authority,
+* status,
+* temporal scope,
+* conflicting Claims.
+
+---
+
+# 140. Claim Falsifiability
+
+Where a Claim is intended to describe or predict observable engineering reality, it SHOULD be formulated precisely enough to identify what Evidence could challenge it.
+
+Claims that cannot in principle be evaluated MAY still be useful, but their limitations SHOULD be explicit.
+
+---
+
+# 141. Semantic Truth Is Not Mandatory
+
+Monad does not require an omniscient global truth resolver.
+
+The system MUST remain useful when it possesses:
+
+* incomplete knowledge,
+* conflicting Claims,
+* uncertain Evidence,
+* external authority,
+* stale observations.
+
+The model's job is to represent epistemic reality faithfully enough to support engineering action.
+
+---
+
+# 142. Closed-World Domains
+
+A domain MAY define a closed-world model in which absence of a positive Claim permits a negative conclusion.
+
+Such behavior MUST be explicit in that domain's specification.
+
+Monad MUST NOT assume closed-world reasoning globally.
+
+---
+
+# 143. Open-World Default
+
+Unless otherwise specified, Monad SHOULD operate under an open-world assumption:
+
+> Lack of knowledge is not proof of negation.
+
+This is particularly important for:
+
+* incomplete integrations,
+* offline operation,
+* partial imports,
+* AI reasoning,
+* external systems.
+
+---
+
+# 144. Claim Validation
+
+Claim validation SHOULD occur in layers.
+
+## Level 1 — Structural validity
+
+Examples:
+
+* required identity exists,
+* proposition representation is valid,
+* declared types are syntactically valid.
+
+## Level 2 — Referential validity
+
+Examples:
+
+* Subject references resolve,
+* predicate references resolve,
+* referenced Claims exist.
+
+## Level 3 — Type validity
+
+Examples:
+
+* predicate accepts this Subject type,
+* value has expected type.
+
+## Level 4 — Semantic validity
+
+Examples:
+
+* temporal interval is coherent,
+* required scope is present,
+* Claim does not violate domain invariants.
+
+## Level 5 — Provenance validity
+
+Examples:
+
+* required origin is available,
+* derivation inputs exist.
+
+## Level 6 — Authority validity
+
+Examples:
+
+* producer is authorized to establish canonical state.
+
+## Level 7 — Governance validity
+
+Examples:
+
+* required approvals or Evidence exist.
+
+These validation levels MUST NOT be collapsed merely because one schema validator can check only structural constraints.
+
+---
+
+# 145. Claim Validation Failure
+
+A structurally valid Claim may still be:
+
+* semantically invalid,
+* unauthorized,
+* unsupported,
+* contradictory,
+* stale.
+
+Validation results SHOULD identify these distinctions where materially important.
+
+---
+
+# 146. Storage Independence
+
+This specification does not require Claims to be stored in:
+
+* RDF,
+* property graphs,
+* relational tables,
+* document stores,
+* event stores,
+* vector databases.
+
+The persistence architecture MUST preserve the semantics defined here.
+
+---
+
+# 147. Graph Semantics
+
+Claims may naturally form graph-shaped structures through:
+
+* Subjects,
+* predicates,
+* Evidence,
+* provenance,
+* derivation,
+* conflicts,
+* relationships.
+
+Graph-shaped semantics MUST NOT be interpreted as a requirement for graph-database persistence.
+
+---
+
+# 148. Search
+
+Full-text and semantic search MAY locate Claims.
+
+Search relevance MUST NOT be treated as epistemic authority.
+
+---
+
+# 149. Embeddings
+
+Embeddings MAY assist:
+
+* retrieval,
+* similarity,
+* clustering,
+* duplicate detection,
+* candidate relationship discovery.
+
+Embedding proximity MUST NOT establish proposition equivalence or truth.
+
+---
+
+# 150. Claim Complexity Budget
+
+The Claim model MUST remain simpler than the problems it solves.
+
+Additional Claim structure SHOULD be introduced only when it materially improves:
+
+* reasoning,
+* traceability,
+* verification,
+* governance,
+* reconciliation,
+* AI reliability,
+* historical explanation.
+
+If conventional text, metadata, or search solves a use case adequately, first-class Claim formalization MAY be unnecessary.
+
+---
+
+# 151. Minimal Useful Claim
+
+A minimal first-class Claim requires conceptually:
+
+```text
+Claim identity
+Proposition
+Provenance
+```
+
+When relevant, it SHOULD additionally identify:
+
+```text
+Subject
+Scope
+Time
+Epistemic status
+```
+
+Everything beyond this minimum must justify its cost.
+
+---
+
+# 152. Rich Claim Example
+
+Conceptually:
+
+```yaml
+claim:
+  id: claim:01K...
+
+  subject:
+    id: subject:01K...
+
+  proposition:
+    predicate: lifecycle-state
+    value: accepted
+
+  type: assertion
+
+  scope:
+    project: monad
+
+  valid_time:
+    from: 2026-08-30T00:00:00Z
+
+  provenance:
+    producer:
+      actor: actor:...
+    source:
+      artifact: decision-record:...
+    recorded_at: 2026-08-30T00:03:12Z
+
+  authority:
+    scope: decision-state
+    status: authoritative
+
+  evidence:
+    - evidence:01K...
+
+  lifecycle:
+    state: active
+```
+
+This example is illustrative.
+
+It does not establish final serialized field names.
+
+---
+
+# 153. Observation Example
+
+```yaml
+claim:
+  proposition:
+    subject: github-issue:42
+    predicate: native-state
+    value: closed
+
+  type: observation
+
+  provenance:
+    source: GitHub
+    producer: github-adapter
+    observed_at: 2026-08-30T12:00:00Z
+```
+
+This Claim does **not** itself establish:
+
+```text
+REQ-42 is satisfied.
+```
+
+---
+
+# 154. Inferred Claim Example
+
+```yaml
+claim:
+  proposition:
+    subject: requirement:REQ-42
+    predicate: implemented-by
+    object: source-module:auth
+
+  type: inference
+
+  confidence: 0.82
+
+  provenance:
+    producer: ai-analysis
+    derived_from:
+      - source-code observation
+      - requirement text
+```
+
+This must remain distinguishable from a confirmed traceability relationship.
+
+---
+
+# 155. Conflict Example
+
+```text
+C1
+  subject: Deployment PROD
+  release: 1.4
+  source: deployment database
+
+C2
+  subject: Deployment PROD
+  release: 1.5
+  source: cluster observation
+```
+
+Monad should record both.
+
+Reconciliation determines whether:
+
+* one is stale,
+* the deployment database is wrong,
+* the cluster is mid-rollout,
+* the Claims refer to different scopes,
+* another explanation exists.
+
+---
+
+# 156. Historical Claim Example
+
+```text
+C1
+  production release = 1.4
+  valid: 10:00–13:00
+
+C2
+  production release = 1.5
+  valid: from 13:00
+```
+
+Both Claims may be true.
+
+The difference is temporal scope.
+
+---
+
+# 157. Correction Example
+
+```text
+C1
+  "Incident started at 14:32."
+
+C2
+  "Incident started at 14:27."
+
+C2 corrects C1.
+```
+
+C1 remains historically inspectable.
+
+---
+
+# 158. AI Disagreement Example
+
+```text
+AI Claim A:
+  Architecture requires distributed graph persistence.
+  confidence: .78
+
+Human Claim B:
+  Architecture explicitly permits relational persistence.
+
+Specification Claim C:
+  Persistence mechanism is not normative.
+```
+
+Monad should not resolve this by counting votes.
+
+Authority, provenance, and source semantics determine the useful interpretation.
+
+---
+
+# 159. Anti-Patterns
+
+## 159.1 Claim as boolean field
+
+```text
+verified = true
+```
+
+without:
+
+* scope,
+* verification identity,
+* revision,
+* Evidence,
+* provenance.
+
+This destroys useful epistemic context.
+
+---
+
+## 159.2 Latest value wins
+
+```text
+ORDER BY created_at DESC LIMIT 1
+```
+
+used as universal truth resolution.
+
+This is non-conforming where authority, time, or scope matters.
+
+---
+
+## 159.3 AI output as fact
+
+An AI-generated assertion is inserted directly into canonical state without preserving inference status.
+
+This collapses capability into authority.
+
+---
+
+## 159.4 Source authority as universal truth
+
+A native system is treated as authoritative for every semantic question merely because it owns one native capability.
+
+Authority must remain scoped.
+
+---
+
+## 159.5 Evidence embedded as prose only
+
+Evidence is copied into Claim text without preserving independent identity or provenance.
+
+This makes reassessment and reuse difficult.
+
+---
+
+## 159.6 Conflict deletion
+
+A contradictory Claim is removed merely to make the database internally consistent.
+
+This models convenience rather than engineering reality.
+
+---
+
+## 159.7 Unknown as false
+
+Missing Claim:
+
+```text
+A depends on B
+```
+
+is interpreted as:
+
+```text
+A does not depend on B.
+```
+
+without a closed-world contract.
+
+---
+
+## 159.8 Confidence as authority
+
+```text
+confidence > .95
+```
+
+automatically permits a consequential mutation.
+
+Confidence and authority are different dimensions.
+
+---
+
+## 159.9 Every sentence becomes a Claim
+
+The system converts all prose into graph entities regardless of engineering value.
+
+This produces semantic noise and unsustainable maintenance cost.
+
+---
+
+## 159.10 One canonical truth destroys history
+
+When canonical state changes, all previous Claims are deleted.
+
+This destroys historical truth and auditability.
+
+---
+
+# 160. Non-Requirements
+
+This specification does **not** require:
+
+* RDF,
+* OWL,
+* SPARQL,
+* graph databases,
+* formal logic for every Claim,
+* proposition deduplication,
+* global predicate ontology,
+* machine interpretation of every sentence,
+* confidence scores for every Claim,
+* automatic truth resolution,
+* AI-based Claim extraction,
+* universal closed-world reasoning,
+* permanent retention of every incidental assertion,
+* one authoritative Claim for every predicate,
+* converting existing engineering systems into semantic databases.
+
+---
+
+# 161. Conformance Scenario — Conflicting Native State
+
+Given:
+
+```text
+CI says build passed.
+Artifact registry says expected artifact is missing.
+```
+
+Then Monad MUST be capable of retaining both observations.
+
+It MUST NOT silently conclude either:
+
+```text
+release succeeded
+```
+
+or:
+
+```text
+release failed
+```
+
+without the applicable higher-level semantics.
+
+---
+
+# 162. Conformance Scenario — AI Inference
+
+Given an AI model infers:
+
+```text
+Requirement R is implemented by module M.
+```
+
+Then:
+
+* the Claim MUST remain identifiable as AI-produced,
+* inference MUST remain distinguishable from confirmation,
+* confidence MUST NOT confer authority,
+* applicable policy MAY require review.
+
+---
+
+# 163. Conformance Scenario — Historical Truth
+
+Given:
+
+```text
+Release 1.0 was production at time T1.
+Release 1.1 was production at time T2.
+```
+
+Then:
+
+* both Claims MAY remain true,
+* current-state queries MAY return only 1.1,
+* historical queries for T1 MUST be capable of returning 1.0 where history is retained.
+
+---
+
+# 164. Conformance Scenario — Unknown Dependency
+
+Given no Claim concerning whether A depends on B,
+
+Then the system MUST NOT conclude:
+
+```text
+A does not depend on B
+```
+
+unless the domain explicitly defines complete dependency knowledge.
+
+---
+
+# 165. Conformance Scenario — Conflicting Authority
+
+Given two authoritative sources assert incompatible values within overlapping scope,
+
+Then:
+
+* both Claims MUST remain representable,
+* the system MUST surface the authority conflict,
+* it MUST NOT resolve the conflict solely by timestamp.
+
+---
+
+# 166. Conformance Scenario — Correction
+
+Given a Claim was accepted and later found incorrect,
+
+Then:
+
+* the prior Claim remains historically inspectable,
+* a correction can be represented,
+* provenance explains the change,
+* derived current state may change.
+
+---
+
+# 167. Conformance Scenario — Claim Extraction
+
+Given a parser extracts a structured Claim from prose,
+
+Then:
+
+* the source prose remains traceable,
+* the extraction process has provenance,
+* uncertain extraction remains inferred,
+* failure to parse MUST NOT modify source meaning.
+
+---
+
+# 168. Conformance Scenario — Scope Difference
+
+Given:
+
+```text
+C1: Service S uses SQLite in local development.
+C2: Service S uses PostgreSQL in production.
+```
+
+Then the system MUST NOT report these as contradictory merely because the predicate and Subject match.
+
+Scope matters.
+
+---
+
+# 169. Conformance Scenario — Temporal Conflict
+
+Given:
+
+```text
+C1: status = active from January through March
+C2: status = retired from April onward
+```
+
+Then the Claims are temporally compatible.
+
+Conflict analysis MUST account for valid time where available.
+
+---
+
+# 170. Conformance Scenario — Duplicate Proposition
+
+Given two independent scanners assert:
+
+```text
+Package P contains vulnerability V.
+```
+
+Then Monad MAY preserve two separate Claims sharing one proposition because their provenance is independently valuable.
+
+---
+
+# 171. Derived Schema Obligations
+
+The Schema Catalog derived from this specification will likely require representations for:
+
+```text
+Claim Identifier
+Claim
+Proposition
+Predicate Reference
+Typed Value
+Claim Scope
+Claim Type
+Epistemic Status
+Temporal Scope
+Claim Revision
+Claim Lifecycle
+Claim Assessment
+```
+
+and relationships among:
+
+```text
+Claim
+Subject
+Evidence
+Provenance
+Authority
+Actor
+Context
+Claim
+```
+
+These are conceptual obligations, not final schema field definitions.
+
+---
+
+# 172. Open Specification Questions
+
+## 172.1 Proposition identity
+
+Should semantically equivalent propositions possess independent stable identity apart from Claims?
+
+---
+
+## 172.2 Minimum structured form
+
+What is the minimum useful machine-readable Claim form?
+
+Options include:
+
+```text
+opaque prose
+subject + predicate + value
+typed expression
+multiple supported representations
+```
+
+---
+
+## 172.3 Predicate vocabulary
+
+Which predicates belong to:
+
+* Monad's semantic kernel,
+* domain vocabularies,
+* project-defined extensions?
+
+---
+
+## 172.4 Claim identity across revisions
+
+When does changing a Claim's proposition constitute:
+
+```text
+new revision
+```
+
+versus:
+
+```text
+new Claim
+```
+
+?
+
+---
+
+## 172.5 Claim equivalence
+
+Should Monad persist explicit proposition-equivalence relationships?
+
+---
+
+## 172.6 Confidence representation
+
+Should confidence be:
+
+* numeric,
+* categorical,
+* provider-specific,
+* multidimensional,
+* absent from the core model?
+
+---
+
+## 172.7 Canonicality
+
+Should canonical Claim selection be:
+
+* persisted,
+* derived,
+* policy-evaluated dynamically,
+* domain-specific?
+
+---
+
+## 172.8 Closed-world domains
+
+Which domains, if any, should support formal closed-world reasoning?
+
+---
+
+## 172.9 Claim extraction
+
+What level of Claim extraction from Markdown, source code, issue trackers, and other native systems should be automated?
+
+---
+
+## 172.10 Natural-language preservation
+
+When a structured Claim is derived from prose, should the original textual proposition always be retained?
+
+---
+
+## 172.11 Claim grouping
+
+Should multiple closely related Claims support first-class grouping or assertion-set identity?
+
+---
+
+## 172.12 Claim assessment
+
+Should support, confidence, freshness, and authority remain independent dimensions, or should Monad expose a derived composite assessment?
+
+A composite score MUST NOT obscure the underlying dimensions.
+
+---
+
+# 173. Definition of Ready
+
+This specification is ready for baseline acceptance when:
+
+* Claim is clearly distinguished from truth,
+* Claim is distinguished from Evidence,
+* Claim is distinguished from provenance,
+* Claim is distinguished from authority,
+* observation and inference are differentiated,
+* conflict can be represented without destructive resolution,
+* historical and current truth are differentiated,
+* Claim identity semantics are sufficiently defined,
+* structured and opaque Claims are both supported,
+* AI-generated Claims retain epistemic status,
+* open schema decisions remain explicitly unresolved.
+
+---
+
+# 174. Definition of Done
+
+The Claims specification is complete for the foundational specification baseline when:
+
+* every semantic-kernel Claim obligation maps to a normative clause,
+* downstream Evidence semantics can reference Claims without ambiguity,
+* Provenance can identify Claim origin and derivation,
+* Authority can govern Claim acceptance without owning Claim representation,
+* Reconciliation can compare competing Claims,
+* Verification can produce and evaluate Claims,
+* AI interaction can safely create candidate Claims,
+* schema work can proceed without redefining Claim semantics,
+* conformance scenarios exist for the primary epistemic failure modes.
+
+---
+
+# 175. Requirement Traceability
+
+This specification primarily derives from the Claim-related obligations in `REQ-SEM-*`.
+
+It also operationalizes boundaries established by:
+
+| Requirement family | Claim concern                                           |
+| ------------------ | ------------------------------------------------------- |
+| `REQ-SEM-*`        | Claim representation, conflicts, epistemic distinctions |
+| `REQ-EVD-*`        | Evidence support and contradiction                      |
+| `REQ-PROV-*`       | Claim origin and derivation                             |
+| `REQ-AUTH-*`       | authority over accepted assertions                      |
+| `REQ-GOV-*`        | governed Claim mutation and acceptance                  |
+| `REQ-REC-*`        | competing observed and canonical Claims                 |
+| `REQ-INT-*`        | native-system observations                              |
+| `REQ-PORT-*`       | portable Claim semantics                                |
+
+Exact clause-level requirement mappings SHOULD be produced during the specification-baseline review.
+
+---
+
+# 176. Relationship to Other Specifications
+
+<Cards>
+  <Card
+    href="/docs/artifacts/specifications/semantic-kernel"
+    title="Semantic Kernel"
+  >
+    Establishes Claim as one of the foundational semantic concepts.
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/identity"
+title="Identity"
+
+>
+
+```
+Defines stable semantic identity for Subjects, Claims, and identity-bearing semantic entities.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/relationships"
+title="Relationships"
+
+>
+
+```
+Defines typed relationships among Subjects, Claims, Evidence, and other semantic entities.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/evidence"
+title="Evidence"
+
+>
+
+```
+Defines inspectable material that supports, contradicts, qualifies, or otherwise bears on Claims.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/provenance"
+title="Provenance"
+
+>
+
+```
+Defines how the origin, production, observation, and derivation of Claims remain inspectable.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/authority"
+title="Authority"
+
+>
+
+```
+Defines who or what may legitimately establish canonical state concerning a Claim.
+```
+
+  </Card>
+</Cards>
+
+---
+
+# 177. Governing Principle
+
+Monad should not pretend to know more than it knows.
+
+It should preserve:
+
+* what was asserted,
+* who asserted it,
+* where it came from,
+* what supports it,
+* what contradicts it,
+* how certain it is,
+* whether it is authoritative,
+* when it applied,
+* whether it remains current.
+
+The governing principle is:
+
+> **Represent assertions explicitly enough that disagreement, uncertainty, correction, and learning remain possible.**
+
+A Claim model that turns every assertion into truth is too weak.
+
+A Claim model that requires every sentence to become formal logic is too expensive.
+
+Monad must preserve the useful space between those extremes.

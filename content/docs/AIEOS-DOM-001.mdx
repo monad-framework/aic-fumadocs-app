@@ -1,0 +1,3440 @@
+---
+title: "AI-Native Engineering Operating System — Domain Model Specification"
+specification ID: "AIEOS-DOM-001"
+version: "0.2.0"
+status: "Draft"
+classification: "Normative Domain Model Specification"
+parent: "AIEOS-REQ-001 — AI-Native Engineering Operating System — System Requirements Specification"
+description: "AIEOS Normative Domain Model Specification — Domain Model Specification"
+---
+
+# AI-Native Engineering Operating System — Domain Model Specification
+
+# 1. Purpose
+
+This specification defines the implementation-independent domain model of the **AI-Native Engineering Operating System (AIEOS)**.
+
+It establishes the semantic concepts required to represent and govern:
+
+* engineering intent,
+* work,
+* artifacts,
+* knowledge,
+* identity,
+* authority,
+* policy,
+* capabilities,
+* human and agent actors,
+* workflow,
+* execution,
+* verification,
+* evidence,
+* review,
+* decisions,
+* deployment,
+* operational observations,
+* incidents,
+* provenance,
+* learning,
+* external-system relationships.
+
+The purpose of this document is to answer:
+
+> **What fundamentally exists in AIEOS, what does each thing mean, and how may those things relate?**
+
+It does not determine:
+
+* database schemas,
+* service boundaries,
+* programming languages,
+* storage engines,
+* queue technologies,
+* API protocols,
+* deployment topology,
+* concrete model providers,
+* concrete workflow engines,
+* user-interface implementation.
+
+Those decisions belong to later architecture and implementation specifications.
+
+---
+
+# 2. Normative Relationship
+
+This specification is subordinate to:
+
+```text
+AIEOS-FOUND-001
+        ↓
+AIEOS-REQ-001
+        ↓
+AIEOS-DOM-001
+```
+
+The domain model SHALL provide semantic concepts capable of satisfying the requirements established by `AIEOS-REQ-001`.
+
+Where this domain model exposes:
+
+* ambiguity,
+* contradiction,
+* duplication,
+* missing requirements,
+* architecture accidentally encoded as requirements,
+
+those findings SHALL be reconciled before the first requirements baseline is accepted.
+
+The intended progression is:
+
+```text
+FOUND-001
+   ↓
+REQ-001 Draft
+   ↓
+DOM-001 Draft
+   ↓
+Requirements ↔ Domain Reconciliation
+   ↓
+RB-001
+   ↓
+ARCH-001
+```
+
+---
+
+# 3. Domain Modeling Principles
+
+The domain model SHALL follow the following principles.
+
+## DM-P-001 — Semantic identity precedes representation
+
+The identity of a governed thing SHALL be conceptually distinct from where or how that thing is represented.
+
+---
+
+## DM-P-002 — Meaning precedes storage
+
+Domain concepts SHALL be defined independently of persistence technology.
+
+---
+
+## DM-P-003 — Native systems remain native
+
+AIEOS SHALL permit authoritative engineering information to remain in native external systems.
+
+The domain model SHALL represent such information without requiring that every source be physically duplicated.
+
+---
+
+## DM-P-004 — Authority is scoped
+
+Authority SHALL attach to specific assertions, actions, or scopes rather than being assumed to apply to an entire object without qualification.
+
+---
+
+## DM-P-005 — Observation is not truth
+
+What the system observes SHALL remain distinct from what the system concludes.
+
+---
+
+## DM-P-006 — Evidence is not assertion
+
+Evidence supporting a proposition SHALL remain semantically distinct from the proposition itself.
+
+---
+
+## DM-P-007 — Capability is not authority
+
+The ability to perform an operation SHALL remain distinct from authorization to perform it.
+
+---
+
+## DM-P-008 — Execution is not approval
+
+Performing, verifying, reviewing, authorizing, and approving an action SHALL remain distinct concepts.
+
+---
+
+## DM-P-009 — Historical truth is preserved
+
+Later correction SHALL NOT rewrite historical events as though the original event never occurred.
+
+---
+
+## DM-P-010 — Proposals are not authoritative by default
+
+Agent-generated or automatically generated information SHALL remain distinguishable from accepted authoritative information.
+
+---
+
+# 4. Domain Layers
+
+The conceptual domain is divided into six interacting layers.
+
+```text
+┌────────────────────────────────────────────┐
+│ 1. Semantic Identity                      │
+│ Subject, Representation, Native Reference │
+├────────────────────────────────────────────┤
+│ 2. Engineering Knowledge                  │
+│ Artifact, Assertion, Relationship, Intent │
+│ Requirement, Specification, Decision      │
+├────────────────────────────────────────────┤
+│ 3. Governance                             │
+│ Authority, Policy, Authorization, Risk    │
+│ Capability, Exception                     │
+├────────────────────────────────────────────┤
+│ 4. Workflow / Execution / Assurance       │
+│ Work Unit, Workflow, Execution, Evidence  │
+│ Verification, Review                      │
+├────────────────────────────────────────────┤
+│ 5. Operational Reality                    │
+│ Release, Deployment, Observation, Incident│
+├────────────────────────────────────────────┤
+│ 6. Provenance / Time                      │
+│ Origin, Derivation, Events, History       │
+└────────────────────────────────────────────┘
+```
+
+These are conceptual layers, not mandatory software components.
+
+---
+
+# 5. Subject
+
+## 5.1 Definition
+
+A **Subject** is any semantically identifiable thing about which AIEOS maintains governed knowledge.
+
+Examples include:
+
+* a requirement,
+* a work unit,
+* an artifact,
+* a human,
+* an AI agent,
+* a repository,
+* a source file,
+* a policy,
+* a deployment,
+* an environment,
+* an incident.
+
+Every Subject possesses a stable semantic identity.
+
+---
+
+## 5.2 Subject identity
+
+A Subject identity SHALL identify the meaning-bearing entity rather than a particular physical representation.
+
+Therefore:
+
+```text
+Subject ≠ File
+Subject ≠ URL
+Subject ≠ Database Row
+Subject ≠ GitHub Issue
+Subject ≠ Git Commit
+Subject ≠ API Object
+```
+
+Those things MAY represent or reference a Subject.
+
+---
+
+## 5.3 Subject continuity
+
+A Subject MAY survive:
+
+```text
+rename
+move
+reformat
+regeneration
+projection
+migration
+storage relocation
+external identifier change
+```
+
+without acquiring a new semantic identity.
+
+---
+
+## 5.4 Subject split and merge
+
+A subject MAY undergo semantic:
+
+```text
+split
+merge
+supersession
+replacement
+```
+
+Such transitions SHALL be explicitly represented.
+
+The historical identity of the original subject SHALL remain recoverable.
+
+---
+
+# 6. Native Reference
+
+## 6.1 Definition
+
+A **Native Reference** is a binding between an AIEOS Subject and an identifier belonging to an external or native system.
+
+Examples:
+
+```text
+GitHub issue #42
+Git commit abc123
+Jira ticket PROJ-81
+filesystem path docs/spec.md
+database object UUID
+deployment ID
+CI run ID
+Slack message ID
+```
+
+---
+
+## 6.2 Native reference semantics
+
+A Native Reference SHALL identify where a Subject is known in another system.
+
+It SHALL NOT define the Subject's semantic identity.
+
+---
+
+## 6.3 Multiple bindings
+
+One Subject MAY have multiple Native References.
+
+Example:
+
+```text
+Subject: SPEC-42
+
+├── Git path:
+│   docs/specifications/authentication.md
+│
+├── GitHub issue:
+│   #174
+│
+├── documentation URL:
+│   /artifacts/specifications/authentication
+│
+└── graph identity:
+    subj:0184...
+```
+
+---
+
+# 7. Representation
+
+## 7.1 Definition
+
+A **Representation** is an inspectable manifestation of a Subject.
+
+Examples include:
+
+```text
+Markdown document
+JSON record
+database projection
+GitHub issue
+rendered web page
+diagram
+generated report
+API response
+source file
+```
+
+---
+
+## 7.2 Representation distinction
+
+A Subject MAY have multiple simultaneous Representations.
+
+Therefore:
+
+```text
+Subject
+   │
+   ├── Representation A
+   ├── Representation B
+   └── Representation C
+```
+
+---
+
+## 7.3 Representation roles
+
+A Representation MAY have a role such as:
+
+```text
+source
+derived
+generated
+projection
+cached
+coordination
+transient
+external
+```
+
+Representation role SHALL NOT by itself establish Semantic Authority.
+
+A source Representation MAY participate in an Authority Binding, but the role label itself SHALL NOT confer Semantic Authority.
+
+---
+
+## 7.4 Projection
+
+A **Projection** is a Representation derived from another governed source for a particular consumer or purpose.
+
+Examples:
+
+```text
+domain graph → documentation page
+requirements → traceability matrix
+work unit → GitHub issue
+workflow state → dashboard card
+```
+
+A Projection SHALL remain distinguishable from the source that produced it.
+
+---
+
+# 8. Artifact
+
+## 8.1 Definition
+
+An **Artifact** is a Subject that carries persistent, inspectable engineering meaning.
+
+Artifacts are durable units of engineering knowledge or governance.
+
+---
+
+## 8.2 Artifact families
+
+Core Artifact families include:
+
+```text
+Intent
+Requirement
+Specification
+Decision
+Plan
+Change
+Test
+Evaluation
+Evidence
+Review
+Policy
+Exception
+Release
+Incident
+Workflow Definition
+```
+
+Additional families MAY be introduced.
+
+---
+
+## 8.3 Artifact properties
+
+An Artifact SHOULD support:
+
+```text
+identity
+type
+title/name
+status
+version
+origin
+validity
+representations
+relationships
+provenance
+authority information
+```
+
+---
+
+## 8.4 Artifact creation mode
+
+An Artifact MAY be:
+
+```text
+authored
+generated
+inferred
+imported
+derived
+```
+
+These SHALL remain semantically distinguishable.
+
+---
+
+# 9. Assertion
+
+## 9.1 Definition
+
+An **Assertion** is a statement that expresses a proposition about one or more Subjects.
+
+Conceptually:
+
+```text
+Subject
+  +
+Predicate
+  +
+Value/Object
+```
+
+Example:
+
+```text
+Subject:
+  SPEC-42
+
+Predicate:
+  status
+
+Value:
+  accepted
+```
+
+Another:
+
+```text
+Subject:
+  CHG-19
+
+Predicate:
+  implements
+
+Object:
+  REQ-AUTHZ-009
+```
+
+---
+
+## 9.2 Assertion versus artifact
+
+An Artifact may contain many Assertions.
+
+Authority SHOULD be assignable at Assertion scope rather than requiring the entire Artifact to have one monolithic authority source.
+
+---
+
+## 9.3 Assertion status
+
+An Assertion MAY be:
+
+```text
+proposed
+inferred
+accepted
+disputed
+rejected
+superseded
+invalid
+```
+
+---
+
+## 9.4 Assertion provenance
+
+An Assertion SHOULD identify:
+
+```text
+who or what asserted it
+source evidence
+derivation
+recorded time
+applicable valid time
+authority status
+```
+
+---
+
+# 10. Relationship
+
+## 10.1 Definition
+
+A **Relationship** is a typed semantic connection between Subjects.
+
+Conceptually:
+
+```text
+Subject
+   ↓
+relationship type
+   ↓
+Object
+```
+
+---
+
+## 10.2 Relationship identity
+
+Consequential relationships SHOULD themselves be identifiable where provenance, status, or lifecycle must be tracked.
+
+---
+
+## 10.3 Baseline relationship vocabulary
+
+AIEOS SHALL support semantics equivalent to:
+
+```text
+implements
+satisfies
+constrains
+depends-on
+derived-from
+generated-by
+validated-by
+evidenced-by
+reviewed-by
+authorized-by
+supersedes
+invalidates
+deploys
+observed-by
+caused-by
+remediates
+refines
+represents
+projects
+belongs-to
+blocks
+```
+
+---
+
+## 10.4 Relationship authority
+
+An inferred relationship is not automatically authoritative.
+
+For example:
+
+```text
+Agent inference:
+CHG-42 implements REQ-13
+```
+
+may remain:
+
+```text
+proposed
+```
+
+until confirmed by an applicable policy, human, verification process, or authoritative external source.
+
+---
+
+# 11. Intent
+
+## 11.1 Definition
+
+**Intent** is an Artifact expressing a desired change in reality, a problem requiring resolution, an opportunity, an obligation, or a hypothesis worth pursuing.
+
+Intent answers:
+
+> **What are we trying to make true, and why?**
+
+---
+
+## 11.2 Intent content
+
+Intent MAY include:
+
+```text
+problem
+motivation
+desired outcome
+stakeholders
+constraints
+non-goals
+success criteria
+known risks
+open questions
+origin
+```
+
+---
+
+## 11.3 Intent origin
+
+Intent MAY originate from:
+
+```text
+human request
+product feedback
+observation
+incident
+security finding
+research hypothesis
+external obligation
+agent discovery
+```
+
+---
+
+## 11.4 Proposed versus accepted intent
+
+Generated Intent SHALL remain distinguishable from accepted Intent.
+
+```text
+Observation
+   ↓
+Agent proposes Intent
+   ↓
+Intent: proposed
+   ↓
+Human/policy decision
+   ↓
+Intent: accepted
+```
+
+---
+
+# 12. Requirement
+
+## 12.1 Definition
+
+A **Requirement** is an Artifact expressing a condition that a governed system, change, workflow, or outcome is obligated to satisfy.
+
+A Requirement answers:
+
+> **What must be true?**
+
+---
+
+## 12.2 Requirement types
+
+Requirements MAY be:
+
+```text
+functional
+non-functional
+security
+operational
+governance
+interface
+compliance
+verification
+```
+
+---
+
+## 12.3 Requirement stability
+
+Accepted requirement identity SHALL survive textual clarification unless the semantic obligation itself changes.
+
+---
+
+## 12.4 Requirement satisfaction
+
+Requirement satisfaction SHALL be expressed through explicit Relationships and supporting Evidence.
+
+```text
+Requirement
+    ↓ satisfied-by
+Change
+    ↓ verified-by
+Verification
+    ↓ supported-by
+Evidence
+```
+
+---
+
+# 13. Specification
+
+## 13.1 Definition
+
+A **Specification** is an Artifact that organizes requirements, constraints, interfaces, expected behavior, and acceptance conditions into an implementable description of a desired system state.
+
+A Specification answers:
+
+> **What precisely must be built or changed?**
+
+---
+
+## 13.2 Specification authority
+
+A Specification MAY contain Assertions whose authority originates from different sources.
+
+Example:
+
+```text
+functional behavior → product authority
+security constraint → security policy
+data retention → compliance authority
+architecture boundary → accepted ADR
+```
+
+Therefore specification-level authority MUST NOT erase assertion-level authority.
+
+---
+
+# 14. Decision
+
+## 14.1 Definition
+
+A **Decision** is an Artifact recording an authoritative choice among alternatives.
+
+A Decision SHALL distinguish:
+
+```text
+question
+alternatives considered
+chosen outcome
+decision authority
+rationale
+conditions
+time
+```
+
+where applicable.
+
+---
+
+## 14.2 Decision versus assertion
+
+A Decision creates or changes governed intent, policy, architecture, risk acceptance, or authorization.
+
+An Assertion merely states a proposition.
+
+These concepts SHALL remain distinct.
+
+---
+
+## 14.3 Architecture decisions
+
+Architecture Decision Records are one specialized form of Decision.
+
+---
+
+## 14.4 Approval as Decision
+
+An **Approval** is a specialized Decision affirming that a Subject, proposal, result, or lifecycle progression is acceptable to an Actor possessing applicable decision authority.
+
+Approval SHALL remain distinct from Operational Authorization to perform a protected action.
+
+---
+
+# 15. Work Unit
+
+## 15.1 Definition
+
+A **Work Unit** is the persistent coordination Subject representing one governed unit of engineering effort.
+
+A Work Unit is not itself synonymous with:
+
+```text
+ticket
+issue
+branch
+pull request
+agent session
+```
+
+Those MAY be representations or resources associated with it.
+
+---
+
+## 15.2 Work unit responsibilities
+
+A Work Unit coordinates:
+
+```text
+intent
+scope
+workflow
+risk
+artifacts
+executions
+reviews
+decisions
+authorizations
+outcomes
+```
+
+---
+
+## 15.3 Work unit coordination status
+
+A Work Unit MAY expose a coordination-level status summarizing its current engineering condition.
+
+That coordination status MAY be derived from one or more Workflow Instances and SHALL NOT replace or ambiguously overwrite the authoritative Lifecycle State belonging to a specific Workflow Instance.
+
+---
+
+## 15.4 Work decomposition
+
+A Work Unit MAY contain subordinate Work Units.
+
+```text
+WU-100
+├── WU-101
+├── WU-102
+└── WU-103
+```
+
+Each child SHALL retain traceability to originating intent.
+
+---
+
+## 15.5 Work dependencies
+
+Work Units MAY:
+
+```text
+depend-on
+block
+supersede
+coordinate-with
+derive-from
+```
+
+other Work Units.
+
+---
+
+# 16. Workflow Definition
+
+## 16.1 Definition
+
+A **Workflow Definition** is a versioned Artifact describing a permitted lifecycle for a class of governed work.
+
+It defines:
+
+```text
+states
+transitions
+transition prerequisites
+permitted actors
+required artifacts
+required evidence
+applicable policy
+failure paths
+rollback paths
+```
+
+---
+
+## 16.2 Workflow definition versus execution
+
+A Workflow Definition describes what may occur.
+
+A Workflow Instance records one concrete application of that definition.
+
+---
+
+# 17. Workflow Instance
+
+## 17.1 Definition
+
+A **Workflow Instance** is a runtime governance Subject applying a specific Workflow Definition version to a Work Unit.
+
+---
+
+## 17.2 Definition pinning
+
+A Workflow Instance SHALL retain the Workflow Definition version under which historical transitions occurred.
+
+Later changes to the Workflow Definition SHALL NOT reinterpret prior transitions.
+
+---
+
+# 18. Lifecycle State
+
+## 18.1 Definition
+
+A **Lifecycle State** represents the current authoritative position of a Workflow Instance within its Workflow Definition.
+
+---
+
+## 18.2 State mutation
+
+Lifecycle State SHALL change only through an accepted Transition.
+
+Agents MAY propose a Transition.
+
+They SHALL NOT establish authoritative state merely by asserting that work is complete.
+
+---
+
+# 19. Transition
+
+## 19.1 Definition
+
+A **Transition** is an attempted or completed movement from one Lifecycle State to another.
+
+A Transition SHALL identify:
+
+```text
+workflow instance
+source state
+target state
+initiating actor
+time
+policy evaluation
+required evidence
+authorization
+result
+```
+
+---
+
+## 19.2 Transition outcomes
+
+A Transition attempt MAY be:
+
+```text
+accepted
+denied
+blocked
+failed
+cancelled
+```
+
+---
+
+## 19.3 Transition history
+
+Accepted transitions SHALL form an ordered historical record.
+
+Current state MAY be derived from that record.
+
+---
+
+# 20. Actor
+
+## 20.1 Definition
+
+An **Actor** is an identifiable principal capable of participating in governed engineering activity.
+
+Core Actor categories are:
+
+```text
+Human Actor
+Agent Actor
+Automation Actor
+External System Actor
+```
+
+---
+
+## 20.2 Actor identity
+
+Actions requiring attribution SHALL reference an Actor identity.
+
+---
+
+## 20.3 Roles
+
+An Actor MAY hold one or more contextual Roles.
+
+Example:
+
+```text
+human:alice
+  role: code-owner
+
+human:bob
+  role: release-authority
+
+agent:reviewer-21
+  role: independent-reviewer
+```
+
+Role SHALL NOT automatically imply unlimited authority.
+
+---
+
+# 21. Human Actor
+
+A **Human Actor** is an authenticated human principal participating in governed engineering activities.
+
+Humans MAY:
+
+```text
+propose intent
+accept intent
+make decisions
+review
+grant authorization
+accept risk
+approve exceptions
+perform execution
+```
+
+subject to policy and authority.
+
+---
+
+# 22. Agent Actor
+
+## 22.1 Definition
+
+An **Agent Actor** is an AI-driven principal participating in governed engineering activity.
+
+---
+
+## 22.2 Logical role versus runtime execution
+
+The system SHALL distinguish:
+
+```text
+Agent Role/Profile
+        ↓
+Agent Execution
+        ↓
+runtime Actor identity
+```
+
+A planner, implementer, reviewer, and incident investigator MAY use the same underlying model while remaining distinct logical actors.
+
+---
+
+## 22.3 Agent output
+
+Agent-produced:
+
+```text
+plans
+code
+reviews
+risk assessments
+specifications
+decisions recommendations
+```
+
+are proposals unless policy explicitly permits direct acceptance.
+
+---
+
+# 23. Automation Actor
+
+An **Automation Actor** is a deterministic machine principal.
+
+Examples:
+
+```text
+CI workflow
+policy evaluator
+scheduler
+deployment controller
+static-analysis system
+reconciliation process
+```
+
+Automation SHALL remain distinguishable from AI Agent behavior.
+
+---
+
+# 24. External System Actor
+
+An **External System Actor** represents an integrated system capable of producing events, observations, assertions, or actions.
+
+Examples:
+
+```text
+GitHub
+CI provider
+cloud platform
+monitoring system
+security scanner
+issue tracker
+```
+
+An External System MAY be authoritative for configured Assertions.
+
+---
+
+# 25. Semantic Authority
+
+## 25.1 Definition
+
+**Semantic Authority** identifies the source entitled to establish an authoritative engineering assertion within a defined scope.
+
+It answers:
+
+> **Who or what is authoritative for this fact?**
+
+---
+
+## 25.2 Authority scope
+
+Authority MAY apply to:
+
+```text
+Subject
+Artifact family
+Assertion predicate
+property
+repository
+environment
+project
+organization
+time range
+```
+
+---
+
+## 25.3 Authority Binding
+
+An **Authority Binding** connects:
+
+```text
+Authority Source
+      +
+Scope
+      +
+Assertion class
+      +
+Conditions
+```
+
+Example:
+
+```text
+Authority Source:
+  Git repository
+
+Scope:
+  project A
+
+Assertion:
+  current source contents
+```
+
+Another:
+
+```text
+Authority Source:
+  Security Policy POL-41
+
+Scope:
+  production deployment
+
+Assertion:
+  mandatory security gates
+```
+
+---
+
+## 25.4 Conflicting authority
+
+When two simultaneously applicable authoritative assertions conflict, AIEOS SHALL represent an **Authority Conflict**.
+
+The conflict SHALL remain visible until legitimately resolved.
+
+---
+
+# 26. Capability
+
+## 26.1 Definition
+
+A **Capability** is the technical ability to attempt an operation against a governed target.
+
+Examples:
+
+```text
+read repository
+write branch
+create pull request
+execute tests
+read production logs
+deploy staging
+deploy production
+modify database schema
+```
+
+---
+
+## 26.2 Capability Definition and Grant
+
+The domain SHOULD distinguish:
+
+```text
+Capability Definition
+        ↓
+Capability Grant
+```
+
+A Capability Definition describes an available class of operation.
+
+A Capability Grant enables a particular Actor to exercise it under specified bounds.
+
+---
+
+## 26.3 Capability scope
+
+A Capability Grant MAY be restricted by:
+
+```text
+Actor
+action
+target
+environment
+Work Unit
+time
+resource
+execution
+```
+
+---
+
+## 26.4 Capability is not authorization
+
+An Actor may technically possess a Capability while lacking authority to exercise it.
+
+This condition SHALL be representable.
+
+---
+
+# 27. Operational Authorization
+
+## 27.1 Definition
+
+An **Operational Authorization** is an explicit normative grant permitting an Actor or governed process to perform a particular action against a particular target under defined conditions.
+
+It answers:
+
+> **May this actor perform this action here and now?**
+
+---
+
+## 27.2 Authorization dimensions
+
+Operational Authorization SHALL be capable of identifying:
+
+```text
+subject/actor
+action
+target
+scope
+granting authority
+conditions
+validity interval
+evidence considered
+```
+
+---
+
+## 27.3 Operational Authorization versus capability
+
+```text
+Capability:
+Can this operation technically be attempted?
+
+Operational Authorization:
+May this operation legitimately be attempted?
+```
+
+Both conditions may be required for execution.
+
+---
+
+## 27.4 Delegation
+
+Operational Authorization MAY be delegated.
+
+Delegation SHALL retain traceability to the originating authority.
+
+---
+
+# 28. Policy
+
+## 28.1 Definition
+
+A **Policy** is an Artifact expressing a rule governing allowable, required, preferred, or prohibited engineering behavior.
+
+---
+
+## 28.2 Policy classes
+
+A Policy MAY be:
+
+```text
+advisory
+testable
+enforced
+```
+
+---
+
+## 28.3 Policy scope
+
+Policy SHALL be capable of applying according to context such as:
+
+```text
+project
+repository
+artifact type
+workflow
+risk class
+environment
+actor role
+action
+```
+
+---
+
+## 28.4 Policy evaluation
+
+A **Policy Evaluation** is a recorded determination of whether a Policy applies and whether its conditions are satisfied.
+
+A Policy Evaluation is not itself the Policy.
+
+---
+
+# 29. Exception
+
+## 29.1 Definition
+
+An **Exception** is an Artifact authorizing a bounded deviation from an otherwise applicable Policy.
+
+---
+
+## 29.2 Exception semantics
+
+An Exception SHALL identify:
+
+```text
+affected policy
+scope
+reason
+granting authority
+conditions
+validity
+expiration where applicable
+```
+
+---
+
+## 29.3 Exception is not policy deletion
+
+An Exception SHALL NOT alter the historical existence of the Policy it overrides.
+
+---
+
+# 30. Risk
+
+## 30.1 Definition
+
+**Risk** is the possibility that an engineering action or resulting system state produces an undesirable outcome.
+
+Risk MAY involve:
+
+```text
+security
+reliability
+data integrity
+availability
+privacy
+financial impact
+safety
+irreversibility
+operational complexity
+blast radius
+```
+
+---
+
+# 31. Risk Classification
+
+A **Risk Classification** assigns a governed category to a Subject, Work Unit, Change, Deployment, or proposed action.
+
+The baseline conceptual classes are:
+
+```text
+R0 — Minimal
+R1 — Routine
+R2 — Significant
+R3 — Critical
+```
+
+Organizations MAY define other taxonomies.
+
+---
+
+# 32. Risk Assessment
+
+A **Risk Assessment** records:
+
+```text
+subject
+identified hazards
+risk classification
+reasoning
+evidence
+assessor
+time
+residual risk
+```
+
+Risk MAY change as new information becomes available.
+
+---
+
+# 33. Risk Acceptance
+
+A **Risk Acceptance** is a Decision made by an Actor possessing the required authority to accept known residual risk.
+
+Risk Acceptance SHALL NOT be inferred merely from proceeding with work.
+
+---
+
+# 34. Plan
+
+## 34.1 Definition
+
+A **Plan** is an Artifact describing the proposed sequence and strategy for executing governed engineering work.
+
+A Plan MAY include:
+
+```text
+affected Subjects
+expected Changes
+steps
+dependencies
+tests
+evaluations
+migration strategy
+rollback strategy
+risk
+expected Evidence
+```
+
+---
+
+## 34.2 Plan versus execution
+
+A Plan describes intended execution.
+
+An Execution records what actually occurred.
+
+The two SHALL remain distinguishable.
+
+---
+
+# 35. Execution
+
+## 35.1 Definition
+
+An **Execution** is a bounded attempt by an Actor or Automation Actor to perform a governed operation.
+
+Examples include:
+
+```text
+agent coding session
+test run
+build
+migration
+deployment operation
+security scan
+repository transformation
+incident investigation
+```
+
+---
+
+## 35.2 Execution identity
+
+Every consequential Execution SHALL have an identifiable execution identity.
+
+---
+
+## 35.3 Execution context
+
+An Execution SHOULD be able to reference:
+
+```text
+Actor
+Work Unit
+Plan
+inputs
+environment
+tools
+capabilities
+authorization
+policy versions
+repository state
+start/end time
+result
+outputs
+```
+
+---
+
+## 35.4 Execution outcome
+
+Execution outcomes SHALL include semantics equivalent to:
+
+```text
+succeeded
+failed
+blocked
+cancelled
+timed-out
+```
+
+---
+
+# 36. Change
+
+## 36.1 Definition
+
+A **Change** is an Artifact representing a proposed or realized modification to one or more governed Subjects or operational resources.
+
+---
+
+## 36.2 Change representations
+
+A Change MAY be represented by:
+
+```text
+Git diff
+commit
+pull request
+migration
+configuration delta
+infrastructure plan
+documentation patch
+```
+
+The Change SHALL remain distinct from any one of those representations.
+
+---
+
+## 36.3 Proposed and realized change
+
+The model SHALL distinguish what was intended to change from what actually changed.
+
+---
+
+# 37. Test
+
+A **Test** is an Artifact defining a repeatable procedure or executable condition intended to determine whether a system property holds.
+
+A Test definition is distinct from a Test Execution.
+
+```text
+Test
+   ↓ executed-as
+Execution
+   ↓ produces
+Evidence
+```
+
+---
+
+# 38. Evaluation
+
+An **Evaluation** is an Artifact defining a method for assessing behavior, quality, capability, policy adherence, or another criterion that may not be adequately represented as an ordinary deterministic Test.
+
+Evaluations MAY include:
+
+```text
+model-behavior evals
+agent-task evals
+human-scored assessments
+benchmark suites
+security evaluations
+quality rubrics
+```
+
+---
+
+# 39. Verification Criterion
+
+## 39.1 Definition
+
+A **Verification Criterion** specifies the condition that must be demonstrated for a Requirement, Specification clause, Change, or deployment condition to be considered satisfied.
+
+---
+
+## 39.2 Traceability
+
+The preferred semantic chain is:
+
+```text
+Requirement
+    ↓ verified-by
+Verification Criterion
+    ↓ exercised-by
+Test / Evaluation / Inspection
+    ↓ produces
+Evidence
+```
+
+---
+
+# 40. Verification
+
+## 40.1 Definition
+
+**Verification** is the governed process of determining whether specified conditions are satisfied using Evidence.
+
+Verification SHALL remain distinct from:
+
+```text
+implementation
+review
+authorization
+deployment
+```
+
+---
+
+## 40.2 Verification result
+
+A Verification result MAY be:
+
+```text
+passed
+failed
+inconclusive
+stale
+invalidated
+```
+
+---
+
+## 40.3 Independence
+
+Policy MAY require Verification to be conducted by an Actor distinct from the implementation Actor.
+
+---
+
+# 41. Evidence
+
+## 41.1 Definition
+
+**Evidence** is an inspectable observation, measurement, output, or record used to support or refute an Assertion.
+
+Evidence answers:
+
+> **What observable basis supports this claim?**
+
+---
+
+## 41.2 Evidence examples
+
+```text
+test output
+build result
+benchmark measurement
+screenshot
+security scan
+runtime trace
+log extract
+evaluation result
+manual inspection record
+deployment health check
+```
+
+---
+
+## 41.3 Evidence validity
+
+Evidence SHALL be capable of states equivalent to:
+
+```text
+valid
+invalid
+stale
+superseded
+inconclusive
+```
+
+---
+
+## 41.4 Evidence versus correctness claim
+
+```text
+Assertion:
+"The authentication flow is correct."
+
+Evidence:
+"Integration test suite AUTH-17 passed
+against commit abc123 in environment test-42."
+```
+
+The two SHALL remain distinct.
+
+---
+
+# 42. Review
+
+## 42.1 Definition
+
+A **Review** is a structured assessment of one or more Subjects against defined criteria.
+
+---
+
+## 42.2 Review target
+
+A Review MAY evaluate:
+
+```text
+Specification
+Plan
+Change
+Evidence
+Deployment
+Policy
+Architecture
+Incident remediation
+```
+
+---
+
+## 42.3 Review outcome
+
+A Review SHALL support outcomes equivalent to:
+
+```text
+accepted
+rejected
+changes-requested
+inconclusive
+```
+
+---
+
+## 42.4 Review finding
+
+A **Review Finding** is an individually identifiable issue, concern, recommendation, or defect discovered by a Review.
+
+Findings MAY require explicit disposition.
+
+---
+
+## 42.5 Independent review
+
+The domain SHALL support Reviewer identity distinct from Executor identity.
+
+---
+
+# 43. Approval
+
+**Approval** is the specialized Decision defined in §14.4.
+
+Approval SHALL remain distinct from Operational Authorization.
+
+Example:
+
+```text
+Approval:
+"The specification is acceptable."
+
+Operational Authorization:
+"The implementation agent may mutate this repository."
+```
+
+---
+
+# 44. Release
+
+## 44.1 Definition
+
+A **Release** is an Artifact representing a defined package or version of change intended for distribution or deployment.
+
+A Release SHOULD identify the exact Change set it contains.
+
+---
+
+# 45. Environment
+
+An **Environment** is a governed operational context into which a Release or Change may be deployed or within which Execution may occur.
+
+Examples:
+
+```text
+development
+test
+staging
+production
+ephemeral preview
+sandbox
+```
+
+Environment identity SHALL be distinct from its current infrastructure location.
+
+---
+
+# 46. Deployment
+
+## 46.1 Definition
+
+A **Deployment** is a governed Execution that applies a Release or Change to an Environment.
+
+---
+
+## 46.2 Deployment dimensions
+
+A Deployment SHOULD identify:
+
+```text
+Release/Change
+Environment
+Actor
+Authorization
+execution method
+time
+result
+Evidence
+```
+
+---
+
+## 46.3 Production boundary
+
+Production MAY carry stronger authority and policy requirements than other Environments.
+
+Environment classification therefore participates in authorization and policy evaluation.
+
+---
+
+# 47. Observation
+
+## 47.1 Definition
+
+An **Observation** is a recorded report of something detected about engineering or operational reality.
+
+Examples:
+
+```text
+metric threshold crossed
+test failure
+runtime error
+user report
+security alert
+performance degradation
+agent failure
+unexpected behavior
+```
+
+---
+
+## 47.2 Observation versus conclusion
+
+An Observation SHALL describe what was observed.
+
+It SHALL NOT automatically establish:
+
+```text
+root cause
+fault
+culprit
+required remedy
+risk classification
+```
+
+Those require further Assertion, analysis, Verification, or Decision.
+
+---
+
+# 48. Incident
+
+## 48.1 Definition
+
+An **Incident** is an Artifact representing a recognized undesirable operational condition requiring governed investigation, mitigation, remediation, or disposition.
+
+---
+
+## 48.2 Incident origin
+
+An Incident MAY originate from one or more Observations.
+
+---
+
+## 48.3 Incident lifecycle
+
+An Incident MAY involve:
+
+```text
+detection
+triage
+investigation
+hypothesis
+mitigation
+root-cause confirmation
+remediation
+verification
+disposition
+learning
+```
+
+---
+
+## 48.4 Incident closure
+
+An Incident SHALL NOT be considered closed without explicit disposition.
+
+---
+
+# 49. Hypothesis
+
+A **Hypothesis** is a specialized uncertain Assertion proposing an explanation whose truth has not yet been established.
+
+Hypotheses are especially important in:
+
+```text
+incident investigation
+research
+debugging
+security analysis
+performance analysis
+```
+
+A Hypothesis MAY become:
+
+```text
+supported
+weakened
+refuted
+confirmed
+superseded
+```
+
+without historical deletion.
+
+---
+
+# 50. Provenance
+
+## 50.1 Definition
+
+**Provenance** describes where governed information or action came from and how it came to exist.
+
+---
+
+## 50.2 Provenance dimensions
+
+Provenance MAY include:
+
+```text
+producer
+origin
+source
+derivation
+execution
+requested origin
+resolved origin
+recording actor
+recorded time
+input Subjects
+output Subjects
+tooling
+environment
+model/provider
+```
+
+---
+
+## 50.3 Provenance chain
+
+Example:
+
+```text
+REQ-42
+   ↓ input-to
+Execution EX-71
+   ↓ generated
+PLAN-19
+   ↓ accepted-by
+Decision DEC-11
+   ↓ input-to
+Execution EX-72
+   ↓ generated
+CHG-33
+```
+
+---
+
+# 51. Event
+
+## 51.1 Definition
+
+An **Event** is an immutable historical record that something consequential occurred.
+
+Examples:
+
+```text
+artifact-created
+assertion-accepted
+transition-completed
+authorization-granted
+execution-started
+execution-completed
+review-accepted
+deployment-completed
+incident-opened
+policy-exception-granted
+```
+
+---
+
+## 51.2 Event immutability
+
+Past Events SHALL NOT be rewritten to imply they occurred differently.
+
+Corrections SHALL be represented by later Events.
+
+---
+
+# 52. Time Model
+
+AIEOS SHALL distinguish at least two temporal concepts where meaningful.
+
+## 52.1 Recorded time
+
+**Recorded Time** identifies when AIEOS recorded an Assertion, Event, Evidence item, or Decision.
+
+---
+
+## 52.2 Valid time
+
+**Valid Time** identifies when an Assertion, Operational Authorization, Policy, Authority Binding, Exception, or other time-sensitive governed record is believed or intended to apply in the domain.
+
+Example:
+
+```text
+Policy recorded:
+2026-08-30
+
+Policy effective:
+2026-09-01
+```
+
+---
+
+## 52.3 Historical correction
+
+If a fact believed true at time T is later discovered to be incorrect:
+
+```text
+Original assertion
+   ↓ remains historically recorded
+
+Correction
+   ↓ new assertion/event
+
+Original
+   ↓ marked invalid/superseded where applicable
+```
+
+History SHALL NOT be silently rewritten.
+
+---
+
+# 53. Validity
+
+Validity is the domain status describing whether a Subject, Assertion, Evidence item, Operational Authorization, or other governed record remains applicable for its intended purpose.
+
+Conceptual validity values MAY include:
+
+```text
+valid
+invalid
+stale
+superseded
+expired
+inconclusive
+```
+
+Validity is distinct from existence.
+
+An invalid Artifact may still exist historically.
+
+---
+
+# 54. Supersession
+
+**Supersession** expresses that one governed Subject has replaced another for some defined purpose.
+
+Supersession SHALL preserve:
+
+```text
+old identity
+new identity
+relationship
+reason
+time
+provenance
+```
+
+Supersession SHALL NOT imply deletion.
+
+---
+
+# 55. Reconciliation
+
+## 55.1 Definition
+
+**Reconciliation** is the governed process of comparing AIEOS knowledge with authoritative native system state and resolving or surfacing differences.
+
+---
+
+## 55.2 Reconciliation outcomes
+
+A reconciliation MAY determine:
+
+```text
+in-sync
+stale
+missing
+conflicting
+partially-applied
+unknown
+```
+
+---
+
+## 55.3 Reconciliation behavior
+
+Consequential conflicts SHALL NOT be silently repaired unless explicit policy authorizes deterministic resolution.
+
+---
+
+# 56. Drift
+
+**Drift** is a meaningful difference between expected governed state and observed authoritative or operational state.
+
+Drift MAY trigger:
+
+```text
+Observation
+Reconciliation
+Incident
+Work Unit
+Policy Evaluation
+```
+
+depending on scope and severity.
+
+---
+
+# 57. Learning Proposal
+
+A **Learning Proposal** is a proposed change to the engineering system derived from observed repeated behavior, failures, or inefficiencies.
+
+Possible targets include:
+
+```text
+Policy
+Test
+Evaluation
+Workflow Definition
+agent instructions
+documentation
+architecture
+tooling
+```
+
+A Learning Proposal SHALL NOT automatically become authoritative unless permitted by applicable policy.
+
+---
+
+# 58. Core Semantic Distinctions
+
+The following distinctions are mandatory.
+
+## 58.1 Subject versus Representation
+
+```text
+Subject
+≠
+file/page/record representing it
+```
+
+---
+
+## 58.2 Artifact versus Assertion
+
+```text
+Artifact
+= container or durable engineering object
+
+Assertion
+= proposition expressed about a Subject
+```
+
+---
+
+## 58.3 Semantic Authority versus Operational Authorization
+
+```text
+Semantic Authority
+= who establishes truth for an assertion
+
+Operational Authorization
+= who may perform an action
+```
+
+---
+
+## 58.4 Capability versus Operational Authorization
+
+```text
+Capability
+= can technically perform action
+
+Operational Authorization
+= may legitimately perform action
+```
+
+---
+
+## 58.5 Plan versus Execution
+
+```text
+Plan
+= intended actions
+
+Execution
+= actual attempted actions
+```
+
+---
+
+## 58.6 Execution versus Verification
+
+```text
+Execution
+= perform work
+
+Verification
+= determine whether required conditions hold
+```
+
+---
+
+## 58.7 Evidence versus Assertion
+
+```text
+Evidence
+= observable basis
+
+Assertion
+= proposition
+```
+
+---
+
+## 58.8 Verification versus Review
+
+```text
+Verification
+= establish whether defined condition holds
+
+Review
+= assess subject against broader criteria
+```
+
+---
+
+## 58.9 Review versus Approval
+
+```text
+Review
+= assessment
+
+Approval
+= authoritative acceptance decision
+```
+
+---
+
+## 58.10 Approval versus Operational Authorization
+
+```text
+Approval
+= accepted as satisfactory
+
+Operational Authorization
+= permission to act
+```
+
+---
+
+## 58.11 Observation versus Hypothesis
+
+```text
+Observation
+= what was detected
+
+Hypothesis
+= proposed explanation
+```
+
+---
+
+## 58.12 Release versus Deployment
+
+```text
+Release
+= thing prepared for delivery
+
+Deployment
+= action placing it into an environment
+```
+
+---
+
+# 59. Conceptual Relationship Model
+
+The central domain can be summarized as:
+
+```text
+                         ┌─────────────┐
+                         │   Intent    │
+                         └──────┬──────┘
+                                │ refines
+                                ▼
+                       ┌────────────────┐
+                       │ Specification  │
+                       └───────┬────────┘
+                               │ contains
+                               ▼
+                        ┌─────────────┐
+                        │ Requirement │
+                        └──────┬──────┘
+                               │ constrains
+                               ▼
+                         ┌──────────┐
+                         │ Work Unit│
+                         └────┬─────┘
+                              │ governed-by
+                              ▼
+                     ┌──────────────────┐
+                     │ Workflow Instance│
+                     └────────┬─────────┘
+                              │ uses
+                              ▼
+                     ┌──────────────────┐
+                     │Workflow Definition│
+                     └──────────────────┘
+
+Work Unit
+   │
+   ├── has → Plan
+   │
+   ├── has → Risk Assessment
+   │
+   ├── executes → Execution
+   │                    │
+   │                    ├── uses → Capability
+   │                    ├── requires → Operational Authorization
+   │                    └── produces → Change
+   │
+   ├── produces → Test / Evaluation
+   │                    │
+   │                    ▼
+   │                Verification
+   │                    │
+   │                    ▼
+   │                 Evidence
+   │
+   ├── reviewed-by → Review
+   │
+   ├── approved-by → Decision
+   │
+   └── produces → Release
+                         │
+                         ▼
+                    Deployment
+                         │
+                         ▼
+                    Environment
+                         │
+                         ▼
+                    Observation
+                         │
+              ┌──────────┴──────────┐
+              ▼                     ▼
+           Incident          Learning Proposal
+```
+
+---
+
+# 60. Authority and Execution Model
+
+The governance model can be summarized as:
+
+```text
+Actor
+  │
+  ├── possesses technical
+  │      Capability
+  │
+  ├── may receive
+  │      Operational Authorization
+  │
+  ├── constrained-by
+  │      Policy
+  │
+  └── participates-in
+         Execution
+```
+
+Protected execution therefore requires:
+
+```text
+Actor
+ +
+Applicable Capability
+ +
+Valid Operational Authorization
+ +
+Satisfied Policy
+ +
+Permitted Workflow State
+ =
+Permitted Execution
+```
+
+No single element SHALL imply the others.
+
+---
+
+# 61. Verification Model
+
+```text
+Requirement
+     ↓
+Verification Criterion
+     ↓
+Test / Evaluation / Inspection
+     ↓
+Execution
+     ↓
+Evidence
+     ↓
+Verification Result
+     ↓
+Review
+     ↓
+Approval / Transition Decision
+```
+
+This chain SHALL prevent:
+
+```text
+Agent says "done"
+        ↓
+system assumes done
+```
+
+from constituting valid engineering verification.
+
+---
+
+# 62. Operational Feedback Model
+
+```text
+Release
+   ↓
+Deployment
+   ↓
+Environment
+   ↓
+Observation
+   ↓
+ ┌───────┬──────────────┬─────────────┐
+ ▼       ▼              ▼             ▼
+Normal  Drift        Incident     Opportunity
+ │       │              │             │
+ │       └──────┬───────┘             │
+ │              ▼                     │
+ │          Investigation             │
+ │              │                     │
+ │              ▼                     │
+ └──────────→ New Intent ←────────────┘
+```
+
+This forms the closed engineering control loop required by `AIEOS-FOUND-001`.
+
+---
+
+# 63. Proposed Domain Taxonomy
+
+The initial core taxonomy is:
+
+```text
+Subject
+├── Actor
+│   ├── Human Actor
+│   ├── Agent Actor
+│   ├── Automation Actor
+│   └── External System Actor
+│
+├── Artifact
+│   ├── Intent
+│   ├── Requirement
+│   ├── Specification
+│   ├── Decision
+│   ├── Plan
+│   ├── Change
+│   ├── Test
+│   ├── Evaluation
+│   ├── Evidence
+│   ├── Review
+│   ├── Policy
+│   ├── Exception
+│   ├── Release
+│   └── Incident
+│
+├── Work Unit
+├── Workflow Instance
+├── Execution
+├── Deployment
+├── Observation
+├── Environment
+└── other governed Subjects
+```
+
+Not every domain concept must necessarily be represented as a subtype in implementation.
+
+This taxonomy defines semantics, not class inheritance requirements.
+
+---
+
+# 64. Supporting Domain Records
+
+Some concepts are best understood as supporting governed records rather than necessarily top-level Subjects.
+
+These include:
+
+```text
+Native Reference
+Representation
+Assertion
+Relationship
+Authority Binding
+Capability Grant
+Authorization
+Policy Evaluation
+Risk Classification
+Risk Assessment
+Verification Criterion
+Verification Result
+Review Finding
+Transition
+Event
+Validity interval
+Provenance
+```
+
+Architecture MAY later determine which deserve independent persisted identity.
+
+Semantic distinction MUST nevertheless be preserved.
+
+---
+
+# 65. Domain Invariants
+
+## DOM-INV-001 — Stable identity
+
+Every first-class governed Subject SHALL have stable semantic identity.
+
+---
+
+## DOM-INV-002 — Representation is not identity
+
+A Representation SHALL NOT define semantic identity merely by its location.
+
+---
+
+## DOM-INV-003 — External identity is binding
+
+An external/native identifier SHALL be treated as a binding unless explicitly adopted as the stable identity scheme.
+
+---
+
+## DOM-INV-004 — Proposal is not acceptance
+
+Generated or inferred information SHALL remain distinguishable from accepted authoritative information.
+
+---
+
+## DOM-INV-005 — Assertion-level authority
+
+The model SHALL permit semantic authority to be scoped more narrowly than an entire Artifact.
+
+---
+
+## DOM-INV-006 — Conflict visibility
+
+Conflicting authoritative Assertions SHALL remain visible until legitimately resolved.
+
+---
+
+## DOM-INV-007 — Capability is not authorization
+
+Technical capability SHALL NOT imply normative permission.
+
+---
+
+## DOM-INV-008 — Actor cannot manufacture authority
+
+An Actor SHALL NOT acquire the authority needed for its own protected action merely by asserting or generating that authority.
+
+---
+
+## DOM-INV-009 — Execution is not verification
+
+Successful Execution SHALL NOT by itself establish requirement satisfaction.
+
+---
+
+## DOM-INV-010 — Evidence is independently represented
+
+A correctness Assertion SHALL NOT substitute for required Evidence.
+
+---
+
+## DOM-INV-011 — Review is not authorization
+
+Successful Review SHALL NOT automatically imply authorization for a protected action unless governing Policy explicitly defines the derivation.
+
+---
+
+## DOM-INV-012 — Observation is not cause
+
+An Observation SHALL NOT automatically establish root cause.
+
+---
+
+## DOM-INV-013 — Workflow state changes through Transition
+
+Authoritative Lifecycle State SHALL change only through a governed Transition.
+
+---
+
+## DOM-INV-014 — Historical transitions remain historical
+
+Changes to current state SHALL NOT rewrite previous Transition history.
+
+---
+
+## DOM-INV-015 — Workflow version continuity
+
+Historical Workflow Instances SHALL remain associated with the Workflow Definition versions under which their transitions occurred.
+
+---
+
+## DOM-INV-016 — Exception is explicit
+
+Deviation from applicable Policy SHALL require an explicit Exception where Policy requires one.
+
+---
+
+## DOM-INV-017 — Incident disposition
+
+An Incident SHALL NOT be terminally closed without explicit disposition.
+
+---
+
+## DOM-INV-018 — Deployment is attributable
+
+Every governed Deployment SHALL be traceable to the Change or Release deployed.
+
+---
+
+## DOM-INV-019 — Provenance corrections are additive
+
+Corrections to provenance SHALL be represented as later corrective records rather than destructive rewriting of history.
+
+---
+
+## DOM-INV-020 — Semantic and operational authority are distinct
+
+Authority to establish truth SHALL remain distinct from authority to perform an operation.
+
+---
+
+# 66. Requirement Coverage
+
+The domain model maps to the requirements families as follows.
+
+| Requirements Family | Primary Domain Concepts                                   |
+| ------------------- | --------------------------------------------------------- |
+| `REQ-SYS`           | Subject, Actor, Workflow, Authority                       |
+| `REQ-ID`            | Subject, Native Reference, Representation                 |
+| `REQ-WU`            | Work Unit                                                 |
+| `REQ-ART`           | Artifact, Representation                                  |
+| `REQ-ASSERT`        | Assertion, Hypothesis                                     |
+| `REQ-REL`           | Relationship, Assertion                                   |
+| `REQ-AUTHORITY`     | Semantic Authority, Authority Binding                     |
+| `REQ-WF`            | Workflow Definition, Workflow Instance, State, Transition |
+| `REQ-HUM`           | Human Actor, Decision, Approval                           |
+| `REQ-AGENT`         | Agent Actor, Execution                                    |
+| `REQ-CAP`           | Capability, Capability Grant                              |
+| `REQ-AUTHZ`         | Operational Authorization                                 |
+| `REQ-DEC`           | Decision, Approval, Risk Acceptance                       |
+| `REQ-POL`           | Policy, Policy Evaluation, Exception                      |
+| `REQ-RISK`          | Risk, Risk Assessment, Risk Acceptance                    |
+| `REQ-ENV`           | Environment                                               |
+| `REQ-EXEC`          | Execution, Environment                                    |
+| `REQ-VER`           | Verification Criterion, Verification                      |
+| `REQ-EVID`          | Evidence                                                  |
+| `REQ-REV`           | Review, Review Finding                                    |
+| `REQ-DEP`           | Release, Deployment, Environment                          |
+| `REQ-OBS`           | Observation                                               |
+| `REQ-INC`           | Incident, Hypothesis                                      |
+| `REQ-LEARN`         | Learning Proposal                                         |
+| `REQ-PROV`          | Provenance, Event, Recorded Time, Valid Time              |
+| `REQ-SEC`           | Capability, Operational Authorization, Policy             |
+| `REQ-INT`           | Native Reference, Representation, External System Actor   |
+| `REQ-UX`            | Work Unit, Decision, Review, Transition                   |
+| `REQ-CONF`          | Policy, Workflow Definition, Authority Binding            |
+| `REQ-REC`           | Reconciliation, Drift                                     |
+| `REQ-NFR`           | identity, provenance, history, extension semantics        |
+
+No requirements family in `AIEOS-REQ-001 v0.2.0` lacks a corresponding domain concept.
+
+---
+
+# 67. Reconciliation Findings and Disposition
+
+Development of `AIEOS-DOM-001 v0.1.0` exposed several areas requiring reconciliation with `AIEOS-REQ-001` before `RB-001`.
+
+`AIEOS-REV-001` reviewed and disposed these findings. All ten findings below are incorporated into `AIEOS-REQ-001 v0.2.0` and this `AIEOS-DOM-001 v0.2.0` unless explicitly noted otherwise.
+
+## FIND-DOM-001 — Semantic Authority versus Authorization naming
+
+`REQ-001` currently uses:
+
+```text
+REQ-AUTHORITY
+```
+
+for semantic/source-of-truth authority and:
+
+```text
+REQ-AUTH
+```
+
+for operational authorization.
+
+The reconciliation renamed the operational authorization requirement family from `REQ-AUTH` to `REQ-AUTHZ` and preserved the following vocabulary:
+
+```text
+Semantic Authority
+Operational Authorization
+```
+
+**Disposition:** RESOLVED.
+
+---
+
+## FIND-DOM-002 — Assertion is foundational
+
+`AIEOS-REQ-001` refers to assertions but does not define a dedicated requirements family for them.
+
+The domain model indicates that Assertions are foundational to:
+
+```text
+authority
+conflict
+evidence
+provenance
+relationships
+derived knowledge
+```
+
+`AIEOS-REQ-001 v0.2.0` now defines `REQ-ASSERT-*`.
+
+**Disposition:** RESOLVED.
+
+---
+
+## FIND-DOM-003 — Workflow Definition and Workflow Instance must differ
+
+`REQ-WF` currently discusses workflows generally.
+
+The domain model shows that versioning and historical stability require semantic distinction between:
+
+```text
+Workflow Definition
+Workflow Instance
+```
+
+`AIEOS-REQ-001 v0.2.0` now explicitly distinguishes Workflow Definition from Workflow Instance and pins historical instances to their governing definition versions.
+
+**Disposition:** RESOLVED.
+
+---
+
+## FIND-DOM-004 — Approval and Authorization must differ
+
+The requirements corpus contains review and authorization semantics but does not yet explicitly model **Approval** as distinct from Authorization.
+
+That distinction is important.
+
+Example:
+
+```text
+approve plan
+≠
+authorize repository mutation
+```
+
+`AIEOS-REQ-001 v0.2.0` now defines `REQ-DEC-*`, including Approval as a specialized Decision distinct from Operational Authorization.
+
+**Disposition:** RESOLVED.
+
+---
+
+## FIND-DOM-005 — Release and Deployment must differ
+
+`REQ-ART-002` includes Release while deployment requirements operate on Deployment.
+
+The domain model confirms these should remain separate concepts.
+
+`AIEOS-REQ-001 v0.2.0` now explicitly requires the Release/Deployment distinction.
+
+**Disposition:** RESOLVED.
+
+---
+
+## FIND-DOM-006 — Test definition and test execution must differ
+
+A Test is an Artifact.
+
+Running the Test is an Execution.
+
+Evidence is produced by that Execution.
+
+`AIEOS-REQ-001 v0.2.0` now explicitly distinguishes Test definition, Test Execution, and Evidence.
+
+**Disposition:** RESOLVED.
+
+---
+
+## FIND-DOM-007 — Temporal semantics should be explicit
+
+`REQ-PROV-009` requires temporal ordering, but the domain model reveals value in explicitly distinguishing:
+
+```text
+recorded time
+valid time
+```
+
+`AIEOS-REQ-001 v0.2.0` now requires Recorded Time for consequential records and Valid Time or equivalent effective-period semantics where applicability differs from recording time.
+
+**Disposition:** RESOLVED.
+
+---
+
+## FIND-DOM-008 — Hypothesis deserves explicit representation
+
+Incident and research workflows require a way to represent uncertain explanatory knowledge without prematurely promoting it to truth.
+
+`AIEOS-REV-001` determined that Hypothesis is a specialized uncertain Assertion; `REQ-ASSERT-006` provides the normative basis.
+
+**Disposition:** RESOLVED.
+
+---
+
+## FIND-DOM-009 — Reconciliation needs drift semantics
+
+The current reconciliation requirements imply, but do not explicitly name, **Drift**.
+
+`AIEOS-REQ-001 v0.2.0` now defines `REQ-REC-008` for explicit Drift representation.
+
+**Disposition:** RESOLVED.
+
+---
+
+## FIND-DOM-010 — Environment is cross-cutting
+
+Environment appears in:
+
+```text
+execution
+capability
+authorization
+deployment
+policy
+provenance
+risk
+```
+
+`AIEOS-REQ-001 v0.2.0` now defines `REQ-ENV-*` and treats Environment as a cross-cutting governed Subject.
+
+**Disposition:** RESOLVED.
+
+---
+
+# 68. Concepts Explicitly Deferred
+
+The following questions SHALL NOT be prematurely answered in this specification.
+
+## 68.1 Identifier encoding
+
+This document does not determine whether Subject IDs use:
+
+```text
+UUID
+UUIDv7
+ULID
+URI
+URN
+content-derived IDs
+project-local IDs
+globally unique IDs
+```
+
+---
+
+## 68.2 Persistence representation
+
+This document does not determine whether the semantic model is physically represented by:
+
+```text
+relational tables
+graph database
+event store
+documents
+Git files
+embedded database
+hybrid storage
+```
+
+---
+
+## 68.3 Relationship persistence
+
+This document does not determine whether Relationships are stored:
+
+```text
+as graph edges
+as relational rows
+inside artifact metadata
+as computed projections
+```
+
+---
+
+## 68.4 Event sourcing
+
+The existence of immutable historical Events does not mandate that the entire application use event sourcing.
+
+---
+
+## 68.5 Workflow implementation
+
+This model does not mandate:
+
+```text
+Temporal
+Cadence
+AWS Step Functions
+custom state machine
+database workflow engine
+```
+
+---
+
+## 68.6 Policy language
+
+This model does not determine whether Policies use:
+
+```text
+Rego
+Cedar
+CEL
+YAML DSL
+TypeScript
+custom declarative language
+```
+
+---
+
+## 68.7 Agent provider
+
+Agent semantics SHALL remain independent of:
+
+```text
+OpenAI
+Anthropic
+Google
+local models
+future providers
+```
+
+---
+
+# 69. Open Domain Questions
+
+The following questions remain intentionally open for further refinement.
+
+## Identity
+
+1. Should Subject identifiers be project-local, globally unique, or layered?
+2. Should native identifiers ever serve directly as canonical Subject identities?
+3. What explicit representation is required for split and merge transitions?
+4. How should addressable fragments within large Artifacts maintain stable identity?
+
+## Assertions
+
+5. What minimum structured form must every Assertion possess?
+6. Must all Assertions use predicate/value form?
+7. Should opaque prose Assertions be permitted?
+8. How should semantically equivalent Assertions be identified?
+9. How should competing Assertions coexist?
+
+## Authority
+
+10. How are overlapping Authority Bindings ranked?
+11. Is explicit precedence always required?
+12. When may Policy derive authority automatically?
+13. How should authority change over time?
+
+## Workflow
+
+14. Can a Work Unit participate in multiple concurrent Workflow Instances?
+15. Which state belongs to the Work Unit versus the Workflow Instance?
+16. How are emergency workflow paths modeled without weakening normal governance?
+
+## Evidence
+
+17. When does Evidence become stale automatically?
+18. Should Evidence content itself be immutable?
+19. How is evidence relevance distinguished from evidence validity?
+20. How should probabilistic evidence be represented?
+
+## Risk
+
+21. Is risk classification itself an Assertion, Artifact, or both?
+22. Should risk dimensions be standardized or organizationally defined?
+23. When is reassessment mandatory?
+
+## Time
+
+24. Which Subjects require valid-time semantics?
+25. Is transaction/recorded time sufficient for the MVP?
+26. How should retroactive corrections be represented in user-facing views?
+
+## Provenance
+
+27. What provenance depth is mandatory?
+28. Which agent inputs must be persisted versus referenced?
+29. How should sensitive prompt/context material be represented without leaking secrets?
+
+## Integrations
+
+30. How should native external identities be rebound after external migration?
+31. When should projections be regenerated versus reconciled?
+32. What constitutes authoritative drift?
+
+These are legitimate domain and architecture questions and SHALL remain explicit until sufficient evidence exists to resolve them.
+
+---
+
+# 70. Minimum Domain Model for the MVP
+
+The first executable vertical slice does not require every concept in this specification.
+
+The MVP requires at least:
+
+```text
+Subject
+
+Native Reference
+
+Artifact
+├── Intent
+├── Specification
+├── Plan
+├── Change
+├── Evidence
+└── Review
+
+Work Unit
+
+Actor
+├── Human Actor
+└── Agent Actor
+
+Workflow Definition
+Workflow Instance
+Lifecycle State
+Transition
+
+Policy
+Policy Evaluation
+
+Capability
+Operational Authorization
+
+Execution
+
+Verification
+
+Relationship
+
+Provenance
+```
+
+This supports:
+
+```text
+Human Intent
+      ↓
+Work Unit
+      ↓
+Agent-generated Specification
+      ↓
+Acceptance
+      ↓
+Agent-generated Plan
+      ↓
+Authorized Execution
+      ↓
+Change
+      ↓
+Verification
+      ↓
+Evidence
+      ↓
+Independent Review
+      ↓
+Human Approval
+      ↓
+Completed Work Unit
+```
+
+---
+
+# 71. Domain Model Quality Gate
+
+Before `AIEOS-DOM-001` reaches Accepted status, every core concept SHALL be reviewed for:
+
+```text
+semantic necessity
+clear identity
+non-overlap
+relationship to requirements
+implementation independence
+lifecycle semantics
+authority implications
+temporal semantics
+provenance requirements
+extensibility
+```
+
+The review SHALL specifically test for:
+
+```text
+concept duplication
+hidden architecture decisions
+tool-specific assumptions
+authority ambiguity
+representation/identity confusion
+claim/evidence confusion
+capability/authorization confusion
+execution/approval confusion
+```
+
+---
+
+# 72. Reconciliation Status
+
+Requirements/domain reconciliation has been completed through `AIEOS-REV-001` and incorporated into:
+
+```text
+AIEOS-REQ-001 v0.2.0
+AIEOS-DOM-001 v0.2.0
+```
+
+All blocking semantic reconciliation findings identified by `AIEOS-REV-001` are represented in the revised requirements and domain model.
+
+The remaining questions in §69 are non-blocking and remain intentionally deferred to subordinate specifications.
+
+---
+
+# 73. Required Baseline Verification
+
+Before producing `AIEOS-ARCH-001`, a baseline verification SHALL confirm that the reconciled corpus is internally coherent.
+
+The verification SHALL confirm at least:
+
+1. all `AIEOS-REV-001` blocking findings are incorporated;
+2. requirement identifiers are internally consistent;
+3. no operational `REQ-AUTH-*` references remain;
+4. `REQ-ASSERT`, `REQ-DEC`, and `REQ-ENV` map cleanly to this domain model;
+5. Workflow Definition and Workflow Instance remain distinct;
+6. Work Unit coordination status remains distinct from Workflow Instance Lifecycle State;
+7. Release remains distinct from Deployment;
+8. Test remains distinct from Test Execution and Evidence;
+9. Recorded Time and applicable Valid Time remain distinct;
+10. architecture-specific implementation components remain deferred.
+
+If verification succeeds:
+
+```text
+Requirements Baseline: RB-001
+Status: Accepted
+```
+
+may be established.
+
+---
+
+# 74. Architectural Consequences
+
+Although this specification does not define architecture, any conforming architecture must preserve the following semantic separations:
+
+```text
+Subject
+≠ Representation
+
+Semantic Authority
+≠ Operational Authorization
+
+Capability
+≠ Operational Authorization
+
+Workflow Definition
+≠ Workflow Instance
+
+Plan
+≠ Execution
+
+Test
+≠ Test Execution
+
+Evidence
+≠ Assertion
+
+Verification
+≠ Review
+
+Review
+≠ Approval
+
+Approval
+≠ Operational Authorization
+
+Release
+≠ Deployment
+
+Observation
+≠ Hypothesis
+
+Hypothesis
+≠ Confirmed Cause
+```
+
+An implementation MAY optimize physical representation.
+
+It MUST NOT collapse these concepts in a way that destroys their required semantics.
+
+---
+
+# 75. Domain North Star
+
+The domain model is sufficient when AIEOS can represent the answer to questions such as:
+
+> **What thing are we talking about?**
+
+> **Where is it represented?**
+
+> **What assertions are being made about it?**
+
+> **Which assertions are authoritative?**
+
+> **Where did those assertions come from?**
+
+> **What work is intended?**
+
+> **What workflow governs that work?**
+
+> **Who or what is acting?**
+
+> **What can that actor technically do?**
+
+> **What is that actor authorized to do?**
+
+> **What policies constrain the action?**
+
+> **What was planned?**
+
+> **What actually happened?**
+
+> **What evidence was produced?**
+
+> **What was verified?**
+
+> **Who reviewed it?**
+
+> **Who approved it?**
+
+> **Who authorized the consequential action?**
+
+> **What was deployed?**
+
+> **What did reality subsequently reveal?**
+
+> **What did the engineering system learn?**
+
+and maintain those answers without conflating identity, representation, authority, evidence, execution, or historical truth.
+
+---
+
+# 76. Status
+
+`AIEOS-DOM-001 v0.2.0` establishes the reconciled implementation-independent semantic model for the AI-Native Engineering Operating System.
+
+It introduces a coherent vocabulary for:
+
+```text
+Identity
+Knowledge
+Work
+Governance
+Authority
+Capability
+Execution
+Verification
+Evidence
+Operations
+Provenance
+Learning
+```
+
+and incorporates the dispositions established by `AIEOS-REV-001`.
+
+The immediate next gate SHOULD therefore be:
+
+```text
+Requirements Baseline Verification
+for RB-001
+```
+
+Its purpose SHALL be to verify:
+
+```text
+AIEOS-FOUND-001
+       ↓
+AIEOS-REQ-001 v0.2.0
+       ↕
+AIEOS-DOM-001 v0.2.0
+```
+
+against `AIEOS-REV-001` and determine whether the requirements corpus is ready to become **Requirements Baseline RB-001** before `AIEOS-ARCH-001` begins.

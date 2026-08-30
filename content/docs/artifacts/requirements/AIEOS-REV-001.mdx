@@ -1,0 +1,2420 @@
+---
+title: "AI-Native Engineering Operating System — Requirements / Domain Reconciliation Review"
+specification ID: "AIEOS-REV-001"
+version: "0.1.0"
+status: "Draft"
+classification: "Normative Reconciliation and Baseline-Gate Review"
+parent: "AIEOS-REQ-001 — System Requirements Specification; AIEOS-DOM-001 — Domain Model Specification"
+description: "AIEOS Requirements / Domain Reconciliation Review — Review and disposition of requirements/domain inconsistencies before Requirements Baseline RB-001"
+---
+
+# AI-Native Engineering Operating System — Requirements / Domain Reconciliation Review
+
+# 1. Purpose
+
+This review reconciles:
+
+```text
+AIEOS-FOUND-001
+       ↓
+AIEOS-REQ-001 v0.1.0
+       ↕
+AIEOS-DOM-001 v0.1.0
+```
+
+before establishment of the first accepted AIEOS requirements baseline.
+
+The purpose of this review is to determine:
+
+1. whether every required domain concept is supported by the requirements corpus;
+2. whether every normative requirement has a coherent domain interpretation;
+3. whether terminology is consistent;
+4. whether conceptual boundaries are sufficiently precise;
+5. whether requirements accidentally prescribe architecture;
+6. whether the domain model accidentally prescribes implementation;
+7. whether any requirements are missing;
+8. whether any concepts are duplicated or contradictory;
+9. whether authority, workflow, evidence, execution, and temporal semantics are coherent;
+10. whether the requirements corpus is ready to become **Requirements Baseline RB-001**.
+
+---
+
+# 2. Review Inputs
+
+The normative and supporting inputs are:
+
+```text
+AIEOS-FOUND-001
+AI-Native Engineering Operating System
+Foundation Specification
+
+AIEOS-REQ-001 v0.1.0
+System Requirements Specification
+
+AIEOS-DOM-001 v0.1.0
+Domain Model Specification
+```
+
+The principal reconciliation findings originate from `AIEOS-DOM-001 §67`.
+
+The review also performs an independent cross-document inspection and identifies additional findings not explicitly recorded in that section.
+
+---
+
+# 3. Review Method
+
+Each requirement and domain concept is evaluated against the following qualities:
+
+```text
+necessity
+clarity
+atomicity
+semantic consistency
+non-duplication
+traceability
+implementation neutrality
+architecture neutrality where appropriate
+testability
+authority clarity
+temporal clarity
+identity clarity
+lifecycle clarity
+provenance completeness
+```
+
+Each finding receives one of the following dispositions:
+
+```text
+ACCEPT
+    The finding is valid and requires change.
+
+ACCEPT-WITH-MODIFICATION
+    The concern is valid, but the proposed resolution is modified.
+
+NO-CHANGE
+    Existing requirements already adequately cover the concern.
+
+DEFER
+    The issue is valid but need not be resolved before RB-001.
+
+REJECT
+    The finding is not supported or would weaken the model.
+```
+
+Each finding is also classified as:
+
+```text
+BLOCKING
+NON-BLOCKING
+```
+
+for establishment of `RB-001`.
+
+---
+
+# 4. Baseline Decision
+
+## Decision
+
+**AIEOS-REQ-001 v0.1.0 is NOT yet ready to become Requirements Baseline RB-001.**
+
+The corpus is structurally sound and no fundamental contradiction has been discovered that invalidates the AIEOS operating model.
+
+However, several semantic distinctions exposed by `AIEOS-DOM-001` need to become explicit requirements before the requirements corpus is frozen.
+
+The required corrective sequence is:
+
+```text
+AIEOS-REQ-001 v0.1.0
+        +
+AIEOS-DOM-001 v0.1.0
+        ↓
+AIEOS-REV-001
+        ↓
+accepted reconciliation changes
+        ↓
+AIEOS-REQ-001 v0.2.0
+AIEOS-DOM-001 v0.2.0
+        ↓
+cross-check
+        ↓
+Requirements Baseline RB-001
+```
+
+No architectural design should begin against `RB-001` until these changes are incorporated.
+
+---
+
+# 5. Executive Finding Summary
+
+| Finding                                                  | Disposition              | Blocking | Required Action                                                     |
+| -------------------------------------------------------- | ------------------------ | -------: | ------------------------------------------------------------------- |
+| FIND-DOM-001 Semantic Authority vs Authorization         | ACCEPT-WITH-MODIFICATION |      Yes | Rename operational authorization requirement family to `REQ-AUTHZ`  |
+| FIND-DOM-002 Assertion is foundational                   | ACCEPT                   |      Yes | Add `REQ-ASSERT` family                                             |
+| FIND-DOM-003 Workflow Definition vs Instance             | ACCEPT                   |      Yes | Add explicit workflow-definition/instance requirements              |
+| FIND-DOM-004 Approval vs Authorization                   | ACCEPT-WITH-MODIFICATION |      Yes | Add Decision/Approval requirements                                  |
+| FIND-DOM-005 Release vs Deployment                       | ACCEPT                   |      Yes | Add explicit distinction                                            |
+| FIND-DOM-006 Test vs Test Execution                      | ACCEPT                   |      Yes | Add explicit distinction                                            |
+| FIND-DOM-007 Temporal semantics                          | ACCEPT-WITH-MODIFICATION |      Yes | Require recorded time and support applicable valid time             |
+| FIND-DOM-008 Hypothesis representation                   | ACCEPT-WITH-MODIFICATION |       No | Model as specialized uncertain Assertion                            |
+| FIND-DOM-009 Drift semantics                             | ACCEPT                   |       No | Add explicit drift representation requirement                       |
+| FIND-DOM-010 Environment is cross-cutting                | ACCEPT                   |      Yes | Add `REQ-ENV` family                                                |
+| FIND-REV-001 Artifact taxonomy conflict                  | ACCEPT                   |      Yes | Correct `REQ-ART-002`                                               |
+| FIND-REV-002 Subject identity scope too narrow           | ACCEPT                   |      Yes | Generalize `REQ-ID-001/002`                                         |
+| FIND-REV-003 Work Unit lifecycle ambiguity               | ACCEPT                   |      Yes | Separate Work Unit coordination status from Workflow Instance state |
+| FIND-REV-004 Control-plane wording leaks architecture    | ACCEPT                   |      Yes | Remove component-specific wording                                   |
+| FIND-REV-005 Relationship vocabulary mismatch            | ACCEPT                   |       No | Reconcile minimum relationship vocabulary                           |
+| FIND-REV-006 Agent identity model incomplete             | ACCEPT                   |       No | Distinguish agent role/profile from execution                       |
+| FIND-REV-007 Capability definition vs grant              | ACCEPT                   |       No | Add explicit distinction                                            |
+| FIND-REV-008 Decision is under-specified                 | ACCEPT                   |      Yes | Add `REQ-DEC` family                                                |
+| FIND-REV-009 Event semantics not explicit enough         | ACCEPT                   |       No | Add event/history requirement                                       |
+| FIND-REV-010 Projection/representation authority wording | ACCEPT                   |       No | Clarify role does not establish authority                           |
+
+---
+
+# 6. FIND-DOM-001 — Semantic Authority versus Operational Authorization
+
+## Original concern
+
+The current requirements use:
+
+```text
+REQ-AUTHORITY-*
+```
+
+for source-of-truth / semantic authority and:
+
+```text
+REQ-AUTH-*
+```
+
+for operational authorization.
+
+Although logically distinct, the identifiers are unnecessarily similar.
+
+## Disposition
+
+**ACCEPT-WITH-MODIFICATION — BLOCKING**
+
+The semantic distinction is foundational and should be made unmistakable before identifiers become baseline-stable.
+
+## Decision
+
+Retain:
+
+```text
+REQ-AUTHORITY-*
+```
+
+for **Semantic Authority**.
+
+Rename:
+
+```text
+REQ-AUTH-*
+```
+
+to:
+
+```text
+REQ-AUTHZ-*
+```
+
+for **Operational Authorization**.
+
+The corresponding terminology becomes:
+
+```text
+Semantic Authority
+    =
+Who or what establishes authoritative truth?
+
+Operational Authorization
+    =
+Who or what may perform an action?
+```
+
+## Required modification
+
+All references to requirements currently identified as:
+
+```text
+REQ-AUTH-001
+...
+REQ-AUTH-010
+```
+
+SHALL become:
+
+```text
+REQ-AUTHZ-001
+...
+REQ-AUTHZ-010
+```
+
+before `RB-001`.
+
+Because the identifiers are not yet accepted, this is the appropriate time to make the change.
+
+---
+
+# 7. FIND-DOM-002 — Assertion Is Foundational
+
+## Original concern
+
+The domain model establishes **Assertion** as foundational to:
+
+```text
+semantic authority
+conflict
+evidence
+relationships
+inference
+provenance
+derived knowledge
+validity
+historical correction
+```
+
+but `AIEOS-REQ-001` contains no dedicated Assertion requirement family.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+Assertions are too central to remain implicit.
+
+## Decision
+
+Add:
+
+```text
+REQ-ASSERT
+```
+
+to the requirement taxonomy.
+
+## Required requirements
+
+### REQ-ASSERT-001 — Explicit assertion model
+
+AIEOS MUST support explicitly represented propositions about governed Subjects where semantic governance requires proposition-level identity or status.
+
+---
+
+### REQ-ASSERT-002 — Assertion structure
+
+An Assertion MUST be capable of identifying:
+
+```text
+subject
+predicate or proposition type
+value/object/content
+status
+origin
+```
+
+where applicable.
+
+---
+
+### REQ-ASSERT-003 — Assertion status
+
+AIEOS MUST support assertion states equivalent to:
+
+```text
+proposed
+inferred
+accepted
+disputed
+rejected
+superseded
+invalid
+```
+
+where relevant.
+
+---
+
+### REQ-ASSERT-004 — Assertion provenance
+
+Consequential Assertions MUST be capable of retaining provenance.
+
+---
+
+### REQ-ASSERT-005 — Assertion-level authority
+
+Semantic Authority MUST be capable of applying at Assertion scope.
+
+---
+
+### REQ-ASSERT-006 — Uncertain propositions
+
+AIEOS MUST support propositions whose truth has not yet been established.
+
+Such propositions MUST remain distinguishable from accepted authoritative Assertions.
+
+This requirement provides the basis for Hypothesis semantics.
+
+---
+
+### REQ-ASSERT-007 — Competing assertions
+
+AIEOS MUST permit conflicting or competing Assertions to coexist while unresolved.
+
+---
+
+### REQ-ASSERT-008 — No automatic authority promotion
+
+Generated, inferred, or imported Assertions MUST NOT become authoritative solely because they exist in the system.
+
+---
+
+# 8. FIND-DOM-003 — Workflow Definition versus Workflow Instance
+
+## Original concern
+
+`AIEOS-REQ-001` discusses workflows generally, while the domain model establishes a necessary distinction between:
+
+```text
+Workflow Definition
+Workflow Instance
+```
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+Without this distinction, workflow versioning and historical reconstruction are ambiguous.
+
+## Required additions
+
+### REQ-WF-014 — Workflow definition distinction
+
+AIEOS MUST distinguish a versioned Workflow Definition from a concrete Workflow Instance.
+
+---
+
+### REQ-WF-015 — Workflow-instance binding
+
+Each Workflow Instance MUST identify the Workflow Definition version governing it.
+
+---
+
+### REQ-WF-016 — Historical definition stability
+
+Later modification of a Workflow Definition MUST NOT reinterpret historical transitions previously executed by existing Workflow Instances.
+
+---
+
+### REQ-WF-017 — Workflow-instance state
+
+Authoritative lifecycle state MUST belong to a specific Workflow Instance.
+
+---
+
+# 9. FIND-DOM-004 — Approval versus Authorization
+
+## Original concern
+
+The current requirements use approval semantics operationally but do not establish **Approval** as distinct from Authorization.
+
+## Disposition
+
+**ACCEPT-WITH-MODIFICATION — BLOCKING**
+
+The deeper issue is that **Decision** itself is under-specified.
+
+Approval should therefore be modeled as a specialized Decision rather than receiving an isolated approval family.
+
+## Decision
+
+Add:
+
+```text
+REQ-DEC
+```
+
+for Decision and Approval semantics.
+
+## Required requirements
+
+### REQ-DEC-001 — Explicit decision model
+
+AIEOS MUST support explicit governed Decisions.
+
+---
+
+### REQ-DEC-002 — Decision attribution
+
+Every consequential Decision MUST identify the deciding Actor.
+
+---
+
+### REQ-DEC-003 — Decision authority
+
+A consequential Decision MUST identify or derive the authority under which it was made.
+
+---
+
+### REQ-DEC-004 — Decision outcome
+
+A Decision MUST represent the selected outcome or disposition.
+
+---
+
+### REQ-DEC-005 — Decision rationale
+
+Policy MUST be capable of requiring rationale for a Decision.
+
+---
+
+### REQ-DEC-006 — Approval distinction
+
+Approval MUST be represented as a Decision that a Subject, proposal, result, or transition is acceptable.
+
+---
+
+### REQ-DEC-007 — Approval is not authorization
+
+Approval MUST NOT automatically imply Operational Authorization to perform a protected action unless an explicit Policy establishes that derivation.
+
+---
+
+### REQ-DEC-008 — Decision provenance
+
+Consequential Decisions MUST retain provenance.
+
+---
+
+# 10. FIND-DOM-005 — Release versus Deployment
+
+## Original concern
+
+The requirements recognize Release and Deployment but do not explicitly state that they are distinct.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Required addition
+
+### REQ-DEP-011 — Release/deployment distinction
+
+AIEOS MUST distinguish:
+
+```text
+Release
+=
+a defined package or version of change intended for delivery
+
+Deployment
+=
+the governed execution that applies a Release or Change to an Environment
+```
+
+A Release MUST NOT be considered deployed solely because it exists.
+
+---
+
+# 11. FIND-DOM-006 — Test Definition versus Test Execution
+
+## Original concern
+
+A Test is an Artifact.
+
+Running the Test is an Execution.
+
+The resulting output may become Evidence.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+This distinction is essential for reproducibility and evidence integrity.
+
+## Required additions
+
+### REQ-VER-011 — Test definition distinction
+
+AIEOS MUST distinguish a Test definition from an Execution of that Test.
+
+---
+
+### REQ-VER-012 — Test execution evidence
+
+A Test Execution MUST be capable of producing Evidence associated with:
+
+```text
+test identity
+tested subject/state
+execution environment
+execution time
+execution result
+```
+
+---
+
+### REQ-VER-013 — Test result binding
+
+A Test result MUST NOT be treated as applicable to a different governed state without an explicit validity basis.
+
+---
+
+# 12. FIND-DOM-007 — Temporal Semantics
+
+## Original concern
+
+`REQ-PROV-009` requires temporal ordering but does not explicitly distinguish:
+
+```text
+Recorded Time
+Valid Time
+```
+
+## Disposition
+
+**ACCEPT-WITH-MODIFICATION — BLOCKING**
+
+Full bitemporal modeling is not required for every AIEOS Subject.
+
+However, the semantic distinction is important enough that the platform must support it where applicable.
+
+## Required additions
+
+### REQ-PROV-011 — Recorded time
+
+Consequential Events, Decisions, Authorizations, Assertions, Executions, and state transitions MUST support Recorded Time.
+
+---
+
+### REQ-PROV-012 — Applicable valid time
+
+AIEOS MUST support Valid Time or equivalent effective-period semantics for domain concepts whose applicability can differ from their Recorded Time.
+
+Examples include:
+
+```text
+Policy
+Authorization
+Authority Binding
+Assertion
+Exception
+configuration
+```
+
+---
+
+### REQ-PROV-013 — Historical correction
+
+Correction of historical knowledge MUST preserve both:
+
+```text
+the originally recorded state
+
+and
+
+the later correction
+```
+
+where retention policy permits.
+
+---
+
+# 13. FIND-DOM-008 — Hypothesis Representation
+
+## Original concern
+
+Incident and research workflows require uncertain explanatory propositions without promoting them to established truth.
+
+## Disposition
+
+**ACCEPT-WITH-MODIFICATION — NON-BLOCKING**
+
+A separate top-level Hypothesis requirement family is unnecessary.
+
+A Hypothesis is best modeled as a specialized uncertain Assertion.
+
+## Resolution
+
+`REQ-ASSERT-006` SHALL provide the required normative basis.
+
+`AIEOS-DOM-001` MAY retain **Hypothesis** as a named domain concept because the concept is operationally useful.
+
+No `REQ-HYP-*` family is required at this stage.
+
+---
+
+# 14. FIND-DOM-009 — Drift Semantics
+
+## Original concern
+
+`REQ-REC-002` already mentions drift detection but does not define the concept explicitly.
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+## Required addition
+
+### REQ-REC-008 — Explicit drift representation
+
+AIEOS MUST be capable of representing a meaningful difference between:
+
+```text
+expected governed state
+
+and
+
+observed authoritative or operational state
+```
+
+as Drift or equivalent explicit reconciliation state.
+
+Drift MUST remain distinguishable from confirmed defect or root cause.
+
+---
+
+# 15. FIND-DOM-010 — Environment Is Cross-Cutting
+
+## Original concern
+
+Environment participates in:
+
+```text
+execution
+capability
+authorization
+deployment
+policy
+risk
+provenance
+```
+
+but has no dedicated requirements family.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+Environment is a core governed context, not merely a deployment string.
+
+## Decision
+
+Add:
+
+```text
+REQ-ENV
+```
+
+## Required requirements
+
+### REQ-ENV-001 — Governed environment identity
+
+AIEOS MUST support identifiable governed Environments.
+
+---
+
+### REQ-ENV-002 — Environment classification
+
+An Environment MUST be capable of carrying classification relevant to governance.
+
+Examples MAY include:
+
+```text
+sandbox
+development
+test
+staging
+production
+```
+
+---
+
+### REQ-ENV-003 — Environment-independent identity
+
+Environment identity MUST NOT depend exclusively upon a transient infrastructure address or provider identifier.
+
+---
+
+### REQ-ENV-004 — Native environment bindings
+
+An Environment MAY be bound to native infrastructure identifiers.
+
+---
+
+### REQ-ENV-005 — Environment-scoped governance
+
+Policy, Capability, Operational Authorization, and Risk rules MUST be capable of varying by Environment.
+
+---
+
+### REQ-ENV-006 — Production distinction
+
+AIEOS MUST permit one or more Environments to be classified as production or equivalent protected operational contexts.
+
+---
+
+# 16. FIND-REV-001 — Artifact Taxonomy Conflict
+
+## Finding
+
+`REQ-ART-002` currently states that the initial Artifact families include:
+
+```text
+Authorization
+Observation
+```
+
+while `AIEOS-DOM-001` does not consistently model either as an Artifact.
+
+The domain model also defines **Workflow Definition** as a versioned Artifact but does not include it in the main Artifact taxonomy.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+The requirements currently mix:
+
+```text
+Artifact types
+
+and
+
+other first-class governed records
+```
+
+## Decision
+
+`REQ-ART-002` SHALL list actual core Artifact families only.
+
+Recommended baseline:
+
+```text
+Intent
+Requirement
+Specification
+Decision
+Plan
+Change
+Test
+Evaluation
+Evidence
+Review
+Policy
+Exception
+Release
+Incident
+Workflow Definition
+```
+
+Authorization and Observation SHALL remain first-class governed domain concepts but SHALL NOT be required to be implemented as Artifact subtypes.
+
+This preserves semantic flexibility.
+
+---
+
+# 17. FIND-REV-002 — Subject Identity Scope Is Too Narrow
+
+## Finding
+
+`REQ-ID-001` currently guarantees stable identity only for:
+
+```text
+governed work units
+first-class engineering artifacts
+```
+
+The domain model requires stable identity for additional first-class Subjects such as:
+
+```text
+Actors
+Workflow Instances
+Executions
+Deployments
+Observations
+Environments
+```
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Required replacement
+
+### REQ-ID-001 — Stable subject identity
+
+Every first-class governed Subject MUST possess a stable semantic identity appropriate to its lifecycle and traceability requirements.
+
+---
+
+`REQ-ID-002` SHOULD likewise refer to **Subject identity** rather than only Artifact identity.
+
+Recommended revision:
+
+### REQ-ID-002 — Location-independent identity
+
+The semantic identity of a governed Subject MUST NOT depend exclusively upon a mutable representation or physical location such as:
+
+```text
+filename
+repository path
+issue number
+URL
+database row position
+temporary execution location
+infrastructure address
+```
+
+---
+
+# 18. FIND-REV-003 — Work Unit Lifecycle Ambiguity
+
+## Finding
+
+`REQ-WU-003` currently states:
+
+> Every work unit MUST have an explicit lifecycle status.
+
+The domain model establishes authoritative lifecycle state as belonging to a **Workflow Instance**.
+
+These are not necessarily the same concept.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Decision
+
+Separate:
+
+```text
+Work Unit coordination status
+
+from
+
+Workflow Instance lifecycle state
+```
+
+## Required replacement
+
+### REQ-WU-003 — Work-unit coordination status
+
+A Work Unit MUST expose an explicit coordination status sufficient to communicate its current engineering condition.
+
+That status MAY be derived from one or more governing Workflow Instances.
+
+It MUST NOT replace or ambiguously overwrite the authoritative Lifecycle State of a Workflow Instance.
+
+---
+
+This leaves open whether future architectures permit multiple concurrent Workflow Instances for one Work Unit.
+
+That question remains non-blocking.
+
+---
+
+# 19. FIND-REV-004 — Control-Plane Wording Leaks Architecture
+
+## Finding
+
+`REQ-SYS-006` currently uses the title:
+
+> Deterministic control plane
+
+and `REQ-WF-005` explicitly refers to:
+
+> the workflow engine
+
+These terms imply architectural components before `AIEOS-ARCH-001`.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+The requirements should describe required behavior, not component partitioning.
+
+## Required revisions
+
+### REQ-SYS-006 — Deterministic governance
+
+Authoritative lifecycle state changes and policy-enforced governance decisions MUST be determined through deterministic system rules rather than unverified model judgment alone.
+
+---
+
+### REQ-WF-005 — Agent transition recommendation
+
+Agents MAY recommend state transitions.
+
+AIEOS MUST independently determine whether a proposed transition is permissible under the applicable Workflow Definition, Policy, Evidence, Risk, and Authorization state.
+
+---
+
+Terms such as:
+
+```text
+Workflow Engine
+Policy Engine
+Authority Engine
+Control Plane
+Capability Broker
+```
+
+remain valid architectural candidates but SHALL be defined by `AIEOS-ARCH-001`, not assumed by the requirements baseline.
+
+---
+
+# 20. FIND-REV-005 — Relationship Vocabulary Mismatch
+
+## Finding
+
+`AIEOS-DOM-001` requires several baseline relationship semantics not currently included in `REQ-REL-003`.
+
+Additional domain relationships include:
+
+```text
+refines
+represents
+projects
+belongs-to
+blocks
+```
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+## Required reconciliation
+
+`REQ-REL-003` SHOULD be expanded to include semantics equivalent to:
+
+```text
+implements
+satisfies
+constrains
+depends-on
+derived-from
+generated-by
+validated-by
+evidenced-by
+reviewed-by
+authorized-by
+supersedes
+invalidates
+deploys
+observed-by
+caused-by
+remediates
+refines
+represents
+projects
+belongs-to
+blocks
+```
+
+The vocabulary MAY later be normalized by `AIEOS-ART-001` or a semantic-model specification.
+
+---
+
+# 21. FIND-REV-006 — Agent Identity Model Is Incomplete
+
+## Finding
+
+`REQ-AGENT-001` requires identifiable Agent Executions, but the domain model distinguishes:
+
+```text
+Agent Role/Profile
+Agent Actor
+Agent Execution
+model/provider
+```
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+## Required additions
+
+### REQ-AGENT-011 — Agent role/execution distinction
+
+AIEOS MUST be capable of distinguishing a logical Agent role or profile from a concrete Agent Execution.
+
+---
+
+### REQ-AGENT-012 — Model identity distinction
+
+Agent identity SHOULD remain distinguishable from the underlying model/provider identity used by an execution.
+
+This allows:
+
+```text
+Planner Agent
+Reviewer Agent
+Implementation Agent
+```
+
+to remain stable logical concepts even when model providers change.
+
+---
+
+# 22. FIND-REV-007 — Capability Definition versus Capability Grant
+
+## Finding
+
+The current requirements represent capabilities but do not explicitly distinguish:
+
+```text
+Capability Definition
+
+from
+
+Capability Grant
+```
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+## Required additions
+
+### REQ-CAP-009 — Capability definition
+
+AIEOS MUST be capable of representing a defined class of technical operation independently of any Actor currently possessing it.
+
+---
+
+### REQ-CAP-010 — Capability grant
+
+AIEOS MUST be capable of representing a scoped grant making a Capability available to a particular Actor or Execution context.
+
+---
+
+This distinction is essential to the later Capability Broker architecture without requiring such an architecture now.
+
+---
+
+# 23. FIND-REV-008 — Decision Is Under-Specified
+
+## Finding
+
+Decision is included as an Artifact but lacks a dedicated requirements family.
+
+This becomes problematic because:
+
+```text
+approval
+risk acceptance
+policy exception
+architecture choice
+intent acceptance
+```
+
+are all forms of governed Decision.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+The new `REQ-DEC` requirements defined in Section 9 SHALL be introduced before `RB-001`.
+
+This change also clarifies that a Decision is not simply a human UI action.
+
+Agents MAY propose Decisions.
+
+Authority determines which Decisions can become accepted.
+
+---
+
+# 24. FIND-REV-009 — Event Semantics Are Not Explicit Enough
+
+## Finding
+
+The domain model defines **Event** as an immutable historical record of something consequential occurring.
+
+The requirements corpus discusses events and audit history but does not require an explicit event semantic model.
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+AIEOS need not be implemented as an event-sourced architecture.
+
+However, historical consequential events must be representable.
+
+## Required addition
+
+### REQ-PROV-014 — Consequential event representation
+
+AIEOS MUST be capable of representing consequential historical occurrences as immutable or append-only historical records whose meaning is not silently rewritten.
+
+This requirement SHALL NOT mandate event sourcing.
+
+---
+
+# 25. FIND-REV-010 — Representation Role versus Semantic Authority
+
+## Finding
+
+`AIEOS-DOM-001` permits Representation roles such as:
+
+```text
+authoritative
+derived
+generated
+projection
+cached
+```
+
+while also correctly stating that Representation role alone does not establish Semantic Authority.
+
+The use of the word `authoritative` as a Representation role risks confusion.
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+## Decision
+
+Change the recommended Representation role vocabulary from:
+
+```text
+authoritative
+```
+
+to:
+
+```text
+authority-bearing
+```
+
+or preferably:
+
+```text
+source
+```
+
+while preserving explicit Semantic Authority separately.
+
+Recommended roles:
+
+```text
+source
+derived
+generated
+projection
+cached
+coordination
+transient
+external
+```
+
+A source Representation may be associated with Semantic Authority through an Authority Binding.
+
+It does not acquire authority merely from the role label.
+
+---
+
+# 26. Additional Terminology Decisions
+
+The following terminology is accepted for all subsequent AIEOS documents.
+
+## 26.1 Semantic Authority
+
+Use:
+
+> **Semantic Authority**
+
+for authority to establish what is authoritative or believed true.
+
+Do not shorten this to merely `Authority` where ambiguity with operational permission is possible.
+
+---
+
+## 26.2 Operational Authorization
+
+Use:
+
+> **Operational Authorization**
+
+for permission to perform a governed action.
+
+Requirement family:
+
+```text
+REQ-AUTHZ
+```
+
+---
+
+## 26.3 Approval
+
+Use:
+
+> **Approval**
+
+for a Decision that something is acceptable.
+
+Approval is not Operational Authorization.
+
+---
+
+## 26.4 Capability
+
+Use:
+
+> **Capability**
+
+for technical ability.
+
+Capability is not Operational Authorization.
+
+---
+
+## 26.5 Workflow Definition
+
+Use:
+
+> **Workflow Definition**
+
+for the versioned description of permitted workflow behavior.
+
+---
+
+## 26.6 Workflow Instance
+
+Use:
+
+> **Workflow Instance**
+
+for a concrete application of a Workflow Definition to governed work.
+
+---
+
+## 26.7 Lifecycle State
+
+Lifecycle State belongs to a Workflow Instance.
+
+---
+
+## 26.8 Work Unit status
+
+Work Unit status is a coordination-level view and may be derived from workflow state.
+
+---
+
+## 26.9 Evidence
+
+Evidence is an observable basis for an Assertion.
+
+It is not equivalent to the Assertion.
+
+---
+
+## 26.10 Verification
+
+Verification determines whether defined conditions hold.
+
+---
+
+## 26.11 Review
+
+Review performs broader assessment.
+
+---
+
+## 26.12 Decision
+
+Decision establishes an authoritative choice when made by an appropriate authority.
+
+---
+
+# 27. Revised Requirement Families
+
+After reconciliation, the recommended requirements taxonomy becomes:
+
+| Family          | Concern                             |
+| --------------- | ----------------------------------- |
+| `REQ-SYS`       | System-wide behavior                |
+| `REQ-ID`        | Identity                            |
+| `REQ-WU`        | Work units                          |
+| `REQ-ART`       | Engineering artifacts               |
+| `REQ-ASSERT`    | Assertions and proposition status   |
+| `REQ-REL`       | Relationships and traceability      |
+| `REQ-AUTHORITY` | Semantic authority                  |
+| `REQ-WF`        | Workflow and lifecycle              |
+| `REQ-HUM`       | Human participation                 |
+| `REQ-AGENT`     | AI-agent participation              |
+| `REQ-CAP`       | Capabilities                        |
+| `REQ-AUTHZ`     | Operational authorization           |
+| `REQ-DEC`       | Decisions and approvals             |
+| `REQ-POL`       | Policy                              |
+| `REQ-RISK`      | Risk and autonomy                   |
+| `REQ-ENV`       | Governed environments               |
+| `REQ-EXEC`      | Execution                           |
+| `REQ-VER`       | Verification                        |
+| `REQ-EVID`      | Evidence                            |
+| `REQ-REV`       | Review                              |
+| `REQ-DEP`       | Release and deployment              |
+| `REQ-OBS`       | Observation                         |
+| `REQ-INC`       | Incident handling                   |
+| `REQ-LEARN`     | Organizational learning             |
+| `REQ-PROV`      | Provenance, events, and time        |
+| `REQ-SEC`       | Security                            |
+| `REQ-INT`       | External integrations               |
+| `REQ-UX`        | Human interaction                   |
+| `REQ-CONF`      | Configuration                       |
+| `REQ-REC`       | Reconciliation, drift, and recovery |
+| `REQ-NFR`       | Non-functional requirements         |
+
+This taxonomy is recommended for `AIEOS-REQ-001 v0.2.0`.
+
+---
+
+# 28. Requirements That Are Not Architecture Decisions
+
+The review confirms that the following are legitimate system requirements rather than premature architecture decisions:
+
+```text
+stable semantic identity
+
+deterministic governance decisions
+
+typed relationships
+
+explicit semantic authority
+
+bounded execution
+
+evidence-backed verification
+
+human gates
+
+provider neutrality
+
+local-first viability
+
+risk-adaptive autonomy
+
+provenance
+
+reconciliation
+
+environment-specific authorization
+```
+
+These constrain architecture without choosing it.
+
+---
+
+# 29. Requirements That Must Avoid Architectural Wording
+
+The following concepts SHOULD NOT appear as mandatory components inside `AIEOS-REQ-001`:
+
+```text
+Workflow Engine
+Artifact Registry
+Policy Engine
+Authority Engine
+Capability Broker
+Agent Orchestrator
+Event Bus
+Graph Database
+Event Store
+Approval Inbox
+```
+
+The system may ultimately contain components with these names.
+
+That determination belongs to:
+
+```text
+AIEOS-ARCH-001
+```
+
+---
+
+# 30. Domain Concepts Confirmed as Implementation-Neutral
+
+The review finds the following domain concepts suitable for the accepted semantic baseline:
+
+```text
+Subject
+Native Reference
+Representation
+Artifact
+Assertion
+Relationship
+Intent
+Requirement
+Specification
+Decision
+Work Unit
+Workflow Definition
+Workflow Instance
+Lifecycle State
+Transition
+Actor
+Human Actor
+Agent Actor
+Automation Actor
+External System Actor
+Semantic Authority
+Authority Binding
+Capability
+Capability Grant
+Operational Authorization
+Policy
+Policy Evaluation
+Exception
+Risk
+Risk Classification
+Risk Assessment
+Risk Acceptance
+Plan
+Execution
+Change
+Test
+Evaluation
+Verification Criterion
+Verification
+Evidence
+Review
+Review Finding
+Approval
+Release
+Environment
+Deployment
+Observation
+Incident
+Hypothesis
+Provenance
+Event
+Validity
+Supersession
+Reconciliation
+Drift
+Learning Proposal
+```
+
+None inherently requires a particular database, framework, model provider, or deployment topology.
+
+---
+
+# 31. Domain Concepts That Need Minor Revision
+
+The following changes SHOULD be incorporated into `AIEOS-DOM-001 v0.2.0`.
+
+## DOM-CHANGE-001
+
+Change operational requirement references from:
+
+```text
+REQ-AUTH
+```
+
+to:
+
+```text
+REQ-AUTHZ
+```
+
+---
+
+## DOM-CHANGE-002
+
+Update Requirement Coverage to include:
+
+```text
+REQ-ASSERT
+REQ-DEC
+REQ-ENV
+```
+
+---
+
+## DOM-CHANGE-003
+
+Change Representation role vocabulary to avoid using `authoritative` as a role label.
+
+---
+
+## DOM-CHANGE-004
+
+Clarify that Approval is a specialized Decision.
+
+---
+
+## DOM-CHANGE-005
+
+Clarify that Hypothesis is a specialized uncertain Assertion.
+
+---
+
+## DOM-CHANGE-006
+
+Clarify Work Unit coordination status versus Workflow Instance Lifecycle State.
+
+---
+
+## DOM-CHANGE-007
+
+Reconcile Artifact taxonomy so Authorization and Observation are not implicitly required to be Artifact subtypes.
+
+---
+
+# 32. Open Questions Classified for Baseline Readiness
+
+The open questions in `AIEOS-DOM-001 §69` are classified below.
+
+## Identity
+
+### Canonical identifier format
+
+```text
+NON-BLOCKING
+```
+
+Can be deferred to architecture/identity specification.
+
+---
+
+### Native identifiers as canonical identity
+
+```text
+NON-BLOCKING
+```
+
+The requirement already preserves abstraction.
+
+---
+
+### Split/merge representation
+
+```text
+NON-BLOCKING
+```
+
+Semantic capability is already required.
+
+Concrete encoding may be deferred.
+
+---
+
+### Fragment identity
+
+```text
+NON-BLOCKING
+```
+
+Important later, but not required for RB-001.
+
+---
+
+## Assertions
+
+### Minimum serialization form
+
+```text
+NON-BLOCKING
+```
+
+`REQ-ASSERT` establishes semantics without storage encoding.
+
+---
+
+### Opaque prose assertions
+
+```text
+NON-BLOCKING
+```
+
+Can be resolved by semantic/artifact specification.
+
+---
+
+### Assertion equivalence
+
+```text
+NON-BLOCKING
+```
+
+Important for later graph/knowledge architecture.
+
+---
+
+## Authority
+
+### Overlapping Authority Binding precedence
+
+```text
+NON-BLOCKING
+```
+
+Requirements already require conflicts to be surfaced.
+
+Resolution semantics can be specified later.
+
+---
+
+### Authority evolution over time
+
+```text
+NON-BLOCKING
+```
+
+Valid-time support provides necessary foundation.
+
+---
+
+## Workflow
+
+### Multiple Workflow Instances per Work Unit
+
+```text
+NON-BLOCKING
+```
+
+Architecture may decide whether the MVP supports one or many.
+
+The domain model should not prohibit multiplicity.
+
+---
+
+### Emergency workflows
+
+```text
+NON-BLOCKING
+```
+
+Explicit exceptional paths are already required.
+
+Detailed workflow semantics can follow.
+
+---
+
+## Evidence
+
+### Automatic staleness rules
+
+```text
+NON-BLOCKING
+```
+
+Policy specification can define them.
+
+---
+
+### Probabilistic evidence
+
+```text
+NON-BLOCKING
+```
+
+Important for AI and research workflows but not required for first baseline.
+
+---
+
+## Risk
+
+### Risk representation mechanics
+
+```text
+NON-BLOCKING
+```
+
+Semantics are already explicit.
+
+---
+
+## Time
+
+### Which Subjects require Valid Time
+
+```text
+NON-BLOCKING
+```
+
+`REQ-PROV-012` establishes system capability without forcing universal bitemporal modeling.
+
+---
+
+## Provenance
+
+### Persistence depth
+
+```text
+NON-BLOCKING
+```
+
+To be specified by `AIEOS-PROV-001`.
+
+---
+
+### Sensitive prompts/context
+
+```text
+NON-BLOCKING
+```
+
+Security and provenance specifications will define redaction/reference semantics.
+
+---
+
+## Integrations
+
+### External identity migration
+
+```text
+NON-BLOCKING
+```
+
+Binding model already permits rebinding.
+
+---
+
+### Projection regeneration policy
+
+```text
+NON-BLOCKING
+```
+
+Integration/reconciliation specification issue.
+
+---
+
+# 33. Requirement De-Duplication Review
+
+No major duplicate requirement families were found.
+
+Several intentional overlaps exist.
+
+These are legitimate because they represent cross-cutting guarantees.
+
+Examples:
+
+```text
+REQ-SYS-004
+Capability/authority separation
+
+REQ-CAP-*
+technical capability semantics
+
+REQ-AUTHZ-*
+operational permission semantics
+```
+
+These SHOULD remain because:
+
+```text
+system invariant
++
+domain-specific requirements
+```
+
+serve different normative purposes.
+
+Likewise:
+
+```text
+REQ-SYS-005
+execution/review/approval separation
+
+REQ-REV-*
+review behavior
+
+REQ-DEC-*
+approval behavior
+```
+
+are not considered duplicates.
+
+---
+
+# 34. Contradiction Review
+
+The review found no unresolved foundational contradictions among:
+
+```text
+AIEOS-FOUND-001
+AIEOS-REQ-001
+AIEOS-DOM-001
+```
+
+The identified issues are primarily:
+
+```text
+missing distinctions
+taxonomy mismatches
+terminology ambiguity
+under-specified concepts
+minor architecture leakage
+```
+
+rather than contradictory system goals.
+
+This is a positive baseline result.
+
+---
+
+# 35. Foundation Conformance Review
+
+The reconciled model preserves every foundation principle.
+
+| Foundation Principle         | Reconciled Domain/Requirement Mechanism       |
+| ---------------------------- | --------------------------------------------- |
+| Intent before implementation | Intent + Work Unit                            |
+| Explicit artifacts           | Artifact                                      |
+| Machine-operable knowledge   | Subject + Assertion + Relationship            |
+| One authority per assertion  | Semantic Authority + Authority Binding        |
+| Plan before mutation         | Plan + Workflow policy                        |
+| Evidence over assertion      | Evidence + Verification                       |
+| Deterministic enforcement    | Policy + deterministic governance             |
+| Risk-adaptive autonomy       | Risk Classification                           |
+| Separation of duties         | Execution + Review + Decision + Authorization |
+| Consequential traceability   | Provenance + Event + Relationship             |
+| Production closes loop       | Deployment + Observation + Incident           |
+| Improve the harness          | Learning Proposal                             |
+
+No foundation principle is orphaned.
+
+---
+
+# 36. Reconciled Core Semantic Chain
+
+After the proposed changes, the canonical engineering chain becomes:
+
+```text
+Intent
+   ↓ refined-into
+Specification
+   ↓ contains/constrains
+Requirement
+   ↓ governs
+Work Unit
+   ↓ governed-through
+Workflow Instance
+   ↓ uses
+Workflow Definition
+   ↓ permits
+Transition
+   ↓ permits
+Plan
+   ↓ informs
+Execution
+   ↓ produces
+Change
+   ↓ evaluated-by
+Verification
+   ↓ produces/uses
+Evidence
+   ↓ assessed-by
+Review
+   ↓ informs
+Decision / Approval
+   ↓ may enable
+Operational Authorization
+   ↓ permits
+Deployment
+   ↓ affects
+Environment
+   ↓ produces
+Observation
+   ↓ may trigger
+Incident / New Intent
+```
+
+Surrounding the entire chain are:
+
+```text
+Subject identity
+Assertions
+Relationships
+Semantic Authority
+Policy
+Risk
+Capabilities
+Provenance
+Events
+Time
+```
+
+---
+
+# 37. Reconciled Authority Model
+
+The review establishes four separate governance questions.
+
+## Question 1
+
+> What is believed or considered authoritative?
+
+Answer:
+
+```text
+Semantic Authority
+```
+
+---
+
+## Question 2
+
+> Can the actor technically perform the operation?
+
+Answer:
+
+```text
+Capability
+```
+
+---
+
+## Question 3
+
+> Has an authorized decision-maker accepted something as satisfactory?
+
+Answer:
+
+```text
+Decision / Approval
+```
+
+---
+
+## Question 4
+
+> May the actor perform this protected operation?
+
+Answer:
+
+```text
+Operational Authorization
+```
+
+Therefore:
+
+```text
+Semantic Authority
+      ≠
+Capability
+      ≠
+Approval
+      ≠
+Operational Authorization
+```
+
+This distinction SHALL be preserved throughout the architecture.
+
+---
+
+# 38. Reconciled Assurance Model
+
+The assurance chain becomes:
+
+```text
+Requirement
+    ↓
+Verification Criterion
+    ↓
+Test / Evaluation / Inspection
+    ↓
+Execution
+    ↓
+Evidence
+    ↓
+Verification Result
+    ↓
+Review
+    ↓
+Decision / Approval
+```
+
+No step automatically implies the next.
+
+In particular:
+
+```text
+successful Execution
+    ≠
+successful Verification
+
+successful Verification
+    ≠
+accepted Review
+
+accepted Review
+    ≠
+Approval
+
+Approval
+    ≠
+Operational Authorization
+```
+
+---
+
+# 39. Reconciled Workflow Model
+
+The accepted conceptual workflow hierarchy SHALL be:
+
+```text
+Workflow Definition
+        ↓ instantiated-as
+Workflow Instance
+        ↓ has
+Lifecycle State
+        ↓ changed-by
+Transition
+```
+
+A Work Unit participates in one or more Workflow Instances.
+
+The requirements baseline SHALL NOT yet require support for more than one concurrent instance in the MVP.
+
+The domain model SHALL nevertheless avoid making multiplicity impossible.
+
+---
+
+# 40. Reconciled Identity Model
+
+The accepted identity chain SHALL be:
+
+```text
+Subject
+   ↓ represented-by
+Representation
+
+Subject
+   ↓ known-as
+Native Reference
+
+Subject identity
+   ≠
+Representation location
+
+Subject identity
+   ≠
+Native Reference
+```
+
+unless a later explicit identity specification adopts a native identifier as canonical under controlled conditions.
+
+---
+
+# 41. Reconciled Operational Model
+
+```text
+Release
+   ≠
+Deployment
+
+Deployment
+   ↓ targets
+Environment
+
+Environment
+   ↓ produces
+Observation
+
+Observation
+   ≠
+Hypothesis
+
+Hypothesis
+   ≠
+Confirmed Cause
+
+Confirmed Cause
+   ↓ may produce
+Remediation Intent
+```
+
+This preserves epistemic discipline during incident response.
+
+---
+
+# 42. Required Changes to AIEOS-REQ-001
+
+Before `RB-001`, `AIEOS-REQ-001` SHOULD be revised to `v0.2.0` with the following changes.
+
+## Required
+
+1. rename `REQ-AUTH` → `REQ-AUTHZ`;
+2. add `REQ-ASSERT`;
+3. add `REQ-DEC`;
+4. add `REQ-ENV`;
+5. broaden `REQ-ID-001`;
+6. broaden `REQ-ID-002`;
+7. revise `REQ-WU-003`;
+8. revise `REQ-SYS-006`;
+9. revise `REQ-WF-005`;
+10. add `REQ-WF-014` through `REQ-WF-017`;
+11. revise `REQ-ART-002`;
+12. add `REQ-DEP-011`;
+13. add `REQ-VER-011` through `REQ-VER-013`;
+14. add `REQ-PROV-011` through `REQ-PROV-014`;
+15. add `REQ-REC-008`.
+
+## Recommended
+
+16. expand `REQ-REL-003`;
+17. add `REQ-AGENT-011` and `REQ-AGENT-012`;
+18. add `REQ-CAP-009` and `REQ-CAP-010`;
+19. update requirement-family table;
+20. update MVP baseline references;
+21. update foundation traceability;
+22. update requirement coverage and acceptance criteria.
+
+---
+
+# 43. Required Changes to AIEOS-DOM-001
+
+Before baseline acceptance, `AIEOS-DOM-001` SHOULD be revised to `v0.2.0`.
+
+Required changes:
+
+1. replace operational `REQ-AUTH` references with `REQ-AUTHZ`;
+2. add requirement-family mappings for `REQ-ASSERT`, `REQ-DEC`, and `REQ-ENV`;
+3. clarify Approval as specialized Decision;
+4. clarify Hypothesis as specialized uncertain Assertion;
+5. clarify Work Unit coordination status versus Workflow Instance Lifecycle State;
+6. reconcile Artifact taxonomy;
+7. revise Representation-role terminology;
+8. mark reconciliation findings as resolved or superseded;
+9. update Status section to reference completed reconciliation.
+
+No major rewrite of the domain model is required.
+
+---
+
+# 44. Requirements Baseline Acceptance Gate
+
+`RB-001` SHALL NOT be accepted until all of the following are true:
+
+* [ ] blocking findings in this review are incorporated;
+* [ ] `AIEOS-REQ-001` is revised;
+* [ ] `AIEOS-DOM-001` is revised;
+* [ ] requirement IDs are internally consistent;
+* [ ] no operational `REQ-AUTH-*` references remain;
+* [ ] Assertion requirements exist;
+* [ ] Decision/Approval requirements exist;
+* [ ] Environment requirements exist;
+* [ ] Workflow Definition/Instance distinction is explicit;
+* [ ] Release/Deployment distinction is explicit;
+* [ ] Test/Test Execution distinction is explicit;
+* [ ] Recorded Time and applicable Valid Time are explicit;
+* [ ] Artifact taxonomy agrees with the domain model;
+* [ ] identity requirements apply to all first-class governed Subjects;
+* [ ] architecture-specific component assumptions have been removed from requirements;
+* [ ] foundation traceability remains complete;
+* [ ] no unresolved blocking contradictions remain.
+
+---
+
+# 45. Proposed Baseline Metadata
+
+When those conditions are met:
+
+```text
+Requirements Baseline: RB-001
+Status: Accepted
+Requirements Specification: AIEOS-REQ-001 v0.2.0
+Domain Model: AIEOS-DOM-001 v0.2.0
+Foundation: AIEOS-FOUND-001
+Scope: All accepted REQ-* families
+```
+
+The baseline SHALL establish the normative input to architecture.
+
+---
+
+# 46. Baseline Change Rule
+
+After `RB-001` is accepted:
+
+```text
+Requirements
+     ↓
+do not change casually
+```
+
+Any normative change SHALL require:
+
+```text
+change proposal
+      ↓
+impact analysis
+      ↓
+traceability analysis
+      ↓
+review
+      ↓
+accepted revision
+      ↓
+new requirements baseline
+```
+
+Example:
+
+```text
+RB-001
+   ↓
+approved requirement changes
+   ↓
+RB-002
+```
+
+Architecture SHALL always identify the requirements baseline against which it was designed.
+
+---
+
+# 47. Architecture Readiness Decision
+
+## Current status
+
+```text
+AIEOS-ARCH-001
+Status: NOT YET READY
+```
+
+## Reason
+
+The architecture would currently be designed against requirements containing several known semantic ambiguities.
+
+Those ambiguities are straightforward to fix now and significantly more expensive to repair after component boundaries and schemas are established.
+
+## Required predecessor
+
+```text
+AIEOS-REQ-001 v0.2.0
+        +
+AIEOS-DOM-001 v0.2.0
+        ↓
+RB-001
+        ↓
+AIEOS-ARCH-001
+```
+
+---
+
+# 48. Review Conclusion
+
+The reconciliation review finds the AIEOS foundation **conceptually coherent and architecturally viable**.
+
+The domain-model exercise successfully exposed several distinctions that the original requirements corpus had not yet formalized:
+
+```text
+Assertion
+
+Decision / Approval
+
+Environment
+
+Workflow Definition
+versus
+Workflow Instance
+
+Release
+versus
+Deployment
+
+Test
+versus
+Test Execution
+
+Recorded Time
+versus
+Valid Time
+
+Capability
+versus
+Operational Authorization
+
+Semantic Authority
+versus
+Operational Authorization
+```
+
+These are not cosmetic terminology changes.
+
+They establish critical boundaries required for a system in which humans, AI agents, deterministic automation, and external engineering systems all participate in governed work.
+
+The reconciliation therefore concludes:
+
+```text
+Foundation:
+    SOUND
+
+Requirements:
+    SOUND BUT REQUIRES REVISION
+
+Domain Model:
+    SOUND BUT REQUIRES MINOR REVISION
+
+Blocking Contradictions:
+    NONE
+
+Blocking Reconciliation Changes:
+    PRESENT
+
+Requirements Baseline RB-001:
+    NOT YET ACCEPTED
+
+Architecture:
+    DEFER UNTIL RECONCILIATION APPLIED
+```
+
+---
+
+# 49. Required Next Action
+
+The next action SHALL be to incorporate this review into the two source specifications.
+
+The required outputs are:
+
+```text
+AIEOS-REQ-001
+v0.1.0 → v0.2.0
+
+AIEOS-DOM-001
+v0.1.0 → v0.2.0
+```
+
+After those revisions, a short baseline verification SHALL confirm that every disposition in `AIEOS-REV-001` has been incorporated.
+
+If that verification succeeds:
+
+```text
+RB-001
+=
+ACCEPTED
+```
+
+Only then should work begin on:
+
+```text
+AIEOS-ARCH-001
+AI-Native Engineering Operating System
+System Architecture Specification
+```
+
+---
+
+# 50. Review Status
+
+**Review Result:** Changes Required
+
+**Requirements Baseline:** Not Accepted
+
+**Architecture Gate:** Closed
+
+**Required Remediation:**
+
+```text
+Revise REQ-001
+Revise DOM-001
+Verify reconciliation
+Accept RB-001
+Open architecture gate
+```
+
+`AIEOS-REV-001 v0.1.0` therefore establishes the authoritative reconciliation plan for producing the first internally coherent AIEOS requirements baseline.

@@ -1,0 +1,3238 @@
+---
+title: "AI-Native Engineering Operating System — System Architecture Specification"
+specification ID: "AIEOS-ARCH-001"
+version: "0.1.0"
+status: "Draft"
+classification: "Normative System Architecture Specification"
+parent: "RB-001 — AI-Native Engineering Operating System Requirements Baseline"
+description: "AIEOS Normative System Architecture Specification — Logical architecture, component boundaries, authority ownership, control flow, persistence, integrations, trust boundaries, failure behavior, and MVP architecture"
+---
+
+# AI-Native Engineering Operating System — System Architecture Specification
+
+# 1. Purpose
+
+This specification defines the logical system architecture of the **AI-Native Engineering Operating System (AIEOS)**.
+
+It translates:
+
+```text
+AIEOS-FOUND-001
+      ↓
+AIEOS-REQ-001 v0.2.0
+      ↓
+AIEOS-DOM-001 v0.2.0
+      ↓
+Requirements Baseline RB-001
+```
+
+into an architecture capable of implementing the required engineering control system.
+
+This specification determines:
+
+* AIEOS system boundaries,
+* logical components,
+* component responsibilities,
+* authority ownership,
+* control flow,
+* data flow,
+* persistence responsibilities,
+* event architecture,
+* workflow coordination,
+* agent orchestration boundaries,
+* capability and authorization enforcement,
+* verification and evidence handling,
+* integration architecture,
+* reconciliation,
+* trust boundaries,
+* failure semantics,
+* local-first operation,
+* extension architecture,
+* MVP deployment shape.
+
+This specification intentionally does not select:
+
+* programming languages,
+* application frameworks,
+* database products,
+* queue products,
+* cloud platforms,
+* model providers,
+* source-control vendors,
+* CI/CD vendors,
+* UI frameworks,
+* policy languages,
+* container runtimes,
+* workflow libraries.
+
+Those decisions belong to `AIEOS-IMPL-001` and associated ADRs.
+
+---
+
+# 2. Architecture Baseline
+
+This architecture is designed against:
+
+```text
+Requirements Baseline:
+RB-001
+
+Foundation:
+AIEOS-FOUND-001
+
+Requirements:
+AIEOS-REQ-001 v0.2.0
+
+Domain:
+AIEOS-DOM-001 v0.2.0
+
+Reconciliation:
+AIEOS-REV-001
+
+Baseline Verification:
+AIEOS-REV-002
+```
+
+Changes to `RB-001` SHALL trigger architecture impact analysis.
+
+---
+
+# 3. Architectural Objective
+
+AIEOS SHALL provide a governed environment capable of transforming:
+
+```text
+Intent
+   ↓
+Specification
+   ↓
+Plan
+   ↓
+Execution
+   ↓
+Verification
+   ↓
+Review
+   ↓
+Decision
+   ↓
+Operational Authorization
+   ↓
+Deployment
+   ↓
+Observation
+   ↓
+Learning
+```
+
+while preserving:
+
+```text
+identity
+semantic authority
+operational authorization
+policy
+risk
+evidence
+provenance
+history
+human accountability
+```
+
+throughout the lifecycle.
+
+The architecture SHALL optimize for:
+
+> **maximum safe autonomous engineering throughput under explicit governance.**
+
+It SHALL NOT optimize merely for maximum agent autonomy.
+
+---
+
+# 4. Architectural Style
+
+AIEOS SHALL use a **governed control-plane architecture with ports-and-adapters boundaries**.
+
+Conceptually:
+
+```text
+                   Humans
+                     │
+                     ▼
+             ┌───────────────┐
+             │ AIEOS Control │
+             │     Plane     │
+             └───────┬───────┘
+                     │
+       ┌─────────────┼─────────────┐
+       │             │             │
+       ▼             ▼             ▼
+   AI Agents    Automation      External
+                                Systems
+       │             │             │
+       └─────────────┼─────────────┘
+                     │
+                     ▼
+              Engineering Reality
+```
+
+The Control Plane SHALL govern engineering work.
+
+It SHALL NOT require ownership of every external engineering artifact or system.
+
+---
+
+# 5. Architectural Principles
+
+## ARCH-P-001 — Control is centralized logically, not necessarily physically
+
+Governance decisions SHALL have a coherent authoritative model.
+
+The implementation MAY distribute components physically.
+
+---
+
+## ARCH-P-002 — Native systems remain authoritative where appropriate
+
+AIEOS SHALL integrate with native engineering systems rather than duplicating all of their behavior.
+
+---
+
+## ARCH-P-003 — Core governance state is explicit
+
+Workflow state, policy decisions, Decisions, Operational Authorizations, and consequential provenance SHALL NOT exist solely as inferred external state.
+
+---
+
+## ARCH-P-004 — Agents are workers, not governors
+
+AI agents SHALL perform reasoning and execution within boundaries established by deterministic governance.
+
+They SHALL NOT own authoritative lifecycle progression.
+
+---
+
+## ARCH-P-005 — External systems are assumed fallible and asynchronous
+
+AIEOS SHALL NOT depend upon distributed atomic transactions across unrelated external systems.
+
+---
+
+## ARCH-P-006 — Reconciliation is a first-class architectural function
+
+Differences between AIEOS state and native system state SHALL be expected and governable.
+
+---
+
+## ARCH-P-007 — Evidence is externally observable
+
+Verification architecture SHALL preserve Evidence independently from agent self-report.
+
+---
+
+## ARCH-P-008 — Authority is checked at action time
+
+Protected actions SHALL be evaluated against current:
+
+```text
+Actor
+Capability
+Operational Authorization
+Policy
+Environment
+Workflow State
+Risk
+```
+
+rather than relying solely on earlier workflow approval.
+
+---
+
+## ARCH-P-009 — History is additive
+
+Consequential historical records SHALL be append-oriented.
+
+Corrections SHALL be represented rather than silently rewriting the past.
+
+---
+
+## ARCH-P-010 — Local operation is a first-class deployment mode
+
+A useful AIEOS deployment SHALL be capable of operating locally without requiring a proprietary remote control service.
+
+---
+
+## ARCH-P-011 — Integration is replaceable
+
+Vendor-specific behavior SHALL be isolated behind integration contracts.
+
+---
+
+## ARCH-P-012 — Start as a coherent system before becoming distributed
+
+The MVP SHOULD favor a strongly bounded modular architecture over premature microservice decomposition.
+
+Logical boundaries SHALL exist independently of deployment boundaries.
+
+---
+
+# 6. System Context
+
+AIEOS exists between engineering intent and engineering systems.
+
+```text
+                      ┌─────────────────┐
+                      │      Human      │
+                      │   Authorities   │
+                      └────────┬────────┘
+                               │
+                     decisions / intent
+                               │
+                               ▼
+┌───────────────────────────────────────────────────────┐
+│                        AIEOS                          │
+│                                                       │
+│  Identity      Knowledge       Workflow               │
+│  Policy        Authority       Agent Coordination     │
+│  Execution     Verification    Evidence               │
+│  Provenance    Reconciliation  Human Decisions        │
+│                                                       │
+└───────────────┬───────────┬───────────┬───────────────┘
+                │           │           │
+                ▼           ▼           ▼
+          Source Control   CI/CD      AI Providers
+                │           │           │
+                ▼           ▼           ▼
+             Runtime    Observability  Other Tools
+```
+
+---
+
+# 7. System Boundary
+
+## 7.1 AIEOS owns
+
+AIEOS SHALL own authoritative state for:
+
+```text
+AIEOS Subject identity
+
+Native Reference bindings
+
+AIEOS-managed Relationships
+
+AIEOS-managed Assertions
+
+Semantic Authority Bindings
+
+Work Units
+
+Workflow Instances
+
+Lifecycle State
+
+Transitions
+
+AIEOS Policy definitions or references
+
+Policy Evaluations
+
+Risk Assessments managed by AIEOS
+
+Capability Grants managed by AIEOS
+
+Operational Authorizations
+
+Governed Decisions
+
+AIEOS Execution records
+
+Verification records
+
+Evidence metadata
+
+AIEOS Reviews
+
+Provenance records
+
+AIEOS Events
+
+Reconciliation state
+```
+
+---
+
+# 8. AIEOS Does Not Necessarily Own
+
+AIEOS SHALL permit native systems to remain authoritative for facts including:
+
+```text
+source contents
+Git commits
+branches
+pull requests
+issue tracker content
+CI execution output
+cloud-resource state
+runtime telemetry
+security scan results
+deployment-system state
+external documentation
+```
+
+depending on configured Semantic Authority.
+
+AIEOS SHALL maintain references, projections, Assertions, or cached state as required.
+
+---
+
+# 9. Logical Architecture
+
+The logical architecture SHALL contain the following major subsystems:
+
+```text
+┌───────────────────────────────────────────────────────────┐
+│                    EXPERIENCE LAYER                       │
+│                                                           │
+│        Human UI       CLI       API / Automation          │
+├───────────────────────────────────────────────────────────┤
+│                    GOVERNANCE LAYER                       │
+│                                                           │
+│ Workflow │ Policy │ Authority │ Risk │ Decisions          │
+├───────────────────────────────────────────────────────────┤
+│                     KNOWLEDGE LAYER                       │
+│                                                           │
+│ Identity │ Artifacts │ Assertions │ Relationships         │
+├───────────────────────────────────────────────────────────┤
+│                    EXECUTION LAYER                        │
+│                                                           │
+│ Agent Orchestration │ Capability Control │ Execution      │
+├───────────────────────────────────────────────────────────┤
+│                    ASSURANCE LAYER                        │
+│                                                           │
+│ Verification │ Evidence │ Review                          │
+├───────────────────────────────────────────────────────────┤
+│                   INTEGRATION LAYER                       │
+│                                                           │
+│ Adapters │ Synchronization │ Reconciliation │ Observation │
+├───────────────────────────────────────────────────────────┤
+│                    HISTORY LAYER                          │
+│                                                           │
+│ Events │ Provenance │ Audit │ Temporal History            │
+└───────────────────────────────────────────────────────────┘
+```
+
+These are logical layers.
+
+They SHALL NOT require separate deployment processes.
+
+---
+
+# 10. Core Architectural Components
+
+The initial logical components are:
+
+```text
+AIEOS Kernel
+
+├── Identity Service
+├── Knowledge Service
+├── Work Coordination Service
+├── Workflow Service
+├── Governance Service
+│   ├── Policy Evaluation
+│   ├── Semantic Authority
+│   ├── Operational Authorization
+│   └── Risk
+├── Decision Service
+├── Provenance Service
+│
+├── Agent Orchestrator
+├── Execution Manager
+├── Capability Service
+│
+├── Verification Service
+├── Evidence Service
+├── Review Service
+│
+├── Integration Gateway
+├── Reconciliation Service
+├── Observation Gateway
+│
+└── Query / Projection Service
+```
+
+The Human Interface and external API operate against these capabilities.
+
+---
+
+# 11. AIEOS Kernel
+
+## 11.1 Responsibility
+
+The **AIEOS Kernel** is the logical boundary containing authoritative AIEOS governance behavior.
+
+It SHALL coordinate:
+
+```text
+commands
+transactions
+policy evaluation
+state transitions
+event creation
+provenance
+authorization checks
+```
+
+The Kernel SHALL NOT contain model-dependent reasoning.
+
+---
+
+## 11.2 Kernel invariants
+
+The Kernel SHALL enforce:
+
+```text
+valid Subject identity
+
+valid Workflow transition
+
+required Policy satisfaction
+
+required Operational Authorization
+
+required Evidence presence
+
+Decision authority
+
+historical event creation
+
+provenance capture
+```
+
+where applicable.
+
+---
+
+# 12. Identity Service
+
+## 12.1 Responsibility
+
+The Identity Service SHALL manage:
+
+```text
+Subject identity
+aliases
+Native References
+identity bindings
+split
+merge
+supersession
+identity history
+```
+
+---
+
+## 12.2 Authority
+
+The Identity Service SHALL be authoritative for AIEOS Subject identity.
+
+External systems MAY remain authoritative for their own native identifiers.
+
+---
+
+## 12.3 Identity resolution
+
+The component SHALL provide:
+
+```text
+Subject ID → Subject
+
+Native Reference → Subject
+
+alias → candidate Subject
+```
+
+resolution.
+
+Ambiguous matches SHALL NOT silently merge identity.
+
+---
+
+# 13. Knowledge Service
+
+The Knowledge Service SHALL manage the logical engineering knowledge model.
+
+It SHALL include:
+
+```text
+Artifacts
+Representations
+Assertions
+Relationships
+Validity
+Semantic Authority references
+```
+
+---
+
+## 13.1 Knowledge graph
+
+AIEOS SHALL expose graph semantics.
+
+Conceptually:
+
+```text
+Subject
+   │
+   ├── Assertion
+   │
+   ├── Representation
+   │
+   └── Relationship → Subject
+```
+
+This requirement SHALL NOT mandate a graph database.
+
+---
+
+## 13.2 Knowledge writes
+
+Knowledge mutations SHALL pass through governance rules where the target information is authoritative.
+
+Agent-created knowledge SHALL default to:
+
+```text
+proposed
+```
+
+unless Policy allows another status.
+
+---
+
+# 14. Work Coordination Service
+
+The Work Coordination Service SHALL own:
+
+```text
+Work Unit creation
+Work Unit decomposition
+Work dependencies
+coordination status
+blocking state
+scope
+associated Intent
+workflow association
+```
+
+It SHALL NOT own Workflow Instance Lifecycle State.
+
+---
+
+# 15. Workflow Service
+
+## 15.1 Responsibility
+
+The Workflow Service SHALL own:
+
+```text
+Workflow Definitions
+Workflow Instances
+Lifecycle State
+Transition evaluation
+Transition history
+transition prerequisites
+```
+
+---
+
+## 15.2 Workflow state mutation
+
+All authoritative lifecycle state changes SHALL occur through the Workflow Service.
+
+An agent MAY submit:
+
+```text
+TransitionProposal
+```
+
+but SHALL NOT directly set Lifecycle State.
+
+---
+
+## 15.3 Transition evaluation
+
+A transition decision SHALL consider:
+
+```text
+current Workflow Definition version
+current Lifecycle State
+required Artifact state
+Policy results
+required Evidence
+Risk
+Decision state
+Operational Authorization
+Actor eligibility
+```
+
+---
+
+# 16. Governance Service
+
+The Governance Service SHALL provide deterministic governance decisions.
+
+Its logical responsibilities include:
+
+```text
+Policy Evaluation
+Semantic Authority resolution
+Operational Authorization validation
+Risk rules
+Exception handling
+```
+
+---
+
+# 17. Policy Evaluation
+
+Policy evaluation SHALL determine:
+
+```text
+which Policies apply
+whether prerequisites are satisfied
+whether an invariant blocks an operation
+whether an Exception applies
+what human Decision is required
+```
+
+Policy evaluation output SHALL be deterministic for the same authoritative inputs wherever the Policy semantics themselves are deterministic.
+
+---
+
+# 18. Semantic Authority Resolution
+
+The governance architecture SHALL determine which source is authoritative for a governed Assertion.
+
+Example:
+
+```text
+Question:
+What is the current source code?
+
+Authority:
+Git repository
+
+Question:
+What is the accepted architecture decision?
+
+Authority:
+AIEOS Decision Artifact
+
+Question:
+Did CI pass?
+
+Authority:
+configured CI provider result
+```
+
+---
+
+## 18.1 Authority conflicts
+
+If applicable Authority Bindings conflict:
+
+```text
+Authority A
+      ↘
+     conflict
+      ↗
+Authority B
+```
+
+AIEOS SHALL surface an Authority Conflict.
+
+Protected progression SHALL fail closed when the conflict affects mandatory governance.
+
+---
+
+# 19. Operational Authorization
+
+Operational Authorization evaluation SHALL answer:
+
+```text
+Actor
+ +
+Action
+ +
+Target
+ +
+Environment
+ +
+Context
+ +
+Time
+ =
+Authorized?
+```
+
+An Operational Authorization SHALL NOT itself provide technical access.
+
+It authorizes the later provision or use of a Capability.
+
+---
+
+# 20. Risk Architecture
+
+Risk SHALL participate in governance rather than existing only as descriptive metadata.
+
+Risk may affect:
+
+```text
+required human approval
+agent autonomy
+verification depth
+review independence
+capability availability
+environment access
+deployment strategy
+rollback requirements
+```
+
+---
+
+# 21. Decision Service
+
+The Decision Service SHALL manage governed Decisions.
+
+It SHALL support:
+
+```text
+Approval
+Rejection
+Request Changes
+Escalation
+Risk Acceptance
+Policy Exception approval
+Architecture Decision
+Intent acceptance
+```
+
+---
+
+## 21.1 Decision packet
+
+A request for human Decision SHOULD contain:
+
+```text
+decision requested
+subject
+reason
+risk
+applicable policy
+relevant artifacts
+relevant evidence
+agent recommendation
+open questions
+available actions
+```
+
+---
+
+# 22. Agent Orchestrator
+
+## 22.1 Responsibility
+
+The Agent Orchestrator SHALL coordinate AI reasoning tasks.
+
+It MAY dispatch logical roles such as:
+
+```text
+Intent Analyst
+Specification Agent
+Planner
+Implementer
+Test Author
+Reviewer
+Security Reviewer
+Incident Investigator
+Evidence Auditor
+Documentation Agent
+```
+
+---
+
+## 22.2 Non-authoritative orchestration
+
+The Agent Orchestrator SHALL NOT own:
+
+```text
+Lifecycle State
+Semantic Authority
+Operational Authorization
+Policy acceptance
+human Decisions
+```
+
+---
+
+## 22.3 Agent task contract
+
+Each Agent task SHALL receive a bounded execution contract.
+
+Conceptually:
+
+```text
+AgentTask
+
+identity
+role
+objective
+Work Unit
+input Subjects
+allowed tools
+allowed Capabilities
+execution limits
+expected outputs
+required evidence
+policy context
+```
+
+---
+
+# 23. Agent Context Assembly
+
+Agent context SHALL be assembled from governed sources rather than relying solely on ad hoc prompt construction.
+
+Context MAY include:
+
+```text
+Intent
+Requirements
+Specification
+Architecture
+Decisions
+Policies
+Plan
+related source
+previous Executions
+Evidence
+Reviews
+```
+
+The source of context SHOULD remain traceable.
+
+---
+
+# 24. Agent Model Adapter
+
+AIEOS SHALL use a provider abstraction between Agent Orchestration and concrete model providers.
+
+Conceptually:
+
+```text
+Agent Orchestrator
+        ↓
+Agent Provider Contract
+        ↓
+ ┌──────┼──────┐
+ ▼      ▼      ▼
+Provider A
+Provider B
+Local Model
+```
+
+The underlying model SHALL NOT define Agent semantic identity.
+
+---
+
+# 25. Execution Manager
+
+The Execution Manager SHALL coordinate bounded operations against engineering environments.
+
+It SHALL manage:
+
+```text
+execution identity
+execution lifecycle
+workspace allocation
+environment binding
+input snapshot/reference
+limits
+tool availability
+result
+outputs
+cleanup
+```
+
+---
+
+# 26. Execution Isolation
+
+Mutable Agent execution SHOULD occur in an isolated workspace.
+
+Conceptually:
+
+```text
+Work Unit
+    ↓
+Execution Request
+    ↓
+Isolated Workspace
+    ↓
+Scoped Tools / Capabilities
+    ↓
+Execution
+    ↓
+Outputs
+```
+
+Isolation strength MAY vary according to Risk.
+
+---
+
+# 27. Capability Service
+
+## 27.1 Responsibility
+
+The Capability Service SHALL manage:
+
+```text
+Capability Definitions
+Capability Grants
+scope
+expiration
+revocation
+execution binding
+```
+
+---
+
+## 27.2 Capability issuance
+
+A capability request SHALL be evaluated against:
+
+```text
+Actor
+Agent Role
+Work Unit
+Action
+Target
+Environment
+Policy
+Operational Authorization
+Risk
+Time
+```
+
+before access is granted.
+
+---
+
+# 28. Credential Boundary
+
+AIEOS SHOULD prevent raw long-lived credentials from entering Agent reasoning context.
+
+Preferred architecture:
+
+```text
+Agent
+  ↓
+Tool request
+  ↓
+Capability Service
+  ↓
+authorized adapter
+  ↓
+external system credential
+```
+
+rather than:
+
+```text
+Agent
+  ↓
+raw administrator credential
+```
+
+---
+
+# 29. Tool Gateway
+
+External operations SHOULD be exposed through governed tool interfaces.
+
+Examples:
+
+```text
+read repository
+create branch
+apply patch
+run tests
+open pull request
+query CI
+deploy staging
+read logs
+```
+
+Tool invocation SHALL be attributable to an Execution and Actor.
+
+---
+
+# 30. Verification Service
+
+The Verification Service SHALL coordinate determination of whether defined conditions hold.
+
+It SHALL manage:
+
+```text
+Verification Criteria
+verification requests
+verification methods
+Verification Results
+staleness
+validity
+requirement linkage
+```
+
+---
+
+# 31. Evidence Service
+
+The Evidence Service SHALL manage:
+
+```text
+Evidence identity
+Evidence metadata
+origin
+subject binding
+integrity metadata
+validity
+staleness
+retention references
+```
+
+Evidence content MAY remain in an authoritative external system.
+
+Example:
+
+```text
+Evidence metadata in AIEOS
+          ↓
+Native Reference
+          ↓
+CI provider test result
+```
+
+---
+
+# 32. Review Service
+
+The Review Service SHALL coordinate:
+
+```text
+Review identity
+Review target
+Reviewer
+criteria
+findings
+finding disposition
+Review outcome
+```
+
+Independent review SHALL be representable explicitly.
+
+---
+
+# 33. Provenance Service
+
+The Provenance Service SHALL record how governed state came to exist.
+
+It SHALL support provenance for:
+
+```text
+Artifacts
+Assertions
+Relationships
+Executions
+Evidence
+Reviews
+Decisions
+Operational Authorizations
+Deployments
+Transitions
+integration updates
+reconciliation
+```
+
+---
+
+# 34. Event Ledger
+
+AIEOS SHALL maintain an append-oriented logical Event Ledger for consequential historical Events.
+
+Example events:
+
+```text
+subject.created
+artifact.created
+assertion.proposed
+assertion.accepted
+workflow.started
+transition.requested
+transition.accepted
+transition.denied
+decision.requested
+decision.recorded
+authorization.granted
+authorization.revoked
+execution.started
+execution.completed
+verification.completed
+review.completed
+deployment.started
+deployment.completed
+observation.recorded
+incident.opened
+reconciliation.detected-drift
+```
+
+---
+
+## 34.1 Event ledger versus event sourcing
+
+AIEOS SHALL retain consequential Events.
+
+AIEOS SHALL NOT be required to reconstruct every current data structure solely by replaying Events.
+
+Full event sourcing remains optional.
+
+---
+
+# 35. Command Model
+
+State-changing requests SHALL enter AIEOS as explicit Commands.
+
+Examples:
+
+```text
+CreateWorkUnit
+AcceptIntent
+StartWorkflow
+ProposeTransition
+GrantCapability
+RecordDecision
+AuthorizeAction
+StartExecution
+RecordEvidence
+CompleteVerification
+RecordReview
+RequestDeployment
+RecordObservation
+```
+
+A Command represents:
+
+> **a requested change to governed state.**
+
+---
+
+# 36. Command Processing
+
+The conceptual processing pipeline SHALL be:
+
+```text
+Command
+   ↓
+Authenticate Actor
+   ↓
+Resolve Subject
+   ↓
+Load authoritative state
+   ↓
+Evaluate Policy
+   ↓
+Evaluate Capability / Authorization
+   ↓
+Validate invariants
+   ↓
+Apply state change
+   ↓
+Persist state
+   ↓
+Record Event
+   ↓
+Record Provenance
+   ↓
+Publish notifications / integration work
+```
+
+---
+
+# 37. Transaction Boundary
+
+Changes to authoritative AIEOS state that form one governance decision SHOULD commit atomically inside the authoritative persistence boundary.
+
+For example:
+
+```text
+Transition accepted
++
+Workflow State updated
++
+Transition record
++
+Event
++
+Provenance
+```
+
+SHOULD either commit together or not commit.
+
+---
+
+# 38. External Side Effects
+
+External system mutations SHALL NOT be assumed to participate in the same transaction as AIEOS state.
+
+Example:
+
+```text
+AIEOS
+  │
+  ├── records intended GitHub operation
+  │
+  └── commits
+         ↓
+Connector performs GitHub operation
+         ↓
+result returned
+         ↓
+AIEOS records observed result
+```
+
+---
+
+# 39. Side-Effect State Machine
+
+Consequential external operations SHALL support explicit states such as:
+
+```text
+requested
+authorized
+dispatched
+acknowledged
+completed
+failed
+unknown
+reconciliation-required
+```
+
+This prevents an external timeout from being treated as either definite success or definite failure without evidence.
+
+---
+
+# 40. Event Transport
+
+Internal Events MAY be transported synchronously or asynchronously.
+
+The architecture SHALL permit asynchronous subscribers for:
+
+```text
+projections
+notifications
+agent dispatch
+integration operations
+reconciliation
+observability
+analytics
+```
+
+Event transport technology is deferred.
+
+---
+
+# 41. Reliable Event Publication
+
+Where Events trigger external or asynchronous effects, the implementation SHALL avoid a state in which:
+
+```text
+authoritative transaction succeeds
+
+but
+
+required event is silently lost
+```
+
+The implementation SHOULD use an equivalent of a **transactional outbox** or another atomic state/event publication pattern.
+
+The exact mechanism belongs to implementation design.
+
+---
+
+# 42. Query Architecture
+
+Read behavior SHALL be logically distinct from authoritative mutation.
+
+Queries MAY use derived projections optimized for:
+
+```text
+dashboard
+graph traversal
+decision inbox
+work queue
+traceability
+impact analysis
+audit
+search
+```
+
+---
+
+# 43. Projection Semantics
+
+A Projection SHALL be considered derived unless explicit Semantic Authority states otherwise.
+
+Projection metadata SHOULD include:
+
+```text
+source
+generated time
+source version
+freshness
+projection version
+```
+
+---
+
+# 44. Authoritative Persistence Model
+
+AIEOS requires an authoritative transactional persistence boundary for its core governed state.
+
+The logical data domains include:
+
+```text
+Subjects
+Native References
+Artifacts metadata
+Assertions
+Relationships
+Authority Bindings
+Work Units
+Workflow Definitions
+Workflow Instances
+Transitions
+Policies
+Policy Evaluations
+Decisions
+Capability Grants
+Operational Authorizations
+Executions
+Verification Results
+Evidence metadata
+Reviews
+Events
+Provenance
+Reconciliation state
+```
+
+The concrete persistence technology is deferred.
+
+---
+
+# 45. Artifact Content Storage
+
+AIEOS SHALL distinguish:
+
+```text
+Artifact identity and metadata
+
+from
+
+Artifact content representation
+```
+
+Artifact content MAY reside in:
+
+```text
+Git
+filesystem
+database
+document store
+issue tracker
+external service
+```
+
+AIEOS MAY retain local content when configured to do so.
+
+---
+
+# 46. Logical Graph Projection
+
+AIEOS SHALL provide relationship traversal over:
+
+```text
+Subjects
+Assertions
+Relationships
+Provenance
+```
+
+The architecture SHALL permit graph-oriented queries such as:
+
+```text
+What implements this Requirement?
+
+What Evidence supports this Assertion?
+
+What changed because of this Intent?
+
+What will be affected by this Subject?
+
+What Deployment contains this Change?
+
+What Incident produced this Requirement?
+```
+
+The implementation MAY satisfy this with:
+
+```text
+relational traversal
+graph projection
+graph database
+search index
+hybrid
+```
+
+---
+
+# 47. Consistency Model
+
+AIEOS SHALL use two primary consistency classes.
+
+## Class A — Core governance consistency
+
+Strong consistency SHALL be preferred for:
+
+```text
+Workflow State
+Transitions
+Decisions
+Operational Authorizations
+Capability Grants
+Policy-controlled protected actions
+identity mutation
+```
+
+---
+
+## Class B — External/projection consistency
+
+Eventual consistency SHALL be expected for:
+
+```text
+external native systems
+search indexes
+dashboards
+graph projections
+cached representations
+observability ingestion
+```
+
+---
+
+# 48. No Distributed Transaction Requirement
+
+AIEOS SHALL NOT require distributed two-phase commit across:
+
+```text
+AIEOS
+Git provider
+CI
+cloud
+observability
+issue tracker
+AI provider
+```
+
+Cross-system correctness SHALL instead rely on:
+
+```text
+explicit operation state
+idempotency
+provenance
+retries
+reconciliation
+compensation
+```
+
+---
+
+# 49. Reconciliation Service
+
+The Reconciliation Service SHALL compare:
+
+```text
+Expected AIEOS state
+
+with
+
+Authoritative external state
+```
+
+and classify the relationship.
+
+Possible results:
+
+```text
+in-sync
+stale
+missing
+drift
+conflicting
+partially-applied
+unknown
+```
+
+---
+
+# 50. Reconciliation Behavior
+
+Reconciliation MAY:
+
+```text
+update derived state
+record Observation
+mark projection stale
+retry an idempotent operation
+create Drift
+request Decision
+open Incident
+create Work Unit
+```
+
+depending upon Policy.
+
+---
+
+## 50.1 No unsafe automatic repair
+
+A consequential discrepancy SHALL NOT be automatically repaired unless Policy explicitly permits the repair.
+
+---
+
+# 51. Integration Gateway
+
+All external integrations SHALL pass through a logical Integration Gateway.
+
+Adapters SHALL translate between:
+
+```text
+AIEOS semantic concepts
+        ↕
+native external concepts
+```
+
+---
+
+# 52. Adapter Pattern
+
+An integration adapter SHALL expose contracts conceptually equivalent to:
+
+```text
+discover
+read
+query
+observe
+mutate
+subscribe
+reconcile
+resolve-native-reference
+```
+
+Not every integration must support every capability.
+
+---
+
+# 53. Source-Control Adapter
+
+A source-control integration MAY expose:
+
+```text
+repository
+branch
+commit
+diff
+pull request
+review
+status
+```
+
+without making those native objects the semantic identity of corresponding AIEOS Subjects.
+
+---
+
+# 54. CI/CD Adapter
+
+A CI/CD integration MAY provide authoritative external Evidence for:
+
+```text
+build
+test
+lint
+security scan
+deployment result
+```
+
+depending on configured Semantic Authority.
+
+---
+
+# 55. Observability Adapter
+
+Observability integrations MAY ingest:
+
+```text
+logs
+metrics
+traces
+alerts
+errors
+SLO results
+```
+
+as Observations.
+
+An Observation SHALL remain distinct from a diagnosis.
+
+---
+
+# 56. Observation Gateway
+
+The Observation Gateway SHALL normalize external signals into governed Observations.
+
+Conceptually:
+
+```text
+External Signal
+      ↓
+Observation Adapter
+      ↓
+Observation
+      ↓
+Policy
+      ↓
+ignore / correlate / investigate / incident / intent
+```
+
+---
+
+# 57. Incident Architecture
+
+An Incident SHALL coordinate:
+
+```text
+Observations
+Hypotheses
+Investigations
+Decisions
+Mitigations
+Remediation Work Units
+Evidence
+Disposition
+Learning
+```
+
+The Incident itself SHALL NOT bypass normal governance for consequential remediation.
+
+Emergency Policy MAY define alternate Workflow Definitions.
+
+---
+
+# 58. Human Experience Layer
+
+The primary AIEOS human interface SHALL be decision-oriented.
+
+Its primary question is:
+
+> **What currently requires human judgment or authority?**
+
+---
+
+# 59. Human Decision Inbox
+
+A Decision Inbox SHOULD expose:
+
+```text
+Pending Decisions
+Pending Approvals
+Pending Operational Authorizations
+Policy Exceptions
+Risk Acceptances
+Conflicts
+Escalations
+Blocked Work
+```
+
+---
+
+# 60. Work Trace View
+
+For any Work Unit, the human interface SHOULD support traversal through:
+
+```text
+Intent
+  ↓
+Requirements
+  ↓
+Specification
+  ↓
+Decisions
+  ↓
+Plan
+  ↓
+Executions
+  ↓
+Changes
+  ↓
+Verification
+  ↓
+Evidence
+  ↓
+Reviews
+  ↓
+Operational Authorization
+  ↓
+Deployment
+  ↓
+Observation
+```
+
+---
+
+# 61. Agent Experience
+
+The Agent-facing architecture SHALL be optimized around explicit tasks rather than an unrestricted global engineering session.
+
+Agent interaction SHOULD resemble:
+
+```text
+Task
+  +
+Context
+  +
+Tools
+  +
+Capabilities
+  +
+Constraints
+  +
+Expected Outputs
+  +
+Evidence Requirements
+```
+
+---
+
+# 62. Trust Model
+
+AIEOS SHALL assume that:
+
+```text
+Agent output is untrusted
+
+External integration data may be stale
+
+Network calls may fail
+
+External side effects may have ambiguous outcomes
+
+Human decisions are authoritative only within granted scope
+
+Derived projections may be stale
+
+Evidence may become invalid
+
+Configuration may conflict
+```
+
+---
+
+# 63. Trust Boundaries
+
+The architecture SHALL include explicit trust boundaries around at least:
+
+```text
+Human authentication boundary
+
+Agent reasoning boundary
+
+Execution sandbox boundary
+
+Capability/credential boundary
+
+External integration boundary
+
+AIEOS authoritative persistence boundary
+
+Production environment boundary
+```
+
+---
+
+# 64. Agent Trust Boundary
+
+Agent-produced:
+
+```text
+text
+code
+commands
+tool requests
+reviews
+risk recommendations
+plans
+specifications
+```
+
+SHALL be treated as untrusted inputs to deterministic governance.
+
+---
+
+# 65. Production Boundary
+
+Production SHALL be capable of having stronger Policy and Operational Authorization rules than other Environments.
+
+Example:
+
+```text
+Development:
+Agent may execute
+
+Staging:
+Agent may deploy after verification
+
+Production:
+Agent may prepare deployment
+Human authorization required
+Deployment controller executes
+```
+
+This is a Policy example, not a mandatory universal configuration.
+
+---
+
+# 66. Security Boundary for Secrets
+
+Secrets SHALL be managed outside unrestricted model context wherever practical.
+
+AIEOS SHOULD support:
+
+```text
+secret references
+scoped credential issuance
+short-lived credentials
+tool-side credential use
+redacted provenance
+```
+
+---
+
+# 67. Failure Philosophy
+
+AIEOS SHALL distinguish:
+
+```text
+failure
+unknown outcome
+blocked condition
+policy denial
+authorization denial
+external unavailability
+stale information
+conflict
+```
+
+These SHALL NOT be collapsed into a generic error state.
+
+---
+
+# 68. Agent Failure
+
+If an Agent fails:
+
+```text
+Agent Execution
+      ↓
+failed / timed-out / cancelled
+```
+
+the Workflow SHALL NOT silently advance.
+
+Retry SHALL be Policy-controlled.
+
+---
+
+# 69. AI Provider Failure
+
+If an AI provider is unavailable:
+
+* existing authoritative state SHALL remain valid;
+* deterministic governance SHALL continue where possible;
+* human operation SHALL remain possible where configured;
+* Agent-dependent work MAY enter a blocked state;
+* the system MAY route to another permitted provider.
+
+AIEOS SHALL NOT corrupt Workflow State because AI reasoning is unavailable.
+
+---
+
+# 70. Integration Failure
+
+When an external integration call fails, AIEOS SHALL record whether the external outcome is:
+
+```text
+known-failed
+
+or
+
+unknown
+```
+
+An ambiguous timeout SHALL NOT automatically be retried if the operation is not safely idempotent.
+
+Reconciliation SHALL determine actual state.
+
+---
+
+# 71. Persistence Failure
+
+A protected mutation SHALL NOT be reported as successful until authoritative AIEOS persistence succeeds.
+
+If state cannot be persisted:
+
+```text
+operation result
+=
+failed or indeterminate
+```
+
+according to the external side effects already performed.
+
+---
+
+# 72. Policy Evaluation Failure
+
+If mandatory Policy cannot be evaluated:
+
+```text
+Protected action
+=
+DENIED / BLOCKED
+```
+
+unless an explicit emergency Policy governs degraded operation.
+
+Default behavior SHALL be fail-closed.
+
+---
+
+# 73. Semantic Authority Conflict
+
+If authoritative sources conflict for information required by a protected transition:
+
+```text
+Transition
+=
+BLOCKED
+```
+
+until Policy or an authorized Decision resolves the conflict.
+
+---
+
+# 74. Evidence Staleness
+
+Evidence invalidated by later state change SHALL NOT continue satisfying a mandatory gate unless applicable Policy permits it.
+
+Example:
+
+```text
+Tests pass for commit A
+        ↓
+code changes to commit B
+        ↓
+Evidence for commit A
+        =
+not automatically valid for B
+```
+
+---
+
+# 75. Recovery Architecture
+
+AIEOS SHALL support restart-safe processing.
+
+Long-running work SHOULD be representable as recoverable state rather than depending entirely on in-memory process state.
+
+Examples:
+
+```text
+Agent task
+external mutation
+verification run
+deployment
+reconciliation operation
+```
+
+---
+
+# 76. Idempotency
+
+Externally visible operations SHOULD support idempotency keys or equivalent deduplication where the external system permits it.
+
+Conceptually:
+
+```text
+Work Unit
++
+Operation type
++
+Target
++
+Execution attempt
+=
+operation identity
+```
+
+---
+
+# 77. Compensation
+
+Where an external mutation cannot be rolled back transactionally, a Workflow MAY define a compensating action.
+
+Example:
+
+```text
+deployment failed
+      ↓
+compensation
+      ↓
+rollback previous release
+```
+
+Compensation SHALL itself be governed and recorded.
+
+---
+
+# 78. Local-First Architecture
+
+AIEOS SHALL support a useful local operating mode.
+
+A minimal local deployment SHALL be capable of maintaining:
+
+```text
+Subjects
+Artifacts metadata
+Relationships
+Work Units
+Workflow State
+Policy
+Decisions
+Executions
+Evidence metadata
+Provenance
+Events
+```
+
+without requiring a remote proprietary AIEOS service.
+
+---
+
+# 79. Local Authority
+
+In local mode, the local AIEOS instance MAY be authoritative for configured AIEOS-managed engineering state.
+
+External services MAY remain authoritative for their native facts.
+
+---
+
+# 80. Offline Behavior
+
+When network access is unavailable:
+
+AIEOS SHOULD permit:
+
+```text
+local artifact inspection
+local Work Unit operations
+local workflow operations that do not require remote authority
+local source operations where repository exists locally
+local deterministic verification
+local Agent execution when a permitted local provider exists
+```
+
+Remote-dependent operations SHALL become explicitly pending or blocked.
+
+---
+
+# 81. Deferred External Operations
+
+Offline or unavailable external operations MAY be represented as:
+
+```text
+pending
+```
+
+but SHALL NOT be represented as successful until confirmed.
+
+On reconnection:
+
+```text
+pending operation
+     ↓
+authorization revalidation where necessary
+     ↓
+dispatch
+     ↓
+observe result
+     ↓
+reconcile
+```
+
+---
+
+# 82. Multi-Node Evolution
+
+The architecture SHALL permit later evolution from:
+
+```text
+single local AIEOS instance
+```
+
+to:
+
+```text
+shared team instance
+```
+
+and eventually:
+
+```text
+distributed organizational deployment
+```
+
+without changing core semantic identity.
+
+---
+
+# 83. Deployment Architecture — MVP
+
+The first implementation SHOULD use a **modular monolith plus isolated execution workers**.
+
+Conceptually:
+
+```text
+┌────────────────────────────────────┐
+│            AIEOS App               │
+│                                    │
+│  API / UI / CLI                    │
+│                                    │
+│  Identity                          │
+│  Knowledge                         │
+│  Workflow                          │
+│  Governance                        │
+│  Decisions                         │
+│  Evidence                          │
+│  Provenance                        │
+│  Reconciliation                    │
+│                                    │
+│  Authoritative Persistence         │
+└───────────────┬────────────────────┘
+                │
+                │ task
+                ▼
+      ┌───────────────────────┐
+      │ Execution Worker      │
+      │ / Agent Sandbox       │
+      └──────────┬────────────┘
+                 │
+       ┌─────────┼─────────┐
+       ▼         ▼         ▼
+      Git       CI      AI Provider
+```
+
+---
+
+# 84. Why Modular Monolith First
+
+The MVP SHOULD NOT begin as many network-separated microservices because that would introduce:
+
+```text
+distributed consistency
+network failure
+deployment coordination
+service discovery
+observability complexity
+schema coordination
+cross-service authorization
+```
+
+before the domain itself has operational evidence.
+
+Logical modules SHALL still enforce boundaries.
+
+Later extraction SHALL remain possible.
+
+---
+
+# 85. MVP Process Boundaries
+
+The initial deployment MAY consist of:
+
+```text
+1. Core Application Process
+
+2. Background Worker Process
+
+3. Isolated Execution / Agent Environment
+
+4. Authoritative Persistence
+
+5. Local Artifact / Evidence Storage where required
+
+6. Integration Adapters
+```
+
+This is a deployment recommendation, not a mandatory final architecture.
+
+---
+
+# 86. MVP Vertical Slice
+
+The first complete executable lifecycle SHALL be:
+
+```text
+Human creates Intent
+        ↓
+AIEOS creates Work Unit
+        ↓
+Human accepts Intent
+        ↓
+Specification Agent runs
+        ↓
+Specification proposed
+        ↓
+Human approves Specification
+        ↓
+Planning Agent runs read-only
+        ↓
+Plan proposed
+        ↓
+Plan approved
+        ↓
+Implementation capability requested
+        ↓
+Policy + Authorization evaluated
+        ↓
+Sandbox created
+        ↓
+Implementation Agent executes
+        ↓
+Change produced
+        ↓
+Tests execute
+        ↓
+Evidence captured
+        ↓
+Verification completed
+        ↓
+Independent Review Agent runs
+        ↓
+Review recorded
+        ↓
+Human receives Decision request
+        ↓
+Human approves
+        ↓
+Merge operation authorized
+        ↓
+External source-control adapter executes merge
+        ↓
+Result reconciled
+        ↓
+Work Unit completed
+```
+
+---
+
+# 87. MVP Explicit Non-Goals
+
+The first vertical slice SHOULD NOT require:
+
+```text
+automatic production deployment
+full incident automation
+multi-region deployment
+multi-tenant SaaS
+complex distributed graph storage
+full bitemporal database implementation
+arbitrary user workflow DSL
+fully autonomous requirements acceptance
+fully autonomous risk acceptance
+self-modifying governance
+```
+
+---
+
+# 88. Extension Architecture
+
+AIEOS SHALL support extension through stable logical contracts.
+
+Initial extension classes include:
+
+```text
+Agent Providers
+Tools
+Source-Control Adapters
+CI/CD Adapters
+Issue Tracker Adapters
+Observability Adapters
+Artifact Providers
+Verification Providers
+Execution Providers
+Policy Evaluators
+Workflow Definitions
+```
+
+---
+
+# 89. Extension Isolation
+
+Extensions SHALL NOT receive direct unrestricted access to authoritative AIEOS persistence.
+
+They SHALL operate through controlled contracts.
+
+This protects domain invariants.
+
+---
+
+# 90. Plugin Failure
+
+An extension failure SHALL be isolated from authoritative state where possible.
+
+The failure SHALL produce:
+
+```text
+Execution failure
+Integration failure
+Policy failure
+or
+Blocked state
+```
+
+rather than silent corruption.
+
+---
+
+# 91. Search and Retrieval Architecture
+
+AIEOS SHOULD support retrieval over:
+
+```text
+Artifacts
+Assertions
+Relationships
+Events
+Provenance
+Work Units
+Evidence metadata
+```
+
+Search indexes SHALL be treated as derived projections unless explicitly configured otherwise.
+
+---
+
+# 92. Impact Analysis Architecture
+
+Impact analysis SHALL use known semantic Relationships.
+
+Conceptually:
+
+```text
+Subject selected
+       ↓
+traverse:
+depends-on
+implements
+constrains
+satisfies
+derived-from
+deploys
+       ↓
+Affected Subject Set
+```
+
+An impact result SHALL distinguish:
+
+```text
+known relationship
+inferred relationship
+unknown impact
+```
+
+---
+
+# 93. Explainability Architecture
+
+Governance decisions SHOULD be explainable as a derivation from explicit state.
+
+Example:
+
+```text
+Deployment denied
+
+because:
+
+Environment = production
+
+Risk = R2
+
+Policy POL-17 applies
+
+POL-17 requires:
+security review accepted
+
+REV-SEC-41 status:
+changes-requested
+```
+
+The system SHALL prefer this form over:
+
+> "AI determined deployment is unsafe."
+
+---
+
+# 94. Observability of AIEOS Itself
+
+AIEOS SHALL instrument its own engineering control functions.
+
+Operational telemetry SHOULD cover:
+
+```text
+workflow latency
+transition failures
+agent task latency
+agent failures
+policy denials
+human decision wait time
+integration failure
+reconciliation drift
+verification failure
+cost
+resource utilization
+```
+
+---
+
+# 95. Audit Architecture
+
+Audit queries SHALL be able to reconstruct consequential lifecycle history.
+
+At minimum:
+
+```text
+who
+what
+when
+why
+under which authority
+using what inputs
+producing what outputs
+with what evidence
+under which policy
+```
+
+where applicable.
+
+---
+
+# 96. Privacy and Sensitive Provenance
+
+Provenance SHALL support references or redacted representations where storing raw content would expose:
+
+```text
+credentials
+private prompts
+sensitive source
+personal information
+regulated information
+```
+
+The architecture SHALL distinguish:
+
+```text
+proof that context existed
+
+from
+
+retention of complete context contents
+```
+
+---
+
+# 97. Architecture Requirement Mapping
+
+The major requirement-family mapping is:
+
+| Requirements    | Architecture                         |
+| --------------- | ------------------------------------ |
+| `REQ-ID`        | Identity Service                     |
+| `REQ-WU`        | Work Coordination Service            |
+| `REQ-ART`       | Knowledge Service                    |
+| `REQ-ASSERT`    | Knowledge Service                    |
+| `REQ-REL`       | Knowledge Service / graph projection |
+| `REQ-AUTHORITY` | Governance Service                   |
+| `REQ-WF`        | Workflow Service                     |
+| `REQ-HUM`       | Decision Service / Experience Layer  |
+| `REQ-AGENT`     | Agent Orchestrator                   |
+| `REQ-CAP`       | Capability Service                   |
+| `REQ-AUTHZ`     | Governance + Capability Service      |
+| `REQ-DEC`       | Decision Service                     |
+| `REQ-POL`       | Governance Service                   |
+| `REQ-RISK`      | Governance Service                   |
+| `REQ-ENV`       | Identity + Execution + Governance    |
+| `REQ-EXEC`      | Execution Manager                    |
+| `REQ-VER`       | Verification Service                 |
+| `REQ-EVID`      | Evidence Service                     |
+| `REQ-REV`       | Review Service                       |
+| `REQ-DEP`       | Execution + Integration Gateway      |
+| `REQ-OBS`       | Observation Gateway                  |
+| `REQ-INC`       | Work Coordination + Observation      |
+| `REQ-LEARN`     | Knowledge + Workflow                 |
+| `REQ-PROV`      | Provenance Service / Event Ledger    |
+| `REQ-SEC`       | all protected boundaries             |
+| `REQ-INT`       | Integration Gateway                  |
+| `REQ-UX`        | Experience Layer                     |
+| `REQ-CONF`      | Governance / configuration subsystem |
+| `REQ-REC`       | Reconciliation Service               |
+| `REQ-NFR`       | cross-cutting architecture           |
+
+---
+
+# 98. Architectural Invariants
+
+## ARCH-INV-001 — One authoritative Workflow State
+
+A Workflow Instance SHALL have one authoritative current Lifecycle State.
+
+---
+
+## ARCH-INV-002 — No direct agent lifecycle mutation
+
+An Agent SHALL NOT directly set authoritative Workflow State.
+
+---
+
+## ARCH-INV-003 — No direct agent authority creation
+
+An Agent SHALL NOT directly grant itself Operational Authorization or Capabilities.
+
+---
+
+## ARCH-INV-004 — Policy before protected action
+
+Protected execution SHALL evaluate applicable Policy before execution.
+
+---
+
+## ARCH-INV-005 — Authorization before protected capability use
+
+Protected Capability use SHALL require valid Operational Authorization where configured.
+
+---
+
+## ARCH-INV-006 — Evidence is external to agent assertion
+
+Required Evidence SHALL exist independently from the Agent's statement that an operation succeeded.
+
+---
+
+## ARCH-INV-007 — External mutation is observable
+
+Consequential external mutation SHALL have an explicit operation record and result state.
+
+---
+
+## ARCH-INV-008 — External uncertainty remains uncertainty
+
+Unknown external outcomes SHALL NOT be rewritten as success or failure without evidence.
+
+---
+
+## ARCH-INV-009 — History is additive
+
+Consequential historical state SHALL not be silently rewritten.
+
+---
+
+## ARCH-INV-010 — Projection is not authority
+
+A derived projection SHALL NOT silently supersede its authoritative source.
+
+---
+
+## ARCH-INV-011 — Native system identity is not semantic identity
+
+External native identifiers SHALL remain bindings unless explicitly adopted under identity policy.
+
+---
+
+## ARCH-INV-012 — Local operation does not depend on SaaS
+
+A useful local AIEOS deployment SHALL not require a proprietary hosted AIEOS control service.
+
+---
+
+# 99. Architecture Fitness Functions
+
+The architecture SHOULD be continuously evaluated against executable or inspectable fitness functions.
+
+Examples:
+
+## Fitness Function 1 — Agent cannot self-authorize
+
+```text
+Agent requests protected operation
+without valid Operational Authorization
+
+Expected:
+DENIED
+```
+
+---
+
+## Fitness Function 2 — Evidence binding
+
+```text
+Evidence produced against revision A
+subject moves to revision B
+
+Expected:
+Evidence does not automatically satisfy B
+```
+
+---
+
+## Fitness Function 3 — External timeout
+
+```text
+external mutation request times out
+
+Expected:
+operation = unknown
+reconciliation required
+```
+
+---
+
+## Fitness Function 4 — Workflow versioning
+
+```text
+Workflow Definition v2 published
+
+Existing Workflow Instance uses v1
+
+Expected:
+historical v1 transitions retain v1 semantics
+```
+
+---
+
+## Fitness Function 5 — Provider replacement
+
+```text
+Agent model provider changes
+
+Expected:
+Work Unit and Agent role identity remain valid
+```
+
+---
+
+## Fitness Function 6 — Offline mode
+
+```text
+network unavailable
+
+Expected:
+local authoritative work remains inspectable
+and locally permitted transitions continue
+```
+
+---
+
+# 100. Architecture Decisions Established Here
+
+The following architecture decisions are made by this specification.
+
+## AD-ARCH-001
+
+AIEOS uses a logical control-plane architecture.
+
+---
+
+## AD-ARCH-002
+
+Agents operate as bounded workers rather than owners of governance state.
+
+---
+
+## AD-ARCH-003
+
+AIEOS core governance state has an authoritative transactional persistence boundary.
+
+---
+
+## AD-ARCH-004
+
+External systems may remain authoritative for native facts.
+
+---
+
+## AD-ARCH-005
+
+Cross-system operations use eventual consistency and reconciliation rather than mandatory distributed transactions.
+
+---
+
+## AD-ARCH-006
+
+Consequential history uses an append-oriented Event Ledger.
+
+---
+
+## AD-ARCH-007
+
+Command and query concerns are logically separated.
+
+---
+
+## AD-ARCH-008
+
+Capability provisioning is separated from Operational Authorization.
+
+---
+
+## AD-ARCH-009
+
+External credentials are mediated from Agent reasoning where practical.
+
+---
+
+## AD-ARCH-010
+
+The MVP begins as a modular monolith with isolated execution workers.
+
+---
+
+## AD-ARCH-011
+
+Local-first operation is a first-class deployment mode.
+
+---
+
+## AD-ARCH-012
+
+Vendor-specific systems integrate through adapters.
+
+---
+
+# 101. Decisions Requiring Dedicated ADRs
+
+The following decisions are important enough to receive dedicated ADRs before implementation becomes binding:
+
+```text
+ADR-AIEOS-001
+Canonical Subject identifier strategy
+
+ADR-AIEOS-002
+Authoritative persistence model
+
+ADR-AIEOS-003
+Event Ledger and event-publication strategy
+
+ADR-AIEOS-004
+Workflow Definition representation
+
+ADR-AIEOS-005
+Policy representation and evaluation mechanism
+
+ADR-AIEOS-006
+Agent provider contract
+
+ADR-AIEOS-007
+Execution sandbox model
+
+ADR-AIEOS-008
+Capability and credential issuance model
+
+ADR-AIEOS-009
+Artifact content and representation storage
+
+ADR-AIEOS-010
+Relationship graph persistence/projection strategy
+
+ADR-AIEOS-011
+Local-first synchronization model
+
+ADR-AIEOS-012
+Integration idempotency and reconciliation model
+```
+
+These ADRs SHALL refine architecture without violating `RB-001`.
+
+---
+
+# 102. Decisions Explicitly Deferred
+
+The architecture does not yet decide:
+
+```text
+PostgreSQL versus SQLite versus other persistence
+
+graph database versus relational graph projection
+
+event broker technology
+
+workflow framework
+
+policy DSL
+
+container runtime
+
+agent provider
+
+frontend framework
+
+API protocol
+
+repository provider
+
+cloud provider
+
+deployment provider
+
+secret manager
+
+search engine
+```
+
+---
+
+# 103. Required Subordinate Specifications
+
+The architecture now establishes sufficient structure for the following detailed specifications:
+
+```text
+AIEOS-WF-001
+Workflow & Lifecycle Specification
+
+AIEOS-ART-001
+Artifact & Knowledge Model Specification
+
+AIEOS-AUTH-001
+Authority & Capability Specification
+
+AIEOS-POL-001
+Policy & Governance Specification
+
+AIEOS-AGENT-001
+Agent Execution Specification
+
+AIEOS-VER-001
+Verification & Evidence Specification
+
+AIEOS-PROV-001
+Provenance & Audit Specification
+
+AIEOS-RISK-001
+Risk & Autonomy Specification
+
+AIEOS-INT-001
+Integration & Reconciliation Specification
+
+AIEOS-SEC-001
+Security Architecture Specification
+
+AIEOS-OBS-001
+Observation, Incident & Learning Specification
+
+AIEOS-API-001
+Control Plane API Specification
+
+AIEOS-UX-001
+Human Interaction Specification
+```
+
+---
+
+# 104. Recommended Refinement Order
+
+The recommended order is:
+
+```text
+AIEOS-ARCH-001
+       ↓
+Architecture Review / Baseline
+       ↓
+AIEOS-WF-001
+       ↓
+AIEOS-ART-001
+       ↓
+AIEOS-AUTH-001
+       ↓
+AIEOS-POL-001
+       ↓
+AIEOS-AGENT-001
+       ↓
+AIEOS-VER-001
+       ↓
+AIEOS-PROV-001
+       ↓
+AIEOS-RISK-001
+       ↓
+AIEOS-INT-001
+       ↓
+AIEOS-SEC-001
+       ↓
+AIEOS-OBS-001
+       ↓
+AIEOS-API-001
+       ↓
+AIEOS-UX-001
+       ↓
+ADR Set
+       ↓
+AIEOS-MVP-001
+       ↓
+AIEOS-IMPL-001
+```
+
+ADRs MAY be produced incrementally as each subordinate specification forces a concrete architectural choice.
+
+---
+
+# 105. Architecture Review Gate
+
+Before this specification becomes an accepted architecture baseline, it SHALL be reviewed for:
+
+```text
+requirements coverage
+
+domain preservation
+
+component cohesion
+
+component coupling
+
+authority ownership
+
+state ownership
+
+trust boundaries
+
+failure behavior
+
+local-first viability
+
+agent isolation
+
+external integration consistency
+
+reconciliation completeness
+
+MVP feasibility
+
+implementation neutrality
+```
+
+---
+
+# 106. Architecture Review Questions
+
+The review SHALL ask:
+
+1. Is every authoritative state owned by exactly one logical authority?
+2. Are Semantic Authority and Operational Authorization preserved?
+3. Can an Agent bypass deterministic governance?
+4. Can an Agent manufacture Capabilities?
+5. Can external side effects become ambiguous without being represented as unknown?
+6. Can AIEOS recover from integration failure?
+7. Can AIEOS operate usefully without cloud connectivity?
+8. Does the architecture unnecessarily duplicate Git, CI, observability, or deployment systems?
+9. Can native systems remain authoritative?
+10. Can Evidence remain independently inspectable?
+11. Can historical state be reconstructed?
+12. Can the architecture evolve from local single-user to shared organizational use?
+13. Is the MVP small enough to implement?
+14. Are technology choices still properly deferred?
+15. Does every logical component justify its existence?
+
+---
+
+# 107. Definition of Ready for Architecture Baseline
+
+`AIEOS-ARCH-001` is ready for acceptance when:
+
+* all `RB-001` requirement families are mapped;
+* no domain invariant is contradicted;
+* authority ownership is explicit;
+* Workflow State ownership is explicit;
+* agent governance boundaries are explicit;
+* external consistency strategy is explicit;
+* trust boundaries are explicit;
+* failure semantics are explicit;
+* local-first architecture is credible;
+* MVP architecture is coherent;
+* major unresolved design choices are recorded as ADR candidates;
+* no implementation technology has been selected accidentally.
+
+---
+
+# 108. Architecture North Star
+
+The architecture succeeds when AIEOS can safely coordinate:
+
+```text
+Human intent
+
+AI reasoning
+
+deterministic governance
+
+bounded machine execution
+
+external engineering systems
+
+observable operational reality
+```
+
+without allowing any one participant to become an implicit source of uncontrolled authority.
+
+The architecture therefore exists to preserve this chain:
+
+```text
+Intent
+   ↓
+Governed Knowledge
+   ↓
+Governed Decision
+   ↓
+Authorized Capability
+   ↓
+Bounded Execution
+   ↓
+Observable Evidence
+   ↓
+Independent Verification
+   ↓
+Governed State Change
+   ↓
+Operational Reality
+   ↓
+Observation
+   ↓
+New Knowledge
+```
+
+---
+
+# 109. Architectural Thesis
+
+AIEOS is not fundamentally:
+
+```text
+an AI coding tool
+
+a project manager
+
+a workflow engine
+
+a graph database
+
+a CI/CD replacement
+
+an autonomous coding agent
+```
+
+It is:
+
+> **a governed engineering control plane that coordinates humans, AI agents, deterministic automation, engineering knowledge, authority, evidence, and external systems across the complete software-engineering lifecycle.**
+
+Its application architecture SHALL therefore be built around:
+
+```text
+governance
+not prompting
+
+semantic identity
+not filenames
+
+authority
+not possession of credentials
+
+evidence
+not self-report
+
+workflow state
+not chat history
+
+provenance
+not memory
+
+reconciliation
+not assumed consistency
+
+bounded autonomy
+not unrestricted agency
+```
+
+---
+
+# 110. Status
+
+`AIEOS-ARCH-001 v0.1.0` establishes the first logical architecture for the AI-Native Engineering Operating System against **Requirements Baseline RB-001**.
+
+The architecture defines:
+
+```text
+system boundary
+logical subsystems
+state ownership
+governance boundaries
+agent boundaries
+execution boundaries
+evidence architecture
+event architecture
+persistence responsibilities
+integration strategy
+consistency model
+reconciliation
+local-first operation
+trust boundaries
+failure semantics
+MVP topology
+extension boundaries
+```
+
+without selecting concrete implementation technologies.
+
+The immediate next artifact SHOULD be:
+
+```text
+AIEOS-REV-003
+AI-Native Engineering Operating System
+System Architecture Baseline Review
+```
+
+That review SHALL challenge `AIEOS-ARCH-001` against `RB-001`, the domain invariants, failure scenarios, authority boundaries, and MVP feasibility before the architecture becomes **Architecture Baseline AB-001**.

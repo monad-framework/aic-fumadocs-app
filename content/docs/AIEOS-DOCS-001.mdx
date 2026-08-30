@@ -1,0 +1,188 @@
+---
+title: "AIEOS Documentation Heirarchy"
+specification_id: "AIEOS-DOCS-001"
+version: "0.1.0"
+status: "Draft"
+classification: "AIEOS Documentation Heirarchy"
+description: "AIEOS Documentation Heirarchy"
+---
+
+
+The role of AIEOS-FOUND-001 (AI-Native Engineering Operating System Foundation Specification) is to define the **constitutional baseline** of AIEOS: 
+
+- what the system is, 
+- its purpose, 
+- operating model, 
+- principles, 
+- lifecycle, 
+- participants, 
+- artifacts, 
+- authority boundaries, 
+- automation philosophy, 
+- invariants, 
+- risk model, and 
+- the high-level components that subordinate specifications must refine.
+
+Then `AIEOS-ARCH-001` becomes a child specification rather than awkwardly overlapping with it.
+
+I recommend this document hierarchy:
+
+| ID                  | Specification                         | Purpose                                                                                      |
+| ------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **AIEOS-FOUND-001** | **Foundation Specification**          | Root operating model, principles, lifecycle, invariants, human/agent/system responsibilities |
+| **AIEOS-REQ-001**   | Requirements Specification            | Complete normative system requirements derived from the foundation                           |
+| **AIEOS-DOM-001**   | Domain Model Specification            | Work units, artifacts, actors, claims, evidence, authority, execution, relationships         |
+| **AIEOS-ARCH-001**  | System Architecture Specification     | Components, boundaries, interfaces, data/control flows, deployment architecture              |
+| **AIEOS-WF-001**    | Workflow & Lifecycle Specification    | State machines, transitions, gates, orchestration, retries, failure paths                    |
+| **AIEOS-ART-001**   | Artifact & Knowledge Model            | Artifact types, identity, versions, relationships, authority and canonicalization            |
+| **AIEOS-AUTH-001**  | Authority & Capability Specification  | Humans, agents, roles, permissions, grants, capabilities, separation of duties               |
+| **AIEOS-POL-001**   | Policy & Governance Specification     | Advisory rules, testable policies, invariants, exceptions, governance                        |
+| **AIEOS-AGENT-001** | Agent Execution Specification         | Agent roles, sessions, contexts, tool use, orchestration, sandboxing                         |
+| **AIEOS-VER-001**   | Verification & Evidence Specification | Tests, evals, evidence, claims, acceptance criteria, verification gates                      |
+| **AIEOS-PROV-001**  | Provenance & Audit Specification      | Origins, derivations, executions, decisions, histories and audit records                     |
+| **AIEOS-RISK-001**  | Risk & Autonomy Specification         | Risk classification and corresponding autonomy/approval policies                             |
+| **AIEOS-INT-001**   | Integration Specification             | GitHub, CI/CD, issue trackers, observability, deployment systems, external tools             |
+| **AIEOS-SEC-001**   | Security Specification                | Isolation, credentials, secrets, capability broker, trust boundaries                         |
+| **AIEOS-OBS-001**   | Observation & Feedback Specification  | Runtime observation, incidents, feedback loops and organizational learning                   |
+| **AIEOS-API-001**   | Control Plane API Specification       | Commands, events, APIs, schemas and integration contracts                                    |
+| **AIEOS-UX-001**    | Human Interaction Specification       | Decision inbox, dashboards, explanations, approvals and escalation                           |
+| **AIEOS-IMPL-001**  | Implementation Specification          | Technology choices and concrete implementation architecture                                  |
+| **AIEOS-MVP-001**   | Minimum Viable System Specification   | Smallest executable end-to-end version and its acceptance tests                              |
+
+That gives us a useful hierarchy:
+
+```text
+AIEOS-FOUND-001
+       │
+       ├── Requirements
+       │     └── AIEOS-REQ-001
+       │
+       ├── Semantic/System Model
+       │     ├── AIEOS-DOM-001
+       │     └── AIEOS-ART-001
+       │
+       ├── Architecture
+       │     └── AIEOS-ARCH-001
+       │
+       ├── Operation
+       │     ├── AIEOS-WF-001
+       │     ├── AIEOS-AGENT-001
+       │     ├── AIEOS-AUTH-001
+       │     ├── AIEOS-POL-001
+       │     └── AIEOS-RISK-001
+       │
+       ├── Assurance
+       │     ├── AIEOS-VER-001
+       │     ├── AIEOS-PROV-001
+       │     └── AIEOS-SEC-001
+       │
+       ├── Reality / Integration
+       │     ├── AIEOS-INT-001
+       │     └── AIEOS-OBS-001
+       │
+       └── Product
+             ├── AIEOS-API-001
+             ├── AIEOS-UX-001
+             ├── AIEOS-IMPL-001
+             └── AIEOS-MVP-001
+```
+
+There is one other important distinction I want to establish now: **AIEOS itself and the SDLC implemented by AIEOS are not the same thing.**
+
+AIEOS is the operating/control system:
+
+```text
+AIEOS
+  │
+  ├── identity
+  ├── knowledge
+  ├── authority
+  ├── policy
+  ├── agents
+  ├── orchestration
+  ├── provenance
+  ├── evidence
+  └── integrations
+```
+
+The AI-native SDLC is **one governed process running on that operating system**:
+
+```text
+Intent
+  ↓
+Specification
+  ↓
+Plan
+  ↓
+Execution
+  ↓
+Verification
+  ↓
+Review
+  ↓
+Authorization
+  ↓
+Deployment
+  ↓
+Observation
+```
+
+That matters because eventually AIEOS could operate more than a conventional feature-development lifecycle. It could govern:
+
+```text
+feature development
+bug remediation
+incident response
+security remediation
+architecture evolution
+dependency upgrades
+technical-debt reduction
+research experiments
+release engineering
+documentation changes
+infrastructure changes
+compliance work
+```
+
+Each can be a **workflow definition executed by the same control plane**.
+
+AIEOS-SDLC-001 is reserved for a later, much more precise document 
+AIEOS-SDLC-001 — AI-Native Software Development Lifecycle Specification
+
+That document will define the canonical software-development workflow 
+*implemented on top of* AIEOS.
+
+We proceed in this order:
+
+```text
+AIEOS-FOUND-001       ← what we have
+        ↓
+AIEOS-REQ-001         ← extract precise requirements
+        ↓
+AIEOS-DOM-001         ← establish what fundamentally exists
+        ↓
+AIEOS-ARCH-001        ← determine how the system is partitioned
+        ↓
+AIEOS-WF-001          ← make the lifecycle executable
+        ↓
+AIEOS-ART-001
+AIEOS-AUTH-001
+AIEOS-POL-001
+AIEOS-AGENT-001
+AIEOS-VER-001
+        ↓
+AIEOS-MVP-001
+        ↓
+implementation
+```
+
+I would actually put **`REQ-001` and `DOM-001` before `ARCH-001`**. The foundation 
+we just created gives us enough conceptual architecture to know where we're headed, 
+but before locking down components we should establish **what the system must do** 
+and **what entities/relationships fundamentally exist**. Otherwise we risk 
+embedding unexamined domain assumptions into the architecture.
+
+So the immediate next artifact is **`AIEOS-REQ-001 — System Requirements Specification`**, 
+derived systematically from `AIEOS-FOUND-001`. After that, `AIEOS-DOM-001`, then 
+`AIEOS-ARCH-001`. That will give us a considerably stronger path toward the working 
+application rather than prematurely designing its components.

@@ -1,4 +1,3503 @@
 ---
-title: relationships.mdx
-description: relationships
+title: "Relationships Specification"
+description: "Normative specification for typed semantic relationships, relationship identity, directionality, scope, provenance, temporality, authority, derivation, and lifecycle in Monad."
 ---
+
+# Relationships Specification
+
+**Specification ID:** `SPEC-REL-001`
+**Status:** Draft
+**Version:** `0.1.0`
+**Normative:** Yes
+**Primary requirements:** `REQ-SEM-*`
+**Related requirements:** `REQ-ID-*`, `REQ-CLM-*`, `REQ-EVD-*`, `REQ-PROV-*`, `REQ-AUTH-*`, `REQ-REC-*`, `REQ-PORT-*`
+**Parent specification:** `SPEC-SEM-001 — Semantic Kernel Specification`
+
+## 1. Purpose
+
+This specification defines how Monad represents meaningful relationships among semantic entities.
+
+Relationships are necessary because engineering systems are not merely collections of isolated artifacts.
+
+They contain structures such as:
+
+```text
+Requirement
+    implemented-by
+Component
+```
+
+```text
+Decision
+    constrains
+Specification
+```
+
+```text
+Claim
+    supported-by
+Evidence
+```
+
+```text
+Release
+    contains
+Artifact
+```
+
+```text
+Component A
+    depends-on
+Component B
+```
+
+```text
+Claim C2
+    corrects
+Claim C1
+```
+
+A relationship is not merely an untyped graph edge.
+
+The central principle is:
+
+> **A relationship must preserve the meaning of the connection, not merely the fact that two things are connected.**
+
+A useful relationship model therefore needs to represent distinctions among:
+
+* dependency,
+* containment,
+* implementation,
+* derivation,
+* provenance,
+* causality,
+* chronology,
+* support,
+* contradiction,
+* authority,
+* ownership,
+* supersession,
+* rationale,
+* verification,
+* deployment,
+* representation,
+* identity binding.
+
+Monad MUST NOT reduce these materially different semantics to an undifferentiated `related-to` edge when the distinction affects engineering reasoning.
+
+---
+
+# 2. Scope
+
+This specification defines:
+
+* relationship identity,
+* relationship type,
+* source and target endpoints,
+* directionality,
+* inverse relationships,
+* symmetry,
+* cardinality,
+* scope,
+* temporal semantics,
+* provenance,
+* authority,
+* confidence,
+* lifecycle,
+* relationship assertions,
+* inferred relationships,
+* native-system relationships,
+* derived relationships,
+* relationship conflicts,
+* relationship correction,
+* relationship supersession,
+* traversal semantics,
+* relationship querying,
+* transitivity,
+* causality,
+* dependency,
+* containment,
+* representation relationships,
+* Claim relationships,
+* Evidence relationships,
+* traceability relationships,
+* portability,
+* validation.
+
+This specification does **not** define:
+
+* final persistence schemas,
+* graph-database technology,
+* query language,
+* visualization layout,
+* ontology implementation,
+* inference algorithms,
+* impact-analysis algorithms,
+* graph ranking algorithms,
+* vector similarity,
+* final predicate registry.
+
+Those are downstream concerns.
+
+---
+
+# 3. Normative Language
+
+The terms **MUST**, **MUST NOT**, **REQUIRED**, **SHOULD**, **SHOULD NOT**, **MAY**, and **RECOMMENDED** are normative.
+
+Examples are illustrative unless explicitly marked normative.
+
+---
+
+# 4. Core Relationship Model
+
+Conceptually:
+
+```text
+Relationship
+ ├── identity
+ ├── type
+ ├── source
+ ├── target
+ ├── scope
+ ├── provenance
+ ├── temporal semantics
+ ├── lifecycle
+ └── optional properties
+```
+
+A minimal relationship can be expressed conceptually as:
+
+```text
+source
+predicate
+target
+```
+
+For example:
+
+```text
+Component A
+    depends-on
+Component B
+```
+
+A richer relationship may contain:
+
+```text
+Relationship {
+    identity
+    type
+    source
+    target
+    scope
+    validTime
+    observedTime
+    provenance
+    authority
+    confidence
+    lifecycle
+    properties
+}
+```
+
+The final serialized representation is deferred.
+
+---
+
+# 5. Core Relationship Invariants
+
+Conforming implementations MUST preserve the following distinctions.
+
+## 5.1 Relationship ≠ endpoint
+
+A relationship is not reducible to either connected entity.
+
+Deleting or changing a relationship MUST NOT implicitly change endpoint identity unless another rule explicitly requires it.
+
+---
+
+## 5.2 Relationship ≠ Claim
+
+A relationship may itself be asserted by a Claim.
+
+For example:
+
+```text
+Claim:
+    Component A depends on Component B.
+```
+
+The proposition concerns a semantic relationship.
+
+The Claim and relationship remain conceptually distinct.
+
+---
+
+## 5.3 Relationship ≠ Evidence
+
+Evidence may support the existence or properties of a relationship.
+
+Evidence is not the relationship itself.
+
+---
+
+## 5.4 Relationship ≠ provenance
+
+A provenance relationship may be represented using the general relationship model.
+
+However, provenance semantics remain distinct from arbitrary semantic association.
+
+---
+
+## 5.5 Dependency ≠ causality
+
+If:
+
+```text
+A depends on B
+```
+
+Monad MUST NOT infer:
+
+```text
+B caused A
+```
+
+or:
+
+```text
+A was caused by B
+```
+
+---
+
+## 5.6 Chronology ≠ causality
+
+If event A occurred before event B, Monad MUST NOT infer that A caused B.
+
+---
+
+## 5.7 Similarity ≠ equivalence
+
+Two entities that are semantically or textually similar MUST NOT automatically be treated as equivalent.
+
+---
+
+## 5.8 Connection ≠ authority
+
+The existence of a relationship does not confer authority over either endpoint.
+
+---
+
+## 5.9 Derived ≠ authoritative
+
+A derived relationship does not become authoritative solely because an engine inferred or materialized it.
+
+---
+
+## 5.10 Unknown ≠ unrelated
+
+Absence of a known relationship MUST NOT generally imply that no relationship exists.
+
+---
+
+# 6. First-Class Relationships
+
+Relationships whose identity, provenance, properties, history, or lifecycle materially matter SHOULD be representable as first-class semantic entities.
+
+First-class relationships may need:
+
+* stable identity,
+* timestamps,
+* provenance,
+* authority,
+* confidence,
+* lifecycle,
+* properties,
+* Evidence,
+* revision history.
+
+Not every simple relationship must necessarily receive an independent first-class identifier.
+
+---
+
+# 7. Relationship Identity
+
+A relationship requiring durable reference MUST possess stable semantic identity.
+
+Relationship identity MUST NOT depend solely on:
+
+* array position,
+* database row order,
+* source file line number,
+* textual wording,
+* current endpoint location.
+
+---
+
+# 8. Relationship Identity and Endpoints
+
+Changing an endpoint generally changes the relationship's semantic meaning.
+
+For example:
+
+```text
+A depends-on B
+```
+
+and:
+
+```text
+A depends-on C
+```
+
+are ordinarily distinct relationships.
+
+A specification MAY define exceptions for relationships whose target changes as part of an explicit revision lifecycle.
+
+---
+
+# 9. Relationship Identity and Type
+
+Changing a relationship type generally constitutes a material semantic change.
+
+For example:
+
+```text
+A depends-on B
+```
+
+is not a revision-equivalent form of:
+
+```text
+A caused-by B
+```
+
+unless a domain-specific specification explicitly defines such equivalence.
+
+---
+
+# 10. Relationship Identity Across Representation Movement
+
+Moving or renaming endpoint Representations MUST NOT create a new semantic relationship if endpoint Subjects and relationship semantics remain unchanged.
+
+Identity must follow semantic entities rather than mutable paths.
+
+---
+
+# 11. Relationship Type
+
+Every relationship MUST possess semantics sufficient to distinguish its meaning from materially different relationship types.
+
+Relationship type MAY be identified by:
+
+* stable identifier,
+* vocabulary entry,
+* schema identifier,
+* domain-defined predicate.
+
+---
+
+# 12. Relationship Vocabulary
+
+Monad SHOULD maintain a controlled vocabulary for foundational relationship types.
+
+The vocabulary SHOULD be small enough to remain understandable while extensible enough to support domain-specific semantics.
+
+---
+
+# 13. Foundational Relationship Families
+
+The core model SHOULD support relationship families including:
+
+```text
+structural
+dependency
+traceability
+provenance
+epistemic
+governance
+lifecycle
+identity
+representation
+execution
+deployment
+historical
+organizational
+```
+
+These families are organizational concepts and do not necessarily define final predicate names.
+
+---
+
+# 14. Directionality
+
+Relationship types MUST explicitly define whether they are:
+
+```text
+directed
+symmetric
+undirected
+```
+
+Implementations MUST NOT assume all graph edges are interchangeable in direction.
+
+---
+
+# 15. Directed Relationship
+
+For:
+
+```text
+A depends-on B
+```
+
+the direction matters.
+
+The relationship does not necessarily imply:
+
+```text
+B depends-on A
+```
+
+---
+
+# 16. Symmetric Relationship
+
+A relationship type MAY be symmetric.
+
+For example, a domain might define:
+
+```text
+A incompatible-with B
+```
+
+as symmetric.
+
+If so:
+
+```text
+A incompatible-with B
+```
+
+semantically implies:
+
+```text
+B incompatible-with A
+```
+
+without requiring two independent semantic assertions.
+
+---
+
+# 17. Inverse Relationships
+
+A relationship type MAY define an inverse.
+
+For example:
+
+```text
+Requirement implemented-by Component
+```
+
+may have inverse:
+
+```text
+Component implements Requirement
+```
+
+The inverse SHOULD be defined semantically rather than represented as unrelated duplicate data.
+
+---
+
+# 18. Materialized Inverses
+
+Implementations MAY materialize inverse relationships for efficient querying.
+
+Materialized inverses MUST remain derivable from the authoritative relationship.
+
+They MUST NOT drift independently.
+
+---
+
+# 19. Reflexivity
+
+Relationship definitions SHOULD specify whether self-relationships are valid.
+
+For example:
+
+```text
+A depends-on A
+```
+
+may indicate:
+
+* an invalid cycle,
+* intentional recursion,
+* modeling error.
+
+The meaning is domain-specific.
+
+---
+
+# 20. Cardinality
+
+A relationship type MAY define cardinality constraints.
+
+Examples:
+
+```text
+one-to-one
+one-to-many
+many-to-one
+many-to-many
+```
+
+Cardinality constraints SHOULD be enforced where violating them would create semantic ambiguity.
+
+---
+
+# 21. Relationship Properties
+
+A relationship MAY possess properties that describe the relationship itself rather than either endpoint.
+
+Example:
+
+```text
+Service A
+    calls
+Service B
+
+protocol = HTTP
+criticality = high
+environment = production
+```
+
+These values belong to the relationship.
+
+They MUST NOT be incorrectly assigned to A or B solely because the persistence model lacks relationship properties.
+
+---
+
+# 22. Typed Relationship Properties
+
+Relationship properties SHOULD preserve meaningful value types.
+
+Examples:
+
+```text
+boolean
+integer
+duration
+version
+enum
+timestamp
+Subject reference
+```
+
+---
+
+# 23. Relationship Scope
+
+Relationships MAY apply only within a defined scope.
+
+Possible scopes include:
+
+```text
+workspace
+repository
+branch
+release
+environment
+deployment
+tenant
+architecture view
+execution
+time interval
+```
+
+---
+
+# 24. Environment-Specific Relationships
+
+The following may both be valid:
+
+```text
+Service A depends-on Redis
+scope: development
+```
+
+```text
+Service A depends-on DynamoDB
+scope: production
+```
+
+Scope MUST be considered before declaring these relationships contradictory.
+
+---
+
+# 25. Revision-Specific Relationships
+
+A relationship MAY apply only to a specific revision.
+
+Example:
+
+```text
+Requirement R
+    implemented-by
+Commit C
+```
+
+A later implementation revision may change the relevant relationship.
+
+Revision scope MUST remain explicit where necessary.
+
+---
+
+# 26. Temporal Relationships
+
+Relationships MAY possess valid-time semantics.
+
+Conceptually:
+
+```text
+validFrom
+validUntil
+```
+
+A relationship that was true historically SHOULD remain queryable where history is retained.
+
+---
+
+# 27. Observation Time
+
+The time at which Monad observed a relationship MUST remain distinguishable from the time during which the relationship existed.
+
+For example:
+
+```text
+observedAt: 14:05
+```
+
+does not necessarily mean:
+
+```text
+validFrom: 14:05
+```
+
+---
+
+# 28. Relationship Provenance
+
+Consequential relationships SHOULD preserve provenance sufficient to answer:
+
+> Why does Monad believe this relationship exists?
+
+Provenance may identify:
+
+* authored declaration,
+* source code,
+* native API,
+* dependency scanner,
+* AI inference,
+* human assertion,
+* import,
+* reconciliation,
+* transformation,
+* verification.
+
+---
+
+# 29. Explicit Relationship
+
+An explicit relationship is intentionally declared by an actor or authoritative source.
+
+Example:
+
+```text
+architecture manifest:
+    api depends-on database
+```
+
+Explicit declaration does not automatically establish universal authority.
+
+---
+
+# 30. Observed Relationship
+
+An observed relationship is discovered from native state.
+
+Example:
+
+```text
+package.json dependency:
+    application → library
+```
+
+This observation MAY support a semantic dependency relationship.
+
+The native relationship and interpreted semantic relationship MAY remain distinct.
+
+---
+
+# 31. Inferred Relationship
+
+A relationship MAY be inferred from available Evidence or Claims.
+
+For example:
+
+```text
+AI analysis:
+    module A likely implements requirement R
+```
+
+Inferred relationships MUST remain distinguishishable from confirmed or authoritative relationships.
+
+---
+
+# 32. Relationship Confidence
+
+An inferred relationship MAY carry confidence.
+
+Confidence MUST NOT substitute for:
+
+* authority,
+* Evidence,
+* approval,
+* truth.
+
+---
+
+# 33. Relationship Authority
+
+A relationship MAY be authoritative within a defined scope.
+
+Authority SHOULD identify who or what may legitimately establish the relationship.
+
+For example:
+
+```text
+architecture specification
+```
+
+may be authoritative for:
+
+```text
+logical-component dependency
+```
+
+while:
+
+```text
+package manager
+```
+
+may be authoritative for:
+
+```text
+declared package dependency
+```
+
+These are not necessarily the same proposition.
+
+---
+
+# 34. Native Authority
+
+Native systems MAY own authoritative relationship semantics for their own domain.
+
+Examples:
+
+```text
+Git:
+    commit parent relationships
+```
+
+```text
+package manager:
+    declared package dependencies
+```
+
+```text
+issue tracker:
+    parent-child issue relationships
+```
+
+Monad MUST preserve native meaning rather than translating all native relations into one generic semantic form.
+
+---
+
+# 35. Relationship Claim
+
+Where epistemic treatment matters, the existence of a relationship SHOULD be expressible through a Claim.
+
+Conceptually:
+
+```text
+Claim C:
+    proposition:
+        A depends-on B
+```
+
+The relationship may then participate in:
+
+* Evidence,
+* conflict,
+* authority,
+* correction,
+* verification.
+
+---
+
+# 36. Relationship Evidence
+
+Evidence MAY support, contradict, or qualify a relationship Claim.
+
+Example:
+
+```text
+Claim:
+    Service A calls Service B.
+
+Evidence:
+    distributed trace showing A → B.
+```
+
+---
+
+# 37. Multiple Sources
+
+The same semantic relationship MAY be supported by multiple independent sources.
+
+Example:
+
+```text
+source code import
+runtime trace
+architecture specification
+```
+
+Monad SHOULD preserve source provenance rather than flattening all support into one anonymous edge.
+
+---
+
+# 38. Relationship Conflict
+
+Two relationships MAY conflict when they express incompatible semantic states within overlapping scope.
+
+Examples:
+
+```text
+Component A
+    owned-by Team X
+```
+
+and:
+
+```text
+Component A
+    owned-by Team Y
+```
+
+may conflict if ownership is defined as single-valued.
+
+If multiple ownership is permitted, no conflict exists.
+
+Conflict depends on relationship semantics.
+
+---
+
+# 39. Relationship Conflict Preservation
+
+Conflicting relationships MUST remain representable until resolved.
+
+A conforming system MUST NOT delete one merely to maintain graph consistency.
+
+---
+
+# 40. Relationship Correction
+
+A relationship later determined to be incorrect SHOULD be corrected without destroying relevant historical provenance.
+
+For example:
+
+```text
+R1:
+    Component A depends-on B
+
+R2:
+    Component A depends-on C
+
+R2 corrects R1
+```
+
+where appropriate.
+
+---
+
+# 41. Relationship Retraction
+
+An actor MAY retract a relationship assertion.
+
+Retraction MUST NOT imply the assertion never existed.
+
+---
+
+# 42. Relationship Supersession
+
+Relationships MAY supersede previous relationships.
+
+Example:
+
+```text
+Service A
+    deployed-to Cluster Old
+```
+
+superseded by:
+
+```text
+Service A
+    deployed-to Cluster New
+```
+
+Supersession SHOULD preserve temporal semantics.
+
+---
+
+# 43. Relationship Invalidation
+
+A relationship MAY be invalidated when:
+
+* endpoint identity was wrong,
+* source data was corrupted,
+* inference was flawed,
+* scope was incorrect,
+* native binding was mistaken.
+
+Invalidation SHOULD preserve provenance.
+
+---
+
+# 44. Relationship Lifecycle
+
+Relationship lifecycle MAY include:
+
+```text
+candidate
+active
+contested
+superseded
+invalidated
+historical
+archived
+```
+
+Lifecycle state MUST remain distinct from truth and authority.
+
+---
+
+# 45. Dependency Relationships
+
+Dependency relationships MUST be modeled with sufficient semantic precision for their intended use.
+
+The generic phrase:
+
+```text
+A depends on B
+```
+
+may refer to materially different concepts such as:
+
+```text
+build dependency
+runtime dependency
+deployment dependency
+data dependency
+configuration dependency
+organizational dependency
+semantic dependency
+```
+
+Monad SHOULD preserve those distinctions where they affect engineering action.
+
+---
+
+# 46. Direct Dependency
+
+A direct dependency is explicitly present without relying on transitive traversal.
+
+Example:
+
+```text
+A → B
+```
+
+---
+
+# 47. Transitive Dependency
+
+If:
+
+```text
+A depends-on B
+B depends-on C
+```
+
+then:
+
+```text
+A transitively depends-on C
+```
+
+MAY be derived if the relationship type is defined as transitively composable.
+
+The derived relationship MUST remain distinguishable from a direct dependency.
+
+---
+
+# 48. Transitivity Is Type-Specific
+
+Monad MUST NOT assume all relationship types are transitive.
+
+For example:
+
+```text
+A reviewed-by B
+B reviewed-by C
+```
+
+does not imply:
+
+```text
+A reviewed-by C
+```
+
+---
+
+# 49. Dependency Cycles
+
+Dependency cycles SHOULD be detectable where the domain considers them significant.
+
+A cycle does not automatically mean an error.
+
+Possible meanings include:
+
+* architecture defect,
+* recursive structure,
+* mutually dependent services,
+* modeling artifact.
+
+Domain rules determine validity.
+
+---
+
+# 50. Causal Relationships
+
+Causal relationships require stronger semantics than dependency or chronology.
+
+A Claim that:
+
+```text
+Event A caused Event B
+```
+
+SHOULD retain Evidence or rationale sufficient to distinguish causal analysis from simple temporal ordering.
+
+---
+
+# 51. Causal Confidence
+
+Causal relationships MAY be:
+
+```text
+hypothesized
+probable
+confirmed
+contested
+```
+
+The epistemic status SHOULD remain explicit.
+
+---
+
+# 52. Chronological Relationships
+
+Relationships such as:
+
+```text
+before
+after
+concurrent-with
+```
+
+describe temporal ordering.
+
+They MUST NOT automatically imply causality.
+
+---
+
+# 53. Rationale Relationships
+
+Relationships MAY express reasoning such as:
+
+```text
+Decision
+    justified-by
+Evidence
+```
+
+or:
+
+```text
+Decision
+    addresses
+Problem
+```
+
+Rationale relationships MUST remain distinguishable from technical dependency.
+
+---
+
+# 54. Containment Relationships
+
+Containment relationships MAY describe semantic inclusion.
+
+Examples:
+
+```text
+Release contains Artifact
+```
+
+```text
+Repository contains Module
+```
+
+```text
+Milestone contains Epic
+```
+
+Different containment concepts SHOULD use distinct relationship semantics where necessary.
+
+---
+
+# 55. Physical and Semantic Containment
+
+Filesystem containment and semantic containment MUST remain distinguishable.
+
+A file being inside a directory does not necessarily mean its Subject is semantically owned by that directory's conceptual component.
+
+---
+
+# 56. Membership Relationships
+
+Membership MAY be represented separately from strict containment.
+
+Example:
+
+```text
+Component member-of Subsystem
+```
+
+may not imply ownership or physical containment.
+
+---
+
+# 57. Ownership Relationships
+
+Ownership SHOULD define what ownership means in the applicable domain.
+
+Possible meanings include:
+
+* responsible team,
+* repository owner,
+* service steward,
+* legal owner,
+* authoritative maintainer.
+
+Monad MUST NOT assume these concepts are equivalent.
+
+---
+
+# 58. Responsibility Relationships
+
+Responsibility SHOULD remain distinguishable from authority.
+
+For example:
+
+```text
+Engineer responsible-for Service
+```
+
+does not necessarily mean the engineer has authority to approve production deployment.
+
+---
+
+# 59. Representation Relationships
+
+Monad MUST support the semantic relationship between a Subject and its Representations.
+
+Conceptually:
+
+```text
+Representation
+    represents
+Subject
+```
+
+This relationship MUST NOT collapse Representation identity into Subject identity.
+
+---
+
+# 60. Multiple Representations
+
+A Subject MAY have multiple Representations.
+
+Example:
+
+```text
+Subject: ADR-0042
+
+Representations:
+    Markdown file
+    generated HTML page
+    search index entry
+    API projection
+```
+
+These are not duplicate Subjects merely because they express the same semantic entity.
+
+---
+
+# 61. Native Reference Relationships
+
+A Native Reference MAY bind an external or local native-system object to a Subject or Representation.
+
+Conceptually:
+
+```text
+NativeReference
+    references
+Subject
+```
+
+or:
+
+```text
+NativeReference
+    locates
+Representation
+```
+
+The precise relationship depends on the native system and semantic model.
+
+---
+
+# 62. Identity Relationships
+
+Monad MAY support relationships such as:
+
+```text
+alias-of
+same-as
+split-from
+merged-into
+supersedes
+derived-from
+```
+
+These MUST have precisely defined semantics.
+
+---
+
+# 63. `same-as`
+
+A `same-as` relationship is semantically strong.
+
+It SHOULD mean that two identifiers refer to the same semantic entity within the defined identity model.
+
+Similarity MUST NOT be represented as `same-as`.
+
+---
+
+# 64. `alias-of`
+
+An alias MAY identify another label or identifier that resolves to the same semantic entity.
+
+Alias semantics SHOULD preserve:
+
+* alias identifier,
+* canonical target,
+* provenance,
+* validity interval where relevant.
+
+---
+
+# 65. Split Relationships
+
+When one semantic identity splits into multiple successors, Monad SHOULD represent that transition explicitly.
+
+Conceptually:
+
+```text
+Subject A
+    split-into
+Subject B
+Subject C
+```
+
+The system MUST NOT pretend one successor is automatically identical to the predecessor.
+
+---
+
+# 66. Merge Relationships
+
+When multiple prior Subjects are consolidated:
+
+```text
+A
+B
+    merge-into
+C
+```
+
+Monad SHOULD preserve the lineage rather than deleting historical identity.
+
+---
+
+# 67. Supersession Relationships
+
+Supersession means that a newer entity or assertion takes the governing role formerly held by another.
+
+Supersession MUST NOT imply identity equivalence.
+
+Example:
+
+```text
+ADR-002
+    supersedes
+ADR-001
+```
+
+Both remain distinct decisions.
+
+---
+
+# 68. Derivation Relationships
+
+`derived-from` indicates that one entity was produced using another as an input.
+
+Derivation SHOULD preserve sufficient provenance to distinguish:
+
+```text
+copy
+transformation
+compilation
+generation
+aggregation
+inference
+```
+
+where relevant.
+
+---
+
+# 69. Generation Relationships
+
+Generated artifacts SHOULD remain traceable to their source inputs.
+
+Example:
+
+```text
+Generated API documentation
+    generated-from
+OpenAPI specification
+```
+
+The generated artifact MUST NOT automatically become authoritative merely because it is newer.
+
+---
+
+# 70. Traceability Relationships
+
+Monad MUST support typed traceability relationships across the engineering reasoning chain.
+
+Conceptually:
+
+```text
+Problem
+    motivates
+Goal
+
+Goal
+    refined-into
+Requirement
+
+Requirement
+    addressed-by
+Feature
+
+Requirement
+    specified-by
+Specification
+
+Requirement
+    implemented-by
+Implementation
+
+Requirement
+    verified-by
+Verification
+
+Verification
+    supported-by
+Evidence
+
+Release
+    contains
+Verified Implementation
+```
+
+The exact vocabulary may evolve, but the semantics MUST remain inspectable.
+
+---
+
+# 71. Traceability Is Not Generic Association
+
+A relationship such as:
+
+```text
+Requirement related-to File
+```
+
+is insufficient when the intended meaning is:
+
+```text
+Requirement implemented-by Component
+```
+
+Loss of predicate semantics reduces the usefulness of traceability.
+
+---
+
+# 72. Requirement Relationships
+
+Requirements MAY participate in relationships such as:
+
+```text
+refines
+depends-on
+conflicts-with
+derived-from
+satisfied-by
+specified-by
+verified-by
+supersedes
+```
+
+These relationships MUST remain semantically distinct.
+
+---
+
+# 73. Decision Relationships
+
+Decision relationships MAY include:
+
+```text
+addresses
+resolves
+constrains
+supersedes
+rejected-alternative
+supported-by
+motivated-by
+```
+
+---
+
+# 74. Specification Relationships
+
+Specifications MAY participate in relationships such as:
+
+```text
+specifies
+implements-requirement
+constrained-by
+references
+supersedes
+verified-by
+```
+
+---
+
+# 75. Evidence Relationships
+
+Evidence SHOULD use explicit semantics such as:
+
+```text
+supports
+contradicts
+qualifies
+corroborates
+weakens
+```
+
+when related to Claims.
+
+These relationships MUST NOT collapse into generic attachment semantics.
+
+---
+
+# 76. Claim Relationships
+
+Claims MAY relate through:
+
+```text
+supports
+contradicts
+corrects
+refines
+supersedes
+derived-from
+weakens
+qualifies
+equivalent-proposition
+```
+
+The Claims Specification defines their epistemic interpretation.
+
+---
+
+# 77. Governance Relationships
+
+Governance relationships MAY express:
+
+```text
+Actor holds Authority
+Policy applies-to Operation
+Approval authorizes Operation
+Obligation required-by Policy
+Exception overrides Policy
+```
+
+These relationships SHOULD preserve scope and temporal validity.
+
+---
+
+# 78. Authority Relationships
+
+Authority relationships MUST not be inferred merely from:
+
+* ownership,
+* authorship,
+* technical permission,
+* tool capability,
+* responsibility.
+
+Authority requires explicit authority semantics.
+
+---
+
+# 79. Actor Relationships
+
+Actors MAY have relationships such as:
+
+```text
+member-of
+responsible-for
+approved
+authored
+executed
+reviewed
+owns
+delegated-to
+```
+
+These predicates MUST remain distinct.
+
+---
+
+# 80. Capability Relationships
+
+An Actor or tool MAY possess a Capability relationship.
+
+Example:
+
+```text
+Agent A
+    capable-of
+UpdateRepository
+```
+
+This MUST NOT imply:
+
+```text
+Agent A
+    authorized-to
+UpdateRepository
+```
+
+---
+
+# 81. Execution Relationships
+
+Execution may generate relationships such as:
+
+```text
+Operation
+    executed-by
+Actor
+
+Execution
+    used
+Tool
+
+Execution
+    consumed
+Input
+
+Execution
+    produced
+Artifact
+```
+
+Execution lineage SHOULD preserve provenance.
+
+---
+
+# 82. Deployment Relationships
+
+Deployment semantics MAY include:
+
+```text
+Release
+    deployed-to
+Environment
+
+Deployment
+    deployed
+Release
+
+Deployment
+    produced
+RuntimeState
+```
+
+Release and Deployment MUST remain distinct semantic entities.
+
+---
+
+# 83. Verification Relationships
+
+Verification MAY relate:
+
+```text
+Verification
+    evaluates
+Requirement
+
+Verification
+    evaluated
+Revision
+
+Verification
+    supported-by
+Evidence
+```
+
+A passing verification relationship MUST remain bound to the applicable scope and revision.
+
+---
+
+# 84. Review Relationships
+
+Reviews MAY produce relationships such as:
+
+```text
+Review
+    examines
+Artifact
+
+Finding
+    produced-by
+Review
+
+Finding
+    concerns
+Subject
+```
+
+Review MUST NOT be collapsed into approval or verification.
+
+---
+
+# 85. Release Relationships
+
+A Release MAY relate to:
+
+```text
+artifact
+revision
+verification
+approval
+deployment
+migration
+compatibility declaration
+```
+
+These relationships SHOULD be typed rather than represented as an unstructured list.
+
+---
+
+# 86. Historical Relationships
+
+Monad SHOULD preserve historically valid relationships where necessary for:
+
+* auditability,
+* incident analysis,
+* release reconstruction,
+* provenance,
+* decision history.
+
+---
+
+# 87. Current Relationship
+
+A relationship may be designated current under applicable temporal, authority, and lifecycle rules.
+
+`current` MUST NOT mean merely:
+
+```text
+most recently stored
+```
+
+---
+
+# 88. Relationship Canonicality
+
+A relationship MAY be canonical within a defined scope.
+
+Canonicality SHOULD be derived from or governed by:
+
+* authority,
+* provenance,
+* Evidence,
+* policy,
+* reconciliation,
+* temporal validity.
+
+---
+
+# 89. Competing Relationships
+
+Multiple relationship assertions MAY coexist even if only one is currently canonical.
+
+Example:
+
+```text
+Architecture document:
+    Service A depends-on B
+
+Runtime observation:
+    Service A depends-on C
+```
+
+The divergence may be meaningful engineering information.
+
+---
+
+# 90. Reconciliation
+
+Relationships concerning native or observable state SHOULD participate in reconciliation.
+
+Potential reconciliation states include:
+
+```text
+agreement
+divergence
+stale
+missing
+ambiguous
+unauthorized
+unobservable
+```
+
+---
+
+# 91. Missing Relationship
+
+If a canonical relationship is absent from observed native state, reconciliation SHOULD distinguish among possibilities such as:
+
+* actual deletion,
+* observation failure,
+* incomplete integration,
+* changed identity,
+* stale projection,
+* unauthorized drift.
+
+---
+
+# 92. Unexpected Relationship
+
+If native observation reveals an unmodeled relationship, Monad SHOULD preserve it as an observation rather than immediately deleting or promoting it.
+
+Governance determines whether remediation is appropriate.
+
+---
+
+# 93. Relationship Inference Rules
+
+Domains MAY define inference rules.
+
+For example:
+
+```text
+A contains B
+B contains C
+```
+
+may imply:
+
+```text
+A transitively-contains C
+```
+
+if containment semantics support transitivity.
+
+Inference rules MUST be explicit and versionable.
+
+---
+
+# 94. Inference Provenance
+
+Every material inferred relationship SHOULD retain:
+
+* rule or algorithm,
+* inputs,
+* producer,
+* time,
+* confidence where relevant.
+
+---
+
+# 95. Inference Does Not Rewrite Source
+
+Derived relationships MUST NOT alter the source relationships from which they were inferred.
+
+---
+
+# 96. Materialized Derived Relationships
+
+Implementations MAY materialize derived relationships for performance.
+
+Such materialization SHOULD be reconstructable and MUST remain distinguishable from source declarations.
+
+---
+
+# 97. Transitive Closure
+
+The system MAY compute transitive closure for selected relationship types.
+
+Closure computation MUST be relationship-type-aware.
+
+Universal graph closure across arbitrary edge types is semantically invalid.
+
+---
+
+# 98. Mixed-Type Traversal
+
+Queries MAY traverse multiple relationship types.
+
+Example:
+
+```text
+Requirement
+    implemented-by
+Component
+    depends-on
+Library
+    contains
+Vulnerable Package
+```
+
+Mixed traversal MUST preserve each predicate rather than treating the path as homogeneous.
+
+---
+
+# 99. Path Semantics
+
+A graph path does not automatically imply a valid higher-level relationship between its endpoints.
+
+Path interpretation MUST depend on the predicates involved.
+
+---
+
+# 100. Relationship Distance
+
+Graph distance MAY be useful for navigation.
+
+It MUST NOT automatically be interpreted as:
+
+* semantic similarity,
+* causal importance,
+* organizational closeness,
+* engineering risk.
+
+---
+
+# 101. Impact Analysis
+
+Impact analysis MAY use relationships such as:
+
+```text
+depends-on
+implements
+contains
+deployed-to
+consumes
+produces
+```
+
+Impact engines SHOULD distinguish:
+
+* direct impact,
+* transitive impact,
+* inferred impact,
+* speculative impact.
+
+---
+
+# 102. Blast Radius
+
+A blast radius MAY be derived from relationship traversal.
+
+Derived blast radius MUST preserve:
+
+* relationship paths,
+* traversal rules,
+* excluded relationship types,
+* confidence or uncertainty where applicable.
+
+---
+
+# 103. Relationship Density
+
+Monad MUST avoid treating maximum graph density as a goal.
+
+A dense graph with weak semantics may be less useful than a sparse graph with precise predicates.
+
+---
+
+# 104. Relationship Economy
+
+Relationships SHOULD be added when they materially improve:
+
+* explanation,
+* navigation,
+* impact analysis,
+* traceability,
+* reconciliation,
+* governance,
+* verification,
+* AI context.
+
+Incidental or low-value relationships SHOULD NOT be formalized merely because they can be.
+
+---
+
+# 105. Generic `related-to`
+
+A generic `related-to` relationship MAY exist for low-specificity associations.
+
+It SHOULD NOT replace a more precise predicate when that precision affects reasoning.
+
+---
+
+# 106. Promotion of Generic Relationships
+
+A generic relationship MAY later be refined into a more precise predicate.
+
+The refinement SHOULD preserve provenance and historical traceability where the earlier generic association mattered.
+
+---
+
+# 107. Semantic Similarity
+
+Semantic similarity MAY produce candidate relationships.
+
+Example:
+
+```text
+Document A similar-to Document B
+```
+
+Similarity MUST NOT automatically produce:
+
+```text
+same-as
+implements
+supersedes
+duplicate-of
+```
+
+---
+
+# 108. AI-Generated Relationships
+
+AI systems MAY propose relationships.
+
+Such relationships SHOULD default to candidate or inferred status unless authoritative confirmation exists.
+
+---
+
+# 109. AI Relationship Provenance
+
+Consequential AI-generated relationships SHOULD preserve:
+
+* model/provider identity where material,
+* context used,
+* producer,
+* timestamp,
+* confidence if available,
+* source artifacts,
+* reasoning inputs where representable.
+
+---
+
+# 110. AI Authority
+
+An AI model's ability to discover a likely relationship does not grant authority to establish canonical engineering state.
+
+Capability ≠ authority.
+
+---
+
+# 111. Human-Generated Relationships
+
+Human-authored relationships likewise require appropriate authority when they establish canonical state.
+
+Human authorship alone is not universal authority.
+
+---
+
+# 112. Native Relationship Preservation
+
+Provider-specific relationships SHOULD preserve provider semantics even when Monad maps them to broader canonical relationship types.
+
+Example:
+
+```text
+GitHub "blocks"
+```
+
+must not be silently treated as identical to every possible generic dependency relationship.
+
+---
+
+# 113. Native Relationship Mapping
+
+A native relationship MAY map to:
+
+```text
+canonical relationship
++
+provider-specific metadata
+```
+
+when the mapping is sufficiently faithful.
+
+Lossy mappings MUST be identifiable.
+
+---
+
+# 114. Mapping Uncertainty
+
+If the system cannot determine a safe canonical mapping, it SHOULD preserve the native relationship without inventing stronger semantics.
+
+---
+
+# 115. Portability
+
+Canonical relationship semantics SHOULD survive:
+
+* repository movement,
+* provider migration,
+* storage migration,
+* serialization changes,
+* operating-system changes.
+
+Relationship identity MUST NOT depend unnecessarily on provider-specific identifiers.
+
+---
+
+# 116. Provider Migration
+
+When a native system changes, historical native relationships SHOULD remain traceable where possible.
+
+Example:
+
+```text
+GitHub issue relation
+```
+
+migrated to:
+
+```text
+GitLab issue relation
+```
+
+should not erase the historical GitHub binding.
+
+---
+
+# 117. Serialization
+
+Relationship serialization MUST preserve enough information to reconstruct:
+
+* identity,
+* type,
+* endpoints,
+* required scope,
+* provenance,
+* relevant temporal semantics.
+
+---
+
+# 118. Unknown Relationship Types
+
+Importers SHOULD preserve unknown extension relationship types where possible.
+
+They MUST NOT silently coerce unknown predicates into `related-to`.
+
+---
+
+# 119. Schema Versioning
+
+Relationship representations MUST identify applicable schema or vocabulary versions where interpretation may vary across versions.
+
+---
+
+# 120. Local-First Operation
+
+Core relationship state SHOULD remain locally inspectable in local-first deployments.
+
+Remote provider availability SHOULD NOT be required to understand canonical relationship semantics already stored locally.
+
+---
+
+# 121. Offline Creation
+
+Relationships MAY be created or inferred offline.
+
+Later synchronization MUST support reconciliation of:
+
+* duplicates,
+* conflicting relationships,
+* stale endpoints,
+* identity changes,
+* divergent authority.
+
+---
+
+# 122. Relationship Security
+
+Access control MAY independently govern:
+
+```text
+read
+create
+modify
+approve
+delete
+export
+```
+
+relationship operations.
+
+Technical access MUST remain distinct from semantic authority.
+
+---
+
+# 123. Sensitive Relationships
+
+Some relationships may expose sensitive engineering information.
+
+Examples:
+
+```text
+service-to-database topology
+security control dependencies
+incident causality
+organizational responsibility
+```
+
+Systems SHOULD support appropriate classification and access control.
+
+---
+
+# 124. Relationship Retention
+
+Retention policy SHOULD consider whether relationships participate in:
+
+* releases,
+* incidents,
+* decisions,
+* provenance,
+* audit,
+* approvals,
+* ownership,
+* verification,
+* identity transitions.
+
+---
+
+# 125. Relationship Deletion
+
+Deleting a relationship MUST NOT implicitly delete either endpoint.
+
+Deletion consequences for derived relationships SHOULD be explicit.
+
+---
+
+# 126. Dangling Relationships
+
+Persisted relationships SHOULD NOT silently reference nonexistent endpoints unless the model explicitly supports unresolved or externally referenced entities.
+
+Dangling references SHOULD be detectable.
+
+---
+
+# 127. External Endpoints
+
+A relationship MAY reference an external entity not fully represented as a Monad Subject.
+
+Such references SHOULD use a durable Native Reference or external identifier representation sufficient to preserve meaning.
+
+---
+
+# 128. Unresolved Endpoints
+
+Monad MAY represent unresolved relationship endpoints when source material refers to an entity that cannot yet be identified.
+
+Unresolved state MUST remain explicit.
+
+---
+
+# 129. Endpoint Resolution
+
+Later resolution of an unresolved endpoint SHOULD preserve the provenance of how the binding was established.
+
+---
+
+# 130. Ambiguous Endpoint
+
+If multiple possible Subjects match a relationship endpoint, Monad MUST NOT arbitrarily choose one without justified resolution.
+
+Ambiguity SHOULD remain represented.
+
+---
+
+# 131. Relationship Validation
+
+Relationship validation SHOULD occur in layers.
+
+## Level 1 — Structural
+
+Verify:
+
+* required fields,
+* valid relationship identifier,
+* source and target presence,
+* syntactic type validity.
+
+## Level 2 — Referential
+
+Verify:
+
+* source resolves,
+* target resolves,
+* referenced type exists.
+
+## Level 3 — Type
+
+Verify:
+
+* allowed source type,
+* allowed target type,
+* relationship property types.
+
+## Level 4 — Cardinality
+
+Verify:
+
+* multiplicity constraints,
+* uniqueness constraints.
+
+## Level 5 — Semantic
+
+Verify:
+
+* valid scope,
+* temporal coherence,
+* relationship-specific invariants.
+
+## Level 6 — Provenance
+
+Verify required origin and derivation information.
+
+## Level 7 — Authority
+
+Verify authority where establishing canonical state requires it.
+
+---
+
+# 132. Structural Validity ≠ Semantic Truth
+
+A relationship may pass schema validation while still being:
+
+* false,
+* stale,
+* unauthorized,
+* contradictory,
+* inferred,
+* semantically inappropriate.
+
+Schema validation MUST NOT be presented as proof of truth.
+
+---
+
+# 133. Relationship Type Constraints
+
+A relationship vocabulary SHOULD permit constraints such as:
+
+```text
+source types
+target types
+symmetry
+transitivity
+inverse
+cardinality
+required properties
+allowed scopes
+```
+
+---
+
+# 134. Invalid Predicate Use
+
+If a predicate defined for:
+
+```text
+Requirement → Verification
+```
+
+is used between:
+
+```text
+Repository → Human
+```
+
+the system SHOULD reject or flag the relationship unless the vocabulary permits such usage.
+
+---
+
+# 135. Relationship Uniqueness
+
+Some relationship types MAY require semantic uniqueness.
+
+Example:
+
+```text
+Release has-version "1.2.0"
+```
+
+might be single-valued within a scope.
+
+Other relationship types may legitimately have multiple targets.
+
+Uniqueness MUST be type-specific.
+
+---
+
+# 136. Relationship Canonicalization
+
+Canonicalization MAY normalize:
+
+* predicate identifiers,
+* endpoint identifiers,
+* property ordering,
+* serialization form.
+
+Canonicalization MUST NOT change semantic meaning.
+
+---
+
+# 137. Relationship Hashing
+
+A deterministic representation MAY be hashed for:
+
+* integrity,
+* deduplication,
+* caching.
+
+Hash equality MUST NOT substitute for semantic identity unless explicitly defined.
+
+---
+
+# 138. Duplicate Relationship Assertions
+
+Two independent sources MAY assert the same relationship.
+
+Monad SHOULD preserve independent provenance even if the read model presents one consolidated relationship.
+
+---
+
+# 139. Consolidated Relationship View
+
+A read model MAY display:
+
+```text
+A depends-on B
+```
+
+once while aggregating multiple supporting assertions.
+
+The underlying provenance MUST remain recoverable.
+
+---
+
+# 140. Relationship Projection
+
+Read models MAY project relationship state for performance or usability.
+
+Projection freshness SHOULD be available when stale data could affect engineering decisions.
+
+---
+
+# 141. Projection Failure
+
+A failed or stale relationship projection MUST NOT alter canonical semantic state.
+
+---
+
+# 142. Relationship Indexes
+
+Indexes MAY accelerate:
+
+* outbound lookup,
+* inbound lookup,
+* type filtering,
+* traversal,
+* temporal queries,
+* provenance lookup.
+
+Indexes SHOULD be reconstructable from canonical relationship state.
+
+---
+
+# 143. Search and Discovery
+
+Search MAY help discover relationship candidates.
+
+Search result proximity or keyword co-occurrence MUST NOT establish a semantic relationship by itself.
+
+---
+
+# 144. Relationship Querying
+
+Monad SHOULD support queries such as:
+
+* What does Subject A depend on?
+* What depends on A?
+* Which requirements does Component C implement?
+* Which Evidence supports Claim X?
+* Which decisions constrain Specification S?
+* What superseded Artifact A?
+* What was deployed with Release R?
+* Which relationships are inferred?
+* Which relationships conflict?
+* Which relationships are stale?
+* Which relationships existed at time T?
+
+---
+
+# 145. Predicate-Specific Querying
+
+Clients SHOULD be able to request exact relationship semantics rather than receiving all adjacent graph edges indiscriminately.
+
+---
+
+# 146. Directional Querying
+
+Queries SHOULD distinguish:
+
+```text
+outgoing
+incoming
+```
+
+relationships where direction matters.
+
+---
+
+# 147. Historical Relationship Query
+
+Where history is retained, Monad SHOULD support:
+
+> What relationships were considered valid at time T?
+
+---
+
+# 148. Relationship Provenance Query
+
+The system SHOULD support:
+
+> Why does Monad believe A depends on B?
+
+A useful answer may include:
+
+* source declaration,
+* observation,
+* producer,
+* Evidence,
+* inference path,
+* authority.
+
+---
+
+# 149. Relationship Explanation
+
+Consequential relationships SHOULD be explainable in human-understandable form.
+
+Example:
+
+```text
+API Service depends on Identity Service
+
+Basis:
+- declared in architecture specification
+- observed in runtime traces
+- confirmed in source dependency analysis
+
+Status:
+- canonical
+- current
+```
+
+---
+
+# 150. AI Context Construction
+
+When relationships are supplied to AI systems, context SHOULD preserve:
+
+* predicate semantics,
+* direction,
+* scope,
+* provenance,
+* authority,
+* confidence,
+* temporal state,
+* whether relationship is direct or derived.
+
+Flattening all relationships into generic prose SHOULD be avoided when doing so would mislead reasoning.
+
+---
+
+# 151. Relationship Falsifiability
+
+Relationships asserting observable engineering reality SHOULD be defined precisely enough to identify possible contradicting Evidence.
+
+Example:
+
+```text
+Service A calls Service B at runtime
+```
+
+can be challenged by runtime observations.
+
+---
+
+# 152. Relationship Complexity Budget
+
+Monad MUST NOT require a universal ontology for every possible engineering relationship before the model becomes useful.
+
+The initial vocabulary SHOULD prioritize relationships required for:
+
+* identity,
+* traceability,
+* provenance,
+* governance,
+* execution,
+* verification,
+* reconciliation.
+
+---
+
+# 153. Minimal Useful Relationship Model
+
+A minimal durable relationship requires:
+
+```text
+relationship type
+source
+target
+```
+
+When consequential, it SHOULD additionally support:
+
+```text
+identity
+provenance
+scope
+time
+lifecycle
+```
+
+---
+
+# 154. Rich Relationship Example
+
+```yaml
+relationship:
+  id: rel:01K...
+
+  type: depends-on
+
+  source:
+    subject: service:api
+
+  target:
+    subject: service:identity
+
+  scope:
+    environment: production
+
+  properties:
+    dependency_kind: runtime
+    criticality: required
+
+  provenance:
+    producer: architecture-importer
+    source:
+      artifact: architecture-spec:001
+
+  valid_time:
+    from: 2026-08-30T00:00:00Z
+
+  lifecycle:
+    state: active
+```
+
+This example is illustrative.
+
+It does not define final field names.
+
+---
+
+# 155. Claim-Backed Relationship Example
+
+```yaml
+claim:
+  id: claim:01K...
+
+  proposition:
+    relationship:
+      type: implements
+      source: component:auth
+      target: requirement:REQ-042
+
+  epistemic_status: inferred
+
+  provenance:
+    producer: ai-analysis
+
+  confidence: 0.84
+```
+
+The relationship is not automatically canonical.
+
+---
+
+# 156. Native Relationship Example
+
+```text
+Native observation:
+    package.json
+    app → @monad/core
+
+Native relationship:
+    declared-package-dependency
+
+Potential semantic mapping:
+    Application Component
+        build-depends-on
+    Core Library
+```
+
+The native relationship and semantic interpretation remain distinguishable.
+
+---
+
+# 157. Temporal Example
+
+```text
+R1:
+    Service A deployed-to Cluster Blue
+    valid: Jan 1 – Feb 15
+
+R2:
+    Service A deployed-to Cluster Green
+    valid: Feb 15 onward
+```
+
+Both may be historically correct.
+
+---
+
+# 158. Conflict Example
+
+```text
+R1:
+    Component A owned-by Team Alpha
+
+R2:
+    Component A owned-by Team Beta
+```
+
+If ownership is single-valued in the relevant scope:
+
+```text
+conflict = true
+```
+
+Monad SHOULD retain both until authority and reconciliation resolve the state.
+
+---
+
+# 159. Inference Example
+
+Given:
+
+```text
+Requirement R
+    specified-by
+Specification S
+
+Specification S
+    implemented-by
+Component C
+```
+
+Monad MUST NOT automatically infer:
+
+```text
+Requirement R
+    implemented-by
+Component C
+```
+
+unless an explicit inference rule authorizes this semantic composition.
+
+---
+
+# 160. Dependency Impact Example
+
+```text
+Service A → Library B → Package C
+```
+
+A vulnerability in C may create transitive impact on A.
+
+The impact result SHOULD retain the path:
+
+```text
+A
+  depends-on
+B
+  depends-on
+C
+```
+
+rather than reporting an unexplained direct dependency.
+
+---
+
+# 161. Anti-Patterns
+
+## 161.1 Everything is `related-to`
+
+```text
+A related-to B
+```
+
+for every connection.
+
+This destroys semantic precision.
+
+---
+
+## 161.2 Edge direction ignored
+
+Treating:
+
+```text
+Requirement implemented-by Component
+```
+
+as equivalent to:
+
+```text
+Component implemented-by Requirement
+```
+
+is invalid.
+
+---
+
+## 161.3 Dependency implies causality
+
+A dependency edge is interpreted as proof that one component caused an incident.
+
+This is non-conforming.
+
+---
+
+## 161.4 Similarity implies identity
+
+Two similar documents are connected using `same-as`.
+
+Similarity is not semantic identity.
+
+---
+
+## 161.5 Filesystem hierarchy equals architecture
+
+Directory containment is automatically treated as component containment.
+
+Physical organization and semantic architecture may differ.
+
+---
+
+## 161.6 Inferred edge becomes canonical
+
+AI proposes:
+
+```text
+Requirement implemented-by Module
+```
+
+and the relationship is immediately stored as authoritative.
+
+Inference ≠ authority.
+
+---
+
+## 161.7 Duplicate edges destroy provenance
+
+Two independent observations are collapsed into one edge and all source provenance is discarded.
+
+This reduces epistemic value.
+
+---
+
+## 161.8 New edge overwrites old edge
+
+A new relationship replaces historical state without temporal or lifecycle history.
+
+Historical truth is lost.
+
+---
+
+## 161.9 Universal transitivity
+
+The engine computes transitive closure across every relationship type.
+
+This produces semantically invalid conclusions.
+
+---
+
+## 161.10 Graph density as quality metric
+
+More edges are treated as inherently better.
+
+Relationship usefulness depends on semantic precision and engineering value.
+
+---
+
+# 162. Non-Requirements
+
+This specification does **not** require:
+
+* a graph database,
+* RDF,
+* OWL,
+* SPARQL,
+* one global ontology,
+* every relationship to possess first-class identity,
+* automatic inference,
+* automatic transitive closure,
+* every native relationship to map to a Monad core predicate,
+* graph visualization,
+* embedding-based relationship discovery,
+* AI relationship extraction,
+* universal causal inference,
+* formal proof systems.
+
+---
+
+# 163. Conformance Scenario — Rename
+
+Given:
+
+```text
+Subject A
+    depends-on
+Subject B
+```
+
+and B's primary file moves from:
+
+```text
+src/core.ts
+```
+
+to:
+
+```text
+packages/core/src/index.ts
+```
+
+Then the semantic dependency MUST remain the same relationship if Subject identity and semantics remain unchanged.
+
+---
+
+# 164. Conformance Scenario — Dependency vs Causality
+
+Given:
+
+```text
+Service A depends-on Database B
+```
+
+and B fails before A,
+
+Monad MUST NOT automatically create:
+
+```text
+Database B caused-failure-of Service A
+```
+
+without separate causal Evidence or analysis.
+
+---
+
+# 165. Conformance Scenario — AI Inference
+
+Given an AI model proposes:
+
+```text
+Requirement R implemented-by Module M
+```
+
+Then:
+
+* the relationship MAY be stored as a candidate,
+* AI provenance MUST remain inspectable,
+* confidence MAY be recorded,
+* canonical acceptance requires applicable authority or confirmation.
+
+---
+
+# 166. Conformance Scenario — Native Mapping
+
+Given GitHub reports:
+
+```text
+Issue A blocks Issue B
+```
+
+Monad MAY map this to an internal blocking relationship.
+
+The original GitHub relationship semantics and native reference SHOULD remain inspectable.
+
+---
+
+# 167. Conformance Scenario — Conflicting Ownership
+
+Given two authoritative systems declare different owning teams,
+
+Monad MUST:
+
+* preserve both assertions,
+* identify the overlapping scope,
+* surface the conflict,
+* avoid resolving solely by recency.
+
+---
+
+# 168. Conformance Scenario — Historical Deployment
+
+Given Service A moved from Cluster X to Cluster Y,
+
+Then:
+
+* current queries MAY return Y,
+* historical queries MAY return X for the earlier interval,
+* X MUST NOT be erased merely because it is no longer current.
+
+---
+
+# 169. Conformance Scenario — Unknown Relationship
+
+Given Monad has no recorded dependency between A and B,
+
+Monad MUST NOT conclude:
+
+```text
+A does not depend on B
+```
+
+unless the dependency domain explicitly guarantees complete knowledge.
+
+---
+
+# 170. Conformance Scenario — Direct vs Transitive
+
+Given:
+
+```text
+A depends-on B
+B depends-on C
+```
+
+Then a query MAY report:
+
+```text
+A transitively depends-on C
+```
+
+if the relationship semantics permit.
+
+It MUST NOT report C as a direct dependency of A unless that direct relationship independently exists.
+
+---
+
+# 171. Conformance Scenario — Representation
+
+Given one Subject has:
+
+```text
+Markdown Representation
+HTML Representation
+Database Projection
+```
+
+Then these SHOULD all relate to the same Subject without being collapsed into one Representation identity.
+
+---
+
+# 172. Conformance Scenario — Supersession
+
+Given:
+
+```text
+ADR-002 supersedes ADR-001
+```
+
+Then:
+
+* both Subjects remain independently addressable,
+* the relationship is directional,
+* ADR-001 remains historically inspectable,
+* supersession MUST NOT imply `same-as`.
+
+---
+
+# 173. Derived Schema Obligations
+
+The Schema Catalog derived from this specification will likely require representations for:
+
+```text
+Relationship Identifier
+Relationship
+Relationship Type
+Relationship Property
+Relationship Scope
+Relationship Lifecycle
+Relationship Assertion
+Relationship Vocabulary Entry
+Relationship Constraint
+```
+
+and mechanisms for defining:
+
+```text
+source type constraints
+target type constraints
+inverse predicates
+symmetry
+transitivity
+cardinality
+temporal behavior
+```
+
+These are conceptual obligations, not final schema definitions.
+
+---
+
+# 174. Foundational Predicate Candidates
+
+The initial semantic kernel SHOULD evaluate a deliberately small vocabulary including concepts such as:
+
+```text
+represents
+references
+alias-of
+same-as
+split-from
+merged-into
+supersedes
+derived-from
+depends-on
+contains
+member-of
+implements
+specifies
+verifies
+supports
+contradicts
+corrects
+governed-by
+authorized-by
+produced-by
+executed-by
+deployed-to
+```
+
+The exact names and inclusion set remain subject to the Schema Catalog.
+
+---
+
+# 175. Open Specification Questions
+
+## 175.1 Relationship identity
+
+Which relationship types require independent stable identity?
+
+---
+
+## 175.2 Relationship assertions
+
+Should every consequential relationship be backed internally by a Claim, or should Claims be optional overlays on the relationship model?
+
+---
+
+## 175.3 Predicate registry
+
+Should core predicates use:
+
+* human-readable identifiers,
+* URI-like identifiers,
+* namespaced symbolic identifiers,
+* schema-defined IDs?
+
+---
+
+## 175.4 Relationship properties
+
+When should a relationship property instead become a separate Claim?
+
+---
+
+## 175.5 Native mappings
+
+Should provider-specific relationship mappings be:
+
+* declarative schemas,
+* adapter code,
+* policy,
+* a combination?
+
+---
+
+## 175.6 Transitivity
+
+Which foundational predicates, if any, should be transitively composable by default?
+
+---
+
+## 175.7 `same-as`
+
+Should `same-as` exist in the kernel, or is it too strong and dangerous for default use?
+
+---
+
+## 175.8 Equivalence
+
+Should relationship equivalence across vocabularies be first-class?
+
+---
+
+## 175.9 Relationship revision
+
+When endpoint, scope, or properties change, what determines:
+
+```text
+relationship revision
+```
+
+versus:
+
+```text
+new relationship
+```
+
+?
+
+---
+
+## 175.10 Historical storage
+
+Should temporal relationship history be:
+
+* event-derived,
+* interval-based,
+* revision-based,
+* hybrid?
+
+---
+
+## 175.11 Relationship evidence
+
+Should Evidence attach directly to Relationships, only to Claims about Relationships, or support both forms?
+
+---
+
+## 175.12 Inference rules
+
+Where should relationship inference rules live:
+
+* Schema Catalog,
+* policies,
+* domain specifications,
+* dedicated reasoning rules?
+
+---
+
+## 175.13 Generic relationships
+
+Should `related-to` be allowed in canonical state or restricted to candidate/discovery use?
+
+---
+
+## 175.14 Graph projection
+
+Which relationship families belong in the default semantic graph projection?
+
+Not every stored relationship necessarily deserves inclusion in every graph view.
+
+---
+
+# 176. Definition of Ready
+
+This specification is ready for baseline acceptance when:
+
+* relationship identity is separated from endpoint identity,
+* relationship type is normative,
+* directionality is explicit,
+* dependency is distinguished from causality,
+* chronology is distinguished from causality,
+* similarity is distinguished from identity,
+* relationship provenance is preserved,
+* inferred relationships remain epistemically distinct,
+* relationship scope and time are representable,
+* first-class relationship properties are supported where needed,
+* conflicts can coexist without destructive resolution,
+* native relationship semantics can be preserved,
+* traceability relationships are sufficiently precise,
+* transitivity is explicitly type-specific.
+
+---
+
+# 177. Definition of Done
+
+The Relationships specification is complete for the foundational specification baseline when:
+
+* every semantic-kernel relationship obligation maps to a normative clause,
+* downstream provenance work can express derivation safely,
+* Claims can assert relationship propositions,
+* Evidence can support or contradict relationship Claims,
+* Identity can express alias, split, merge, and continuity relationships,
+* traceability can connect requirements through implementation and verification,
+* reconciliation can compare canonical and observed relationships,
+* AI interaction can create candidate relationships without silently establishing truth,
+* schema work can define predicates without redefining relationship semantics,
+* conformance scenarios cover primary semantic failure modes.
+
+---
+
+# 178. Requirement Traceability
+
+This specification primarily derives from `REQ-SEM-*`.
+
+It also operationalizes relationship obligations from:
+
+| Requirement family | Relationship concern                                  |
+| ------------------ | ----------------------------------------------------- |
+| `REQ-ID-*`         | aliases, bindings, split, merge, continuity           |
+| `REQ-SEM-*`        | typed semantic relationships                          |
+| `REQ-EVD-*`        | Evidence-to-Claim support and contradiction           |
+| `REQ-PROV-*`       | derivation and production relationships               |
+| `REQ-AUTH-*`       | scoped authority relationships                        |
+| `REQ-GOV-*`        | policy and authorization relationships                |
+| `REQ-REC-*`        | observed-versus-canonical relationship reconciliation |
+| `REQ-INT-*`        | native relationship mapping                           |
+| `REQ-PORT-*`       | portable predicate and relationship semantics         |
+
+Exact requirement-to-clause mappings SHOULD be produced during specification baseline review.
+
+---
+
+# 179. Relationship to Other Specifications
+
+<Cards>
+  <Card
+    href="/docs/artifacts/specifications/semantic-kernel"
+    title="Semantic Kernel"
+  >
+    Establishes Relationship as one of Monad's foundational semantic concepts.
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/identity"
+title="Identity"
+
+>
+
+```
+Defines the stable endpoint identities that relationships connect.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/claims"
+title="Claims"
+
+>
+
+```
+Defines assertions that may state, dispute, infer, or confirm semantic relationships.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/evidence"
+title="Evidence"
+
+>
+
+```
+Defines material that can support or contradict Claims about relationships.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/provenance"
+title="Provenance"
+
+>
+
+```
+Defines origin and derivation semantics for both entities and relationships.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/authority"
+title="Authority"
+
+>
+
+```
+Defines who or what may legitimately establish canonical relationship state.
+```
+
+  </Card>
+</Cards>
+
+---
+
+# 180. Governing Principle
+
+Monad should model relationships precisely enough to preserve the reasoning structure of an engineering system.
+
+It must know the difference between:
+
+```text
+depends on
+```
+
+and:
+
+```text
+caused by
+```
+
+between:
+
+```text
+similar to
+```
+
+and:
+
+```text
+same as
+```
+
+between:
+
+```text
+authored by
+```
+
+and:
+
+```text
+authorized by
+```
+
+between:
+
+```text
+occurred before
+```
+
+and:
+
+```text
+produced
+```
+
+between:
+
+```text
+associated with
+```
+
+and:
+
+```text
+implements
+```
+
+The governing principle is:
+
+> **A graph becomes useful not when everything is connected, but when the meaning of each consequential connection is preserved.**
+
+Monad should therefore prefer a smaller number of trustworthy, typed, explainable relationships over a large graph of ambiguous edges.

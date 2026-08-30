@@ -1,14 +1,9 @@
-import type { CSSProperties, ReactNode } from 'react';
-import { AISearch, AISearchPanel, AISearchTrigger } from '@/components/ai/search';
-import { baseOptions } from '@/lib/layout.shared';
-import { buttonVariants } from 'fumadocs-ui/components/ui/button';
-import { cn } from '@/lib/cn';
-import { DocsLayout } from 'fumadocs-ui/layouts/docs';
-import { MessageCircleIcon } from 'lucide-react';
-import { SidebarSeparator } from './layout.client';
-import { source } from '@/lib/source';
+'use client';
+import * as Base from 'fumadocs-ui/components/sidebar/base';
 
-export default function Layout({ children }: { children: ReactNode }) {
+export function SidebarSeparator({ className, style, children, ...props }: ComponentProps<'p'>) {
+  const depth = Base.useFolderDepth();
+
   return (
     <DocsLayout
       {...baseOptions()}
@@ -30,25 +25,15 @@ export default function Layout({ children }: { children: ReactNode }) {
         components: {
           Separator: SidebarSeparator,
         },
+    <Base.SidebarSeparator
+      className={cn('[&_svg]:size-4 [&_svg]:shrink-0', className)}
+      style={{
+        paddingInlineStart: `calc(${2 + 3 * depth} * var(--spacing))`,
+        ...style,
       }}
+      {...props}
     >
-      <AISearch>
-        <AISearchPanel />
-        <AISearchTrigger
-          position="float"
-          className={cn(
-            buttonVariants({
-              variant: 'secondary',
-              className: 'text-fd-muted-foreground rounded-2xl',
-            }),
-          )}
-        >
-          <MessageCircleIcon className="size-4.5" />
-          Ask AI
-        </AISearchTrigger>
-      </AISearch>
-
       {children}
-    </DocsLayout>
+    </Base.SidebarSeparator>
   );
 }

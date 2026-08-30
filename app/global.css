@@ -4,6 +4,7 @@
 
 :root {
   --fd-layout-width: 100%;
+  --fd-nav-height: 64px !important;
 }
 
 html {

@@ -1,0 +1,547 @@
+---
+title: How Articles Work
+description: The editorial lifecycle, metadata contract, publication forms, revision rules, and Definition of Done for Monad Articles.
+---
+
+# How Articles Work
+
+Articles are editorial publications.
+
+They exist to communicate ideas deliberately: explain them, investigate them, argue for or against them, synthesize evidence, and make the project intelligible at a level that raw engineering records cannot provide by themselves.
+
+This page defines the public authoring contract for the Articles domain.
+
+## The editorial boundary
+
+Articles are not the place to store every piece of project knowledge.
+
+Use the publication domain that matches the job:
+
+| Need | Destination |
+| --- | --- |
+| Current authoritative technical truth | [Documentation](/docs) |
+| Formal requirements, specs, ADRs, evidence, reviews | [Artifacts](/docs/artifacts) |
+| Chronological working record | [Engineering Journal](/journal) |
+| Release/change communication | [Changelogs](/changelogs) |
+| Editorial explanation, investigation, synthesis, or argument | **Articles** |
+
+An Article may depend on the other records. It should link to them rather than duplicating their role.
+
+## Publication forms
+
+Every published Article declares exactly one `type`.
+
+### Blog — `blog`
+
+Blog posts are the most flexible editorial form.
+
+Good uses include:
+
+- explanatory essays,
+- technical commentary,
+- project synthesis,
+- accessible introductions,
+- reflective pieces,
+- architectural interpretation,
+- lessons learned,
+- and long-form narrative writing.
+
+A Blog post may be opinionated, but significant factual or technical claims should still be traceable to evidence or authoritative project records where appropriate.
+
+### Research — `research`
+
+Research articles expose an investigation rather than only its conclusion.
+
+They should make the reader able to distinguish:
+
+- the question,
+- prior understanding,
+- assumptions,
+- method,
+- sources or evidence,
+- observations,
+- interpretation,
+- limitations,
+- uncertainty,
+- competing explanations,
+- conclusions,
+- and unresolved questions.
+
+A Research article is not automatically authoritative just because it is rigorous.
+
+Research can conclude that the evidence is insufficient.
+
+That is a valid result.
+
+### White Paper — `white-paper`
+
+White Papers carry the highest editorial burden in the Articles domain.
+
+They are appropriate for a sustained technical thesis, system proposal, conceptual model, protocol argument, or other publication intended to remain useful as a durable public reference.
+
+A White Paper should normally establish:
+
+1. problem and scope,
+2. terminology,
+3. assumptions,
+4. context and prior art,
+5. thesis or proposal,
+6. supporting argument and evidence,
+7. tradeoffs and alternatives,
+8. limitations,
+9. implications,
+10. and references or related project records.
+
+A White Paper can describe or argue for a system direction without replacing the accepted specifications or current System documentation.
+
+## Public article identity
+
+Each published article receives a durable ID:
+
+```text
+ART-YYYY-MM-DD-NNN
+```
+
+Example:
+
+```text
+ART-2026-08-30-001
+```
+
+The ID identifies the publication record.
+
+It should not change because:
+
+- the title changes,
+- the file slug changes,
+- the article is revised,
+- the article becomes part of a series,
+- or its editorial status changes from `published` to `revised`.
+
+## Filenames
+
+Published articles should use:
+
+```text
+YYYY-MM-DD-NNN-short-descriptive-slug.mdx
+```
+
+Example:
+
+```text
+2026-08-30-001-four-publication-domains.mdx
+```
+
+The date and sequence make chronology obvious in the repository while the durable `ART-*` identifier remains the semantic publication identity.
+
+## Public frontmatter
+
+A normal published article can look like this:
+
+```yaml
+---
+title: Why Monad Has Four Publication Domains
+description: Why documentation, journal entries, changelogs, and editorial articles should not be treated as interchangeable records.
+article:
+  id: ART-2026-08-30-001
+  type: blog
+  status: published
+  published: 2026-08-30
+  author: Thomas Carter
+  audience:
+    - Builders
+    - Architects
+  topics:
+    - engineering knowledge
+    - documentation architecture
+  featured: false
+  readingMinutes: 8
+  related:
+    - label: Engineering Journal
+      href: /journal
+    - label: Changelogs
+      href: /changelogs
+---
+```
+
+Only actual publication pages need the `article` block.
+
+Landing pages and this format guide intentionally omit it.
+
+## Metadata fields
+
+### `id`
+
+Required for published articles.
+
+Format:
+
+```text
+ART-YYYY-MM-DD-NNN
+```
+
+### `type`
+
+Required.
+
+One of:
+
+```text
+blog
+research
+white-paper
+```
+
+The type should match the publication family in which the file lives.
+
+### `status`
+
+Required.
+
+Public states are:
+
+```text
+published
+revised
+archived
+```
+
+These are deliberately different from internal editorial workflow states.
+
+### `published`
+
+Required.
+
+The original public publication date in:
+
+```text
+YYYY-MM-DD
+```
+
+This date remains stable after revisions.
+
+### `updated`
+
+Optional.
+
+Use it for a material revision to an already published article.
+
+Do not change `published` to the revision date.
+
+### `author`
+
+Required.
+
+The public byline.
+
+### `audience`
+
+Optional list of intended reader groups.
+
+Use this to help readers understand who is most likely to benefit from the article, not to restrict who may read it.
+
+Examples:
+
+```text
+Builders
+Architects
+Implementers
+Historians
+Researchers
+AI engineers
+Engineering leaders
+```
+
+### `topics`
+
+Optional editorial taxonomy.
+
+Topics should describe the subject matter, not repeat the publication type.
+
+Good examples:
+
+```text
+semantic identity
+provenance
+AI-assisted engineering
+local-first systems
+engineering knowledge
+system architecture
+```
+
+### `featured`
+
+Boolean used for future editorial curation.
+
+Default:
+
+```text
+false
+```
+
+A featured article is not more authoritative than another article. It is simply being promoted editorially.
+
+### `readingMinutes`
+
+Optional positive integer representing an estimated reading time.
+
+It is intentionally stored as minutes rather than a prose string so future listing and filtering interfaces can use it consistently.
+
+### `series`
+
+Optional.
+
+Example:
+
+```yaml
+series:
+  name: Building Software That Understands Itself
+  position: 2
+  href: /articles/blog
+```
+
+A series relationship is editorial ordering, not authority or dependency.
+
+### `canonicalUrl`
+
+Optional absolute URL.
+
+Use this when the same publication appears elsewhere and one URL should be treated as canonical by search engines.
+
+### `related`
+
+Optional links to relevant material.
+
+Good related links include:
+
+- another Article,
+- a Journal entry,
+- a Changelog record,
+- System documentation,
+- an ADR,
+- a requirement or specification,
+- an experiment,
+- an external source,
+- or a project phase page.
+
+## Editorial workflow
+
+The full authoring workflow can include states that never appear in public metadata:
+
+```text
+idea
+  ↓
+draft
+  ↓
+editorial review
+  ↓
+technical / factual review
+  ↓
+ready
+  ↓
+published
+  ↓
+revised
+  ↓
+archived
+```
+
+The important distinction is this:
+
+**A file under the public `content/articles` tree is renderable.**
+
+Therefore draft and review states should not be represented merely by committing unfinished public MDX and hoping readers do not find it.
+
+Until a dedicated draft-publication mechanism exists, keep unpublished drafts outside the public Articles collection.
+
+## Revision policy
+
+Published editorial work can change, but revision should be deliberate.
+
+### Minor corrections
+
+Typographical corrections, broken-link fixes, formatting changes, and other changes that do not materially alter the article's meaning do not require `status: revised`.
+
+### Material revisions
+
+Set:
+
+```yaml
+status: revised
+updated: YYYY-MM-DD
+```
+
+when a change materially affects the argument, interpretation, evidence, recommendations, or substantive explanation.
+
+A material revision should preferably explain the revision in the article when readers would otherwise be confused by references to an earlier edition.
+
+### Archiving
+
+Use:
+
+```yaml
+status: archived
+```
+
+when the article should remain publicly inspectable but is no longer recommended as current editorial guidance.
+
+Archiving is preferable to silently rewriting historical editorial context when the older publication remains meaningful as a record.
+
+## Articles and changing project truth
+
+A published article may become outdated because the project changes.
+
+That does not automatically make the article defective.
+
+The correct response depends on its role:
+
+- revise it if the publication is intended to remain current,
+- archive it if its historical editorial value remains but its guidance is obsolete,
+- link readers to newer material,
+- and ensure current authoritative documentation remains correct regardless of the article's state.
+
+The Articles domain should never become the only place where current system truth is documented.
+
+## Evidence and citations
+
+Different forms carry different expectations.
+
+### Blog
+
+Cite or link significant claims when doing so helps readers verify or investigate them.
+
+### Research
+
+Evidence and source traceability are part of the form itself.
+
+A Research article should make clear which conclusions come from evidence and which remain interpretation or hypothesis.
+
+### White Paper
+
+A formal argument should provide enough sourcing and cross-reference structure for a critical reader to evaluate the thesis.
+
+Project-internal claims should link to formal project artifacts where available.
+
+## Relationship to the Engineering Journal
+
+Journal entries preserve work close to the moment it happens.
+
+Articles are written with more editorial distance.
+
+A common path is:
+
+```text
+Journal observations
+        ↓
+engineering work + evidence
+        ↓
+accepted artifacts / current docs
+        ↓
+editorial synthesis
+        ↓
+Article
+```
+
+An Article should not rewrite the Journal into a cleaner fictional history.
+
+If uncertainty, failure, or reversal mattered to the argument, preserve it.
+
+## Relationship to Changelogs
+
+Changelogs communicate externally meaningful deltas at publication or release boundaries.
+
+Articles communicate understanding.
+
+A new feature may need both:
+
+- a Changelog entry saying what changed and whether migration is required,
+- and an Article explaining why the feature matters or how to think about it.
+
+The two records should link rather than duplicate each other.
+
+## Relationship to Building Monad
+
+Building Monad is the curated narrative of the project's evolution.
+
+Articles can participate in that narrative without being nested inside the Documentation tree.
+
+A Building Monad installment may point to:
+
+- a Blog essay for deeper interpretation,
+- a Research article for a specific investigation,
+- or a White Paper for a formal thesis.
+
+This keeps narrative organization and publication type separate.
+
+## Editorial Definition of Done
+
+A published Article is done when:
+
+- its publication type is correct,
+- its title and description accurately represent the content,
+- its durable `ART-*` ID is unique,
+- `published` reflects the original publication date,
+- the author/byline is correct,
+- intended audiences and topics are useful rather than decorative,
+- substantial factual or technical claims are supportable,
+- uncertainty is represented honestly,
+- links to authoritative project records are included where useful,
+- it does not masquerade as current authority,
+- it does not duplicate a Journal or Changelog record unnecessarily,
+- series information is correct when applicable,
+- canonical URL is set when cross-publication requires it,
+- the article renders successfully,
+- typecheck/build pass,
+- and the publication provides durable value beyond the immediate conversation or work session that produced it.
+
+## Recommended body structures
+
+These are defaults, not mandatory templates.
+
+### Blog
+
+```text
+Opening / problem
+Context
+Main argument or explanation
+Examples / implications
+Tradeoffs or caveats
+What this means
+Related reading
+```
+
+### Research
+
+```text
+Research question
+Context / prior understanding
+Method
+Evidence / observations
+Analysis
+Competing explanations
+Limitations
+Conclusion
+Open questions
+Related records / sources
+```
+
+### White Paper
+
+```text
+Abstract
+Problem
+Scope
+Terminology
+Assumptions
+Background / prior art
+Thesis or proposal
+Model / architecture / mechanism
+Evidence and argument
+Alternatives and tradeoffs
+Limitations
+Implications
+Conclusion
+References
+```
+
+The structure should serve the publication's purpose rather than becoming ceremony for its own sake.

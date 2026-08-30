@@ -1,7 +1,136 @@
 ---
-title: Reasearch Home
-description: Home for research articles
+title: Research
+description: Structured investigations into questions relevant to Monad, its architecture, its product assumptions, and the broader engineering problem space.
 ---
 
-# research Home
+# Research
 
+Research articles document investigations in a form that makes the path from question to conclusion inspectable.
+
+They are not merely polished opinions with citations added afterward. The investigation itself is part of the publication.
+
+## What belongs here
+
+Research is appropriate when the publication needs to expose:
+
+- a concrete research question,
+- prior understanding,
+- assumptions,
+- method,
+- external and internal evidence,
+- observations,
+- interpretation,
+- competing explanations,
+- uncertainty,
+- limitations,
+- conclusions,
+- and unresolved questions.
+
+Examples might include investigations into:
+
+- how AI-assisted engineering changes knowledge-management requirements,
+- whether semantic system models provide measurable value over simpler retrieval,
+- how other engineering systems model authority or provenance,
+- local-first architecture tradeoffs,
+- reproducibility strategies,
+- agent governance models,
+- or empirical behavior observed during Monad experiments.
+
+## Research is allowed to be inconclusive
+
+A good investigation can end with:
+
+> The evidence is insufficient to justify the original hypothesis.
+
+or:
+
+> The simpler explanation currently fits the evidence better.
+
+or:
+
+> We identified the relevant variables but do not yet have enough evidence to choose between the competing approaches.
+
+Those are legitimate research results.
+
+The purpose is to increase what the project knows, not to manufacture certainty.
+
+## Research and authority
+
+A Research article may influence requirements, architecture, specifications, or product strategy, but publication does not make its conclusions authoritative by itself.
+
+When research produces an accepted engineering consequence, the consequence should appear in the appropriate authoritative artifact:
+
+```text
+Research
+   ↓
+evidence / conclusion
+   ↓
+review or decision
+   ↓
+requirement / ADR / specification
+   ↓
+System documentation
+```
+
+This keeps the evidence trail visible without confusing investigation with governance.
+
+## Research and the Journal
+
+The Engineering Journal can capture investigation as it happens:
+
+- questions,
+- failed approaches,
+- early observations,
+- source discoveries,
+- and evolving hypotheses.
+
+A Research article is a more deliberate synthesis of that work.
+
+It should not rewrite uncertainty out of the history simply because the final publication has a clearer structure.
+
+## Research and external sources
+
+Research articles should identify externally sourced evidence clearly enough that a critical reader can inspect it.
+
+Where the research depends on current external facts, source freshness and publication dates matter.
+
+Where the work depends on project-internal evidence, link to the relevant experiment, review, artifact, Journal entry, implementation, or verification record when available.
+
+## Recommended structure
+
+A normal Research article should consider:
+
+1. Research question
+2. Why the question matters
+3. Prior understanding
+4. Assumptions
+5. Method
+6. Evidence and observations
+7. Analysis
+8. Competing explanations
+9. Limitations
+10. Conclusion
+11. Open questions
+12. Related sources and project records
+
+The exact structure may vary, but evidence and uncertainty should remain visible.
+
+## Chronology
+
+Published Research articles are listed newest first after this landing page.
+
+Material revisions preserve the original publication date and add an `updated` date.
+
+<Cards>
+  <Card title="Blog" href="/articles/blog">
+    Use the Blog when the primary goal is explanation, synthesis, commentary, or an accessible argument rather than exposing a research method.
+  </Card>
+
+  <Card title="White Papers" href="/articles/white-papers">
+    Use a White Paper when research has matured into a formal technical thesis, model, or proposal intended as a durable public reference.
+  </Card>
+
+  <Card title="How Articles Work" href="/articles/format">
+    Read the shared publication metadata, revision policy, editorial lifecycle, and Definition of Done.
+  </Card>
+</Cards>

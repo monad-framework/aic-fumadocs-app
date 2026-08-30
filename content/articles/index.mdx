@@ -1,20 +1,164 @@
 ---
 title: Articles
-description: Root folder for all informations of type article including blog articles, research articles, white papers, etc.
+description: Editorial publications about Monad, its engineering, and the ideas around it.
 ---
 
 # Articles
 
-## Blog Articles
+Articles are the editorial publication layer of the Monad project.
 
-Blog Home
+They are written to explain, investigate, argue, synthesize, and communicate. They may draw from the Engineering Journal, formal artifacts, current system documentation, implementation work, and external research, but they are not substitutes for those sources.
 
+<Callout type="info" title="Publication is not authority">
 
-## Research Articles
+An article can explain what Monad is, why a design matters, or what an investigation suggests. When you need the current authoritative technical description, use [Documentation](/docs). When you need formal requirements, specifications, decisions, evidence, or verification, use [Artifacts](/docs/artifacts).
 
-Research Home
+</Callout>
 
+## Three editorial forms
 
-## White Papers
+<Cards>
+  <Card title="Blog" href="/articles/blog">
+    Accessible essays, project commentary, synthesis, explanations, and narrative writing intended to communicate ideas clearly to a broad technical audience.
+  </Card>
 
-White Papers Home
+  <Card title="Research" href="/articles/research">
+    Structured investigations that make questions, methods, evidence, uncertainty, and conclusions visible rather than presenting exploration as settled fact.
+  </Card>
+
+  <Card title="White Papers" href="/articles/white-papers">
+    Formal publications that present a sustained technical thesis, model, proposal, or system-level argument with a higher burden of structure and support.
+  </Card>
+</Cards>
+
+## What Articles answer
+
+Articles generally answer questions such as:
+
+- Why does this problem matter?
+- How should a difficult technical idea be understood?
+- What did a body of research suggest?
+- What argument follows from the available evidence?
+- What broader implications emerge from the project?
+- How can a complex engineering development be made intelligible without reading every underlying artifact?
+
+The answer depends on the form.
+
+A Blog post may optimize for explanation and synthesis.
+
+A Research article optimizes for investigation and epistemic clarity.
+
+A White Paper optimizes for a durable, formal argument.
+
+## Relationship to the other publication domains
+
+The public knowledge base now preserves different records for different jobs:
+
+| Section | Primary question | Character |
+| --- | --- | --- |
+| [Documentation](/docs) | What is true now? | Authoritative technical description |
+| [Engineering Journal](/journal) | What happened while doing the work? | Chronological working record |
+| [Changelogs](/changelogs) | What changed at a meaningful boundary? | Release/change communication |
+| **Articles** | What should readers understand about this? | Editorial publication |
+
+An article may link into all three other domains.
+
+For example, an essay about semantic identity might:
+
+1. explain the motivation in accessible prose,
+2. link to Journal entries showing how the idea evolved,
+3. cite the accepted ADR or specification that formalized the result,
+4. link to current System documentation for the authoritative model,
+5. and later appear in a Changelog if the published system behavior changes.
+
+That relationship is intentional.
+
+## Publication metadata
+
+Published articles carry a compact editorial record that can include:
+
+- durable publication ID,
+- publication type,
+- public publication state,
+- publication and revision dates,
+- author,
+- intended audiences,
+- topics,
+- estimated reading time,
+- series membership and position,
+- canonical URL when cross-published,
+- related reading,
+- and a featured flag for future editorial curation.
+
+See [How Articles Work](/articles/format) for the complete authoring contract.
+
+## Public publication states
+
+The public site recognizes three publication states:
+
+### Published
+
+The article has crossed the editorial publication boundary and is the current public edition.
+
+### Revised
+
+The published article has received a material editorial revision after its original publication date.
+
+The original `published` date remains stable and `updated` records the revision date.
+
+### Archived
+
+The article remains part of the publication record but should no longer be treated as a current editorial recommendation.
+
+Archiving does not delete history.
+
+Drafting, review, fact-checking, and scheduling are authoring workflow states, not public publication states. They should remain outside the public content tree until the work is intentionally publishable.
+
+## Reading by audience
+
+Article metadata can identify intended audiences without making the prose inaccessible to everyone else.
+
+Useful audience labels may include:
+
+- Builders,
+- Architects,
+- Implementers,
+- Historians,
+- Researchers,
+- AI engineers,
+- engineering leaders,
+- and general technical readers.
+
+These labels are descriptive editorial signals rather than access controls.
+
+## Editorial principle
+
+Articles should make the project easier to understand without collapsing important distinctions.
+
+A polished article should not erase uncertainty that still exists.
+
+A persuasive essay should not silently promote a working hypothesis into an accepted architectural decision.
+
+A research article should distinguish evidence from interpretation.
+
+A white paper should make its assumptions and argument inspectable.
+
+And none of them should force readers to infer whether they are looking at history, current truth, formal evidence, or editorial interpretation.
+
+<Cards>
+  <Card title="Browse the Blog" href="/articles/blog">
+    Read explanatory and narrative writing.
+  </Card>
+
+  <Card title="Explore Research" href="/articles/research">
+    Follow structured investigations and their evidence.
+  </Card>
+
+  <Card title="Read White Papers" href="/articles/white-papers">
+    Browse formal technical publications.
+  </Card>
+
+  <Card title="How Articles Work" href="/articles/format">
+    See the publication lifecycle, metadata contract, revision rules, and editorial Definition of Done.
+  </Card>
+</Cards>

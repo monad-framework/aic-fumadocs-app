@@ -1,6 +1,8 @@
 {
   "title": "Blog",
   "pages": [
-    "index"
+    "index",
+    "---Published posts---",
+    "z...a"
   ]
 }

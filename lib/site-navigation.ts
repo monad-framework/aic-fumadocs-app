@@ -69,19 +69,30 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
     label: 'Articles',
     items: [
       {
+        label: 'Articles Home',
+        description: 'Browse Monad editorial publications',
+        href: '/articles',
+        match: 'exact',
+      },
+      {
         label: 'Blog',
-        description: 'Long-form project writing',
+        description: 'Essays, explanations, commentary, and synthesis',
         href: '/articles/blog',
       },
       {
         label: 'Research',
-        description: 'Research notes and investigations',
+        description: 'Structured investigations, evidence, and conclusions',
         href: '/articles/research',
       },
       {
         label: 'White Papers',
-        description: 'Formal technical papers',
+        description: 'Formal technical theses, models, and proposals',
         href: '/articles/white-papers',
+      },
+      {
+        label: 'How Articles Work',
+        description: 'Editorial lifecycle, metadata, and publication rules',
+        href: '/articles/format',
       },
     ],
   },

@@ -1,0 +1,129 @@
+---
+title: How Building Monad Works
+description: The curation contract for Building Monad: reading-path types, source ownership, authority boundaries, linking rules, maintenance, and completion criteria.
+---
+
+Building Monad is a **curated view over project records**, not another source-of-truth repository.
+
+Its job is to make the evolution of Monad understandable by selecting, sequencing, and contextualizing records that remain owned by their native publication domains.
+
+<Callout type="info" title="Core invariant">
+
+**Curation may add context and sequence. It must not silently acquire authority that belongs to the records being curated.**
+
+</Callout>
+
+## Curation objects
+
+### Series
+
+A Series is a stable thematic reading path. Use it when a recurring question is best answered by an ordered sequence of records that may span Docs, Artifacts, Journal, Changelogs, and Articles.
+
+A Series is not a tag archive and does not require new source content.
+
+### Installment
+
+An Installment is a bounded historical snapshot of one meaningful project moment.
+
+It should explain the before-state, the pressure or question, the important source records, the resulting state, and where the story continues.
+
+Installments use stable sequential slugs such as:
+
+```text
+001-publication-domains
+002-...
+```
+
+The number identifies the installment sequence, not an authority or release version.
+
+### Project Phase
+
+A Project Phase is a lifecycle-oriented reading path. The phase pages are stable orientation surfaces rather than mutable project-status records.
+
+Current status belongs in [Project](/docs/project); chronological work belongs in [Journal](/journal).
+
+### Essays & Editorial Reading
+
+This surface curates [Articles](/articles) that matter to the Building Monad narrative. It must not become a second location for Blog posts, Research, or White Papers.
+
+## Source ownership
+
+Building Monad can point to all major public knowledge domains, but ownership remains explicit:
+
+| Record | Owning domain |
+| --- | --- |
+| current system explanation | `/docs/system` |
+| requirement, specification, ADR, evidence, review, verification | `/docs/artifacts` |
+| chronological engineering event | `/journal` |
+| release or meaningful change record | `/changelogs` |
+| essay, research publication, white paper | `/articles` |
+| curated sequence or interpretation of those records | `/building-monad` |
+
+## What curation may add
+
+A Building Monad page may add:
+
+- historical framing,
+- ordering,
+- transitions between records,
+- explanation of why records belong together,
+- reader-specific paths,
+- cross-domain context,
+- bounded retrospective interpretation,
+- pointers to unresolved questions.
+
+## What curation should not duplicate
+
+Do not copy the body of an ADR, Article, Journal entry, requirement, specification, or Changelog record into Building Monad merely to make a reading path self-contained.
+
+Brief summaries are appropriate. The canonical record should remain one click away.
+
+## Historical versus current statements
+
+If a curation page describes an earlier understanding, it should make that historical position clear.
+
+When current truth matters, link to the current authoritative System or Artifact record rather than relying on a historical summary.
+
+## Link durability
+
+Prefer stable semantic routes and durable record pages over ephemeral anchors, search-result URLs, or branch-specific repository links.
+
+When a source record moves, preserve redirects where practical and update the curated link when the new canonical route is known.
+
+## Revision behavior
+
+Building Monad pages may be revised as the project develops, but revisions should preserve historical meaning.
+
+A later discovery may justify adding context such as:
+
+> This interpretation was later superseded by ADR-00XX.
+
+It should not justify rewriting the page to pretend the earlier interpretation never existed.
+
+## Creation test
+
+Create or materially expand a Building Monad page only when it improves at least one of these:
+
+- sequence,
+- orientation,
+- cross-domain comprehension,
+- historical reconstruction,
+- reader navigation.
+
+If the proposed page is primarily new technical truth, a work log, a release note, or an essay, it belongs elsewhere.
+
+## Definition of Done
+
+A curated page is ready when:
+
+- its purpose as Series, Installment, Phase, or editorial pathway is clear,
+- the important source records are linked in their native domains,
+- authority boundaries are not blurred,
+- historical claims are framed as historical where necessary,
+- the page adds context rather than duplicating source bodies,
+- links resolve to durable public routes,
+- the reader knows where to continue.
+
+## Governing principle
+
+> **Keep the records where they belong; make the relationships between them understandable here.**

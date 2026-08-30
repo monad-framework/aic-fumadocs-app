@@ -94,6 +94,11 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
         description: 'Follow curated paths into the Articles corpus',
         href: '/building-monad/essays',
       },
+      {
+        label: 'How Building Monad Works',
+        description: 'Read the curation and source-ownership contract',
+        href: '/building-monad/format',
+      },
     ],
   },
   {

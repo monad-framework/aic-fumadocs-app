@@ -20,7 +20,8 @@ export default function Layout({ children }: { children: ReactNode }) {
       themeSwitch={{ enabled: false }}
       containerProps={{
         style: {
-          '--fd-banner-height': 'var(--site-nav-height)',
+          '--fd-docs-row-1':
+            'calc(var(--fd-banner-height, 0px) + var(--site-nav-height))',
         } as CSSProperties,
       }}
       sidebar={{

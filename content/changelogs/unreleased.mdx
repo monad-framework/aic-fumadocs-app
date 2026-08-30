@@ -16,9 +16,10 @@ Unlike published changelog records, this page is intentionally editable. Items c
 - Added a typed editorial metadata contract for public Articles, including durable publication IDs, publication type/state, byline, publish/revision dates, audiences, topics, reading time, series relationships, canonical URLs, related reading, and featured status.
 - Added `/articles/format` as the public editorial lifecycle and authoring contract.
 - Added the first real Blog publication, `ART-2026-08-30-001 — Why Monad Has Four Publication Domains`.
-- Added `/building-monad` as a first-class curated narrative domain with Series, Installments, Project Phases, and Essays & Editorial Reading paths.
+- Added `content/building-monad` and `/building-monad` as the dedicated Building Monad curation domain.
 - Added `/building-monad/format` as the public curation and source-ownership contract.
-- Added `Installment 001 — Publication Domains Become First-Class` as the first bounded Building Monad narrative snapshot.
+- Added the first curated installment connecting the publication-domain Journal, Changelog, Article, and resulting architecture.
+- Added intent-based homepage reading paths for newcomers, builders, architects, implementers, and historians.
 
 ## Changed
 
@@ -28,13 +29,18 @@ Unlike published changelog records, this page is intentionally editable. Items c
 - Published Article pages now render editorial publication metadata above the article body.
 - Expanded global Articles navigation with an Articles overview and authoring guide.
 - Removed the Articles-local floating `Ask AI` control because the current AI endpoint searches authoritative docs rather than editorial content.
-- Reworked Building Monad from a mixed journal/essay/history section into the curation layer that connects System, Artifacts, Journal, Changelogs, and Articles.
-- Moved Building Monad out of the authoritative `content/docs` collection to its own top-level `/building-monad` route and source collection.
-- Updated global navigation so Building Monad is a first-class top-level destination.
+- Building Monad is now a curation layer that links source records owned by Documentation, Journal, Changelogs, and Articles rather than duplicating those records inside `/docs`.
+- Building Monad now has explicit Series, Installment, Phase, and editorial-reading curation surfaces.
+- Global navigation now exposes Building Monad as a first-class domain.
+- Reworked the homepage around reader intent and the five-domain knowledge architecture instead of the older three-layer model.
+- Reworked `/docs` into a focused authoritative technical entry point rather than a second general-purpose homepage.
+- Reworked About around Monad's enduring thesis, boundaries, principles, and falsifiable assumptions rather than site navigation and historical record ownership.
+- Reorganized global navigation into Start Here, Documentation, Building Monad, Articles, Changelogs, and Journal so the public information architecture is visible directly from the site shell.
 
 ## Fixed
 
-_No unreleased fixes are currently recorded._
+- Legacy `/docs/building-monad/...` links now redirect to their top-level `/building-monad/...` equivalents, while the former Journal path continues to redirect directly to `/journal`.
+- Removed stale orientation links and descriptions that treated Building Monad as a docs-owned journal/essay container or used obsolete root-relative documentation routes.
 
 ## Deprecated
 
@@ -42,7 +48,8 @@ _No unreleased deprecations are currently recorded._
 
 ## Removed
 
-- Removed the old docs-owned Building Monad content tree after replacing it with the dedicated curation domain. Legacy `/docs/building-monad/...` routes redirect to their new locations.
+- Removed the old `content/docs/building-monad` content tree from the authoritative Documentation collection after its migration to the dedicated curation source.
+- Removed page-level newsletter and subscription calls to action from the Documentation orientation page; subscription remains a site-level concern.
 
 ## Security
 

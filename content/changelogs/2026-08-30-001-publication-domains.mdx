@@ -1,0 +1,66 @@
+---
+title: Public Knowledge Base Split into Independent Publication Domains
+description: Documentation, articles, changelogs, and the engineering journal now operate as separate content domains with distinct responsibilities.
+changelog:
+  id: CHG-2026-08-30-001
+  date: 2026-08-30
+  kind: change-set
+  status: released
+  channel: stable
+  breaking: false
+  migration: false
+  areas:
+    - documentation-site
+    - navigation
+    - content-model
+  related:
+    - label: Engineering Journal
+      href: /journal
+    - label: How the Journal Works
+      href: /journal/format
+    - label: Monad Documentation
+      href: /docs
+---
+
+## Summary
+
+The public Monad knowledge base now has four independent publication domains instead of multiple routes sharing the documentation content source.
+
+The change clarifies what each section is responsible for and prevents historical, editorial, and release-oriented material from masquerading as current authoritative documentation.
+
+## Added
+
+- A first-class `/journal` content domain for the chronological engineering record.
+- A Journal authoring contract with durable entry identity, status, kind, project phase, topics, and related-record metadata.
+- A dedicated changelog content source under `content/changelogs`.
+
+## Changed
+
+- `/docs` now serves only the authoritative Monad documentation collection.
+- `/articles` reads from its own article collection rather than the docs source.
+- `/changelogs` reads from its own changelog collection rather than the docs source.
+- `/journal` reads from its own journal collection rather than the docs source.
+- The Engineering Journal moved conceptually out of Building Monad's docs subtree and became a top-level publication domain.
+- Old `/docs/building-monad/journal` navigation is preserved through a redirect to `/journal`.
+
+## Fixed
+
+- Corrected the changelog source configuration from the old singular `content/changelog` path to the actual `content/changelogs` directory.
+- Removed misleading docs-scoped AI controls from publication domains whose content is not currently searched by the docs AI endpoint.
+
+## Breaking changes
+
+None.
+
+Existing public documentation URLs remain under `/docs`, and the previous Building Monad Journal URL redirects to the new Journal location.
+
+## Migration
+
+No user migration is required.
+
+Authors should place new content according to its responsibility:
+
+- current authoritative Monad documentation → `content/docs`,
+- editorial writing → `content/articles`,
+- release/change communication → `content/changelogs`,
+- chronological engineering work record → `content/journal`.

@@ -1,7 +1,7 @@
 ---
 title: ADR-0007 — Reconciliation and Convergence Model
 description: Defines how Monad detects divergence between semantic and native state, determines authority, plans remediation, handles conflicts and accepted divergence, and establishes convergence without equating agreement with correctness.
---
+---
 
 <div className="mb-8">
   <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
@@ -85,7 +85,8 @@ These concepts may participate in one workflow, but they are not interchangeable
 <Callout type="info" title="Core rule">
 Agreement between Monad and a native system does not by itself establish correctness.
 
-Reconciliation determines whether relevant states agree and what should happen when they do not. Verification determines whether explicit expectations are satisfied. </Callout>
+Reconciliation determines whether relevant states agree and what should happen when they do not. Verification determines whether explicit expectations are satisfied.
+</Callout>
 
 ---
 
@@ -2881,36 +2882,21 @@ It is governed, explainable convergence where convergence is appropriate—and e
 <Card
 href="/docs/artifacts/decisions/adr-0006-execution-effect-and-operational-state-model"
 title="ADR-0006 — Execution, Effect, and Operational State Model"
-
 >
-
-```
 Review how reconciliation remediation becomes governed execution and how native effects are observed afterward.
-```
-
-  </Card>
+</Card>
 
 <Card
 href="/docs/artifacts/requirements/authority"
 title="Authority Requirements"
-
 >
-
-```
 Review how Monad determines which actor or source may legitimately establish or change governed state.
-```
-
-  </Card>
+</Card>
 
 <Card
 href="/docs/artifacts/requirements/verification"
 title="Verification Requirements"
-
 >
-
-```
 Review why convergence and agreement remain distinct from verified Requirement satisfaction.
-```
-
-  </Card>
+</Card>
 </Cards>

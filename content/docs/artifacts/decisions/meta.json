@@ -8,6 +8,12 @@
     "adr-0003-canonical-artifact-and-representation-model",
     "adr-0004-authority-and-source-of-truth-model",
     "adr-0005-claim-evidence-provenance-and-verification-model",
+    "adr-0006-execution-effect-and-operational-state-model",
+    "adr-0007-reconciliation-and-convergence-model",
+    "adr-0008-local-first-authority-availability-and-offline-operation-model",
+    "adr-0009-reproducible-execution-and-environment-capture-model",
+    "adr-0010-ai-interaction-delegation-and-consequential-action-model",
+    "adr-0011-integration-adapter-and-native-system-boundary-model",
     "adr-catalog"
   ]
 }

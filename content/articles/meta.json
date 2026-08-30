@@ -1,7 +1,10 @@
 {
   "title": "Articles",
+  "description": "Editorial publications about Monad, its engineering, and the ideas around it.",
   "pages": [
     "index",
+    "format",
+    "---Publications---",
     "blog",
     "research",
     "white-papers"

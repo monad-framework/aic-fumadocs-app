@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { AISearch, AISearchPanel, AISearchTrigger } from '@/components/ai/search';
 import { baseOptions } from '@/lib/layout.shared';
 import { buttonVariants } from 'fumadocs-ui/components/ui/button';
@@ -10,10 +10,20 @@ import { source } from '@/lib/source';
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <DocsLayout 
-      tree={source.getPageTree()} 
+    <DocsLayout
       {...baseOptions()}
-      links={}
+      tree={source.getPageTree()}
+      nav={{
+        title: 'Documentation',
+      }}
+      searchToggle={{ enabled: false }}
+      themeSwitch={{ enabled: false }}
+      containerProps={{
+        style: {
+          '--fd-docs-row-1':
+            'calc(var(--fd-banner-height, 0px) + var(--site-nav-height))',
+        } as CSSProperties,
+      }}
       sidebar={{
         enabled: true,
         components: {
@@ -36,7 +46,6 @@ export default function Layout({ children }: { children: ReactNode }) {
           Ask AI
         </AISearchTrigger>
       </AISearch>
-
 
       {children}
     </DocsLayout>

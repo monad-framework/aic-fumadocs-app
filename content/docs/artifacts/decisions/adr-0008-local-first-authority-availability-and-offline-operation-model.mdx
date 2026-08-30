@@ -1,0 +1,2983 @@
+---
+title: "ADR-0008 — Local-First Authority, Availability, and Offline Operation Model"
+specification ID: "ADR-0008"
+version: "0.1.0"
+status: "Accepted"
+classification: "Architecture Decision Record"
+parent: "RB-001 — Requirements Baseline"
+description: "Defines Monad's local-first authority model, offline behavior, stale and unavailable remote state semantics, deferred operations, reconnection, revalidation, and safe convergence."
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Architecture Decision Record · ADR-0008
+  </p>
+</div>
+
+# ADR-0008 — Local-First Authority, Availability, and Offline Operation Model
+
+**Status:** Accepted
+**Decision type:** Foundational architecture
+**Requirements baseline:** RB-001
+**Traceability artifact:** RTM-001
+**Depends on:** ADR-0001 through ADR-0007
+**Primary requirement family:** `REQ-LOCAL`
+**Consequential consumers:** `REQ-INT`, `REQ-REC`, `REQ-EXEC`, `REQ-AUTH`, `REQ-PROV`, `REQ-EVD`, `REQ-VFY`, `REQ-GOV`, `REQ-AI`, `REQ-REPRO`
+
+---
+
+# Decision
+
+Monad will be **local-first**.
+
+The local system will remain useful, inspectable, and capable of authoritative work when remote engineering systems are unavailable, subject to explicit authority and freshness boundaries.
+
+Local-first does **not** mean:
+
+```text
+local state is always authoritative
+```
+
+and it does not mean:
+
+```text
+remote systems are merely caches
+```
+
+Instead, Monad will model local and remote state according to their actual semantic roles.
+
+The canonical model is:
+
+```text
+Local semantic state
+        │
+        ├── may be authoritative for some facts
+        │
+        ├── may cache remote observations
+        │
+        ├── may contain pending intent
+        │
+        └── may remain fully usable offline
+        │
+        ▼
+Availability boundary
+        │
+        ▼
+Remote / native systems
+        │
+        ├── may be authoritative for native facts
+        ├── may be unreachable
+        ├── may change while Monad is offline
+        └── may reject stale pending operations
+```
+
+When connectivity returns, Monad will not assume that locally queued intent can simply be replayed.
+
+The reconnection model is:
+
+```text
+Reconnect
+   │
+   ▼
+Re-establish integration health
+   │
+   ▼
+Re-observe relevant native state
+   │
+   ▼
+Revalidate identity
+   │
+   ▼
+Revalidate authority
+   │
+   ▼
+Revalidate preconditions
+   │
+   ▼
+Reconcile divergence
+   │
+   ├── safe to execute
+   ├── requires modification
+   ├── requires approval
+   ├── conflicts
+   └── no longer applicable
+   │
+   ▼
+Governed execution
+   │
+   ▼
+Re-observation
+   │
+   ▼
+Verification
+```
+
+<Callout type="info" title="Core rule">
+Offline operation may preserve intent, knowledge, and locally authoritative work.
+
+It must not fabricate remote truth or represent deferred native effects as though they already occurred. </Callout>
+
+---
+
+# Context
+
+Modern engineering environments are distributed across:
+
+* local workstations,
+* Git repositories,
+* remote source hosts,
+* CI platforms,
+* package registries,
+* deployment platforms,
+* cloud providers,
+* issue trackers,
+* documentation services,
+* databases,
+* artifact stores,
+* identity providers,
+* and other network-accessible systems.
+
+Connectivity to those systems is not guaranteed.
+
+Failures include:
+
+* network loss,
+* provider outage,
+* DNS failure,
+* authentication expiration,
+* rate limiting,
+* VPN loss,
+* service degradation,
+* local airplane/offline mode,
+* credential revocation,
+* remote maintenance,
+* integration failure.
+
+A system that becomes unusable whenever a remote dependency disappears is not genuinely local-first.
+
+However, a local-first system that assumes all local information remains globally current is equally unsafe.
+
+Monad therefore needs explicit semantics for:
+
+```text
+local authority
+remote authority
+availability
+freshness
+staleness
+unknown state
+cached observations
+pending intent
+deferred execution
+conflict
+reconnection
+revalidation
+reconciliation
+```
+
+---
+
+# Problem
+
+A simplistic offline model usually adopts one of two incorrect assumptions.
+
+## Remote-dependent model
+
+```text
+No network
+→ system unusable
+```
+
+This makes remote services part of Monad's fundamental availability boundary.
+
+That conflicts with Monad's local-first architecture.
+
+---
+
+## Optimistic local mirror model
+
+```text
+No network
+→ assume last-known remote state is still true
+→ continue mutating locally
+→ replay everything later
+```
+
+This creates:
+
+* stale-state execution,
+* authority violations,
+* lost updates,
+* conflicting mutations,
+* identity errors,
+* operations against deleted resources,
+* accidental production changes,
+* replay of obsolete intent.
+
+Neither approach is acceptable.
+
+---
+
+# Decision drivers
+
+The architecture must support:
+
+* work without network access,
+* private local work,
+* local semantic inspection,
+* local planning,
+* local modeling,
+* local source manipulation,
+* remote-system outages,
+* remote state caching,
+* explicit staleness,
+* offline provenance,
+* deferred work,
+* eventual reconnection,
+* conflict handling,
+* reconciliation,
+* secure credentials,
+* reproducibility,
+* multi-device evolution,
+* multi-repository systems,
+* automation,
+* AI operation,
+* and governed remote mutation.
+
+---
+
+# Local-first
+
+For Monad, **local-first** means that the local environment is a first-class operational environment rather than merely a thin client for a remote control plane.
+
+The system SHOULD preserve substantial useful capability without network connectivity.
+
+---
+
+# Local-first is not local-only
+
+Monad may integrate deeply with remote systems.
+
+Local-first does not prohibit:
+
+* cloud services,
+* hosted Git,
+* remote CI,
+* SaaS integrations,
+* remote artifact registries,
+* shared semantic services,
+* remote collaboration.
+
+It defines how dependence on those services is bounded.
+
+---
+
+# Local system authority
+
+Some facts may be legitimately established locally.
+
+Examples include:
+
+* local source edits,
+* local semantic annotations,
+* draft requirements,
+* uncommitted work,
+* local execution records,
+* locally generated Evidence,
+* pending work plans.
+
+These do not become invalid merely because remote systems are unavailable.
+
+---
+
+# Remote authority
+
+Some facts remain owned by remote or native systems.
+
+Examples include:
+
+* current GitHub issue state,
+* current cloud deployment state,
+* currently published package digest,
+* current remote branch head,
+* current CI run conclusion.
+
+Monad MUST NOT fabricate current values for those facts while disconnected.
+
+---
+
+# Authority is fact-specific
+
+The architecture will not define a universal:
+
+```text
+local wins
+```
+
+or:
+
+```text
+remote wins
+```
+
+rule.
+
+Authority remains attached to the relevant fact, Subject, policy, and context.
+
+---
+
+# Availability
+
+Availability is the ability to access a capability or source at a point in time.
+
+---
+
+# Availability is not existence
+
+An unavailable resource is not necessarily absent.
+
+---
+
+# Availability is not authorization
+
+A reachable provider may still deny access.
+
+---
+
+# Availability is not health
+
+A provider may respond while a particular capability remains degraded.
+
+---
+
+# Availability dimensions
+
+Monad SHOULD distinguish availability dimensions where useful:
+
+```text
+network availability
+provider availability
+authentication availability
+authorization availability
+capability availability
+data freshness
+local data availability
+```
+
+---
+
+# Offline state
+
+Monad MUST explicitly know when relevant remote state is unavailable.
+
+---
+
+# Offline is not error
+
+Offline operation is a legitimate operating state.
+
+---
+
+# Offline is not synchronized
+
+Monad MUST NOT present offline state as though it were known to match remote state.
+
+---
+
+# Last-known state
+
+Monad MAY retain the last-known observation of remote state.
+
+---
+
+# Observation provenance
+
+A cached observation MUST retain:
+
+* source,
+* native identity,
+* observation time,
+* integration identity,
+* revision where available.
+
+---
+
+# Staleness
+
+When an observation may no longer represent current remote state, Monad MUST be able to identify it as stale.
+
+---
+
+# Staleness is contextual
+
+The same observation may be sufficiently fresh for one decision and too stale for another.
+
+Example:
+
+```text
+30-minute-old repository description:
+probably acceptable for display
+
+30-minute-old production deployment revision:
+possibly unacceptable for rollback planning
+```
+
+---
+
+# Freshness policy
+
+Consumers MAY establish freshness requirements.
+
+Example:
+
+```yaml
+freshness:
+  maximum_age: 30s
+  required_for:
+    - production-mutation
+```
+
+---
+
+# Stale is not false
+
+A stale observation is historical information.
+
+It is not automatically incorrect.
+
+---
+
+# Stale is not current
+
+Historical usefulness must not allow stale state to masquerade as live state.
+
+---
+
+# Unknown remote state
+
+If no sufficiently fresh observation exists, the current remote state may be:
+
+```text
+unknown
+```
+
+---
+
+# Unknown is first-class
+
+Monad MUST preserve unknown rather than infer a value.
+
+---
+
+# Offline read behavior
+
+Offline reads MAY use locally available:
+
+* canonical local state,
+* cached native observations,
+* derived indexes,
+* previous reconciliation state,
+* historical Evidence.
+
+The interface SHOULD communicate provenance and freshness where relevant.
+
+---
+
+# Local canonical state
+
+Locally authoritative artifacts remain usable offline.
+
+Examples may include:
+
+```text
+source files
+requirements
+ADRs
+semantic graph data
+local configuration
+local execution history
+```
+
+where local storage is authoritative under the governing model.
+
+---
+
+# Remote-derived state
+
+Remote-derived data SHOULD remain marked as such even when persisted locally.
+
+---
+
+# Cache is not authority
+
+Caching remote state does not transfer authority to the cache.
+
+---
+
+# Derived local views
+
+Local read models and indexes MAY be rebuilt from authoritative local artifacts.
+
+---
+
+# Offline writes
+
+Offline writes fall into distinct classes.
+
+---
+
+# Pure local mutation
+
+A mutation whose authoritative target is local MAY proceed normally.
+
+Example:
+
+```text
+edit requirement document
+```
+
+---
+
+# Deferred remote intent
+
+A user MAY express an intent to mutate a remote system while offline.
+
+Example:
+
+```text
+close issue #482 when connectivity returns
+```
+
+This is not yet a remote mutation.
+
+---
+
+# Pending operation
+
+Deferred intent MUST be represented as pending.
+
+---
+
+# Pending is not execution
+
+```text
+Pending ≠ Executed
+```
+
+---
+
+# Pending is not accepted
+
+The remote provider has not accepted the operation.
+
+---
+
+# Pending is not successful
+
+Success cannot be claimed before native effect is known.
+
+---
+
+# Pending is not authorized forever
+
+An authorization valid when intent was captured may no longer be valid when connectivity returns.
+
+---
+
+# Deferred operation model
+
+A pending consequential operation SHOULD preserve:
+
+```yaml
+id: PEND-0041
+
+intent:
+  capability: issue.close
+  target:
+    integration: INT-0007
+    native_id: ISSUE-482
+
+captured_at: 2026-08-30T11:14:00Z
+
+actor: actor:thomas
+
+authority:
+  evaluated_at_capture: permitted
+
+preconditions:
+  state: open
+  revision: "834"
+
+status: pending-connectivity
+```
+
+---
+
+# Deferred intent is immutable history
+
+If a pending operation is later changed, the earlier intent SHOULD remain reconstructable when consequential.
+
+---
+
+# No blind replay
+
+Monad MUST NOT blindly replay consequential operations after reconnecting.
+
+---
+
+# Revalidation
+
+Before execution, pending consequential operations SHOULD be revalidated against current conditions.
+
+---
+
+# Identity revalidation
+
+Monad SHOULD confirm that the target still resolves to the intended Subject and native resource.
+
+---
+
+# Authority revalidation
+
+Monad MUST re-evaluate whether the actor or governing policy still authorizes the operation when required.
+
+---
+
+# Credential revalidation
+
+The credential used for execution may differ from the credential available when intent was captured.
+
+Credential possession remains distinct from authority.
+
+---
+
+# Preconditions
+
+Stored preconditions SHOULD be checked again.
+
+Examples:
+
+```text
+resource still exists
+resource remains open
+revision is unchanged
+environment is still production
+branch points to expected commit
+deployment still targets expected release
+```
+
+---
+
+# Stale pending operation
+
+If assumptions no longer hold, the pending operation SHOULD become:
+
+```text
+stale
+```
+
+or:
+
+```text
+conflicted
+```
+
+rather than execute automatically.
+
+---
+
+# Obsolete intent
+
+A pending operation MAY become obsolete.
+
+Example:
+
+```text
+intent:
+close issue
+
+remote state after reconnect:
+issue already closed
+```
+
+The system may conclude that no mutation is necessary.
+
+---
+
+# No-op resolution
+
+A pending operation whose intended state already exists MAY resolve as a no-op, while preserving that no remote mutation was necessary.
+
+---
+
+# Conflict
+
+A pending operation conflicts when current state makes its original intent unsafe or ambiguous.
+
+Example:
+
+```text
+offline intent:
+change issue title A → B
+
+remote state:
+title A → C by another actor
+```
+
+Monad should not blindly overwrite `C`.
+
+---
+
+# Conflict is explicit
+
+Conflicts MUST remain inspectable.
+
+---
+
+# Conflict resolution
+
+Resolution MAY:
+
+* abandon local intent,
+* accept remote state,
+* modify pending intent,
+* merge changes,
+* seek approval,
+* execute a new operation.
+
+---
+
+# Conflict resolution creates new intent
+
+A material revision to a pending operation SHOULD become a new operation or revision rather than rewrite history invisibly.
+
+---
+
+# Remote deletion
+
+If a target was deleted while offline, deferred mutation MUST NOT silently recreate it unless explicit semantics authorize recreation.
+
+---
+
+# Remote rename
+
+A rename may preserve semantic identity.
+
+Target resolution SHOULD use stable native or semantic identities where possible rather than stale display names.
+
+---
+
+# Remote move
+
+A moved resource may require target rebinding before execution.
+
+---
+
+# Provider migration
+
+If a native system changed providers while Monad was offline, queued operations MUST NOT automatically execute against the old provider.
+
+---
+
+# Environment identity
+
+Environment names are not sufficient for consequential targeting where ambiguity exists.
+
+Example:
+
+```text
+production
+```
+
+must resolve to the concrete intended account/project/cluster as required by the capability.
+
+---
+
+# Production protection
+
+Deferred actions targeting production or similarly critical environments SHOULD receive stronger reconnection revalidation.
+
+---
+
+# Destructive operations
+
+Destructive operations SHOULD generally require fresh state before execution.
+
+---
+
+# Irreversible operations
+
+Irreversible operations MUST NOT be executed from stale assumptions merely because they were previously queued.
+
+---
+
+# Authentication expiration
+
+Offline duration may exceed authentication lifetime.
+
+---
+
+# Expired authentication
+
+Authentication expiration SHOULD move the affected integration into a state such as:
+
+```text
+reauth-required
+```
+
+rather than convert pending operations to failure automatically.
+
+---
+
+# Authorization change
+
+Remote permission changes may make earlier valid intent no longer executable.
+
+Monad MUST preserve the distinction between:
+
+```text
+intent remains legitimate under Monad governance
+```
+
+and:
+
+```text
+native provider currently refuses execution
+```
+
+---
+
+# Integration health
+
+Reconnect does not automatically mean every integration is healthy.
+
+---
+
+# Reconnection phases
+
+Recommended lifecycle:
+
+```text
+offline
+  ↓
+network-restored
+  ↓
+integration-reconnecting
+  ↓
+authentication-validating
+  ↓
+capabilities-probing
+  ↓
+native-reobserving
+  ↓
+reconciling
+  ↓
+ready
+```
+
+---
+
+# Partial reconnection
+
+Some integrations may recover before others.
+
+Monad SHOULD support partial availability.
+
+---
+
+# No global online boolean
+
+Where practical, Monad SHOULD avoid reducing system connectivity to one global:
+
+```text
+online = true | false
+```
+
+because availability is integration- and capability-specific.
+
+---
+
+# Capability degradation
+
+An integration may allow reads while writes remain unavailable.
+
+---
+
+# Read-only degradation
+
+Monad MAY enter a remote read-only mode when mutation capabilities are unavailable.
+
+---
+
+# Cached-read degradation
+
+If live reads fail but prior observations exist, Monad MAY serve stale data with explicit freshness information.
+
+---
+
+# Reconciliation after reconnect
+
+Relevant remote state SHOULD be reconciled after sufficiently significant offline periods.
+
+---
+
+# Reconciliation scope
+
+Reconnection reconciliation MAY be targeted based on:
+
+* pending operations,
+* changed local state,
+* integration events,
+* known stale Subjects,
+* criticality,
+* elapsed offline time.
+
+---
+
+# Full reconciliation
+
+A full scan MAY be required if incremental continuity cannot be trusted.
+
+---
+
+# Incremental reconciliation
+
+Where provider checkpoints remain valid, Monad MAY reconcile incrementally.
+
+---
+
+# Event gaps
+
+Native events that occurred while disconnected may be unavailable.
+
+Monad MUST NOT assume no event means no change.
+
+---
+
+# Event replay
+
+If the provider supports durable replay, Monad MAY resume from a known checkpoint.
+
+---
+
+# Checkpoint expiry
+
+Expired event checkpoints SHOULD trigger broader observation.
+
+---
+
+# Local file operations
+
+Local filesystem capabilities are part of the local-first foundation.
+
+---
+
+# Local source editing
+
+Monad SHOULD permit ordinary local source editing without remote connectivity.
+
+---
+
+# Git offline operation
+
+Git inherently supports substantial local-first behavior.
+
+Monad SHOULD preserve native Git semantics rather than force remote availability.
+
+Offline operations include:
+
+```text
+edit
+diff
+stage
+commit
+branch
+inspect history
+```
+
+---
+
+# Git remote state
+
+Remote refs remain last-known or unknown while disconnected.
+
+---
+
+# Local commit is not remote publication
+
+```text
+commit ≠ push
+```
+
+---
+
+# Local branch is not remote branch
+
+A local ref may diverge from its remote counterpart.
+
+---
+
+# Push intent
+
+A planned push may be represented as pending, but remote branch mutation has not occurred until push execution succeeds and is observed where needed.
+
+---
+
+# Force push
+
+Queued force pushes SHOULD receive especially strong revalidation because remote history may have changed.
+
+---
+
+# Package publication
+
+A locally built package is not published merely because publication is queued.
+
+---
+
+# Deployment
+
+A locally prepared deployment intent is not a deployed release.
+
+---
+
+# CI
+
+A locally requested future CI trigger is not a CI run.
+
+---
+
+# Issue tracker
+
+A local issue mutation intent is not a native issue update.
+
+---
+
+# Documentation publication
+
+Local documentation updates remain distinct from published documentation.
+
+---
+
+# Collaboration
+
+Local-first does not imply ignoring concurrent collaborators.
+
+---
+
+# Concurrent remote work
+
+Other users may change remote systems while Monad is offline.
+
+Reconnection logic MUST assume this is possible.
+
+---
+
+# Multi-device use
+
+The same human may operate Monad from multiple devices.
+
+Local state from one device MUST NOT automatically dominate another device's newer or differently authoritative state.
+
+---
+
+# Distributed local states
+
+Multiple local replicas may require reconciliation just as local and remote systems do.
+
+---
+
+# Local replica identity
+
+Where multiple Monad instances exist, consequential locally generated records SHOULD preserve origin identity.
+
+---
+
+# Clock assumptions
+
+Monad MUST NOT use local wall-clock recency alone to establish authority.
+
+---
+
+# Clock skew
+
+Distributed timestamps may be skewed.
+
+Ordering SHOULD prefer provider revisions, causal metadata, or explicit sequence information when available.
+
+---
+
+# Offline provenance
+
+Offline work MUST retain provenance just as online work does.
+
+---
+
+# Offline actor identity
+
+The system SHOULD retain which actor performed a local action.
+
+---
+
+# Offline tool identity
+
+Execution records SHOULD identify the tool or Monad component that performed local actions.
+
+---
+
+# Offline Evidence
+
+Evidence generated offline remains Evidence if its provenance and applicability satisfy the governing Evidence requirements.
+
+---
+
+# Remote verification while offline
+
+A Verification requiring current remote observation cannot legitimately pass if required Evidence cannot be obtained.
+
+---
+
+# Verification unavailable
+
+Such Verification should produce an explicit state such as:
+
+```text
+blocked
+unknown
+insufficient-evidence
+```
+
+according to the verification model.
+
+---
+
+# No optimistic pass
+
+Monad MUST NOT treat:
+
+```text
+unable to verify
+```
+
+as:
+
+```text
+verified
+```
+
+---
+
+# Local Verification
+
+Verification relying entirely on local Evidence MAY proceed offline.
+
+Examples:
+
+* static analysis,
+* local unit tests,
+* schema validation,
+* local artifact digest verification.
+
+---
+
+# Reproducibility
+
+Local-first execution SHOULD preserve enough context for later reproduction.
+
+---
+
+# Environment capture
+
+Consequential local execution MAY retain:
+
+* tool versions,
+* source revision,
+* configuration,
+* environment,
+* command,
+* inputs,
+* outputs.
+
+---
+
+# Offline AI
+
+AI capability may be:
+
+* locally available,
+* remotely available,
+* partially available,
+* unavailable.
+
+Monad's local-first design MUST NOT assume remote AI availability for foundational system correctness.
+
+---
+
+# AI degradation
+
+If remote AI is unavailable, deterministic or human-operable system paths SHOULD remain available where practical.
+
+---
+
+# AI pending operations
+
+An AI agent MAY propose pending actions offline.
+
+It may not represent them as executed.
+
+---
+
+# AI authority
+
+Offline AI operation does not expand its authority.
+
+---
+
+# External content freshness
+
+AI reasoning based on cached remote content SHOULD retain the age and provenance of that content where consequential.
+
+---
+
+# Prompt injection
+
+Cached external content remains untrusted data even when processed offline.
+
+---
+
+# Security
+
+Local-first architecture must not achieve availability by weakening security.
+
+---
+
+# Secret storage
+
+Credentials SHOULD be stored through appropriate secret-management mechanisms.
+
+---
+
+# Offline credential storage
+
+Persisted credentials SHOULD be:
+
+* minimally scoped,
+* protected at rest where practical,
+* separable from ordinary exported project state.
+
+---
+
+# No secret serialization
+
+Portable project artifacts SHOULD NOT casually embed remote access tokens.
+
+---
+
+# Reauthentication
+
+Providers requiring renewed authentication should surface a clear reauthentication state.
+
+---
+
+# Revoked credential
+
+A credential may be locally present but remotely revoked.
+
+Presence does not imply validity.
+
+---
+
+# Local security policy
+
+Security policies that can be evaluated locally SHOULD remain enforceable offline.
+
+---
+
+# Remote-dependent policy
+
+Policy requiring live remote information SHOULD report inability to evaluate rather than silently permit action.
+
+---
+
+# Offline policy fail-open
+
+Consequential policy checks SHOULD NOT silently fail open merely because their remote dependency is unavailable.
+
+---
+
+# Offline policy fail-closed
+
+Fail-closed behavior MAY be appropriate for remote mutations while still allowing unrelated local work.
+
+---
+
+# Local auditability
+
+The local system SHOULD retain an inspectable record of consequential actions.
+
+---
+
+# Deferred-operation audit
+
+Queued operations SHOULD retain:
+
+```text
+intent captured
+actor
+target
+authority evaluation
+preconditions
+queue time
+revalidation result
+execution result
+```
+
+---
+
+# Cancellation
+
+Pending operations MAY be cancelled before execution.
+
+---
+
+# Cancellation is historical
+
+Cancelling a pending operation SHOULD preserve that it once existed when audit significance exists.
+
+---
+
+# Queue ordering
+
+Queue order MUST NOT automatically establish execution order where dependencies, authority, or refreshed state require otherwise.
+
+---
+
+# Dependency graph
+
+Pending operations MAY declare dependencies.
+
+Example:
+
+```text
+publish package
+  ↓
+create release
+  ↓
+deploy release
+```
+
+---
+
+# Dependency invalidation
+
+If an earlier pending operation fails or changes, downstream operations SHOULD be re-evaluated.
+
+---
+
+# Batch execution
+
+A group of pending operations MUST NOT be assumed atomic across remote systems.
+
+---
+
+# Partial queue flush
+
+Some pending operations may execute while others remain blocked.
+
+---
+
+# Per-operation status
+
+Each pending operation SHOULD maintain its own lifecycle.
+
+Suggested states:
+
+```text
+draft
+pending
+blocked-offline
+awaiting-reauth
+awaiting-revalidation
+conflicted
+awaiting-approval
+ready
+executing
+accepted
+completed
+failed
+cancelled
+superseded
+obsolete
+unknown-outcome
+```
+
+---
+
+# Unknown execution outcome
+
+Connectivity may fail after a request was sent but before Monad receives the response.
+
+---
+
+# Timeout after submission
+
+A timeout MUST NOT automatically mean the native operation failed.
+
+---
+
+# Observe before retry
+
+For ambiguous consequential mutations, Monad SHOULD observe native state before retrying.
+
+---
+
+# Idempotency
+
+Provider idempotency mechanisms SHOULD be used where available.
+
+---
+
+# Retry safety
+
+Retryability and repeatability remain distinct.
+
+---
+
+# Automatic retry
+
+Automatic retry SHOULD be limited to cases whose semantics make retry safe.
+
+---
+
+# Rate limiting after reconnect
+
+A large backlog MUST NOT trigger an uncontrolled burst against a provider.
+
+---
+
+# Queue throttling
+
+Monad SHOULD respect:
+
+* rate limits,
+* quotas,
+* Retry-After,
+* provider health,
+* concurrency limits.
+
+---
+
+# Backpressure
+
+Reconnection should support controlled draining of pending operations.
+
+---
+
+# Priority
+
+Pending operations MAY have priority, but priority does not bypass authority.
+
+---
+
+# Expiration
+
+Pending intents MAY expire.
+
+---
+
+# Temporal validity
+
+An action that was useful yesterday may be meaningless after a long offline period.
+
+---
+
+# TTL
+
+Certain pending operations MAY declare:
+
+```yaml
+valid_until: 2026-08-31T12:00:00Z
+```
+
+---
+
+# Expired intent
+
+Expired pending operations SHOULD not execute automatically.
+
+---
+
+# User review
+
+Long-lived or consequential pending operations MAY require renewed human review.
+
+---
+
+# Local change journal
+
+Monad SHOULD maintain sufficient local history to determine what changed while remote systems were unavailable.
+
+---
+
+# Remote change journal
+
+Where providers expose change history, Monad MAY retrieve it during reconciliation.
+
+---
+
+# Merge
+
+When both local and remote authoritative content changed, reconciliation MAY require semantic merge.
+
+---
+
+# Merge is domain-specific
+
+Monad MUST NOT assume generic text merge is appropriate for all resources.
+
+---
+
+# Source files
+
+Textual three-way merge may be appropriate for source-controlled files.
+
+---
+
+# Structured state
+
+Structured resources SHOULD use schema-aware or field-aware comparison where practical.
+
+---
+
+# Binary artifacts
+
+Binary artifacts generally reconcile through identity, digest, metadata, or explicit replacement rules rather than text merge.
+
+---
+
+# Claims
+
+Offline-created Claims remain valid Claims subject to normal authority and provenance rules.
+
+---
+
+# Evidence
+
+Offline Evidence is not inferior merely because it was generated without remote connectivity.
+
+Its relevance depends on what it proves.
+
+---
+
+# Authority changes while offline
+
+Governance or role assignments may change remotely while an actor is offline.
+
+Consequential actions requiring current authority SHOULD revalidate authority before remote execution.
+
+---
+
+# Revoked approval
+
+A previously granted Approval may expire or be revoked.
+
+Pending execution MUST respect current governing policy where policy requires it.
+
+---
+
+# Policy revision
+
+A pending operation MAY have been created under an older policy revision.
+
+Monad SHOULD retain the original policy evaluation and apply the required current policy at execution.
+
+---
+
+# Requirement revision
+
+A pending operation intended to satisfy a Requirement may become obsolete if the Requirement changes.
+
+---
+
+# Decision revision
+
+A superseded ADR may invalidate earlier pending architectural work.
+
+Monad SHOULD allow the pending work to be traced to the decision revision under which it was proposed.
+
+---
+
+# Semantic model evolution
+
+Offline semantic state may itself require migration when the local schema or model version changes.
+
+---
+
+# Local migrations
+
+Local migrations SHOULD be deterministic and recoverable where practical.
+
+---
+
+# Remote synchronization is not migration
+
+Schema migration and remote reconciliation are distinct activities.
+
+---
+
+# Portability
+
+A Monad workspace SHOULD remain movable between machines without assuming hidden remote state.
+
+---
+
+# Portable state
+
+Portable project state SHOULD include the information required to understand:
+
+* local canonical artifacts,
+* semantic identity,
+* pending intent,
+* provenance,
+* reconciliation status,
+
+subject to security constraints.
+
+---
+
+# Machine-specific state
+
+Machine-specific caches and secrets SHOULD be clearly distinguishable from portable project state.
+
+---
+
+# Clone / restore
+
+Restoring a workspace on another machine SHOULD not falsely imply that cached remote state is fresh.
+
+---
+
+# Cache restoration
+
+Restored remote observations SHOULD retain their original timestamps.
+
+---
+
+# Backup
+
+Backups SHOULD preserve local authoritative state and meaningful pending work.
+
+---
+
+# Restore
+
+Restored pending operations SHOULD require appropriate revalidation before execution.
+
+---
+
+# Disaster recovery
+
+A recovered system MUST NOT blindly flush stale deferred operations merely because they were present before failure.
+
+---
+
+# Local data loss
+
+If local authoritative state is lost, remote systems may not contain enough information to reconstruct it.
+
+The architecture SHOULD make this boundary explicit.
+
+---
+
+# Remote data loss
+
+Local provenance and observations may help explain remote history but do not automatically replace provider-native authority.
+
+---
+
+# Synchronization UI
+
+User interfaces SHOULD clearly communicate whether displayed data is:
+
+```text
+local authoritative
+live remote
+cached remote
+stale
+pending
+conflicted
+unknown
+```
+
+---
+
+# No deceptive success
+
+A UI MUST NOT use success language for deferred remote work that has not occurred.
+
+---
+
+# Native links
+
+When online, locally modeled native resources SHOULD retain native links where useful.
+
+---
+
+# Offline links
+
+A native link may remain displayable offline, but clicking it may be unavailable.
+
+---
+
+# User intent
+
+Local-first workflows SHOULD allow users to continue expressing intent even when execution is impossible.
+
+---
+
+# Intent preservation
+
+The system should preserve enough structured intent to avoid forcing users to reconstruct work manually after reconnecting.
+
+---
+
+# Intent is not effect
+
+This distinction is foundational.
+
+```text
+"I want this to happen"
+```
+
+is different from:
+
+```text
+"This happened"
+```
+
+---
+
+# Progressive formalization
+
+## Stage 1 — Local canonical artifacts
+
+Core project artifacts remain readable and editable without network access.
+
+---
+
+## Stage 2 — Cached remote observations
+
+Remote observations are stored locally with provenance and timestamps.
+
+---
+
+## Stage 3 — Explicit staleness
+
+Cached data carries freshness semantics rather than appearing permanently current.
+
+---
+
+## Stage 4 — Structured pending intent
+
+Remote mutations requested offline become first-class pending operations.
+
+---
+
+## Stage 5 — Revalidation
+
+Pending operations validate identity, authority, state, and preconditions after reconnecting.
+
+---
+
+## Stage 6 — Reconciliation
+
+Remote changes made during disconnection are compared against local modeled state.
+
+---
+
+## Stage 7 — Governed queue draining
+
+Safe pending work executes with rate limits, dependencies, approvals, and auditability.
+
+---
+
+## Stage 8 — Multi-replica operation
+
+Multiple local Monad instances reconcile semantic work safely.
+
+---
+
+## Stage 9 — Degraded distributed operation
+
+Individual integrations can be independently available, degraded, read-only, stale, or offline.
+
+---
+
+## Stage 10 — Resilient local-first operating system
+
+Monad remains genuinely useful through:
+
+```text
+provider outage
+network failure
+credential expiration
+remote drift
+multi-device change
+reconnection
+conflict
+reconciliation
+recovery
+```
+
+without inventing remote truth or bypassing governance.
+
+---
+
+# Minimal local-first model
+
+```yaml
+workspace:
+  mode: local-first
+
+integration:
+  id: INT-0007
+  status: offline
+
+remote_observation:
+  subject: issue:482
+  value:
+    state: open
+  observed_at: 2026-08-30T08:00:00Z
+  freshness: stale
+
+local_intent:
+  id: PEND-0041
+  action: close
+  subject: issue:482
+  status: blocked-offline
+```
+
+---
+
+# Rich pending-operation example
+
+```yaml
+id: PEND-0041
+kind: deferred-operation
+
+actor:
+  subject: ACTOR-0018
+
+created_at: 2026-08-30T10:41:18Z
+
+target:
+  semantic_subject: ISSUE-SUBJECT-482
+  integration: INT-0007
+  native_id: "482"
+
+capability:
+  id: issue.update
+
+intent:
+  state: closed
+
+authority_at_capture:
+  decision: permitted
+  policy_revision: GOV-12@8
+
+preconditions_at_capture:
+  native_state: open
+  native_revision: "834"
+
+availability:
+  integration_state: offline
+
+status: blocked-offline
+
+execution:
+  attempted: false
+
+revalidation:
+  required:
+    - target
+    - authority
+    - native-state
+    - native-revision
+```
+
+---
+
+# Reconnection example — safe execution
+
+```text
+Offline intent:
+close issue #482
+
+At reconnect:
+issue still open
+revision still matches
+actor still authorized
+target identity unchanged
+
+Result:
+operation becomes ready
+→ governed execution
+→ native observation
+→ reconciliation
+→ Verification if required
+```
+
+---
+
+# Reconnection example — obsolete
+
+```text
+Offline intent:
+close issue #482
+
+At reconnect:
+issue already closed by collaborator
+
+Result:
+no remote mutation required
+pending intent resolves as satisfied/no-op
+history preserved
+```
+
+---
+
+# Reconnection example — conflict
+
+```text
+Offline intent:
+change release branch from main to stable
+
+At reconnect:
+release has been replaced
+new release uses branch release/2.0
+
+Result:
+original preconditions invalid
+operation becomes conflicted
+automatic execution prohibited
+```
+
+---
+
+# Ambiguous execution example
+
+```text
+Monad sends:
+DELETE deployment D-42
+
+Network connection drops before response.
+
+Monad must not conclude:
+
+failure
+
+because the provider may have completed deletion.
+
+Correct flow:
+
+unknown outcome
+→ re-observe deployment D-42
+→ classify actual state
+→ retry only if safe
+```
+
+---
+
+# Alternatives considered
+
+## Alternative A — Always-online control plane
+
+Rejected.
+
+It violates the local-first system objective and creates unnecessary dependency on remote infrastructure.
+
+---
+
+## Alternative B — Local cache with remote canonical system
+
+Rejected as the universal model.
+
+Some Monad state is legitimately authoritative locally.
+
+---
+
+## Alternative C — Local state always wins
+
+Rejected.
+
+Native systems remain authoritative for many native facts.
+
+---
+
+## Alternative D — Remote state always wins
+
+Rejected.
+
+This would allow external systems to overwrite governed semantic intent indiscriminately.
+
+---
+
+## Alternative E — Queue every offline action and replay later
+
+Rejected.
+
+Blind replay is unsafe because authority, identity, and state may change.
+
+---
+
+## Alternative F — Disable all mutation while offline
+
+Rejected as a universal rule.
+
+Purely local authoritative work should remain possible.
+
+---
+
+## Alternative G — Pretend cached state is live
+
+Rejected.
+
+This destroys freshness semantics.
+
+---
+
+## Alternative H — Discard all remote data when offline
+
+Rejected.
+
+Last-known observations remain useful if marked with provenance and staleness.
+
+---
+
+## Alternative I — One global connectivity flag
+
+Rejected as the complete availability model.
+
+Different providers and capabilities fail independently.
+
+---
+
+## Alternative J — Fail all queued actions if reconnect state differs
+
+Rejected.
+
+Some differences make the action obsolete or safely transformable rather than invalid.
+
+---
+
+## Alternative K — Automatically merge all conflicts
+
+Rejected.
+
+Merge semantics are domain-specific and may require human or governance review.
+
+---
+
+## Alternative L — AI resolves offline conflicts autonomously
+
+Rejected as a default authority model.
+
+AI may assist resolution but does not acquire authority through inference.
+
+---
+
+# Consequences
+
+## Positive
+
+This decision enables:
+
+* meaningful offline work,
+* resilience to provider outages,
+* reduced dependence on centralized control planes,
+* private local operation,
+* explicit freshness,
+* truthful degraded behavior,
+* safe deferred intent,
+* governed reconnect execution,
+* conflict visibility,
+* reproducible local history,
+* multi-provider resilience,
+* AI degradation paths,
+* and better separation between intent and real-world effect.
+
+---
+
+## Negative
+
+Monad must maintain more state than a thin online client, including:
+
+* caches,
+* timestamps,
+* freshness metadata,
+* integration health,
+* pending operations,
+* revalidation state,
+* conflicts,
+* queue dependencies,
+* local provenance,
+* reconciliation checkpoints.
+
+It also requires careful user-interface semantics so users can distinguish local, stale, pending, remote, and unknown states.
+
+---
+
+# Operational implications
+
+Implementations MUST assume that remote state can change while unavailable.
+
+They SHOULD design remote mutations as operations against explicit preconditions rather than blind commands.
+
+They SHOULD preserve stable semantic identity locally so reconnect does not depend solely on mutable native names.
+
+They MUST retain an explicit boundary between:
+
+```text
+recorded intent
+```
+
+and:
+
+```text
+observed effect
+```
+
+---
+
+# Definition of Ready
+
+ADR-0008 was ready because:
+
+* [x] local-first is a foundational system objective,
+* [x] semantic state can exist independently of remote providers,
+* [x] native systems remain first-class,
+* [x] integration availability is not guaranteed,
+* [x] authority has already been separated from connectivity and credentials,
+* [x] execution distinguishes intent from effect,
+* [x] reconciliation handles divergent native state,
+* [x] Verification can represent insufficient Evidence,
+* [x] provenance and history are first-class,
+* [x] offline behavior requires normative architecture rather than ad hoc caching.
+
+---
+
+# Definition of Done
+
+ADR-0008 is complete when:
+
+* [x] local-first is distinguished from local-only,
+* [x] local authority is distinguished from remote authority,
+* [x] availability is distinguished from existence,
+* [x] stale state is distinguished from current state,
+* [x] unknown remote state is representable,
+* [x] cached data retains provenance and timestamps,
+* [x] locally authoritative work can proceed offline,
+* [x] remote intent can be recorded without claiming execution,
+* [x] queued operations are revalidated before consequential execution,
+* [x] authority is revalidated where required,
+* [x] target identity is revalidated,
+* [x] stale preconditions can block execution,
+* [x] remote conflict remains explicit,
+* [x] obsolete operations can resolve without mutation,
+* [x] unknown execution outcomes are representable,
+* [x] ambiguous mutations are observed before unsafe retry,
+* [x] reconnection triggers appropriate reconciliation,
+* [x] provider outages do not fabricate absence,
+* [x] remote Verification does not pass without required Evidence,
+* [x] UI semantics can distinguish pending, stale, unknown, and live state.
+
+---
+
+# Acceptance criteria
+
+## Local availability
+
+Canonical local project artifacts remain inspectable without network connectivity.
+
+---
+
+## Local mutation
+
+Locally authoritative artifacts can be modified while remote providers are unavailable.
+
+---
+
+## Cached native state
+
+A remote observation remains available locally with its original observation time.
+
+---
+
+## Staleness
+
+The same observation can be identified as stale once its freshness requirement is exceeded.
+
+---
+
+## Unknown
+
+Current remote state can be represented as unknown rather than inferred.
+
+---
+
+## Pending intent
+
+A requested remote mutation can exist locally without appearing as executed.
+
+---
+
+## Revalidation
+
+A pending consequential operation cannot execute solely because it was valid when originally queued.
+
+---
+
+## Identity change
+
+A renamed or moved native resource can trigger target re-resolution.
+
+---
+
+## Authority change
+
+A previously permitted operation can become blocked if authority has changed.
+
+---
+
+## Obsolete intent
+
+A pending operation can resolve without mutation when the desired state already exists.
+
+---
+
+## Conflict
+
+A pending mutation can enter a conflicted state when the remote target has materially changed.
+
+---
+
+## Authentication expiry
+
+Expired authentication can block execution without deleting pending intent.
+
+---
+
+## Partial availability
+
+One integration can be healthy while another remains offline.
+
+---
+
+## Read-only degradation
+
+Remote reads can remain available when mutation capabilities are disabled.
+
+---
+
+## Event gap
+
+Reconnection does not assume absence of events means absence of remote change.
+
+---
+
+## Ambiguous request outcome
+
+A lost response can produce `unknown-outcome` rather than automatic failure.
+
+---
+
+## Safe retry
+
+A consequential operation with ambiguous outcome is observed before retry when required.
+
+---
+
+## Queue backlog
+
+A reconnect backlog can be rate-limited instead of burst indiscriminately.
+
+---
+
+## Queue expiration
+
+Expired pending intent does not automatically execute.
+
+---
+
+## Local Verification
+
+Local static verification can proceed offline where all required Evidence is available.
+
+---
+
+## Remote Verification
+
+A Verification requiring live provider state cannot pass solely from stale cached data unless its verification contract explicitly permits it.
+
+---
+
+## No fabricated success
+
+The system does not display a queued deployment as deployed.
+
+---
+
+## Restore safety
+
+Restoring an older workspace backup does not cause deferred remote operations to execute without revalidation.
+
+---
+
+# Verification obligations
+
+```text
+VFO-LOCAL-001
+Core local project artifacts remain readable without network connectivity.
+
+VFO-LOCAL-002
+Locally authoritative project artifacts remain writable offline where policy permits.
+
+VFO-LOCAL-003
+Remote provider unavailability does not imply native resource absence.
+
+VFO-LOCAL-004
+Cached remote observations retain their source and observation timestamps.
+
+VFO-LOCAL-005
+Cached remote observations can become explicitly stale.
+
+VFO-LOCAL-006
+Unknown current remote state can be represented without fabricating a value.
+
+VFO-LOCAL-007
+Remote-derived cached state does not automatically become locally authoritative.
+
+VFO-LOCAL-008
+A remote mutation requested offline creates pending intent rather than an execution success result.
+
+VFO-LOCAL-009
+Pending intent retains actor, target, capability, and capture time.
+
+VFO-LOCAL-010
+Pending intent can retain preconditions known at capture time.
+
+VFO-LOCAL-011
+Pending consequential operations undergo state revalidation before execution.
+
+VFO-LOCAL-012
+Pending consequential operations undergo target identity revalidation where required.
+
+VFO-LOCAL-013
+Authority can be re-evaluated after reconnect.
+
+VFO-LOCAL-014
+Credential validity can be checked independently of Monad governance authority.
+
+VFO-LOCAL-015
+A changed native revision can prevent stale pending mutation.
+
+VFO-LOCAL-016
+A pending operation can become conflicted instead of executing.
+
+VFO-LOCAL-017
+A pending operation can become obsolete without native mutation.
+
+VFO-LOCAL-018
+A cancelled pending operation remains historically reconstructable where required.
+
+VFO-LOCAL-019
+An expired pending operation does not automatically execute.
+
+VFO-LOCAL-020
+Provider reconnection does not imply integration health automatically.
+
+VFO-LOCAL-021
+Individual integrations can expose independent availability states.
+
+VFO-LOCAL-022
+An integration can expose read availability while write availability is degraded.
+
+VFO-LOCAL-023
+Reconnection can trigger re-observation before deferred execution.
+
+VFO-LOCAL-024
+Missing events during offline periods can trigger broader reconciliation.
+
+VFO-LOCAL-025
+Invalid incremental checkpoints can fall back to broader observation.
+
+VFO-LOCAL-026
+A local Git commit is not represented as remotely pushed.
+
+VFO-LOCAL-027
+A locally built package is not represented as published.
+
+VFO-LOCAL-028
+A locally prepared deployment intent is not represented as deployed.
+
+VFO-LOCAL-029
+Concurrent remote modification can be detected after reconnect.
+
+VFO-LOCAL-030
+Multi-device state is not resolved by wall-clock timestamp alone.
+
+VFO-LOCAL-031
+Offline-generated Evidence retains normal provenance.
+
+VFO-LOCAL-032
+Local Verification can execute when all required Evidence is locally available.
+
+VFO-LOCAL-033
+Verification requiring unavailable live Evidence cannot silently pass.
+
+VFO-LOCAL-034
+Offline AI proposals do not become executed operations.
+
+VFO-LOCAL-035
+AI availability is not required for deterministic foundational system operation.
+
+VFO-LOCAL-036
+Locally persisted credentials are separable from ordinary portable project artifacts.
+
+VFO-LOCAL-037
+Remote-dependent policy checks do not silently fail open for consequential remote mutation.
+
+VFO-LOCAL-038
+Pending operations retain audit history through capture, revalidation, and execution.
+
+VFO-LOCAL-039
+Queue order alone does not override operation dependencies.
+
+VFO-LOCAL-040
+Dependent pending operations can be invalidated by failure of upstream operations.
+
+VFO-LOCAL-041
+Queue flushing supports partial execution without pretending global atomicity.
+
+VFO-LOCAL-042
+A network timeout after request submission can produce unknown execution outcome.
+
+VFO-LOCAL-043
+Unknown consequential execution outcome can trigger observation before retry.
+
+VFO-LOCAL-044
+Provider idempotency mechanisms can be retained and used where available.
+
+VFO-LOCAL-045
+Backlogged operations respect provider rate limits after reconnect.
+
+VFO-LOCAL-046
+Pending operations may expire based on explicit temporal validity.
+
+VFO-LOCAL-047
+Structured-state conflict resolution need not use generic textual merge.
+
+VFO-LOCAL-048
+Remote authority changes during offline periods can invalidate earlier execution eligibility.
+
+VFO-LOCAL-049
+Policy revision used at intent capture remains historically recoverable.
+
+VFO-LOCAL-050
+Current policy can be applied before later execution where required.
+
+VFO-LOCAL-051
+A restored cache retains the original remote observation time rather than restoration time.
+
+VFO-LOCAL-052
+Restored pending operations require normal revalidation before execution.
+
+VFO-LOCAL-053
+Local UI can distinguish local-authoritative, live-remote, cached, stale, pending, conflicted, and unknown state.
+
+VFO-LOCAL-054
+A queued remote action cannot be rendered as successfully completed.
+
+VFO-LOCAL-055
+Local-first operation preserves intent independently from effect.
+
+VFO-LOCAL-056
+Reconciliation can occur after reconnect before deferred mutations are flushed.
+
+VFO-LOCAL-057
+A deleted remote target cannot be recreated from stale queued intent unless explicit semantics authorize recreation.
+
+VFO-LOCAL-058
+A migrated provider target can prevent execution against a decommissioned integration.
+
+VFO-LOCAL-059
+Production-targeted deferred operations can require stricter freshness and review.
+
+VFO-LOCAL-060
+Historical reconstruction can distinguish what was known locally, what was stale, what was intended, what was later observed, and what actually executed.
+```
+
+---
+
+# Anti-patterns
+
+## Offline means unusable
+
+Rejected.
+
+---
+
+## Cache means current
+
+Rejected.
+
+---
+
+## Last-known means authoritative
+
+Rejected.
+
+---
+
+## Local always wins
+
+Rejected.
+
+---
+
+## Remote always wins
+
+Rejected.
+
+---
+
+## Network restored means synchronized
+
+Rejected.
+
+---
+
+## Connected means healthy
+
+Rejected.
+
+---
+
+## Healthy means authorized
+
+Rejected.
+
+---
+
+## Credential exists means valid
+
+Rejected.
+
+---
+
+## Credential valid means authorized
+
+Rejected.
+
+---
+
+## Permission denied means resource missing
+
+Rejected.
+
+---
+
+## Cannot observe means false
+
+Rejected.
+
+---
+
+## Queue means executed
+
+Rejected.
+
+---
+
+## Queue means provider accepted
+
+Rejected.
+
+---
+
+## Save an API call and mark it done later
+
+Rejected.
+
+---
+
+## Replay every queued write after reconnect
+
+Rejected.
+
+---
+
+## Original approval remains valid forever
+
+Rejected.
+
+---
+
+## Original precondition remains valid forever
+
+Rejected.
+
+---
+
+## Offline actor retains authority forever
+
+Rejected.
+
+---
+
+## Use display name to recover target
+
+Rejected when stable identity is available.
+
+---
+
+## Remote changed, so overwrite it
+
+Rejected.
+
+---
+
+## Remote changed, so discard local intent
+
+Rejected as the universal policy.
+
+---
+
+## Timestamp is the conflict winner
+
+Rejected.
+
+---
+
+## Last writer wins
+
+Rejected as a universal rule.
+
+---
+
+## Retry after timeout until success
+
+Rejected for ambiguous consequential mutations.
+
+---
+
+## 404 after reconnect means deleted
+
+Rejected without sufficient provider semantics.
+
+---
+
+## Missing webhook means no changes
+
+Rejected.
+
+---
+
+## Flush entire queue at once
+
+Rejected.
+
+---
+
+## Backlog priority bypasses policy
+
+Rejected.
+
+---
+
+## Restored backup resumes all queued writes
+
+Rejected.
+
+---
+
+## Cached CI success proves current commit passes
+
+Rejected unless the verification contract explicitly binds the cached run to the exact relevant revision.
+
+---
+
+## Local package exists, therefore published package exists
+
+Rejected.
+
+---
+
+## Git commit means push
+
+Rejected.
+
+---
+
+## Deployment requested means deployment completed
+
+Rejected.
+
+---
+
+## Offline AI recommendation means approved change
+
+Rejected.
+
+---
+
+## Remote AI unavailable means Monad unavailable
+
+Rejected.
+
+---
+
+## Sync status is one boolean
+
+Rejected as the complete state model.
+
+---
+
+# Core invariants
+
+```text
+Local-first ≠ Local-only
+
+Offline ≠ Broken
+
+Offline ≠ Synchronized
+
+Online ≠ Synchronized
+
+Connected ≠ Healthy
+
+Healthy ≠ Authorized
+
+Available ≠ Existing
+
+Unavailable ≠ Missing
+
+Permission denied ≠ Missing
+
+Unknown ≠ False
+
+Unknown ≠ Absent
+
+Cached ≠ Current
+
+Cached ≠ Authoritative
+
+Stale ≠ False
+
+Stale ≠ Current
+
+Last-known ≠ Current
+
+Local ≠ Always authoritative
+
+Remote ≠ Always authoritative
+
+Local change ≠ Remote effect
+
+Intent ≠ Effect
+
+Pending ≠ Executed
+
+Pending ≠ Accepted
+
+Pending ≠ Completed
+
+Pending ≠ Successful
+
+Queued ≠ Authorized forever
+
+Queued ≠ Safe to replay
+
+Reconnect ≠ Replay
+
+Reconnect ≠ Convergence
+
+Original authority ≠ Current authority automatically
+
+Original precondition ≠ Current precondition
+
+Credential present ≠ Credential valid
+
+Credential valid ≠ Monad authority
+
+Authentication ≠ Authorization
+
+Authorization ≠ Approval
+
+Approval ≠ Permanent authorization
+
+No event ≠ No change
+
+Event gap ≠ Stable state
+
+Local commit ≠ Remote push
+
+Local package ≠ Published package
+
+Deployment intent ≠ Deployment
+
+Request sent ≠ Request accepted
+
+Timeout ≠ Failure necessarily
+
+Retryable ≠ Safe to repeat blindly
+
+Unknown outcome ≠ Failure
+
+Obsolete intent ≠ Failed intent
+
+No-op resolution ≠ Remote mutation
+
+Conflict ≠ Error automatically
+
+Remote change ≠ Invalid change
+
+Remote change ≠ Authorized change automatically
+
+Timestamp ≠ Authority
+
+Newest ≠ Legitimate winner
+
+Restore ≠ Freshness
+
+Backup age ≠ Observation age reset
+
+Local Evidence ≠ Weak Evidence automatically
+
+Unavailable Evidence ≠ Passing Verification
+
+AI available ≠ System correctness
+
+AI unavailable ≠ System unusable
+
+AI proposal ≠ Executed action
+
+Priority ≠ Authority
+
+Queue order ≠ Dependency order
+
+Partial queue flush ≠ Global success
+
+Provider reconnection ≠ Provider consistency
+
+Multi-device ≠ Last-write-wins
+
+Local replica ≠ Universal authority
+```
+
+---
+
+# Governing principle
+
+> **Monad should remain useful without the network while remaining truthful about what it does not currently know.**
+
+Local-first operation therefore preserves three fundamentally different categories of state:
+
+```text
+what is locally true
+what was last observed remotely
+what is intended to happen remotely
+```
+
+and refuses to collapse them into one.
+
+Monad must be capable of saying:
+
+```text
+"This is the current authoritative local state."
+```
+
+while separately saying:
+
+```text
+"The last remote observation is six hours old."
+```
+
+and separately saying:
+
+```text
+"This remote operation is pending and has not executed."
+```
+
+When connectivity returns, Monad must not interpret availability as permission to replay history.
+
+It must first ask:
+
+```text
+Does the target still exist?
+
+Is it still the same Subject?
+
+Has native state changed?
+
+Is the operation still necessary?
+
+Is the actor still authorized?
+
+Are the original preconditions still true?
+
+Did policy change?
+
+Would executing now still express the original legitimate intent?
+```
+
+Only then should pending intent become governed execution.
+
+The objective is not merely offline support.
+
+It is an operating model in which local work, remote reality, delayed intent, and eventual convergence remain intelligible even when the network boundary is unreliable.
+
+<Cards>
+  <Card
+    href="/docs/artifacts/requirements/local-first"
+    title="Local-First Requirements"
+  >
+    Review the normative requirements governing offline operation, availability, local authority, deferred intent, and reconnection.
+  </Card>
+
+<Card
+href="/docs/artifacts/decisions/adr-0007-reconciliation-and-convergence-model"
+title="ADR-0007 — Reconciliation and Convergence Model"
+
+>
+
+```
+Review how local and native state are compared after reconnecting and how divergence is resolved.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/decisions/adr-0006-execution-effect-and-operational-state-model"
+title="ADR-0006 — Execution, Effect, and Operational State Model"
+
+>
+
+```
+Review why pending intent remains distinct from execution and native effect.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/requirements/integrations"
+title="Integration Requirements"
+
+>
+
+```
+Review provider health, authentication, capability, native-state observation, and remote execution boundaries.
+```
+
+  </Card>
+</Cards>

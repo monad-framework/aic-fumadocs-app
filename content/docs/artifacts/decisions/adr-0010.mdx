@@ -1,0 +1,2627 @@
+---
+title: "ADR-0010 — AI Interaction, Delegation, and Consequential Action Model"
+specification ID: "ADR-0010"
+version: "0.1.0"
+status: "Accepted"
+classification: "Architecture Decision Record"
+parent: "RB-001 — Requirements Baseline"
+description: "Monad Architecture Decision Record defining AI participation, delegation, authority boundaries, consequential action, provenance, and verification."
+---
+
+<div className="mb-8">
+  <span className="text-sm text-fd-muted-foreground">
+    Architecture Decision Record · ADR-0010
+  </span>
+</div>
+
+# ADR-0010 — AI Interaction, Delegation, and Consequential Action Model
+
+**Status:** Accepted
+**Decision type:** Foundational architecture
+**Requirements baseline:** RB-001
+**Traceability artifact:** RTM-001
+**Depends on:** ADR-0001 through ADR-0009
+**Primary requirement family:** REQ-AI
+**Consequential consumers:** REQ-AUTH, REQ-GOV, REQ-EXEC, REQ-INT, REQ-PROV, REQ-EVD, REQ-VFY, REQ-REC, REQ-REPRO
+
+---
+
+## Decision
+
+Monad SHALL treat AI as a **governed reasoning and delegation participant**, not as an inherently authoritative actor.
+
+AI MAY participate throughout the engineering system by inspecting state, retrieving information, reasoning, inferring, hypothesizing, recommending, planning, generating, transforming, evaluating, requesting capability invocation, and executing capabilities that have been explicitly authorized.
+
+These forms of participation SHALL remain semantically distinguishable.
+
+The presence of an AI system, model, agent, tool, credential, integration, or executable capability SHALL NOT itself establish authority to perform a consequential action.
+
+Consequential AI action SHALL be governed through explicit:
+
+* identity,
+* delegation,
+* authority,
+* policy,
+* capability boundaries,
+* target resolution,
+* preconditions,
+* provenance,
+* execution records,
+* post-action observation,
+* Evidence,
+* reconciliation,
+* and verification.
+
+The architectural flow is:
+
+```text
+engineering state
+      │
+      ▼
+AI observation context
+      │
+      ▼
+reasoning / inference
+      │
+      ├── Claim
+      ├── hypothesis
+      ├── recommendation
+      ├── plan
+      └── proposed action
+      │
+      ▼
+authority + policy evaluation
+      │
+      ▼
+governed capability
+      │
+      ▼
+execution
+      │
+      ▼
+observation
+      │
+      ▼
+Evidence
+      │
+      ▼
+verification / reconciliation
+```
+
+Monad SHALL preserve the boundaries between these stages rather than collapsing them into a single concept such as "the AI did it."
+
+AI autonomy MAY exist, including autonomous execution without per-operation human approval, but only where bounded authority has been explicitly established through governance and delegation.
+
+Autonomy SHALL therefore mean:
+
+> execution within an explicitly governed scope
+
+and SHALL NOT mean:
+
+> absence of governance.
+
+---
+
+## Context
+
+AI systems can participate in engineering work at nearly every layer of a modern software system.
+
+They can:
+
+* read repositories,
+* inspect requirements,
+* search documentation,
+* interpret logs,
+* classify artifacts,
+* reason about architecture,
+* generate code,
+* produce migrations,
+* propose configuration,
+* execute commands,
+* invoke external APIs,
+* modify resources,
+* create or update work items,
+* deploy systems,
+* evaluate results,
+* and participate in verification.
+
+This breadth makes AI materially different from a conventional passive tool.
+
+At the same time, AI systems are probabilistic, context-dependent, susceptible to stale or adversarial information, and capable of operating through credentials and integrations whose technical power may exceed the authority legitimately delegated to the AI.
+
+A naïve architecture can therefore accidentally collapse several distinct concepts:
+
+```text
+AI can see resource
+→ AI understands resource
+→ AI may modify resource
+→ AI is authorized to modify resource
+→ modification was correct
+→ modification succeeded
+→ intended effect occurred
+→ result is verified
+```
+
+None of those implications is universally valid.
+
+Monad already establishes architectural distinctions between:
+
+```text
+Authority ≠ Capability
+
+Capability ≠ Credential
+
+Execution ≠ Verification
+
+Execution success ≠ Requirement satisfaction
+
+Evidence ≠ Verification
+
+Verification ≠ Approval
+
+Approval ≠ Authority
+
+Desired state ≠ Observed state
+
+Modeled state ≠ Native reality
+```
+
+AI participation must preserve these distinctions.
+
+The AI architecture must also integrate with the execution and reproducibility model established by ADR-0009. Consequential AI operations are engineering executions whose provenance, environment, inputs, model identity, tool invocation, outputs, and resulting effects may need to be reconstructed and challenged later.
+
+---
+
+## Problem
+
+Monad requires an architecture that permits AI to reason broadly and act usefully without allowing probabilistic inference, contextual persuasion, model output, credentials, or tool availability to silently become system authority.
+
+Without an explicit architecture, several failure modes become likely.
+
+An AI may possess credentials that technically permit a privileged mutation even though no legitimate authority was delegated for that mutation.
+
+An AI may infer a target incorrectly and apply an otherwise valid operation to the wrong repository, environment, account, branch, project, or production resource.
+
+An AI may act on stale observations after engineering state changes between planning and execution.
+
+External content may contain prompt-injection instructions that attempt to alter governance or redirect tool use.
+
+A successful API response may be interpreted as proof that the desired semantic state was achieved.
+
+Generated content may be treated as authoritative simply because a sophisticated model produced it.
+
+An AI may evaluate its own output and have that evaluation incorrectly treated as independent Verification.
+
+A model alias may change behavior while records continue to imply that the same model performed equivalent reasoning.
+
+An autonomous loop may continue indefinitely, consume excessive resources, repeatedly mutate state, or amplify an initial mistake.
+
+An AI may modify the policy governing its own authority and subsequently use the newly created permission.
+
+A multi-agent system may obscure who proposed, authorized, executed, or verified an operation.
+
+These failures cannot be solved merely by adding a generic "human in the loop."
+
+The architecture must instead represent and govern the complete path from observation through reasoning, authorization, execution, Evidence, and verification.
+
+---
+
+## Decision drivers
+
+The architecture is driven by the following requirements.
+
+### Preserve authority semantics
+
+Technical capability must not be mistaken for governed authority.
+
+### Support useful autonomy
+
+Monad must permit bounded autonomous AI operation where explicitly authorized rather than requiring manual approval for every operation.
+
+### Preserve provenance
+
+Consequential AI activity must remain reconstructable.
+
+### Resist prompt injection
+
+Information retrieved from external or native systems must remain data unless it enters through a trusted instruction channel.
+
+### Prevent target ambiguity
+
+Consequential operations must resolve their target explicitly.
+
+### Prevent stale-plan execution
+
+Planning and execution must remain distinct events with revalidation where state may have changed materially.
+
+### Integrate with native systems
+
+AI must operate through governed integrations and capabilities rather than bypassing native-system semantics.
+
+### Preserve uncertainty
+
+Inference, hypothesis, estimation, recommendation, observation, and known facts must remain distinguishable.
+
+### Support independent verification
+
+AI execution and AI evaluation must not automatically constitute Verification.
+
+### Support multiple AI architectures
+
+The design must apply to assistants, agents, autonomous loops, multi-agent systems, local models, hosted models, and future AI execution environments.
+
+### Support reproducibility without requiring deterministic replay
+
+The system must preserve sufficient AI execution context while recognizing that identical prompts do not necessarily produce identical outputs.
+
+### Govern cost and resource use
+
+Autonomous or iterative AI operations may consume tokens, compute, API quotas, cloud resources, and financial budget.
+
+### Preserve security and privacy boundaries
+
+Model context must remain subject to the same access, sensitivity, and data-governance constraints as other system operations.
+
+---
+
+# Detailed architecture
+
+## 1. AI participation model
+
+Monad SHALL model AI participation as a collection of explicit roles rather than a single undifferentiated concept of "AI."
+
+An AI participant MAY act in one or more of the following roles:
+
+```text
+assistant
+actor
+delegate
+executor
+producer
+evaluator
+tool
+```
+
+The roles MAY coexist during one workflow.
+
+For example, an AI participant may:
+
+1. act as an **assistant** while interpreting a user's request,
+2. act as a **producer** while generating a proposed patch,
+3. act as a **delegate** when operating under authority granted by a human actor,
+4. act as an **executor** when invoking a governed repository capability,
+5. and act as an **evaluator** when examining the resulting artifact.
+
+Those roles SHALL NOT be inferred to be equivalent.
+
+In particular:
+
+```text
+producer ≠ approver
+
+executor ≠ authority source
+
+evaluator ≠ verifier automatically
+
+assistant ≠ delegate automatically
+```
+
+---
+
+## 2. AI identity model
+
+Consequential AI activity SHALL retain sufficient identity to distinguish the participants and executions involved.
+
+The identity model SHOULD distinguish at least:
+
+```text
+AI provider
+model family
+model identifier
+model snapshot or revision where available
+agent
+session
+AI execution
+actor
+human delegator
+```
+
+A model name alone is insufficient identity for consequential provenance.
+
+For example:
+
+```text
+model = "example-model"
+```
+
+does not necessarily identify:
+
+* which provider served the model,
+* which model revision was used,
+* whether an alias changed,
+* which agent configuration invoked it,
+* which session supplied context,
+* which execution generated an output,
+* or under whose delegated authority it acted.
+
+The architecture SHALL therefore avoid treating the marketing or alias name of a model as the complete execution identity.
+
+### Model aliases
+
+Mutable model aliases MAY be recorded for usability but SHALL NOT be treated as immutable model identity.
+
+Where the provider exposes a stronger identifier such as:
+
+* version,
+* snapshot,
+* revision,
+* deployment ID,
+* build,
+* or equivalent,
+
+Monad SHOULD preserve it.
+
+---
+
+## 3. Observation context
+
+AI reasoning operates over an observation context.
+
+The observation context SHALL retain sufficient provenance to distinguish information according to origin and authority.
+
+At minimum, the architecture SHOULD support provenance categories equivalent to:
+
+```text
+system rules
+developer instructions
+user instructions
+canonical artifacts
+native systems
+derived artifacts
+search results
+external content
+AI inference
+persistent memory
+```
+
+These categories SHALL NOT be collapsed merely because they appear within the same model context.
+
+An item retrieved from a repository is not a developer instruction merely because the model can read it.
+
+A web page is not system policy.
+
+A generated artifact is not canonical merely because it is present in context.
+
+A remembered statement is not current native state.
+
+An inferred relationship is not an observation.
+
+---
+
+## 4. External content boundary
+
+Content obtained from external or native systems SHALL be treated as **data**, not as trusted system instruction, unless an explicit trusted-channel mechanism establishes otherwise.
+
+This applies to content obtained from:
+
+```text
+repositories
+issues
+pull requests
+web pages
+emails
+documents
+logs
+provider APIs
+comments
+generated files
+external databases
+third-party integrations
+```
+
+The system SHALL NOT allow arbitrary content from those sources to redefine:
+
+* authority,
+* policy,
+* delegation,
+* allowed capabilities,
+* target selection,
+* system instructions,
+* governance constraints,
+* or approval requirements.
+
+Core invariant:
+
+```text
+external content ≠ trusted instruction
+```
+
+This boundary is foundational to Monad's prompt-injection resistance.
+
+---
+
+## 5. Reasoning outputs
+
+AI reasoning may produce several semantically different outputs.
+
+Monad SHALL distinguish at least:
+
+```text
+Claim
+hypothesis
+recommendation
+plan
+proposed action
+generated artifact
+evaluation
+```
+
+These outputs MAY be related but SHALL NOT be treated as interchangeable.
+
+For example:
+
+```text
+AI inferred that deployment X is stale
+```
+
+is not equivalent to:
+
+```text
+native system reported deployment X is stale
+```
+
+Similarly:
+
+```text
+AI recommends deleting resource X
+```
+
+does not imply:
+
+```text
+resource X is authorized for deletion
+```
+
+and:
+
+```text
+AI generated patch Y
+```
+
+does not imply:
+
+```text
+patch Y is canonical
+```
+
+---
+
+## 6. Epistemic state and uncertainty
+
+AI-produced information SHALL preserve epistemic distinction where material.
+
+The architecture SHOULD support states equivalent to:
+
+```text
+known
+observed
+inferred
+hypothesized
+estimated
+recommended
+unknown
+```
+
+Implementations MAY use more precise vocabularies, but they SHALL NOT collapse meaningful uncertainty into binary truth where the underlying information is probabilistic or incomplete.
+
+Model confidence SHALL NOT itself establish truth.
+
+Confidence values MAY be retained as metadata but SHALL NOT replace Evidence.
+
+---
+
+## 7. AI Claims
+
+An AI-produced Claim SHALL be treated as a Claim, not automatically as authoritative fact.
+
+Important Claims SHOULD resolve, where possible, to one or more of:
+
+```text
+source
+observation
+Evidence
+native-system state
+explicit human input
+derived relationship
+```
+
+The system SHOULD preserve the derivation chain between supporting information and the resulting AI Claim.
+
+Where no sufficient grounding exists, the Claim SHOULD remain explicitly inferred, hypothesized, estimated, or otherwise uncertain.
+
+Core invariant:
+
+```text
+AI Claim ≠ Fact automatically
+```
+
+---
+
+## 8. Native identity and entity resolution
+
+AI SHALL prefer deterministic native-resource identity where native systems expose exact identifiers.
+
+For consequential operations, Monad SHOULD use provider-native identifiers such as:
+
+* repository IDs,
+* issue IDs,
+* pull-request IDs,
+* deployment IDs,
+* project IDs,
+* resource IDs,
+* environment IDs,
+* account IDs,
+* object URIs,
+* or equivalent stable references.
+
+AI SHOULD NOT invent consequential native-resource identity when a deterministic identifier is available.
+
+### Fuzzy resolution
+
+AI MAY use semantic or fuzzy matching to propose an identity relationship.
+
+For example, AI MAY infer that:
+
+```text
+"the release checklist"
+```
+
+likely refers to a particular document.
+
+That inference MAY become a proposed binding.
+
+It SHALL NOT automatically become an authoritative consequential binding.
+
+A consequential identity mapping SHOULD require sufficient Evidence, deterministic resolution, explicit context, or governed confirmation.
+
+---
+
+## 9. Delegation model
+
+AI authority SHALL originate from an explicit authority model rather than from the AI itself.
+
+Where an AI acts on behalf of another actor, Monad SHALL represent delegation sufficiently to answer:
+
+```text
+who delegated?
+what was delegated?
+under what authority?
+for what scope?
+for what duration?
+which capabilities?
+which target systems?
+under what constraints?
+under which policy?
+how may the delegation be revoked?
+```
+
+A delegation record SHOULD therefore be capable of representing:
+
+```text
+delegator
+delegate
+authority basis
+scope
+capabilities
+targets
+constraints
+environment
+effective time
+expiration
+policy references
+approval requirements
+budget constraints
+revocation state
+```
+
+### Authority containment
+
+Delegation SHALL NOT create broader authority than the delegator possesses.
+
+Core invariant:
+
+```text
+delegated authority ≤ delegator authority
+```
+
+An actor without authority to deploy production cannot validly delegate production deployment authority to an AI.
+
+An AI cannot increase its own authority merely because it has access to a capability capable of performing that deployment.
+
+---
+
+## 10. Capability versus authority
+
+Monad SHALL preserve a strict architectural distinction between capability and authority.
+
+A capability represents what the system can technically perform.
+
+Authority represents whether performing that action is legitimately permitted under the governing model.
+
+Therefore:
+
+```text
+AI can invoke tool ≠ AI is authorized to perform action
+```
+
+and:
+
+```text
+Capability ≠ Permission
+
+Credential ≠ Authority
+```
+
+A credential may make an API request technically possible while policy still forbids the operation.
+
+The architecture SHALL evaluate consequential AI actions against authority and policy independently of whether the underlying integration accepts the credentials.
+
+---
+
+## 11. Read versus mutation
+
+Read operations and consequential mutations MAY have different governance requirements.
+
+Examples of typically lower-consequence operations include:
+
+```text
+read repository
+search documentation
+inspect issue
+read build metadata
+retrieve requirement
+inspect deployment state
+```
+
+Examples of consequential mutation include:
+
+```text
+merge pull request
+deploy production
+delete resource
+change policy
+approve release
+rotate credential
+modify infrastructure
+publish external communication
+change authority
+```
+
+Monad SHALL NOT assume that authorization to read a system implies authorization to mutate it.
+
+Likewise:
+
+```text
+read access ≠ write authority
+```
+
+Implementations SHOULD allow policy to distinguish read, propose, mutate, approve, and verify capabilities.
+
+---
+
+## 12. Consequential action classification
+
+Monad SHALL support policy evaluation of AI operations according to their consequences.
+
+Relevant dimensions MAY include:
+
+```text
+reversibility
+blast radius
+environment
+financial impact
+security impact
+privacy impact
+data-loss potential
+governance impact
+external communication
+production mutation
+authority change
+legal or compliance impact
+resource consumption
+```
+
+The architecture SHALL NOT prescribe one universal risk-tier vocabulary.
+
+Implementations MAY define operational classes or risk tiers appropriate to their domain.
+
+However, policy SHALL be able to apply stronger controls as consequences increase.
+
+Controls MAY include:
+
+* explicit approval,
+* independent approval,
+* stronger authentication,
+* narrower target binding,
+* additional preconditions,
+* required Evidence,
+* state revalidation,
+* dry-run requirements,
+* rollback preparation,
+* post-action verification,
+* separation of duties,
+* lower budget limits,
+* or prohibition.
+
+---
+
+## 13. Proposal versus execution
+
+The architecture SHALL represent proposal and execution as distinct events.
+
+Monad must be able to distinguish:
+
+```text
+AI suggested this change
+```
+
+from:
+
+```text
+AI performed this change
+```
+
+from:
+
+```text
+human approved this change
+```
+
+A generated plan or proposed action SHALL NOT itself be interpreted as authorization to execute.
+
+Core invariants:
+
+```text
+AI recommendation ≠ Decision
+
+AI proposal ≠ Approval
+
+AI proposal ≠ Execution
+
+Plan accepted ≠ Operation authorized automatically
+```
+
+---
+
+## 14. Proposed action model
+
+A consequential AI proposal SHOULD identify the intended action sufficiently to support policy evaluation and approval.
+
+A proposed action SHOULD be capable of binding:
+
+```text
+operation
+capability
+target
+environment
+input or revision
+expected state
+intended effect
+constraints
+required approvals
+policy context
+```
+
+Where the operation depends upon a particular resource revision, configuration state, or environment, those values SHOULD be represented as preconditions rather than remaining implicit in prose.
+
+---
+
+## 15. Human approval
+
+Human approval SHALL be required when governing policy requires it.
+
+Approval SHALL bind to a sufficiently precise consequential operation.
+
+Generic approvals such as:
+
+```text
+approved AI
+```
+
+or:
+
+```text
+AI may do whatever is necessary
+```
+
+SHOULD NOT be treated as sufficient authorization for a consequential mutation unless a legitimate policy explicitly defines such broad delegated scope.
+
+Preferred approval semantics bind:
+
+```text
+approved operation
+approved target
+approved revision
+approved environment
+approved scope
+approved constraints
+```
+
+Approval MAY authorize:
+
+* one operation,
+* a bounded operation set,
+* a bounded time interval,
+* a specific work packet,
+* a specific environment,
+* or a predefined autonomous policy scope.
+
+Approval SHALL remain distinct from authority itself.
+
+---
+
+## 16. Autonomous execution
+
+Monad SHALL support autonomous AI execution where governance explicitly permits it.
+
+Per-operation human approval is therefore not universally required.
+
+Instead, autonomy SHALL be expressed through bounded delegated authority and policy.
+
+An autonomous execution scope MAY define:
+
+```text
+allowed capabilities
+allowed targets
+allowed environments
+maximum operations
+maximum duration
+maximum cost
+maximum resource consumption
+required preconditions
+stop conditions
+escalation conditions
+prohibited actions
+verification requirements
+```
+
+An AI acting within that scope MAY execute without additional approval where policy permits.
+
+An operation outside the scope SHALL require additional authority or SHALL be denied.
+
+---
+
+## 17. Target resolution
+
+Consequential target resolution SHALL be explicit.
+
+AI SHALL NOT guess a consequential target when multiple plausible targets exist.
+
+Examples include:
+
+```text
+production account
+staging account
+
+repository A
+repository B
+
+cloud project X
+cloud project Y
+
+branch main
+branch release
+
+database primary
+database replica
+```
+
+If target resolution remains ambiguous, the action SHALL NOT proceed as though one candidate were known to be correct.
+
+The system SHOULD produce an explicit ambiguous-target outcome.
+
+Core invariant:
+
+```text
+AI-selected target ≠ Valid target automatically
+```
+
+---
+
+## 18. Production targeting
+
+Production SHALL NOT become an inferred default.
+
+An AI SHALL NOT choose production merely because:
+
+* a name appears primary,
+* no other target was specified,
+* the environment looks most active,
+* a repository is the default repository,
+* an account name resembles production,
+* or historical context suggests production was used previously.
+
+Core invariant:
+
+```text
+Production ≠ Default target
+```
+
+Production access SHALL be established explicitly through target resolution and policy.
+
+---
+
+## 19. Preconditions
+
+Consequential AI operations SHOULD support explicit preconditions.
+
+Relevant preconditions include:
+
+```text
+expected revision
+expected current state
+required approval
+required Evidence
+required environment
+expected policy revision
+expected resource identity
+expected authority state
+expected dependency state
+```
+
+Preconditions allow an operation to fail safely when reality no longer matches the assumptions under which the AI planned the action.
+
+---
+
+## 20. Plan staleness
+
+Planning and execution SHALL be modeled as distinct points in time.
+
+An AI-generated plan may become stale because:
+
+* source code changed,
+* policy changed,
+* approval expired,
+* deployment state changed,
+* another actor modified the target,
+* a native resource was replaced,
+* environment configuration changed,
+* Evidence became outdated,
+* or an external dependency changed.
+
+Therefore:
+
+```text
+Plan ≠ Current state
+```
+
+The existence of a valid plan at time `T1` SHALL NOT imply that the plan remains safe to execute at time `T2`.
+
+---
+
+## 21. Pre-execution revalidation
+
+Immediately before a consequential mutation, Monad SHOULD revalidate material assumptions where feasible.
+
+Revalidation MAY include:
+
+```text
+target identity
+current revision
+current state
+approval validity
+delegation validity
+policy revision
+capability availability
+environment
+resource existence
+conflicting mutation
+required Evidence
+budget availability
+```
+
+If a material precondition no longer holds, the operation SHOULD be halted, re-planned, or escalated according to policy.
+
+---
+
+## 22. Tool invocation model
+
+Consequential AI tool invocation SHALL preserve sufficient provenance to reconstruct what occurred.
+
+An invocation record SHOULD retain:
+
+```text
+AI execution ID
+AI participant identity
+capability
+arguments
+resolved target
+integration
+actor
+delegation
+authority basis
+policy decision
+approval reference
+timestamps
+native request
+native response
+execution result
+Evidence
+```
+
+Sensitive values MAY be referenced rather than stored directly.
+
+The invocation record SHALL distinguish the requested operation from the observed native effect.
+
+---
+
+## 23. Credentials and secrets
+
+Credentials SHALL be treated as implementation mechanisms for capabilities, not as authority.
+
+The possession of credentials SHALL NOT establish legitimacy to use every capability those credentials technically expose.
+
+Secrets SHOULD NOT be inserted into AI prompts or general model context unless strictly required and explicitly permitted.
+
+Where possible, tool execution SHOULD use opaque secret references or platform-managed credentials.
+
+The AI may therefore invoke:
+
+```text
+credential-reference: deploy-prod
+```
+
+without receiving the underlying secret value.
+
+---
+
+## 24. Execution result semantics
+
+The absence of a tool error SHALL NOT establish that the intended semantic effect occurred.
+
+Core invariant:
+
+```text
+tool call returned successfully ≠ desired state achieved
+```
+
+Additional invariants include:
+
+```text
+API success ≠ Semantic success
+
+Mutation accepted ≠ Mutation completed
+
+Completed ≠ Verified
+
+No error ≠ Success
+```
+
+For example, a deployment API may return an accepted response while the deployment later fails.
+
+A pull-request merge request may succeed while a subsequent automation reverts the change.
+
+A file-write command may return successfully while the resulting content does not satisfy the intended requirement.
+
+Execution result and semantic outcome SHALL therefore remain distinct.
+
+---
+
+## 25. Unknown outcomes
+
+Monad SHALL represent unknown or ambiguous execution outcomes explicitly.
+
+A provider timeout occurring after a mutation request is a canonical example.
+
+The system may not know whether:
+
+```text
+request failed before mutation
+```
+
+or:
+
+```text
+mutation occurred but response was lost
+```
+
+The system SHALL NOT automatically classify this state as failure.
+
+Core invariant:
+
+```text
+Unknown outcome ≠ Failed outcome
+```
+
+Where repeating the request could create duplicate or destructive effects, the AI SHOULD observe current native state before retrying.
+
+Core invariant:
+
+```text
+Retryable ≠ Safe to repeat blindly
+```
+
+---
+
+## 26. Error taxonomy
+
+AI execution SHOULD distinguish operational failure classes rather than collapsing them into an undifferentiated error.
+
+The architecture SHOULD support outcomes equivalent to:
+
+```text
+tool unavailable
+authentication failure
+authorization denial
+resource missing
+resource ambiguous
+provider timeout
+unknown outcome
+partial success
+precondition failure
+policy denial
+budget exceeded
+verification failure
+```
+
+This distinction is important because the correct recovery action differs substantially between classes.
+
+For example:
+
+* authentication failure may require credential repair,
+* authorization denial may require governance escalation,
+* resource ambiguity requires target resolution,
+* unknown outcome requires observation,
+* precondition failure requires replanning,
+* verification failure requires investigation rather than blind re-execution.
+
+---
+
+## 27. Post-action observation
+
+Consequential mutations SHOULD be followed by native observation where the intended effect cannot be established reliably from the initial tool response.
+
+Post-action observation MAY determine:
+
+```text
+whether the resource changed
+what native identifier was created
+what final state exists
+whether asynchronous work completed
+whether side effects occurred
+whether the expected revision is active
+```
+
+Observation SHALL remain distinct from Verification.
+
+---
+
+## 28. Evidence and verification
+
+AI execution MAY produce Evidence.
+
+AI output itself SHALL NOT automatically constitute independent Evidence of the state it claims to have produced.
+
+Core invariant:
+
+```text
+Model output ≠ Evidence automatically
+```
+
+Similarly:
+
+```text
+AI-generated Evidence ≠ Independent Evidence automatically
+```
+
+Where an AI reports:
+
+```text
+deployment succeeded
+```
+
+the system SHOULD prefer Evidence derived from the deployment system, resulting environment, verification system, or another appropriately governed source.
+
+---
+
+## 29. AI evaluation
+
+AI MAY evaluate artifacts and system state.
+
+Examples include:
+
+* code review,
+* specification comparison,
+* policy analysis,
+* architecture consistency analysis,
+* test interpretation,
+* documentation review,
+* anomaly detection.
+
+Such evaluation SHALL NOT automatically be classified as Verification.
+
+Core invariant:
+
+```text
+AI evaluation ≠ Verification automatically
+```
+
+An AI evaluator MAY participate in Verification only under an explicit verification contract.
+
+---
+
+## 30. AI verification contract
+
+Where AI participates in formal Verification, the verification contract SHOULD define at least:
+
+```text
+model identity
+method
+inputs
+criteria
+uncertainty handling
+required corroboration
+acceptable failure modes
+required Evidence
+```
+
+The contract MAY require:
+
+* independent native Evidence,
+* deterministic checks,
+* multiple evaluators,
+* human review,
+* comparison against a specification,
+* structured scoring,
+* or explicit uncertainty thresholds.
+
+A probabilistic judgment becomes a Verification result only when the governing verification architecture recognizes that method as valid for the specific verification obligation.
+
+---
+
+## 31. Separation of duties
+
+Monad policy MAY require distinct participants for:
+
+```text
+proposal
+approval
+execution
+verification
+```
+
+AI participation SHALL NOT erase these boundaries.
+
+For example, policy may prohibit the same AI execution from:
+
+```text
+generating a privileged policy change
+approving the policy change
+executing the change
+and independently verifying the change
+```
+
+Where separation of duties is required, identity and provenance SHALL make violations detectable.
+
+Core invariant:
+
+```text
+AI approval of own action ≠ Independent approval
+```
+
+---
+
+## 32. Self-modification
+
+AI SHALL NOT casually rewrite the governance structures that constrain its own operation.
+
+Protected domains include:
+
+```text
+system constitution
+authority rules
+policy
+delegation
+capability boundaries
+approval rules
+verification rules
+```
+
+Changes to these artifacts MAY be proposed by AI.
+
+They MAY even be executed by AI where governance permits.
+
+However, such changes SHALL follow the same or stronger governance that applies to equivalent changes performed by other actors.
+
+An AI SHALL NOT gain authority merely because it can edit the representation of authority.
+
+Core invariants:
+
+```text
+Policy edit ≠ Authority acquisition
+
+Ability to modify policy ≠ Permission to modify policy
+```
+
+---
+
+## 33. Circular authority escalation
+
+Monad SHALL prevent circular AI authority escalation.
+
+The following sequence is an architectural anti-pattern:
+
+```text
+AI edits policy granting itself permission
+AI approves the policy change
+AI treats the resulting permission as legitimate
+AI executes privileged operation
+```
+
+Authority evaluation SHALL resolve through legitimate governance rather than merely through the current contents of a file the AI is technically capable of modifying.
+
+---
+
+## 34. Recursive delegation
+
+An AI delegate SHALL NOT freely delegate its authority to additional AI participants unless the governing policy explicitly permits recursive delegation.
+
+Where recursive delegation is allowed, the delegated scope SHALL remain bounded by:
+
+```text
+parent delegation
+policy
+capability restrictions
+target restrictions
+duration
+budget
+environment
+```
+
+Recursive delegation SHALL NOT expand authority beyond the valid parent delegation chain.
+
+---
+
+## 35. Multi-agent systems
+
+In a multi-agent system, each consequential participant SHALL preserve its own:
+
+```text
+identity
+role
+delegated scope
+execution provenance
+inputs
+outputs
+capability invocations
+```
+
+Multi-agent consensus SHALL NOT automatically establish truth.
+
+Core invariant:
+
+```text
+Multi-agent consensus ≠ Truth
+```
+
+Multiple agents producing the same inference may increase confidence according to a defined method, but agreement does not replace Evidence or Verification.
+
+---
+
+## 36. AI-generated artifacts
+
+Consequential artifacts generated by AI SHOULD retain provenance.
+
+Examples include:
+
+```text
+source code
+documentation
+migrations
+policy
+specifications
+configuration
+infrastructure definitions
+test cases
+release artifacts
+generated commands
+```
+
+Provenance SHOULD permit later determination of:
+
+* which AI execution generated the artifact,
+* which model participated,
+* which input context was used,
+* which source artifacts were referenced,
+* which human or automated actor requested the generation,
+* and what subsequent transformations occurred.
+
+Generated artifacts SHALL NOT become canonical solely because they were generated.
+
+Core invariant:
+
+```text
+Generated ≠ Canonical automatically
+```
+
+---
+
+## 37. Human edits after generation
+
+Human modification of AI-generated content SHALL create subsequent provenance rather than erasing the AI-generation history.
+
+A provenance chain may therefore resemble:
+
+```text
+AI generation
+      │
+      ▼
+human modification
+      │
+      ▼
+review
+      │
+      ▼
+approval
+      │
+      ▼
+canonicalization
+```
+
+The final artifact may become authoritative through normal governance while retaining its derivation history.
+
+---
+
+## 38. Persistent AI memory
+
+Persistent AI memory MAY assist future reasoning.
+
+Memory SHALL NOT automatically become authoritative engineering truth.
+
+Core invariant:
+
+```text
+Memory ≠ Authority
+```
+
+A remembered statement SHOULD retain provenance and freshness information when used consequentially.
+
+Where current native state matters, memory SHOULD be revalidated against an authoritative or appropriately current source.
+
+---
+
+## 39. Context freshness
+
+Retrieved context SHALL NOT be silently treated as current native state when freshness is unknown or stale.
+
+Core invariant:
+
+```text
+Retrieved context ≠ Current truth automatically
+```
+
+Relevant context SHOULD retain, where available:
+
+```text
+observation time
+source revision
+native revision
+retrieval time
+freshness status
+```
+
+When consequential execution depends on current state, stale context SHOULD trigger re-observation.
+
+---
+
+## 40. Model drift
+
+AI model behavior may change over time.
+
+Mutable aliases, provider-side updates, inference infrastructure, safety layers, and serving configuration can affect results.
+
+Consequential AI provenance SHOULD therefore preserve the strongest available model identity.
+
+When exact model revision cannot be obtained, Monad SHOULD record the strongest available information without pretending that stronger reproducibility exists.
+
+---
+
+## 41. AI reproducibility
+
+AI execution SHALL integrate with the reproducibility architecture established by ADR-0009.
+
+Where available and permissible, consequential AI execution SHOULD preserve:
+
+```text
+provider
+model identifier
+model snapshot
+agent identity
+system instructions
+developer instructions
+user request
+prompt
+context provenance
+generation parameters
+tool calls
+tool arguments
+outputs
+timestamps
+environment
+policy revision
+delegation
+approval references
+```
+
+Sensitive data MAY be redacted, encrypted, represented by digest, or referenced indirectly according to policy.
+
+Exact deterministic replay SHALL NOT be universally required.
+
+Core invariants:
+
+```text
+Same prompt ≠ Same output
+
+AI reproducibility ≠ Deterministic replay
+```
+
+The objective is sufficient reconstruction and explanation, not an impossible guarantee that every probabilistic generation can be reproduced byte-for-byte.
+
+---
+
+## 42. Sensitive data boundaries
+
+AI context SHALL obey data-access, privacy, classification, and provider-boundary policy.
+
+Technical access to a data source SHALL NOT imply permission to include all available data in model context.
+
+The system SHOULD minimize contextual disclosure according to the task and authority scope.
+
+Examples of governed decisions include:
+
+```text
+whether data may leave the local machine
+whether data may be sent to a hosted model
+whether secrets may enter context
+whether personal information may be transmitted
+whether proprietary source may be shared with provider
+whether retention is permitted
+```
+
+---
+
+## 43. AI provider trust boundary
+
+Sending information to an external AI provider SHALL be treated as an external-system operation.
+
+Provider access SHOULD therefore be governed by:
+
+* data policy,
+* classification,
+* privacy requirements,
+* contractual constraints,
+* security policy,
+* retention constraints,
+* and integration configuration.
+
+The existence of an AI provider integration SHALL NOT itself authorize transmission of every artifact available to Monad.
+
+---
+
+## 44. Cost and resource governance
+
+AI activity MAY consume governed resources including:
+
+```text
+tokens
+API cost
+compute
+cloud resources
+storage
+external API quota
+wall-clock time
+human review capacity
+```
+
+Delegation and policy MAY therefore specify resource budgets.
+
+Autonomous AI execution SHOULD support limits such as:
+
+```text
+maximum operations
+maximum model cost
+maximum compute
+maximum duration
+maximum retries
+maximum external requests
+```
+
+Budget exhaustion SHOULD be represented explicitly rather than treated as an arbitrary tool failure.
+
+---
+
+## 45. Autonomous loops
+
+Autonomous AI loops SHALL have bounded behavior.
+
+A loop SHOULD support constraints equivalent to:
+
+```text
+maximum operations
+maximum cost
+maximum duration
+allowed capabilities
+allowed targets
+allowed environments
+stop conditions
+escalation conditions
+```
+
+The system SHOULD prevent unbounded recursive behavior where no explicit policy has granted it.
+
+A loop SHOULD terminate, pause, or escalate when:
+
+* authority is insufficient,
+* the target becomes ambiguous,
+* preconditions fail,
+* verification repeatedly fails,
+* budget is exhausted,
+* execution outcome becomes unknown,
+* policy changes,
+* or the stop condition is reached.
+
+---
+
+## 46. Auditability
+
+Consequential AI activity SHALL be reconstructable to a degree appropriate to its impact.
+
+The architecture SHOULD permit an auditor, engineer, reviewer, or future AI to answer:
+
+```text
+What did the AI know?
+
+What information was observed?
+
+What information was inferred?
+
+What did the AI propose?
+
+Which model produced the reasoning?
+
+What was the model identity?
+
+What authority was delegated?
+
+Who delegated it?
+
+What policy applied?
+
+What capability did the AI invoke?
+
+What arguments were supplied?
+
+What target was resolved?
+
+What preconditions were checked?
+
+What native request occurred?
+
+What native effect occurred?
+
+What Evidence was collected?
+
+What verification followed?
+
+What remained uncertain?
+```
+
+No single log entry is required to contain all of this information.
+
+The architecture SHALL, however, preserve sufficient relationships among the relevant artifacts to reconstruct the chain.
+
+---
+
+## 47. Reference interaction model
+
+A consequential AI interaction SHOULD be representable conceptually as:
+
+```text
+Human / Governing Actor
+        │
+        │ delegates bounded authority
+        ▼
+Delegation
+        │
+        ▼
+AI Participant
+        │
+        ├── observes context
+        │
+        ├── reasons
+        │
+        ├── produces Claims
+        │
+        ├── generates proposal
+        │
+        └── requests operation
+        │
+        ▼
+Proposed Action
+        │
+        ▼
+Authority / Policy Evaluation
+        │
+        ├── deny
+        │
+        ├── require approval
+        │
+        └── authorize
+        │
+        ▼
+Governed Capability
+        │
+        ▼
+Integration
+        │
+        ▼
+Native System
+        │
+        ▼
+Observed Effect
+        │
+        ▼
+Evidence
+        │
+        ▼
+Verification / Reconciliation
+```
+
+Each transition MAY create or reference provenance.
+
+---
+
+# Alternatives considered
+
+## Alternative 1 — Treat AI as an ordinary tool only
+
+Under this model, AI would be represented no differently from a compiler, text editor, or shell utility.
+
+### Rejected because
+
+This hides delegation, reasoning provenance, uncertainty, proposal semantics, context provenance, autonomous operation, and model identity.
+
+AI can act as a tool in some workflows, but the architecture cannot assume that tool semantics fully describe AI participation.
+
+---
+
+## Alternative 2 — Treat AI as inherently authoritative
+
+Under this model, an AI selected by the system would be trusted to make and execute engineering decisions by virtue of being the designated AI.
+
+### Rejected because
+
+Model competence does not establish governance legitimacy.
+
+Probabilistic reasoning cannot silently become authority.
+
+This model would collapse:
+
+```text
+recommendation
+decision
+approval
+authority
+execution
+verification
+```
+
+into one actor and violate the existing Monad authority architecture.
+
+---
+
+## Alternative 3 — Treat possession of credentials as permission
+
+Under this model, any operation technically possible using the AI's available credentials would be permitted.
+
+### Rejected because
+
+Credentials implement access.
+
+They do not establish authority.
+
+This model would make provider configuration the de facto governance system and would bypass Monad's authority and policy architecture.
+
+---
+
+## Alternative 4 — Require human approval for every AI mutation
+
+Under this model, all AI writes would require an explicit human confirmation immediately before execution.
+
+### Rejected because
+
+It prevents legitimate bounded autonomy and does not itself solve target ambiguity, stale state, weak provenance, prompt injection, or inadequate verification.
+
+Human approval remains available as a policy mechanism but is not the universal architectural definition of AI safety.
+
+---
+
+## Alternative 5 — Treat an approved plan as authority for arbitrary later execution
+
+Under this model, approval of an AI-generated plan would implicitly authorize any later actions interpreted as implementing that plan.
+
+### Rejected because
+
+Plans may be ambiguous or stale.
+
+Execution may require different capabilities, targets, revisions, or environments than originally anticipated.
+
+Approval must bind sufficiently to the consequential scope being authorized.
+
+---
+
+## Alternative 6 — Trust external content placed in model context
+
+Under this model, repository documents, web pages, issues, emails, and other retrieved text could alter model behavior as though they were trusted instructions.
+
+### Rejected because
+
+This collapses data and governance instruction and creates a direct prompt-injection path.
+
+---
+
+## Alternative 7 — Treat successful tool invocation as successful engineering outcome
+
+Under this model, a successful API or command response would be sufficient proof that the intended result occurred.
+
+### Rejected because
+
+Native systems frequently expose asynchronous, partial, accepted-but-not-completed, or semantically incomplete outcomes.
+
+Observation and Verification remain necessary.
+
+---
+
+## Alternative 8 — Treat AI evaluation as formal Verification by default
+
+Under this model, an AI reviewing the result of an AI action could declare the result verified.
+
+### Rejected because
+
+Evaluation method, Evidence, independence, uncertainty, and verification criteria must be explicitly defined.
+
+AI may participate in Verification, but only under a verification contract.
+
+---
+
+## Alternative 9 — Require deterministic replay of consequential AI output
+
+Under this model, a consequential AI interaction would be considered reproducible only when rerunning the same prompt produces the same output.
+
+### Rejected because
+
+Many AI systems are probabilistic and provider-controlled.
+
+This would make meaningful reproducibility impossible for legitimate workflows.
+
+Monad instead requires reconstruction of the consequential execution context and preservation of the strongest available model and context provenance.
+
+---
+
+# Consequences
+
+## Positive consequences
+
+### AI can participate broadly
+
+The architecture does not artificially restrict AI to passive recommendation.
+
+AI can inspect, propose, generate, execute, evaluate, and participate in verification when policy permits.
+
+### Autonomy becomes governable
+
+Autonomous operation is represented as bounded delegated authority rather than as an exception to governance.
+
+### Prompt injection receives an architectural boundary
+
+External content remains data rather than becoming policy simply because it enters model context.
+
+### Authority remains explicit
+
+Tool availability and credentials cannot silently replace the authority model.
+
+### AI operations become auditable
+
+Consequential actions can be reconstructed across reasoning, delegation, execution, Evidence, and verification.
+
+### Native-system truth remains authoritative where appropriate
+
+AI observations and inferences remain distinct from provider-native state.
+
+### Stale planning can be detected
+
+Preconditions and revalidation provide an explicit defense against plans becoming invalid before execution.
+
+### Multi-agent systems remain traceable
+
+Each participant retains identity, scope, and provenance.
+
+### Reproducibility becomes realistic
+
+The architecture captures model and context provenance without requiring impossible deterministic replay.
+
+---
+
+## Negative consequences
+
+### More metadata
+
+Consequential AI workflows require additional provenance, delegation, policy, and execution metadata.
+
+### More explicit modeling
+
+Implementations must distinguish concepts that simplistic agent systems frequently collapse.
+
+### Additional policy infrastructure
+
+Useful autonomy requires authority and policy evaluation capable of expressing bounded delegation.
+
+### Integration complexity
+
+Native integrations must expose enough identity, state, and execution result detail to support reliable target resolution and post-action observation.
+
+### Some actions must stop on ambiguity
+
+The system will occasionally refuse to infer a convenient target even when the AI is highly confident.
+
+### Historical reconstruction may remain incomplete
+
+External AI providers may not expose immutable model revisions or enough serving metadata for exact reconstruction.
+
+Monad must preserve the strongest available information without overstating certainty.
+
+---
+
+# Operational implications
+
+Implementations conforming to this ADR SHOULD provide architectural support for:
+
+* AI execution identifiers,
+* model and provider identity,
+* agent and session identity,
+* delegation records,
+* capability descriptions,
+* authority evaluation,
+* policy decisions,
+* target resolution,
+* preconditions,
+* approval references,
+* native invocation provenance,
+* execution outcome classification,
+* post-action observation,
+* Evidence links,
+* verification relationships,
+* context provenance,
+* context freshness,
+* autonomous-loop budgets,
+* and escalation conditions.
+
+The architecture SHOULD make these mechanisms reusable across integrations rather than embedding AI governance independently inside each provider adapter.
+
+Native integrations SHOULD expose deterministic resource identifiers wherever available.
+
+Policy SHOULD be evaluated independently from whether a tool or provider accepts the underlying request.
+
+Consequential autonomous execution SHOULD fail closed where:
+
+* target identity is materially ambiguous,
+* authority cannot be established,
+* required approval is absent,
+* required preconditions cannot be validated,
+* policy denies the operation,
+* or a protected governance boundary would be bypassed.
+
+Unknown execution outcome SHOULD NOT automatically fail closed by retrying. Where duplicate side effects are possible, observation precedes repetition.
+
+---
+
+# Definition of Ready
+
+Implementation work governed by ADR-0010 is ready when:
+
+* [ ] the affected AI interaction has an identifiable participant and execution,
+* [ ] the relevant capability is known,
+* [ ] the authority source can be identified,
+* [ ] delegation semantics are defined where AI acts for another actor,
+* [ ] consequential targets can be represented deterministically,
+* [ ] applicable policy can be evaluated,
+* [ ] required approvals can be represented,
+* [ ] native execution results can be distinguished from observed effects,
+* [ ] Evidence and Verification relationships are available where required,
+* [ ] context provenance can distinguish instruction from retrieved data,
+* [ ] error states can represent ambiguity and unknown outcomes,
+* [ ] reproducibility requirements from ADR-0009 have been considered,
+* [ ] sensitive-data boundaries are defined for any external AI provider.
+
+---
+
+# Definition of Done
+
+An implementation governed by ADR-0010 is complete when:
+
+* [ ] AI identity is retained for consequential activity,
+* [ ] model identity uses the strongest available provider identifier,
+* [ ] delegation does not exceed delegator authority,
+* [ ] capability availability is not used as an authority decision,
+* [ ] consequential actions are policy evaluated,
+* [ ] proposal, approval, execution, and Verification remain distinct,
+* [ ] consequential targets are explicitly resolved,
+* [ ] production is never an inferred default,
+* [ ] material preconditions are revalidated before mutation where required,
+* [ ] external content cannot silently redefine trusted policy or instructions,
+* [ ] consequential tool invocations retain execution provenance,
+* [ ] unknown outcomes are distinguished from confirmed failures,
+* [ ] duplicate-risk retries observe native state before repetition,
+* [ ] consequential mutations support post-action observation where required,
+* [ ] AI evaluation is not automatically treated as Verification,
+* [ ] generated artifacts retain provenance where consequential,
+* [ ] persistent memory is not automatically authoritative,
+* [ ] autonomous loops are bounded,
+* [ ] recursive delegation obeys policy,
+* [ ] sensitive information obeys data-governance boundaries,
+* [ ] the resulting activity can be reconstructed sufficiently for review,
+* [ ] conformance tests demonstrate the core invariants of this ADR.
+
+---
+
+# Acceptance criteria
+
+## AC-AI-001 — AI identity is preserved
+
+Given a consequential AI operation, the resulting provenance identifies the AI execution and preserves the strongest available model identity.
+
+---
+
+## AC-AI-002 — Model alias is not sufficient identity
+
+Given a provider exposes both a mutable model alias and a stronger immutable or versioned identifier, consequential provenance preserves the stronger identifier.
+
+---
+
+## AC-AI-003 — Capability does not establish authority
+
+Given an AI can technically invoke a privileged tool but lacks authority under policy, the invocation is denied or withheld.
+
+---
+
+## AC-AI-004 — Credentials do not establish authority
+
+Given credentials technically permit an operation but governance does not authorize it, the operation does not proceed.
+
+---
+
+## AC-AI-005 — Delegation is bounded
+
+Given a delegator lacks authority for an operation, the system does not allow that actor to confer the missing authority upon an AI.
+
+---
+
+## AC-AI-006 — Proposal remains distinct from execution
+
+Given an AI generates a proposed action, the system can determine that the proposal exists without implying that the action occurred.
+
+---
+
+## AC-AI-007 — Approval is action-bound
+
+Given policy requires approval for a consequential operation, the approval can be associated with the relevant operation, target, scope, revision, or equivalent binding.
+
+---
+
+## AC-AI-008 — Autonomous action requires explicit authority
+
+Given no per-operation human approval is present, an AI operation proceeds only when policy and delegation explicitly authorize execution within the applicable scope.
+
+---
+
+## AC-AI-009 — Ambiguous targets halt consequential execution
+
+Given multiple plausible consequential targets remain unresolved, the AI does not silently choose one and execute.
+
+---
+
+## AC-AI-010 — Production is not inferred
+
+Given no environment was legitimately resolved, the AI does not select production merely as a default.
+
+---
+
+## AC-AI-011 — External content cannot redefine governance
+
+Given retrieved content contains instructions attempting to grant authority, alter policy, or redirect protected capabilities, those instructions remain untrusted data unless validated through an authorized instruction channel.
+
+---
+
+## AC-AI-012 — Inference remains distinguishable from observation
+
+Given an AI infers a system condition from incomplete context, the resulting information is not recorded as though directly observed from the native system.
+
+---
+
+## AC-AI-013 — Stale plans are revalidated
+
+Given material target state changes between plan creation and execution, required precondition validation detects the mismatch before consequential mutation.
+
+---
+
+## AC-AI-014 — Tool success is not semantic success
+
+Given a provider accepts an operation but the intended state is not subsequently achieved, the architecture can represent that distinction.
+
+---
+
+## AC-AI-015 — Unknown outcome is preserved
+
+Given a provider timeout occurs after a potentially non-idempotent mutation request, the result can be represented as unknown rather than automatically failed.
+
+---
+
+## AC-AI-016 — Blind retry is prevented
+
+Given an operation has an unknown outcome and duplicate effects are possible, the system observes native state before retrying.
+
+---
+
+## AC-AI-017 — Post-action Evidence can be attached
+
+Given a consequential mutation completes, resulting native observations or other Evidence can be associated with that execution.
+
+---
+
+## AC-AI-018 — AI evaluation is not automatically Verification
+
+Given an AI evaluates an artifact, the evaluation does not become formal Verification unless an applicable verification contract authorizes the method.
+
+---
+
+## AC-AI-019 — Generated provenance survives human modification
+
+Given AI generates an artifact and a human later modifies it, provenance retains both stages rather than replacing the generation history.
+
+---
+
+## AC-AI-020 — Memory is not treated as current truth
+
+Given persistent memory conflicts with current authoritative native state, the architecture permits the current observation to supersede the remembered information without treating memory as authority.
+
+---
+
+## AC-AI-021 — Autonomous loops are bounded
+
+Given an autonomous AI workflow exceeds an applicable operation, cost, duration, or other configured limit, execution stops or escalates according to policy.
+
+---
+
+## AC-AI-022 — Self-authorization is rejected
+
+Given an AI modifies policy in an attempt to grant itself additional authority without legitimate governance, the resulting policy change cannot bootstrap valid authority for the privileged operation.
+
+---
+
+## AC-AI-023 — Multi-agent identity is preserved
+
+Given multiple agents participate in a consequential workflow, the system can distinguish their identities, roles, delegated scopes, and executions.
+
+---
+
+## AC-AI-024 — Sensitive data remains governed
+
+Given an AI provider is connected, data outside the permitted disclosure scope is not automatically included in model context merely because the AI can technically retrieve it.
+
+---
+
+## AC-AI-025 — Consequential activity is reconstructable
+
+Given a completed consequential AI action, a reviewer can determine the material observation context, proposal, authority basis, capability invocation, target, native effect, Evidence, and verification state.
+
+---
+
+# Verification obligations
+
+## VO-AI-001 — Authority boundary verification
+
+Tests SHALL demonstrate that tool availability and valid credentials do not bypass policy or authority evaluation.
+
+**Primary consumers:** REQ-AUTH, REQ-GOV, REQ-AI
+
+---
+
+## VO-AI-002 — Delegation containment verification
+
+Tests SHALL demonstrate that delegated AI authority cannot exceed the authority legitimately held by the delegator.
+
+**Primary consumers:** REQ-AUTH, REQ-GOV
+
+---
+
+## VO-AI-003 — Target-resolution verification
+
+Tests SHALL demonstrate safe handling of:
+
+```text
+single deterministic target
+multiple plausible targets
+missing target
+stale target
+production target
+```
+
+**Primary consumers:** REQ-AI, REQ-INT, REQ-EXEC
+
+---
+
+## VO-AI-004 — Prompt-injection boundary verification
+
+Tests SHALL demonstrate that retrieved external content cannot alter trusted policy, delegation, authority, or system-level instruction merely by appearing in model context.
+
+**Primary consumers:** REQ-AI, REQ-GOV, REQ-INT
+
+---
+
+## VO-AI-005 — Plan-staleness verification
+
+Tests SHALL demonstrate that material preconditions changing between planning and mutation can prevent stale execution.
+
+**Primary consumers:** REQ-AI, REQ-EXEC, REQ-REC
+
+---
+
+## VO-AI-006 — Outcome-state verification
+
+Tests SHALL distinguish:
+
+```text
+successful request
+confirmed semantic success
+partial success
+confirmed failure
+unknown outcome
+verification failure
+```
+
+**Primary consumers:** REQ-EXEC, REQ-VFY, REQ-REC
+
+---
+
+## VO-AI-007 — Retry-safety verification
+
+Tests SHALL demonstrate that an ambiguous outcome of a non-idempotent operation does not result in automatic blind repetition.
+
+**Primary consumers:** REQ-EXEC, REQ-INT, REQ-AI
+
+---
+
+## VO-AI-008 — AI provenance verification
+
+Consequential AI executions SHALL demonstrate retention of the strongest available model identity and sufficient execution context to support ADR-0009.
+
+**Primary consumers:** REQ-PROV, REQ-REPRO
+
+---
+
+## VO-AI-009 — Verification-independence verification
+
+Tests SHALL demonstrate that an AI evaluation is not automatically promoted to formal Verification without an applicable verification contract.
+
+**Primary consumers:** REQ-VFY, REQ-EVD
+
+---
+
+## VO-AI-010 — Generated-artifact provenance verification
+
+Tests SHALL demonstrate that human edits following AI generation extend rather than erase provenance.
+
+**Primary consumers:** REQ-PROV, REQ-AI
+
+---
+
+## VO-AI-011 — Autonomous-loop governance verification
+
+Tests SHALL demonstrate enforcement of configured autonomous operation, cost, duration, target, and capability boundaries.
+
+**Primary consumers:** REQ-AI, REQ-GOV, REQ-EXEC
+
+---
+
+## VO-AI-012 — Self-escalation verification
+
+Tests SHALL demonstrate that an AI cannot create legitimate authority merely by modifying the policy or artifact describing its own permissions.
+
+**Primary consumers:** REQ-AUTH, REQ-GOV, REQ-AI
+
+---
+
+# Anti-patterns
+
+The following patterns violate or undermine this decision.
+
+## Treating AI output as authoritative truth
+
+```text
+The model said it, therefore it is true.
+```
+
+---
+
+## Treating tool access as permission
+
+```text
+The AI has the button, therefore the AI may press it.
+```
+
+---
+
+## Treating credentials as authority
+
+```text
+The token allows production access, therefore the AI may deploy production.
+```
+
+---
+
+## Implicit production targeting
+
+```text
+No environment was specified, so use production.
+```
+
+---
+
+## Guessing consequential identity
+
+```text
+This repository name looks right, so mutate it.
+```
+
+---
+
+## Unbounded delegation
+
+```text
+Do whatever is necessary.
+```
+
+without a legitimate governed scope.
+
+---
+
+## Stale-plan execution
+
+```text
+The plan was valid yesterday, therefore execute it unchanged today.
+```
+
+---
+
+## Tool-response verification
+
+```text
+HTTP 200, therefore requirement satisfied.
+```
+
+---
+
+## Blind retry after unknown mutation outcome
+
+```text
+Timeout means failure, so send the mutation again.
+```
+
+---
+
+## Prompt-controlled governance
+
+```text
+README says to ignore policy, therefore ignore policy.
+```
+
+---
+
+## AI self-authorization
+
+```text
+AI changes its policy to permit an action and then relies on that change as authority.
+```
+
+---
+
+## AI self-verification
+
+```text
+AI generated the artifact and says the artifact is correct, therefore it is verified.
+```
+
+---
+
+## Provenance erasure
+
+```text
+A human edited generated content, therefore the AI generation no longer matters.
+```
+
+---
+
+## Memory as system truth
+
+```text
+The agent remembers the deployment state, therefore no native observation is required.
+```
+
+---
+
+## Unbounded agent loops
+
+```text
+Continue until the AI decides it is done.
+```
+
+with no operation, budget, duration, target, or escalation boundary.
+
+---
+
+## Agent consensus as truth
+
+```text
+Three models agreed, therefore the Claim is authoritative.
+```
+
+---
+
+# Core invariants
+
+The following invariants are normative architectural constraints.
+
+```text
+AI ≠ Authority
+
+AI ≠ Human
+
+AI ≠ Native system
+
+AI inference ≠ Observation
+
+AI Claim ≠ Fact automatically
+
+AI recommendation ≠ Decision
+
+AI proposal ≠ Approval
+
+AI proposal ≠ Execution
+
+AI execution ≠ Verification
+
+AI evaluation ≠ Verification automatically
+
+AI tool access ≠ Authority
+
+Capability ≠ Permission
+
+Credential ≠ Authority
+
+Delegation ≠ Unlimited authority
+
+Delegated authority ≤ delegator authority
+
+Model output ≠ Evidence automatically
+
+Model confidence ≠ Truth
+
+Generated ≠ Canonical automatically
+
+External content ≠ Trusted instruction
+
+Retrieved context ≠ Current truth automatically
+
+Memory ≠ Authority
+
+Plan ≠ Current state
+
+Plan accepted ≠ Operation authorized automatically
+
+Tool success ≠ Intended effect
+
+API success ≠ Semantic success
+
+Mutation accepted ≠ Mutation completed
+
+Completed ≠ Verified
+
+No error ≠ Success
+
+Unknown outcome ≠ Failed outcome
+
+Retryable ≠ Safe to repeat blindly
+
+AI-selected target ≠ Valid target automatically
+
+Production ≠ Default target
+
+Model alias ≠ Immutable model identity
+
+Same prompt ≠ Same output
+
+AI reproducibility ≠ Deterministic replay
+
+AI approval of own action ≠ Independent approval
+
+Policy edit ≠ Authority acquisition
+
+Ability to modify policy ≠ Permission to modify policy
+
+Autonomy ≠ Absence of governance
+
+Human-in-the-loop ≠ Security automatically
+
+Multi-agent consensus ≠ Truth
+
+AI-generated Evidence ≠ Independent Evidence automatically
+```
+
+These invariants SHALL remain preserved across implementations even where terminology or concrete schema representation differs.
+
+---
+
+# Governing principle
+
+> **Monad should allow AI to reason broadly and act usefully while ensuring that probabilistic inference, technical capability, credential possession, and generated output never silently become authority.**
+
+More operationally:
+
+> **AI may participate throughout the engineering system, but consequential action must remain bounded by explicit identity, authority, policy, provenance, target resolution, and verification.**
+
+---
+
+# Related Cards
+
+* **RB-001** — Accepted Requirements Baseline
+* **RTM-001** — Requirements Traceability Matrix
+* **REQ-AI** — AI Interaction
+* **REQ-AUTH** — Authority
+* **REQ-GOV** — Governance
+* **REQ-EXEC** — Execution
+* **REQ-INT** — Integrations
+* **REQ-PROV** — Provenance
+* **REQ-EVD** — Evidence
+* **REQ-VFY** — Verification
+* **REQ-REC** — Reconciliation
+* **REQ-REPRO** — Reproducibility
+* **ADR-0001 through ADR-0008** — Prior accepted architectural decisions
+* **ADR-0009** — Reproducible Execution and Environment Capture Model
+
+---
+
+## Final architectural statement
+
+Monad does not make AI safe by pretending AI cannot act.
+
+Monad makes consequential AI action governable by refusing to collapse reasoning, authority, capability, execution, Evidence, and verification into one opaque agent operation.
+
+The system SHALL permit AI to inspect broadly, reason probabilistically, propose useful work, and execute meaningful engineering operations when legitimately authorized.
+
+At every consequential boundary, however, Monad SHALL retain enough structure to determine:
+
+```text
+who or what participated,
+what was known,
+what was inferred,
+what was proposed,
+what authority existed,
+what policy applied,
+what target was resolved,
+what capability was invoked,
+what native effect occurred,
+what Evidence resulted,
+and what was actually verified.
+```
+
+That separation is the architectural basis for useful AI autonomy without silent transfer of authority.

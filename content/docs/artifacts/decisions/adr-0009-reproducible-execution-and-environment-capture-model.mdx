@@ -1,0 +1,3544 @@
+---
+title: "ADR-0009 — Reproducible Execution and Environment Capture Model"
+specification ID: "ADR-0009"
+version: "0.1.0"
+status: "Accepted"
+classification: "Architecture Decision Record"
+parent: "RB-001 — Requirements Baseline"
+description: "Defines Monad's reproducible execution model, execution-context capture, input and environment identity, replay semantics, nondeterminism handling, evidence retention, and the distinction between reproducibility and correctness."
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Architecture Decision Record · ADR-0009
+  </p>
+</div>
+
+# ADR-0009 — Reproducible Execution and Environment Capture Model
+
+**Status:** Accepted
+**Decision type:** Foundational architecture
+**Requirements baseline:** RB-001
+**Traceability artifact:** RTM-001
+**Depends on:** ADR-0001 through ADR-0008
+**Primary requirement family:** `REQ-REPRO`
+**Consequential consumers:** `REQ-EXEC`, `REQ-PROV`, `REQ-EVD`, `REQ-VFY`, `REQ-INT`, `REQ-REC`, `REQ-LOCAL`, `REQ-AI`, `REQ-GOV`
+
+---
+
+# Decision
+
+Monad will treat reproducibility as a first-class property of consequential execution.
+
+For executions whose outcomes matter to engineering decisions, verification, release readiness, governance, debugging, incident analysis, or historical reconstruction, Monad will preserve enough context to answer:
+
+```text id="01zpqn"
+What was executed?
+
+By whom?
+
+Against what exact inputs?
+
+Using which tools?
+
+Under what configuration?
+
+In which environment?
+
+With which dependencies?
+
+Against which external systems?
+
+At what revisions?
+
+With what nondeterministic influences?
+
+What was observed?
+
+What Evidence resulted?
+
+Can the execution be reconstructed?
+
+Can it be rerun?
+
+If rerun differs, can the difference be explained?
+```
+
+The architecture will distinguish:
+
+```text id="8ny4hg"
+execution record
+        │
+        ├── identity
+        ├── intent
+        ├── inputs
+        ├── environment
+        ├── tools
+        ├── configuration
+        ├── external dependencies
+        ├── nondeterministic inputs
+        ├── observations
+        ├── outputs
+        ├── Evidence
+        └── provenance
+        │
+        ▼
+reproduction specification
+        │
+        ▼
+re-execution
+        │
+        ▼
+comparison
+        │
+        ├── equivalent
+        ├── observably different
+        ├── environment-divergent
+        ├── input-divergent
+        ├── nondeterministically different
+        └── unreproducible
+```
+
+<Callout type="info" title="Core rule">
+Reproducibility means preserving enough context to reconstruct and challenge a result.
+
+It does not mean that the result was correct, verified, approved, deterministic, portable, or legitimate. </Callout>
+
+---
+
+# Context
+
+Engineering results often depend on more than source code.
+
+A supposedly simple execution may depend on:
+
+* exact source revision,
+* dirty working-tree state,
+* generated files,
+* local configuration,
+* compiler version,
+* runtime version,
+* operating system,
+* CPU architecture,
+* environment variables,
+* dependency lockfile,
+* package registry contents,
+* network responses,
+* remote APIs,
+* service state,
+* database contents,
+* timestamps,
+* random seeds,
+* locale,
+* timezone,
+* filesystem ordering,
+* concurrency,
+* credentials,
+* feature flags,
+* AI model version,
+* AI prompt context,
+* temperature or sampling parameters,
+* external tool versions.
+
+If these influences are not retained, later questions become difficult or impossible to answer.
+
+Examples include:
+
+```text id="4eucoe"
+Why did CI pass yesterday but fail today?
+
+Which compiler produced this binary?
+
+Did this deployment use the reviewed source revision?
+
+Can we reproduce the benchmark that justified an ADR?
+
+Was the AI-generated migration produced from the same schema we have now?
+
+Did a release artifact come from the exact tested tree?
+
+What changed between two executions?
+
+Was the difference caused by source, environment, provider state, or nondeterminism?
+```
+
+Without an explicit reproducibility architecture, systems tend to preserve only:
+
+```text id="e3gh2m"
+command
+exit code
+timestamp
+```
+
+That is insufficient for consequential engineering work.
+
+---
+
+# Problem
+
+Execution context is usually fragmented across:
+
+* shells,
+* CI configuration,
+* local machines,
+* package-manager state,
+* containers,
+* environment variables,
+* cloud services,
+* logs,
+* human memory,
+* remote APIs,
+* generated artifacts.
+
+This leads to several recurring failures.
+
+---
+
+## "Works on my machine"
+
+The source may be the same while the environment differs.
+
+---
+
+## Unrepeatable CI
+
+A historical build may depend on mutable package indexes, changing base images, or undocumented environment state.
+
+---
+
+## Unverifiable artifact provenance
+
+A binary may exist without a trustworthy link back to:
+
+* source,
+* build execution,
+* toolchain,
+* configuration,
+* Evidence.
+
+---
+
+## Historical ambiguity
+
+A command recorded months ago may no longer produce the same effect because its environment has changed.
+
+---
+
+## AI opacity
+
+An AI-generated artifact may lack:
+
+* model identity,
+* prompt context,
+* tool calls,
+* source inputs,
+* configuration,
+* output provenance.
+
+---
+
+## False reproducibility
+
+A rerun may succeed but not actually reproduce the original conditions.
+
+---
+
+# Decision drivers
+
+The architecture must support:
+
+* explainability,
+* reruns,
+* debugging,
+* forensic analysis,
+* release provenance,
+* artifact traceability,
+* verification,
+* comparison of executions,
+* local-first operation,
+* CI and remote execution,
+* heterogeneous toolchains,
+* AI-assisted work,
+* dependency evolution,
+* nondeterministic processes,
+* long-term historical reconstruction,
+* portable execution descriptions,
+* progressive capture depth,
+* privacy and secret protection.
+
+---
+
+# Reproducibility
+
+A result is reproducible to the extent that another execution can reconstruct sufficiently equivalent conditions and produce sufficiently equivalent observations or outputs.
+
+The term is therefore contextual.
+
+---
+
+# Reproducibility is scoped
+
+An execution may be reproducible with respect to:
+
+```text id="1k1z9m"
+source
+environment
+toolchain
+inputs
+outputs
+behavior
+performance
+external state
+AI generation
+```
+
+Different purposes require different equivalence criteria.
+
+---
+
+# Reproducibility is not binary
+
+Monad SHOULD support degrees of reproducibility rather than only:
+
+```text id="wwkb2i"
+reproducible: true
+```
+
+Possible states include:
+
+```text id="98krpm"
+not-evaluated
+partially-captured
+reconstructable
+rerunnable
+behaviorally-reproducible
+byte-reproducible
+unreproducible
+unknown
+```
+
+---
+
+# Reproducible is not correct
+
+An incorrect result may be perfectly reproducible.
+
+```text id="7a8g4s"
+same bug
+same inputs
+same environment
+same wrong output
+```
+
+is still reproducible.
+
+---
+
+# Reproducible is not verified
+
+Reproduction may contribute Evidence to Verification, but does not itself prove a Requirement.
+
+---
+
+# Reproducible is not approved
+
+Governance remains separate.
+
+---
+
+# Reproducible is not authorized
+
+An unauthorized operation can be reproducible.
+
+---
+
+# Reproducible is not deterministic
+
+A nondeterministic operation may still be reproducible at the process level if its stochastic inputs and expected variation are captured.
+
+---
+
+# Reproducible is not portable
+
+An execution may be reproducible only on a particular:
+
+* CPU architecture,
+* operating system,
+* provider,
+* hardware accelerator,
+* private service.
+
+---
+
+# Execution identity
+
+Every consequential execution SHOULD have stable identity.
+
+Example:
+
+```yaml id="wr4ysb"
+execution:
+  id: EXEC-01824
+```
+
+---
+
+# Execution identity is not command identity
+
+Running the same command twice creates two distinct execution instances.
+
+---
+
+# Execution record
+
+A consequential execution record SHOULD be immutable as historical fact.
+
+Corrections should append or supersede metadata rather than rewrite what occurred invisibly.
+
+---
+
+# Intent
+
+Monad SHOULD preserve what the execution was intended to accomplish.
+
+Example:
+
+```yaml id="hevtia"
+intent:
+  kind: verification
+  requirement: REQ-BUILD-042
+```
+
+---
+
+# Intent is not effect
+
+The requested action and observed result remain distinct.
+
+---
+
+# Invocation
+
+The exact executable or capability invoked SHOULD be retained where consequential.
+
+---
+
+# Command
+
+For command-line execution, Monad SHOULD capture the effective command structure.
+
+Where security permits, this may include:
+
+```text id="wx81ja"
+executable
+arguments
+working directory
+stdin source
+shell
+shell options
+```
+
+---
+
+# Structured invocation
+
+Structured invocation is preferable to retaining only an opaque shell string.
+
+Example:
+
+```yaml id="5gytns"
+invocation:
+  executable: cargo
+  arguments:
+    - test
+    - --workspace
+  working_directory: /workspace
+```
+
+---
+
+# Shell semantics
+
+Where a shell materially affects execution, its identity and relevant options SHOULD be captured.
+
+Example:
+
+```yaml id="1bp7lz"
+shell:
+  name: zsh
+  version: 5.9
+  options:
+    errexit: true
+```
+
+---
+
+# Working directory
+
+Relative paths depend on the working directory.
+
+Consequential execution MUST retain enough context to resolve them.
+
+---
+
+# Source identity
+
+Executions against source-controlled systems SHOULD bind to an exact source revision where possible.
+
+Example:
+
+```yaml id="9w1c75"
+source:
+  repository: REPO-0001
+  commit: 7c9425f...
+```
+
+---
+
+# Mutable refs are insufficient
+
+```text id="7mijqm"
+main
+```
+
+is not sufficient historical source identity.
+
+A branch is a mutable reference.
+
+---
+
+# Dirty working tree
+
+A Git commit alone is insufficient when uncommitted modifications affected execution.
+
+---
+
+# Working-tree capture
+
+Monad SHOULD determine whether the source tree differed from its recorded revision.
+
+Example:
+
+```yaml id="ga809r"
+working_tree:
+  clean: false
+```
+
+---
+
+# Patch capture
+
+For consequential execution against uncommitted state, Monad SHOULD preserve the relevant diff or a content-addressed equivalent.
+
+---
+
+# Untracked files
+
+Untracked files that influenced execution SHOULD be represented.
+
+---
+
+# Ignored files
+
+Ignored files MAY still influence execution and SHOULD be captured when material.
+
+---
+
+# Generated inputs
+
+Generated files SHOULD retain provenance to the execution or generator that produced them.
+
+---
+
+# Content addressing
+
+Content digests SHOULD be used where practical for important execution inputs.
+
+Example:
+
+```yaml id="pu0p5x"
+digest:
+  algorithm: sha256
+  value: ...
+```
+
+---
+
+# Digest identity
+
+A digest identifies bytes, not semantic meaning.
+
+---
+
+# Input manifest
+
+Consequential executions SHOULD have an identifiable input set where feasible.
+
+---
+
+# Input granularity
+
+Capture MAY range from:
+
+```text id="imfgli"
+high-level logical inputs
+```
+
+to:
+
+```text id="k2fwxg"
+complete content-addressed dependency closure
+```
+
+depending on significance.
+
+---
+
+# Configuration
+
+Execution-affecting configuration SHOULD be retained.
+
+---
+
+# Configuration revision
+
+Configuration SHOULD be bound to a revision or digest where possible.
+
+---
+
+# Configuration provenance
+
+Monad SHOULD distinguish:
+
+```text id="j1fgyv"
+repository configuration
+user configuration
+machine configuration
+environment configuration
+provider configuration
+policy-derived configuration
+```
+
+---
+
+# Defaults
+
+Implicit defaults can affect results.
+
+Material defaults SHOULD be resolvable from retained tool and configuration versions.
+
+---
+
+# Environment variables
+
+Environment variables affecting execution SHOULD be captured or represented.
+
+---
+
+# Secret environment variables
+
+Secrets MUST NOT be stored directly merely for reproducibility.
+
+Instead preserve:
+
+```text id="4qhbe7"
+secret reference
+secret version/identity where allowed
+presence
+scope
+non-sensitive metadata
+```
+
+---
+
+# Secret values
+
+Reproducibility requirements MUST NOT override secret-handling policy.
+
+---
+
+# Secret-dependent execution
+
+An execution may be only partially reproducible if required historical secret material cannot or should not be retained.
+
+That limitation SHOULD be explicit.
+
+---
+
+# Runtime identity
+
+Relevant runtime versions SHOULD be captured.
+
+Examples:
+
+```text id="nqgtr1"
+Node.js
+Bun
+Python
+Rust
+Java
+Go
+.NET
+```
+
+---
+
+# Compiler identity
+
+Compiled outputs SHOULD retain compiler identity and version.
+
+---
+
+# Tool identity
+
+Consequential tools SHOULD be identified by more than a mutable display name when possible.
+
+---
+
+# Tool version
+
+The exact tool version SHOULD be captured.
+
+---
+
+# Tool digest
+
+Where stronger guarantees are required, the executable or container digest SHOULD be retained.
+
+---
+
+# Tool provenance
+
+Monad MAY retain how the tool was obtained:
+
+```text id="sl48gj"
+Nix derivation
+container digest
+package manager
+local binary
+system package
+source build
+```
+
+---
+
+# Package-manager identity
+
+Dependency resolution behavior depends on package manager and version.
+
+---
+
+# Lockfiles
+
+Existing lockfiles SHOULD be treated as consequential reproducibility inputs.
+
+---
+
+# Dependency graph
+
+The resolved dependency graph MAY be retained when lockfiles do not fully determine resolution.
+
+---
+
+# Mutable dependency sources
+
+Dependencies derived from mutable branches, URLs, registries, or tags reduce reproducibility.
+
+Monad SHOULD expose this.
+
+---
+
+# Floating versions
+
+Ranges such as:
+
+```text id="6au476"
+^3.2.0
+latest
+main
+```
+
+do not by themselves identify exact historical dependencies.
+
+---
+
+# Package digests
+
+Package digests or integrity hashes SHOULD be preserved where available.
+
+---
+
+# Container images
+
+Mutable image tags are insufficient for strong reproduction.
+
+Example:
+
+```text id="94xbyr"
+node:latest
+```
+
+SHOULD resolve to the actual digest used when consequential.
+
+---
+
+# Base images
+
+Image provenance SHOULD include the resolved immutable image identity where practical.
+
+---
+
+# Operating system
+
+The relevant OS identity SHOULD be retained.
+
+Example:
+
+```yaml id="oaf0wv"
+os:
+  family: linux
+  distribution: nixos
+  version: ...
+```
+
+---
+
+# Kernel
+
+Kernel version MAY be relevant for low-level execution and SHOULD be captured where material.
+
+---
+
+# Architecture
+
+CPU architecture SHOULD be retained when it can affect execution.
+
+Examples:
+
+```text id="wr6e5n"
+x86_64
+aarch64
+```
+
+---
+
+# CPU features
+
+Special instruction-set availability MAY affect reproducibility.
+
+---
+
+# Hardware
+
+Hardware identity MAY matter for:
+
+* benchmarks,
+* GPU execution,
+* numerical computation,
+* concurrency tests,
+* timing-sensitive tests.
+
+---
+
+# Accelerators
+
+GPU/TPU model, driver, firmware, and compute-library versions SHOULD be captured where material.
+
+---
+
+# Filesystem semantics
+
+Case sensitivity, permissions, symlink behavior, and filesystem ordering may affect execution.
+
+Monad MAY capture these characteristics when relevant.
+
+---
+
+# Locale
+
+Locale SHOULD be captured when it can affect:
+
+* sorting,
+* parsing,
+* formatting,
+* Unicode,
+* command behavior.
+
+---
+
+# Timezone
+
+Timezone SHOULD be captured when time-related behavior matters.
+
+---
+
+# Clock time
+
+Execution start and end time SHOULD be retained.
+
+---
+
+# Clock source
+
+Wall-clock time is not always sufficient for causal ordering.
+
+---
+
+# Randomness
+
+Randomness is an execution input.
+
+---
+
+# Random seed
+
+Where a deterministic seed exists, it SHOULD be retained.
+
+---
+
+# Random-source identity
+
+Where behavior depends on an external entropy source, the limitation on exact replay SHOULD be explicit.
+
+---
+
+# Concurrency
+
+Thread scheduling and concurrent interleaving may affect execution.
+
+---
+
+# Parallelism
+
+Relevant concurrency settings SHOULD be captured when consequential.
+
+Example:
+
+```yaml id="c7ky1n"
+parallelism:
+  workers: 16
+```
+
+---
+
+# Distributed execution
+
+Distributed executions SHOULD identify participating nodes or execution environments where relevant.
+
+---
+
+# Network dependence
+
+Network access introduces external mutable state.
+
+---
+
+# Network dependency inventory
+
+Consequential executions SHOULD identify external services whose responses affected the result where practical.
+
+---
+
+# External API revisions
+
+Where available, Monad SHOULD capture:
+
+* provider API version,
+* request identifier,
+* endpoint identity,
+* resource revision,
+* response digest or Evidence.
+
+---
+
+# External state snapshots
+
+When exact rerun depends on external state, Monad MAY retain a snapshot or content-addressed representation where policy permits.
+
+---
+
+# External mutable state
+
+If external state cannot be preserved, the reproduction record SHOULD declare this source of uncertainty.
+
+---
+
+# Database state
+
+An execution dependent on database contents may require:
+
+* transaction snapshot,
+* migration revision,
+* schema revision,
+* fixture identity,
+* dataset digest.
+
+---
+
+# Production data
+
+Production data SHOULD NOT be copied merely to satisfy reproducibility if privacy or security policy forbids it.
+
+---
+
+# Data minimization
+
+Reproducibility capture MUST respect data-retention and privacy constraints.
+
+---
+
+# Remote provider state
+
+Provider-native observations used by an execution SHOULD retain observation provenance and time.
+
+---
+
+# Live versus cached
+
+Execution records SHOULD identify whether external observations were:
+
+```text id="oxtjhu"
+live
+cached
+replayed
+mocked
+simulated
+```
+
+---
+
+# Availability state
+
+A reproduction SHOULD know when original dependencies were degraded or unavailable if that influenced behavior.
+
+---
+
+# Integration version
+
+When an integration mediates external access, its adapter version SHOULD be retained.
+
+---
+
+# Integration configuration
+
+Relevant non-secret integration configuration SHOULD be bound to a revision where feasible.
+
+---
+
+# Policy
+
+Consequential executions governed by policy SHOULD retain the policy revision evaluated.
+
+---
+
+# Authority
+
+Where execution required authorization, the execution record SHOULD retain the relevant authority decision or reference.
+
+---
+
+# Approval
+
+If an Approval was required, the execution SHOULD reference the specific Approval used.
+
+---
+
+# Approval revision
+
+A general approval label is insufficient when an Approval applied to a specific target or revision.
+
+---
+
+# Execution environment identity
+
+Monad SHOULD support a stable environment identity distinct from environment display names.
+
+---
+
+# Environment manifest
+
+A reproducibility manifest MAY describe the material environment.
+
+Example:
+
+```yaml id="uifhmo"
+environment:
+  os:
+    family: linux
+    architecture: x86_64
+
+  runtimes:
+    bun: 1.4.0
+    node: 24.14.0
+
+  tools:
+    git: 2.43.0
+
+  locale: en_US.UTF-8
+  timezone: UTC
+```
+
+---
+
+# Environment capture tiers
+
+Monad will support progressive capture depth.
+
+---
+
+## Tier 0 — Uncaptured
+
+Minimal historical information.
+
+```text id="wr9lrz"
+command
+timestamp
+exit code
+```
+
+This is inadequate for consequential reproducibility.
+
+---
+
+## Tier 1 — Basic execution
+
+Capture:
+
+* command,
+* working directory,
+* source revision,
+* tool version,
+* basic environment.
+
+---
+
+## Tier 2 — Engineering reproduction
+
+Capture:
+
+* exact source state,
+* dependency lock state,
+* configuration,
+* runtime/toolchain,
+* operating environment,
+* significant external references.
+
+---
+
+## Tier 3 — Strong reproduction
+
+Capture:
+
+* content-addressed inputs,
+* immutable tool/container identities,
+* full dependency resolution,
+* external-state snapshots where allowed,
+* deterministic seeds,
+* detailed environment.
+
+---
+
+## Tier 4 — Hermetic / byte-reproducible
+
+Capture and isolate enough state that the same inputs can produce byte-identical outputs, where technically possible and justified.
+
+---
+
+# Capture policy
+
+Not every execution needs Tier 4 capture.
+
+The required tier SHOULD depend on:
+
+* consequence,
+* criticality,
+* verification role,
+* release significance,
+* auditability,
+* reproducibility objective,
+* cost.
+
+---
+
+# Default capture
+
+Routine developer commands MAY use lower capture levels.
+
+---
+
+# Consequential capture
+
+Executions used to justify:
+
+* release,
+* deployment,
+* acceptance,
+* architectural decisions,
+* benchmark claims,
+* compliance claims,
+* security claims,
+
+SHOULD use stronger capture.
+
+---
+
+# Reproduction specification
+
+Monad SHOULD be able to derive a reproduction specification from sufficiently captured execution history.
+
+---
+
+# Reproduction is a new execution
+
+A reproduction attempt is a distinct execution.
+
+It does not overwrite the original.
+
+---
+
+# Reproduction linkage
+
+The new execution SHOULD link to the execution it attempts to reproduce.
+
+Example:
+
+```yaml id="m1vo8t"
+reproduction:
+  reproduces: EXEC-01824
+```
+
+---
+
+# Exact replay
+
+An exact replay attempts to reconstruct materially identical conditions.
+
+---
+
+# Behavioral reproduction
+
+A behavioral reproduction may use a different environment while checking equivalent behavior.
+
+---
+
+# Output equivalence
+
+Output equality depends on the relevant contract.
+
+---
+
+# Byte equality
+
+For some artifacts:
+
+```text id="zkvkl9"
+same digest
+```
+
+may be required.
+
+---
+
+# Semantic equality
+
+For other outputs, byte identity may be unnecessary.
+
+Example:
+
+```text id="mw2vqy"
+JSON object key ordering differs
+semantic content equivalent
+```
+
+---
+
+# Tolerance
+
+Numerical or performance results MAY define acceptable tolerance.
+
+Example:
+
+```yaml id="p7xaov"
+comparison:
+  metric: latency_p95
+  tolerance: 5%
+```
+
+---
+
+# Nondeterministic outputs
+
+Expected variation MUST NOT be confused with reproduction failure.
+
+---
+
+# Statistical reproduction
+
+Some systems may require repeated samples and distribution comparison rather than one identical result.
+
+---
+
+# Flaky execution
+
+Repeatedly inconsistent outcomes under supposedly equivalent conditions SHOULD be representable as a reproducibility problem.
+
+---
+
+# Reproduction comparison
+
+A comparison SHOULD state which dimensions matched.
+
+Example:
+
+```yaml id="w2jnk2"
+comparison:
+  source: equivalent
+  dependencies: equivalent
+  environment: equivalent
+  external_state: unknown
+  outputs: different
+```
+
+---
+
+# Difference classification
+
+Differences SHOULD be classified where possible.
+
+Potential classes:
+
+```text id="0niwgj"
+source-difference
+input-difference
+configuration-difference
+toolchain-difference
+dependency-difference
+environment-difference
+external-state-difference
+nondeterministic-difference
+output-difference
+unknown-difference
+```
+
+---
+
+# Unreproducible execution
+
+Monad SHOULD be able to say that an execution cannot be adequately reproduced.
+
+---
+
+# Missing context
+
+Missing historical context SHOULD remain visible rather than inferred.
+
+---
+
+# Reproducibility debt
+
+Historical executions with insufficient capture MAY be treated as reproducibility debt.
+
+---
+
+# Evidence
+
+An execution record may produce Evidence.
+
+---
+
+# Execution record is not automatically Evidence
+
+A record that something ran does not necessarily support a particular Claim.
+
+---
+
+# Evidence binding
+
+Evidence derived from an execution SHOULD bind to:
+
+* execution ID,
+* source revision,
+* relevant input revisions,
+* observation,
+* output,
+* time.
+
+---
+
+# Verification
+
+Verification SHOULD consume execution Evidence according to an explicit verification method.
+
+---
+
+# Reproduction as verification Evidence
+
+A successful reproduction MAY provide additional Evidence.
+
+---
+
+# Reproduction failure
+
+A failed reproduction does not automatically prove the original result was false.
+
+It may indicate environmental divergence or incomplete capture.
+
+---
+
+# Release artifacts
+
+Release artifacts SHOULD retain provenance to the execution that produced them.
+
+---
+
+# Artifact digest
+
+Produced artifacts SHOULD use cryptographic digests where practical.
+
+---
+
+# Artifact provenance chain
+
+The intended chain is:
+
+```text id="qwe1ba"
+source revision
+      │
+      ▼
+execution
+      │
+      ▼
+output artifact
+      │
+      ▼
+digest
+      │
+      ▼
+verification
+      │
+      ▼
+release
+```
+
+---
+
+# Build provenance
+
+A release SHOULD be able to identify:
+
+* build execution,
+* source state,
+* toolchain,
+* dependency state,
+* produced digest.
+
+---
+
+# Rebuild
+
+A rebuild is a new execution.
+
+---
+
+# Reproducible build
+
+A build is byte-reproducible when equivalent retained inputs produce byte-identical output under the declared reproduction contract.
+
+---
+
+# Generated code
+
+Generated code SHOULD retain generator identity and version where consequential.
+
+---
+
+# Generator inputs
+
+Generation inputs SHOULD be traceable.
+
+---
+
+# Code generation output
+
+Generated source MAY itself become canonical depending on repository policy, but its provenance remains distinct.
+
+---
+
+# Database migration generation
+
+AI- or tool-generated migrations SHOULD retain:
+
+* source schema,
+* target schema,
+* generator identity,
+* execution context,
+* resulting migration digest.
+
+---
+
+# Benchmarking
+
+Benchmarks require stronger environment capture than ordinary functional tests.
+
+---
+
+# Benchmark environment
+
+A consequential benchmark SHOULD capture:
+
+* hardware,
+* CPU architecture,
+* memory,
+* OS,
+* toolchain,
+* power/performance configuration where material,
+* dataset,
+* concurrency,
+* warmup policy,
+* iteration count.
+
+---
+
+# Benchmark comparison
+
+Benchmark Evidence SHOULD retain methodology and statistical context.
+
+---
+
+# Timing data
+
+Timing results without hardware/environment context SHOULD NOT be treated as strongly reproducible Evidence.
+
+---
+
+# Test execution
+
+Test Evidence SHOULD retain the exact source and test revision.
+
+---
+
+# Reruns
+
+A rerun creates new Evidence.
+
+It does not replace the prior result.
+
+---
+
+# Flaky tests
+
+Passing after rerun does not erase the original failure.
+
+---
+
+# Test selection
+
+The exact selected test set SHOULD be reconstructable where consequential.
+
+---
+
+# Sharding
+
+CI sharding configuration MAY affect the executed test set and SHOULD be preserved.
+
+---
+
+# CI
+
+CI systems provide remote execution environments.
+
+---
+
+# CI run identity
+
+Monad SHOULD retain native run/job identifiers.
+
+---
+
+# CI definition revision
+
+The workflow or pipeline definition revision SHOULD be retained.
+
+---
+
+# CI runner identity
+
+Runner image, environment, or executor identity SHOULD be captured where relevant.
+
+---
+
+# Ephemeral runners
+
+Ephemeral infrastructure does not eliminate the need for historical environment identity.
+
+---
+
+# CI cache
+
+Cache use may affect execution.
+
+---
+
+# Cache identity
+
+Consequential cached inputs SHOULD be identifiable where practical.
+
+---
+
+# Cache hit
+
+A cache hit does not by itself establish input equivalence.
+
+---
+
+# Remote cache
+
+Remote build cache entries SHOULD be content-addressed where possible.
+
+---
+
+# Cache provenance
+
+Cached outputs SHOULD retain the execution or derivation that produced them.
+
+---
+
+# Nix and hermetic environments
+
+Hermetic environment systems MAY improve reproducibility but are implementation mechanisms, not the architectural definition of reproducibility.
+
+---
+
+# Containers
+
+Containers MAY improve environment consistency.
+
+Containers alone do not guarantee reproducibility.
+
+---
+
+# Virtual machines
+
+VM snapshots MAY preserve stronger execution context but are not universally required.
+
+---
+
+# Environment managers
+
+Tools such as:
+
+```text id="6cy07w"
+Nix
+mise
+asdf
+proto
+containers
+language-specific version managers
+```
+
+may contribute to environment reconstruction.
+
+Monad MUST remain conceptually independent of any single mechanism.
+
+---
+
+# Local-first reproduction
+
+Locally captured execution context SHOULD remain inspectable offline.
+
+---
+
+# Offline rerun
+
+A reproduction MAY be possible offline if all required dependencies and inputs are local.
+
+---
+
+# Missing remote dependency
+
+If reproduction requires unavailable remote state, Monad SHOULD report the limitation.
+
+---
+
+# Reconnection
+
+Fetching missing dependencies later does not make the new environment identical unless the exact historical versions are resolved.
+
+---
+
+# Dependency retention
+
+Critical immutable dependencies MAY be retained locally or in durable stores where policy justifies it.
+
+---
+
+# Registry disappearance
+
+A dependency disappearing from a registry SHOULD not make historical provenance unintelligible.
+
+---
+
+# Mirrors
+
+Organizations MAY use mirrors or artifact retention to strengthen reproducibility.
+
+---
+
+# External service replay
+
+Recorded external responses MAY be replayed for some reproduction purposes.
+
+---
+
+# Replay is not live verification
+
+Replaying a historical API response does not verify current external state.
+
+---
+
+# Simulation
+
+A simulated reproduction MUST remain distinguishable from execution against real systems.
+
+---
+
+# Mocked dependencies
+
+Mock identity and version SHOULD be recorded.
+
+---
+
+# Security
+
+Reproducibility capture introduces data-retention risk.
+
+---
+
+# Secret redaction
+
+Secrets MUST be redacted from logs and manifests.
+
+---
+
+# Sensitive arguments
+
+Command arguments may contain secrets.
+
+Capture mechanisms MUST support redaction.
+
+---
+
+# Sensitive environment variables
+
+Values MUST NOT be blindly persisted.
+
+---
+
+# Sensitive files
+
+Input capture SHOULD respect confidentiality classification.
+
+---
+
+# Access control
+
+Detailed reproduction records MAY require restricted access.
+
+---
+
+# Data retention
+
+Retention policy MAY vary by execution significance.
+
+---
+
+# Reproducibility versus privacy
+
+When complete reproduction conflicts with privacy obligations, privacy constraints take precedence.
+
+The reproduction record SHOULD explain the resulting limitation.
+
+---
+
+# Supply-chain security
+
+Tool and dependency identity captured for reproducibility can also support supply-chain assurance.
+
+---
+
+# Signing
+
+Artifacts and provenance records MAY be signed.
+
+---
+
+# Signature
+
+A valid signature proves a signing relationship under the cryptographic model.
+
+It does not prove that the artifact is correct.
+
+---
+
+# SBOM
+
+A software bill of materials MAY supplement reproducibility records.
+
+---
+
+# SBOM is not execution record
+
+It does not replace execution provenance.
+
+---
+
+# Attestations
+
+Build attestations MAY encode parts of the execution record.
+
+---
+
+# External attestations
+
+External provenance formats MAY be integrated without replacing Monad's semantic model.
+
+---
+
+# AI execution
+
+AI interactions are executions when they materially generate, transform, evaluate, or decide engineering work.
+
+---
+
+# AI model identity
+
+Consequential AI execution SHOULD retain the model identifier available at execution time.
+
+---
+
+# Model alias
+
+Mutable aliases such as:
+
+```text id="a4qahh"
+latest
+default
+```
+
+are insufficient where stronger provenance is available.
+
+---
+
+# Provider
+
+The AI provider SHOULD be retained when relevant.
+
+---
+
+# Model revision
+
+If the provider exposes a model revision or snapshot, it SHOULD be captured.
+
+---
+
+# Prompt
+
+Consequential AI generation SHOULD preserve the prompt or an authorized reproducible representation of it.
+
+---
+
+# System instructions
+
+Relevant system/developer instructions SHOULD be considered part of AI execution context where capture is permitted.
+
+---
+
+# Context
+
+Relevant retrieved or supplied context SHOULD retain provenance.
+
+---
+
+# Tool calls
+
+Consequential AI tool invocation SHOULD preserve:
+
+* capability invoked,
+* arguments,
+* result reference,
+* timing,
+* tool version where known.
+
+---
+
+# Sampling configuration
+
+Relevant AI generation parameters SHOULD be retained where the platform exposes them.
+
+Examples:
+
+```text id="lvcy7j"
+temperature
+top_p
+seed
+reasoning configuration
+response constraints
+```
+
+---
+
+# AI nondeterminism
+
+The same AI input may legitimately produce different outputs.
+
+Exact output reproduction MUST NOT be assumed unless the model/provider provides such guarantees.
+
+---
+
+# AI behavioral reproduction
+
+For AI operations, reproduction MAY mean:
+
+* same inputs are reconstructable,
+* same model family/revision can be invoked,
+* output is semantically comparable,
+* evaluation results remain within declared bounds.
+
+---
+
+# Model retirement
+
+Historical AI executions may become impossible to rerun when a provider retires a model.
+
+Monad SHOULD preserve enough context to understand the original execution despite this.
+
+---
+
+# AI output provenance
+
+Generated artifacts SHOULD link to the AI execution that produced them when consequential.
+
+---
+
+# Human modification after AI
+
+Subsequent human edits create a new provenance chain rather than leaving the artifact labeled as purely AI-generated.
+
+---
+
+# AI evaluation
+
+AI-based evaluation SHOULD retain evaluator model and context.
+
+---
+
+# AI evaluation reproducibility
+
+Probabilistic evaluator results SHOULD NOT be treated as exactly reproducible unless the execution contract warrants it.
+
+---
+
+# Prompt injection
+
+Reproduction of AI execution does not imply that untrusted instructions within source material should be elevated to system authority.
+
+---
+
+# Human execution
+
+Manual engineering actions may also require reproducibility records.
+
+---
+
+# Human-entered command
+
+Monad MAY capture manual command invocations where integrated with the execution environment.
+
+---
+
+# Manual external action
+
+If a human performs an action outside Monad, the system MAY record an observation or attestation, but MUST distinguish that from directly captured execution.
+
+---
+
+# Attested execution
+
+Human testimony about an execution is not equivalent to machine-captured provenance.
+
+---
+
+# Reproduction authority
+
+Having enough information to reproduce an action does not imply permission to do so.
+
+---
+
+# Dangerous reproduction
+
+A historical production mutation MUST NOT be rerun merely because its execution can be reconstructed.
+
+---
+
+# Dry-run reproduction
+
+For consequential operations, reproduction MAY target a sandbox or simulation rather than the original environment.
+
+---
+
+# Environment targeting
+
+A reproduction specification MUST distinguish:
+
+```text id="k47rcb"
+recreate original conditions
+```
+
+from:
+
+```text id="ij6dmd"
+re-execute against original target
+```
+
+These are not the same.
+
+---
+
+# Production safety
+
+Reconstructing a production deployment operation SHOULD NOT implicitly authorize redeployment.
+
+---
+
+# Reproduction plans
+
+Monad MAY generate a reproduction plan before execution.
+
+---
+
+# Preflight
+
+A reproduction plan SHOULD identify missing dependencies or mismatches.
+
+---
+
+# Environment mismatch
+
+Monad SHOULD surface significant mismatch before claiming reproduction equivalence.
+
+---
+
+# Equivalent environment
+
+Environment equivalence MAY be defined semantically rather than as byte identity.
+
+---
+
+# Compatibility
+
+A newer toolchain may be compatible but still not reproduce the original environment.
+
+---
+
+# Substitution
+
+Substituting a dependency or tool SHOULD be explicit.
+
+---
+
+# Reproduction with substitution
+
+A reproduction using substitutions MAY still be useful but SHOULD be classified accordingly.
+
+---
+
+# Historical environment availability
+
+Historical environments may no longer be constructable.
+
+Monad SHOULD retain that limitation without rewriting history.
+
+---
+
+# Reproducibility score or grade
+
+Monad MAY expose a derived reproducibility assessment.
+
+Example:
+
+```yaml id="s0nnji"
+reproducibility:
+  level: engineering
+  missing:
+    - external-database-snapshot
+```
+
+This is derived state, not primary truth.
+
+---
+
+# Current reproducibility
+
+The ability to reproduce an execution can decline over time.
+
+---
+
+# Reproducibility freshness
+
+For example, an execution may have been rerunnable immediately but become unreproducible after a provider removes an artifact.
+
+---
+
+# Durable retention
+
+Critical dependencies MAY be retained proactively to preserve reproducibility.
+
+---
+
+# Retention policy
+
+Retention SHOULD correspond to consequence and organizational requirements.
+
+---
+
+# Reconstruction versus rerun
+
+A historical execution may remain reconstructable even when it can no longer be rerun.
+
+---
+
+# Reconstruction
+
+Reconstruction means understanding the material conditions of the original execution.
+
+---
+
+# Rerun
+
+Rerun means attempting another execution.
+
+---
+
+# Comparison
+
+Comparison evaluates similarities and differences between executions.
+
+These are three separate capabilities.
+
+---
+
+# Query model
+
+Monad SHOULD support questions such as:
+
+```text id="1hccr6"
+Which execution produced this artifact?
+
+Which source revision was used?
+
+Was the working tree clean?
+
+Which toolchain produced this result?
+
+Which lockfile revision was used?
+
+Which environment variables materially affected it?
+
+Which secrets were referenced?
+
+Which container digest ran it?
+
+Which external systems influenced the result?
+
+Was live or cached state used?
+
+Which Evidence came from the execution?
+
+Which Verification consumed that Evidence?
+
+Has this execution ever been reproduced?
+
+Which reproduction attempts differed?
+
+Why did two executions produce different outputs?
+
+Which executions are no longer rerunnable?
+
+Which release artifacts lack sufficient provenance?
+
+Which AI outputs lack model or prompt provenance?
+
+Which benchmark Claims depend on under-specified environments?
+```
+
+---
+
+# Minimum execution model
+
+```yaml id="eug9ab"
+id: EXEC-01824
+
+started_at: 2026-08-30T12:44:12Z
+completed_at: 2026-08-30T12:44:48Z
+
+actor: ACTOR-0018
+
+invocation:
+  executable: bun
+  arguments:
+    - test
+
+working_directory: /workspace/monad
+
+source:
+  repository: REPO-0001
+  commit: 7c9425f
+  working_tree_clean: true
+
+toolchain:
+  bun: 1.4.0
+
+environment:
+  os: linux
+  architecture: x86_64
+
+result:
+  exit_code: 0
+```
+
+---
+
+# Rich execution model
+
+```yaml id="e36vxa"
+id: EXEC-01824
+kind: verification-execution
+
+actor:
+  subject: ACTOR-0018
+
+intent:
+  verification: VFY-0031
+  requirement: REQ-BUILD-042
+
+started_at: 2026-08-30T12:44:12Z
+completed_at: 2026-08-30T12:44:48Z
+
+source:
+  repository: REPO-0001
+  commit: 7c9425f45e1a
+  working_tree:
+    clean: false
+    patch_digest: sha256:cb21...
+    untracked:
+      manifest_digest: sha256:98b2...
+
+invocation:
+  executable: bun
+  arguments:
+    - test
+  working_directory: /workspace/monad
+
+toolchain:
+  bun:
+    version: 1.4.0
+    digest: sha256:...
+  node:
+    version: 24.14.0
+
+dependencies:
+  lockfile:
+    path: bun.lock
+    digest: sha256:...
+  resolved_graph:
+    digest: sha256:...
+
+environment:
+  os:
+    family: linux
+    architecture: x86_64
+  timezone: UTC
+  locale: en_US.UTF-8
+
+configuration:
+  project:
+    digest: sha256:...
+  policy:
+    revision: GOV-0012@8
+
+external_inputs:
+  - integration: INT-0007
+    subject: native:github/check/4482
+    observed_at: 2026-08-30T12:44:05Z
+    revision: "912"
+
+result:
+  status: completed
+  exit_code: 0
+
+outputs:
+  - artifact: ART-0092
+    digest: sha256:20df...
+
+evidence:
+  - EVD-0312
+
+reproducibility:
+  capture_tier: 2
+```
+
+---
+
+# Reproduction model
+
+```yaml id="vvqun4"
+id: EXEC-01914
+kind: reproduction
+
+reproduction:
+  original_execution: EXEC-01824
+  mode: behavioral
+
+source:
+  equivalent: true
+
+toolchain:
+  equivalent: true
+
+environment:
+  equivalent: true
+
+external_state:
+  equivalent: unknown
+
+result:
+  status: completed
+
+comparison:
+  output:
+    equivalent: true
+
+conclusion:
+  status: reproduced-with-limitations
+  limitations:
+    - external provider snapshot unavailable
+```
+
+---
+
+# AI execution example
+
+```yaml id="6m4gzp"
+id: EXEC-AI-0221
+kind: ai-generation
+
+provider: openai
+
+model:
+  id: model-snapshot-or-provider-identifier
+
+inputs:
+  prompt:
+    digest: sha256:...
+  context:
+    - source: SPEC-0021
+      revision: 4
+    - source: ADR-0008
+      revision: 1
+
+tools:
+  - capability: repository.read
+    integration: INT-0004
+    result: OBS-0181
+
+generation:
+  parameters:
+    temperature: 0.2
+
+output:
+  artifact: ART-0432
+  digest: sha256:...
+
+provenance:
+  generated_at: 2026-08-30T13:02:11Z
+```
+
+---
+
+# Benchmark example
+
+```yaml id="id72f7"
+id: EXEC-BENCH-0078
+
+source:
+  commit: 91c29fa
+
+benchmark:
+  suite: graph-query
+  dataset:
+    digest: sha256:...
+
+environment:
+  cpu:
+    architecture: x86_64
+    model: ...
+    cores: 16
+  memory_gib: 32
+  os:
+    kernel: ...
+  governor: performance
+
+method:
+  warmup_iterations: 10
+  measured_iterations: 100
+  concurrency: 8
+
+result:
+  p50_ms: 18.2
+  p95_ms: 24.7
+
+evidence:
+  - EVD-BENCH-0078
+```
+
+---
+
+# Progressive formalization
+
+## Stage 1 — Command history
+
+Record basic invocation and outcome.
+
+---
+
+## Stage 2 — Source binding
+
+Bind executions to exact source state.
+
+---
+
+## Stage 3 — Toolchain capture
+
+Record runtimes, compilers, package managers, and configuration.
+
+---
+
+## Stage 4 — Dependency identity
+
+Bind lockfiles and resolved dependencies.
+
+---
+
+## Stage 5 — Environment manifest
+
+Capture material OS, architecture, locale, hardware, and environment data.
+
+---
+
+## Stage 6 — External dependency provenance
+
+Retain remote observations and provider revisions.
+
+---
+
+## Stage 7 — Content-addressed execution
+
+Use immutable digests for important inputs and outputs.
+
+---
+
+## Stage 8 — Reproduction engine
+
+Construct new executions from historical records.
+
+---
+
+## Stage 9 — Difference analysis
+
+Compare two execution contexts and classify divergences.
+
+---
+
+## Stage 10 — Closed-loop reproducibility
+
+Use reproducibility Evidence as part of governed Verification, release, audit, and engineering decision workflows.
+
+---
+
+# Alternatives considered
+
+## Alternative A — Preserve only source revision
+
+Rejected.
+
+Source alone does not determine execution.
+
+---
+
+## Alternative B — Preserve command and logs only
+
+Rejected.
+
+Logs usually omit material environment and dependency state.
+
+---
+
+## Alternative C — Require fully hermetic execution universally
+
+Rejected.
+
+It is too expensive and often impossible for all engineering activities.
+
+---
+
+## Alternative D — Containers solve reproducibility
+
+Rejected.
+
+Containers may themselves be mutable, under-specified, architecture-dependent, and dependent on external state.
+
+---
+
+## Alternative E — Nix solves reproducibility
+
+Rejected as the universal architecture.
+
+Nix can be an excellent implementation mechanism but Monad's model must support heterogeneous ecosystems.
+
+---
+
+## Alternative F — CI history is enough
+
+Rejected.
+
+CI providers may expire logs, artifacts, runner images, or configuration.
+
+---
+
+## Alternative G — Lockfile means reproducible
+
+Rejected.
+
+Lockfiles do not capture all tools, OS state, external systems, or mutable artifacts.
+
+---
+
+## Alternative H — Same exit code means reproduced
+
+Rejected.
+
+The execution may have exercised different inputs or behavior.
+
+---
+
+## Alternative I — Same output means same execution
+
+Rejected.
+
+Different conditions can coincidentally produce identical outputs.
+
+---
+
+## Alternative J — Byte identity required for all reproduction
+
+Rejected.
+
+Many useful behavioral reproductions are not byte-identical.
+
+---
+
+## Alternative K — AI executions are inherently unreproducible and therefore should not be captured
+
+Rejected.
+
+Exact deterministic replay may be unavailable, but provenance and reconstruction remain valuable.
+
+---
+
+## Alternative L — Store every secret to maximize replayability
+
+Rejected.
+
+Security and privacy constraints take precedence.
+
+---
+
+## Alternative M — Store complete machine images for every execution
+
+Rejected as the default.
+
+This is expensive and unnecessary for most work.
+
+---
+
+## Alternative N — Reproduction overwrites original result
+
+Rejected.
+
+Historical execution records are immutable facts.
+
+---
+
+## Alternative O — Successful reproduction proves correctness
+
+Rejected.
+
+It proves repeatability under the relevant reproduction contract, not correctness.
+
+---
+
+# Consequences
+
+## Positive
+
+This decision enables:
+
+* stronger build provenance,
+* repeatable debugging,
+* historical reconstruction,
+* credible benchmark Evidence,
+* artifact traceability,
+* release assurance,
+* toolchain diagnosis,
+* environment-difference analysis,
+* dependency auditing,
+* AI provenance,
+* reproducibility grading,
+* stronger incident investigation,
+* safer handoff across machines and engineers.
+
+---
+
+## Negative
+
+The architecture must retain additional metadata and sometimes additional artifacts.
+
+This increases:
+
+* storage,
+* implementation complexity,
+* privacy review,
+* secret-redaction requirements,
+* dependency retention cost,
+* execution overhead.
+
+Not every historical execution will be perfectly reproducible.
+
+---
+
+# Operational implications
+
+Execution engines SHOULD capture context automatically where possible.
+
+Human users SHOULD NOT be required to manually reconstruct basic environment metadata for every consequential action.
+
+Capture SHOULD be:
+
+```text id="warr4c"
+automatic where safe
+structured where possible
+content-addressed where useful
+redacted where necessary
+proportional to consequence
+```
+
+---
+
+# Definition of Ready
+
+ADR-0009 was ready because:
+
+* [x] Execution is already a first-class system concept,
+* [x] provenance is normative,
+* [x] Evidence binds to source and execution context,
+* [x] Verification requires inspectable Evidence,
+* [x] local-first behavior requires reconstructable local history,
+* [x] external integrations introduce mutable execution dependencies,
+* [x] AI execution introduces additional provenance requirements,
+* [x] releases and artifacts require source-to-output traceability,
+* [x] the requirements baseline explicitly distinguishes reproducibility from correctness.
+
+---
+
+# Definition of Done
+
+ADR-0009 is complete when:
+
+* [x] reproducibility is defined as distinct from correctness,
+* [x] reproduction is distinguished from reconstruction,
+* [x] execution instances have stable identity,
+* [x] exact source state can be retained,
+* [x] dirty working-tree state can be represented,
+* [x] toolchain identity is retained,
+* [x] dependency identity can be captured,
+* [x] environment identity can be captured,
+* [x] external mutable dependencies can be represented,
+* [x] nondeterministic influences can be represented,
+* [x] secret capture does not override security policy,
+* [x] execution outputs can be content-addressed,
+* [x] Evidence can link to execution,
+* [x] reproduction creates new execution history,
+* [x] reproduction comparison can classify divergence,
+* [x] AI execution provenance is modeled,
+* [x] capture depth can vary with consequence,
+* [x] unreproducibility can be represented explicitly.
+
+---
+
+# Acceptance criteria
+
+## Execution identity
+
+Two invocations of the same command produce distinct execution IDs.
+
+---
+
+## Source binding
+
+A consequential execution can identify its exact source revision.
+
+---
+
+## Dirty source
+
+Execution against modified working-tree state can distinguish itself from the clean commit.
+
+---
+
+## Tool version
+
+An execution can identify the runtime/compiler/tool version that produced its result.
+
+---
+
+## Lockfile binding
+
+Dependency lock state can be associated with an execution.
+
+---
+
+## Immutable image
+
+A containerized execution can retain resolved image digest rather than only a mutable tag.
+
+---
+
+## Environment
+
+Architecture and operating environment can be retained when materially relevant.
+
+---
+
+## External provider
+
+An execution can retain which native provider observation influenced it.
+
+---
+
+## Cached observation
+
+A reproduction record can distinguish cached external state from live state.
+
+---
+
+## Random seed
+
+A seeded stochastic execution can retain the seed.
+
+---
+
+## Secret redaction
+
+Sensitive environment-variable values are not exposed merely because environment capture is enabled.
+
+---
+
+## Artifact provenance
+
+A generated binary can resolve to the execution and source revision that produced it.
+
+---
+
+## Reproduction
+
+A reproduction attempt creates a new execution linked to the original.
+
+---
+
+## Difference analysis
+
+Two execution records can be compared to identify a toolchain difference.
+
+---
+
+## Unknown difference
+
+A difference whose cause cannot be established remains `unknown` rather than invented.
+
+---
+
+## Rebuild
+
+A successful rebuild does not replace the original build record.
+
+---
+
+## Flaky test
+
+A later passing rerun does not erase an earlier failing execution.
+
+---
+
+## Benchmark
+
+Benchmark Evidence can retain hardware and methodology.
+
+---
+
+## AI generation
+
+An AI-generated consequential artifact can retain model and context provenance.
+
+---
+
+## Model retirement
+
+A historical AI execution remains reconstructable even if its exact model is no longer callable.
+
+---
+
+## Privacy
+
+A reproduction record can explicitly state that full replay is unavailable because protected data was not retained.
+
+---
+
+## Verification
+
+A reproducible execution does not automatically become a passing Verification result.
+
+---
+
+# Verification obligations
+
+```text id="w51n0h"
+VFO-REPRO-001
+Every consequential execution can have stable identity.
+
+VFO-REPRO-002
+Repeated invocation of the same command creates distinct execution records.
+
+VFO-REPRO-003
+A source-controlled execution can bind to an immutable source revision.
+
+VFO-REPRO-004
+Dirty working-tree state can be represented independently of the source commit.
+
+VFO-REPRO-005
+Relevant untracked inputs can be represented.
+
+VFO-REPRO-006
+Material generated inputs can retain provenance.
+
+VFO-REPRO-007
+Important input content can be identified by cryptographic digest.
+
+VFO-REPRO-008
+Execution-affecting project configuration can bind to a revision or digest.
+
+VFO-REPRO-009
+Tool and runtime versions can be retained.
+
+VFO-REPRO-010
+Compiler identity can be retained for compiled outputs.
+
+VFO-REPRO-011
+Dependency lock state can be retained.
+
+VFO-REPRO-012
+Resolved dependency identity can be captured when lock state alone is insufficient.
+
+VFO-REPRO-013
+Mutable dependency references can be distinguished from immutable dependency identities.
+
+VFO-REPRO-014
+Container image tags can resolve to immutable image identities where available.
+
+VFO-REPRO-015
+Relevant OS and architecture information can be retained.
+
+VFO-REPRO-016
+Hardware identity can be captured for hardware-sensitive executions.
+
+VFO-REPRO-017
+Locale can be captured when material.
+
+VFO-REPRO-018
+Timezone can be captured when material.
+
+VFO-REPRO-019
+Random seeds can be retained where available.
+
+VFO-REPRO-020
+Concurrency configuration can be retained when material.
+
+VFO-REPRO-021
+External service dependencies can be identified.
+
+VFO-REPRO-022
+Provider-native request or resource revisions can be associated with execution provenance.
+
+VFO-REPRO-023
+External observations can distinguish live, cached, mocked, replayed, and simulated state.
+
+VFO-REPRO-024
+Database-dependent execution can identify relevant schema or dataset state.
+
+VFO-REPRO-025
+Reproducibility capture does not require retention of prohibited sensitive data.
+
+VFO-REPRO-026
+Secret values can be redacted while retaining non-sensitive provenance.
+
+VFO-REPRO-027
+An execution can retain the policy revision governing it.
+
+VFO-REPRO-028
+An execution can reference the authority decision permitting it.
+
+VFO-REPRO-029
+An execution can reference a specific required Approval.
+
+VFO-REPRO-030
+Capture depth can be selected according to execution consequence.
+
+VFO-REPRO-031
+A reproduction specification can be derived from sufficiently captured execution history.
+
+VFO-REPRO-032
+A reproduction attempt creates a new execution record.
+
+VFO-REPRO-033
+A reproduction attempt can link to the original execution.
+
+VFO-REPRO-034
+Byte-level output equivalence can be evaluated where required.
+
+VFO-REPRO-035
+Semantic output equivalence can be represented independently of byte equivalence.
+
+VFO-REPRO-036
+Tolerance-based numeric comparison can be represented.
+
+VFO-REPRO-037
+Nondeterministic variation can be represented without automatically classifying reproduction as failure.
+
+VFO-REPRO-038
+Execution differences can be classified by source, input, configuration, toolchain, dependency, environment, external state, or nondeterminism.
+
+VFO-REPRO-039
+Unknown reproduction differences remain explicitly unknown.
+
+VFO-REPRO-040
+An unreproducible historical execution remains inspectable.
+
+VFO-REPRO-041
+Execution-derived Evidence links to the execution that produced it.
+
+VFO-REPRO-042
+Execution history alone does not automatically become passing Verification.
+
+VFO-REPRO-043
+A reproduction can produce new Evidence without overwriting original Evidence.
+
+VFO-REPRO-044
+A failed reproduction does not automatically invalidate the original result.
+
+VFO-REPRO-045
+Release artifacts can link to producing execution.
+
+VFO-REPRO-046
+Release artifacts can retain content digests.
+
+VFO-REPRO-047
+A build can trace source → execution → artifact → Verification → release.
+
+VFO-REPRO-048
+Generated code can retain generator identity and version.
+
+VFO-REPRO-049
+Benchmarks can retain hardware and methodology.
+
+VFO-REPRO-050
+Test reruns remain distinct historical executions.
+
+VFO-REPRO-051
+CI execution can retain workflow revision and native run identity.
+
+VFO-REPRO-052
+Remote-cache outputs can retain derivation provenance.
+
+VFO-REPRO-053
+Hermetic-environment mechanisms remain implementation choices rather than architecture prerequisites.
+
+VFO-REPRO-054
+Local execution context remains inspectable while offline.
+
+VFO-REPRO-055
+Missing historical remote dependencies can be represented as reproduction limitations.
+
+VFO-REPRO-056
+Recorded provider responses can be replayed without being mislabeled as live Verification.
+
+VFO-REPRO-057
+Simulated execution remains distinguishable from execution against native production systems.
+
+VFO-REPRO-058
+Reproducibility capture can restrict access to sensitive records.
+
+VFO-REPRO-059
+Signed provenance does not automatically imply correctness.
+
+VFO-REPRO-060
+An SBOM does not replace execution provenance.
+
+VFO-REPRO-061
+AI execution can retain provider and model identity.
+
+VFO-REPRO-062
+AI execution can retain consequential input/context provenance.
+
+VFO-REPRO-063
+AI tool calls can retain capability and result provenance.
+
+VFO-REPRO-064
+AI sampling parameters can be retained where exposed and relevant.
+
+VFO-REPRO-065
+AI nondeterminism does not imply missing provenance.
+
+VFO-REPRO-066
+Historical AI execution can remain reconstructable when exact replay becomes unavailable.
+
+VFO-REPRO-067
+Generated artifacts can link to the AI execution that produced them.
+
+VFO-REPRO-068
+Human edits after AI generation can create subsequent provenance rather than overwrite generation history.
+
+VFO-REPRO-069
+Machine-captured execution can be distinguished from human attestation.
+
+VFO-REPRO-070
+Ability to reconstruct an execution does not grant authority to rerun it.
+
+VFO-REPRO-071
+A production mutation can be reproduced in a sandbox without targeting production.
+
+VFO-REPRO-072
+Environment mismatch can be surfaced before claiming execution equivalence.
+
+VFO-REPRO-073
+Dependency or tool substitutions are explicitly represented.
+
+VFO-REPRO-074
+An execution can remain reconstructable even when no longer rerunnable.
+
+VFO-REPRO-075
+Current reproducibility can decline over time without rewriting historical capture quality.
+
+VFO-REPRO-076
+Reproducibility assessment can identify missing dimensions.
+
+VFO-REPRO-077
+Reproducibility metadata remains queryable by execution, artifact, source, and Verification.
+
+VFO-REPRO-078
+A benchmark Claim can be traced to its execution environment.
+
+VFO-REPRO-079
+A release artifact lacking sufficient provenance can be identified.
+
+VFO-REPRO-080
+An AI-generated consequential artifact lacking required model provenance can be identified.
+```
+
+---
+
+# Anti-patterns
+
+## Source commit is enough
+
+Rejected.
+
+---
+
+## Command history is enough
+
+Rejected.
+
+---
+
+## Logs are reproducibility
+
+Rejected.
+
+---
+
+## Same command means same execution
+
+Rejected.
+
+---
+
+## Same exit code means same result
+
+Rejected.
+
+---
+
+## Same result means same environment
+
+Rejected.
+
+---
+
+## Same source means same binary
+
+Rejected.
+
+---
+
+## Lockfile means everything is pinned
+
+Rejected.
+
+---
+
+## Container tag is immutable
+
+Rejected.
+
+---
+
+## Container means reproducible
+
+Rejected.
+
+---
+
+## CI means reproducible
+
+Rejected.
+
+---
+
+## CI passed once, therefore it can be recreated
+
+Rejected.
+
+---
+
+## Cache hit proves equivalence
+
+Rejected.
+
+---
+
+## Rebuild replaces build
+
+Rejected.
+
+---
+
+## Rerun replaces failed test
+
+Rejected.
+
+---
+
+## Reproducible means correct
+
+Rejected.
+
+---
+
+## Reproducible means verified
+
+Rejected.
+
+---
+
+## Reproducible means approved
+
+Rejected.
+
+---
+
+## Reproducible means authorized
+
+Rejected.
+
+---
+
+## Deterministic means correct
+
+Rejected.
+
+---
+
+## Byte-different means behaviorally different
+
+Rejected.
+
+---
+
+## Byte-identical means semantically correct
+
+Rejected.
+
+---
+
+## Latest dependency is close enough
+
+Rejected for strong reproduction.
+
+---
+
+## Main branch identifies historical source
+
+Rejected.
+
+---
+
+## Clean commit despite dirty working tree
+
+Rejected.
+
+---
+
+## Ignore untracked build input
+
+Rejected.
+
+---
+
+## Store every environment variable
+
+Rejected because of secret exposure.
+
+---
+
+## Store every database row
+
+Rejected as a general reproducibility policy.
+
+---
+
+## Privacy does not matter if it helps debugging
+
+Rejected.
+
+---
+
+## Exact AI output must be reproducible
+
+Rejected as a universal assumption.
+
+---
+
+## AI cannot be reproduced, so provenance is pointless
+
+Rejected.
+
+---
+
+## Same model name means same model
+
+Rejected when aliases are mutable.
+
+---
+
+## Prompt alone reproduces AI output
+
+Rejected.
+
+---
+
+## Tool access means same AI environment
+
+Rejected.
+
+---
+
+## Replaying an API fixture proves current provider behavior
+
+Rejected.
+
+---
+
+## Machine image required for every command
+
+Rejected.
+
+---
+
+## Nix is the architecture
+
+Rejected.
+
+---
+
+## Docker is the architecture
+
+Rejected.
+
+---
+
+## Reproduction means execute against production again
+
+Rejected.
+
+---
+
+## Having credentials means rerun is allowed
+
+Rejected.
+
+---
+
+## If reproduction fails, original result was false
+
+Rejected.
+
+---
+
+## If reproduction succeeds, original Claim is true
+
+Rejected.
+
+---
+
+# Core invariants
+
+```text id="bsdswf"
+Reproducible ≠ Correct
+
+Reproducible ≠ Verified
+
+Reproducible ≠ Approved
+
+Reproducible ≠ Authorized
+
+Reproducible ≠ Deterministic
+
+Reproducible ≠ Portable
+
+Reproducible ≠ Hermetic
+
+Reproducible ≠ Byte-identical automatically
+
+Deterministic ≠ Correct
+
+Deterministic ≠ Verified
+
+Execution record ≠ Evidence automatically
+
+Evidence ≠ Verification
+
+Reproduction ≠ Verification automatically
+
+Reconstruction ≠ Rerun
+
+Rerun ≠ Original execution
+
+Same command ≠ Same execution
+
+Same source ≠ Same environment
+
+Same source ≠ Same dependency graph
+
+Same source ≠ Same output automatically
+
+Same output ≠ Same execution context
+
+Same exit code ≠ Equivalent behavior
+
+Branch ≠ Immutable source identity
+
+Tag ≠ Immutable dependency identity automatically
+
+Container tag ≠ Container digest
+
+Lockfile ≠ Complete execution environment
+
+Cache hit ≠ Input equivalence automatically
+
+CI run ≠ Permanent reproducibility
+
+Local environment ≠ Historical environment automatically
+
+Tool name ≠ Tool identity
+
+Tool version ≠ Tool digest
+
+Environment name ≠ Environment identity
+
+Secret reference ≠ Secret value
+
+Secret retention ≠ Required reproduction
+
+Live observation ≠ Cached observation
+
+Replay ≠ Live verification
+
+Mock ≠ Native system
+
+Simulation ≠ Production execution
+
+Randomness ≠ Unreproducibility automatically
+
+Different output ≠ Incorrect output automatically
+
+Equal output ≠ Correct output automatically
+
+Successful reproduction ≠ Requirement satisfaction
+
+Failed reproduction ≠ Original falsified automatically
+
+Artifact digest ≠ Artifact correctness
+
+Signature ≠ Correctness
+
+SBOM ≠ Execution provenance
+
+AI prompt ≠ Complete AI execution context
+
+AI model alias ≠ Immutable model identity
+
+AI generation ≠ Deterministic generation
+
+AI reproduction ≠ Exact output replay automatically
+
+Human attestation ≠ Machine-captured execution
+
+Ability to reproduce ≠ Authority to rerun
+
+Production history ≠ Permission to repeat production effect
+
+Historical context ≠ Current environment
+
+Reconstruction possible ≠ Rerun possible
+
+Rerun possible ≠ Safe rerun
+
+Capture completeness ≠ Operational legitimacy
+```
+
+---
+
+# Governing principle
+
+> **Monad should preserve enough execution context that consequential engineering results can be explained, reconstructed, compared, and independently challenged without relying on the memory of the machine or engineer that originally produced them.**
+
+The purpose of reproduction is not to manufacture certainty.
+
+It is to preserve the causal and operational context around engineering results.
+
+A trustworthy execution history should make it possible to distinguish:
+
+```text id="0gjs5q"
+same source
+different toolchain
+
+same toolchain
+different dependency
+
+same dependency
+different environment
+
+same environment
+different external state
+
+same external state
+different stochastic outcome
+```
+
+Rather than collapsing all of those cases into:
+
+```text id="qg0xug"
+"It worked before."
+```
+
+Monad should be able to say:
+
+```text id="o487k7"
+"This exact source state was executed."
+
+"This was the toolchain."
+
+"These were the material inputs."
+
+"This was the environment."
+
+"These external observations influenced the result."
+
+"This artifact was produced."
+
+"This Evidence was captured."
+
+"This later execution attempted to reproduce it."
+
+"These dimensions matched."
+
+"These dimensions differed."
+
+"This part can no longer be reconstructed."
+```
+
+The architecture therefore treats reproducibility as a property of **traceable execution context**, not as a synonym for correctness.
+
+<Cards>
+  <Card
+    href="/docs/artifacts/requirements/reproducibility"
+    title="Reproducibility Requirements"
+  >
+    Review the normative requirements for execution reconstruction, environment capture, reruns, comparison, and historical reproducibility.
+  </Card>
+
+<Card
+href="/docs/artifacts/decisions/adr-0006-execution-effect-and-operational-state-model"
+title="ADR-0006 — Execution, Effect, and Operational State Model"
+
+>
+
+```
+Review the architecture governing execution identity, operational effects, and execution history.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/requirements/provenance"
+title="Provenance Requirements"
+
+>
+
+```
+Review origin, derivation, source, revision, and historical traceability requirements.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/requirements/verification"
+title="Verification Requirements"
+
+>
+
+```
+Review how execution-derived Evidence participates in evaluation of explicit expectations.
+```
+
+  </Card>
+</Cards>

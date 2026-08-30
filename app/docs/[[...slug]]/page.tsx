@@ -1,6 +1,5 @@
 import { getPageImageUrl, getPageMarkdownUrl, source } from '@/lib/source';
 import {
-  DocsLayout,
   DocsBody,
   DocsDescription,
   DocsPage,
@@ -23,7 +22,6 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const markdownUrl = getPageMarkdownUrl(page).url;
 
   return (
-    <DocsLayout>
     <DocsPage toc={page.data.toc} full={page.data.full}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
@@ -43,7 +41,6 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
         />
       </DocsBody>
     </DocsPage>
-    </DocsLayout>
   );
 }
 

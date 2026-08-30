@@ -1,19 +1,15 @@
-import type { CSSProperties, ReactNode } from 'react';
-import { SidebarSeparator } from './layout.client';
+import { baseOptions } from '@/lib/layout.shared';
 import { journalSource } from '@/lib/source';
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
-import { baseOptions } from '@/lib/layout.shared';
-import { AISearch, AISearchPanel, AISearchTrigger } from '@/components/ai/search';
-import { MessageCircleIcon } from 'lucide-react';
-import { cn } from '@/lib/cn';
-import { buttonVariants } from 'fumadocs-ui/components/ui/button';
+import type { CSSProperties, ReactNode } from 'react';
+import { SidebarSeparator } from './layout.client';
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <DocsLayout
       {...baseOptions()}
       tree={journalSource.getPageTree()}
-      nav={{ title: 'Journal' }}
+      nav={{ title: 'Engineering Journal' }}
       searchToggle={{ enabled: false }}
       themeSwitch={{ enabled: false }}
       containerProps={{
@@ -30,22 +26,6 @@ export default function Layout({ children }: { children: ReactNode }) {
         },
       }}
     >
-      <AISearch>
-        <AISearchPanel />
-        <AISearchTrigger
-          position="float"
-          className={cn(
-            buttonVariants({
-              variant: 'secondary',
-              className: 'text-fd-muted-foreground rounded-2xl',
-            }),
-          )}
-        >
-          <MessageCircleIcon className="size-4.5" />
-          Ask AI
-        </AISearchTrigger>
-      </AISearch>
-
       {children}
     </DocsLayout>
   );

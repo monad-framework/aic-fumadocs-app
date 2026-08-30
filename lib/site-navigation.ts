@@ -89,9 +89,20 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
     label: 'Changelogs',
     items: [
       {
-        label: 'Monad Changelogs',
-        description: 'See what changed and when',
+        label: 'Release Notes',
+        description: 'Published releases and meaningful change sets',
         href: '/changelogs',
+        match: 'exact',
+      },
+      {
+        label: 'Unreleased',
+        description: 'Changes queued for a future publication boundary',
+        href: '/changelogs/unreleased',
+      },
+      {
+        label: 'How Changelogs Work',
+        description: 'Release record format, lifecycle, and maintenance rules',
+        href: '/changelogs/format',
       },
     ],
   },

@@ -1,0 +1,136 @@
+---
+title: Establishing the Engineering Journal
+description: Journal becomes a first-class publication domain with its own source, chronology, metadata contract, and authority boundary.
+journal:
+  id: JRN-2026-08-30-001
+  date: 2026-08-30
+  kind: implementation
+  status: resolved
+  phase: implementation
+  topics:
+    - documentation
+    - information-architecture
+    - authority
+    - provenance
+  related:
+    - label: Building Monad
+      href: /docs/building-monad
+    - label: System documentation
+      href: /docs/system
+    - label: Engineering artifacts
+      href: /docs/artifacts
+    - label: Journal authoring contract
+      href: /journal/format
+---
+
+## Context
+
+The site already had a top-level `/journal` application route, but Journal did not yet exist as an intentional content domain.
+
+Its content was either absent or conceptually entangled with the Building Monad documentation tree. At the same time, Articles, Changelogs, and Journal had originally shared the same underlying docs source despite appearing as separate sections in the application.
+
+That created a larger information-architecture question:
+
+**What kind of record is the Engineering Journal actually supposed to be?**
+
+Treating it as another documentation folder would be technically convenient, but semantically wrong.
+
+## What happened
+
+The site was separated into independent content domains:
+
+```text
+/docs        → content/docs
+/articles    → content/articles
+/changelogs  → content/changelogs
+/journal     → content/journal
+```
+
+Journal was then given an explicit role instead of remaining merely a separate route.
+
+The design established:
+
+- a top-level `content/journal` collection;
+- a durable journal entry identifier format;
+- date-prefixed filenames for natural chronology;
+- reverse-chronological navigation;
+- entry kinds and lifecycle statuses;
+- project-phase and topic metadata;
+- explicit links to related artifacts and narrative publications;
+- a public authoring contract;
+- a metadata header rendered on actual journal entries;
+- and a clear authority boundary between Journal, Artifacts, System, and Building Monad.
+
+The Journal-local floating AI control was also removed because its backend still searches the authoritative docs source. Showing it inside Journal would imply a search scope the system does not currently provide.
+
+## What we learned
+
+A route boundary is not an information-architecture boundary.
+
+Having `/journal` in the URL is not enough to make Journal a meaningful publication type. The section needs an answer to several questions:
+
+- What belongs here?
+- What does not belong here?
+- What does an entry mean?
+- How is an entry identified?
+- How does chronology work?
+- Can an entry become stale?
+- What happens when later work proves it wrong?
+- How does it relate to formal engineering artifacts?
+- How does it relate to the polished public narrative?
+
+Once those questions were answered, Journal stopped being "another content folder" and became a distinct record type.
+
+## Current position
+
+The Engineering Journal now answers:
+
+> What happened while we were doing the work?
+
+It is chronological, granular, and intentionally capable of preserving provisional or later-superseded understanding.
+
+That makes it different from the other major public records:
+
+- **Building Monad** synthesizes the engineering history into a coherent narrative.
+- **Artifacts** preserve formal requirements, decisions, evidence, specifications, and verification records.
+- **System** describes what is currently true.
+
+Journal does not compete with those layers. It preserves information they are not designed to preserve.
+
+## Authority boundary
+
+A resolved Journal entry is still historical rather than authoritative.
+
+If this entry later conflicts with a current System page or an accepted artifact, the current authoritative record wins.
+
+The Journal should preserve the contradiction rather than silently rewriting the history to match the final outcome.
+
+## Artifacts and evidence
+
+The implementation associated with this entry establishes the Journal collection, navigation model, frontmatter schema, entry rendering, format guide, and compatibility boundary with the former Building Monad journal location.
+
+The public authoring contract is available at [How the Journal Works](/journal/format).
+
+## Open questions
+
+Several useful capabilities remain intentionally deferred:
+
+1. Should the Journal landing page eventually generate a richer chronological index from entry metadata?
+2. Should topics become navigable filters once enough entries exist to justify them?
+3. Should Journal receive its own search index, or should the site move directly to federated search across all publication domains?
+4. At what volume should the flat date-prefixed file layout be partitioned by year?
+5. Should formal artifacts eventually record machine-readable backlinks to the Journal entries that helped produce them?
+
+None of those questions need to be answered to begin using the Journal now.
+
+## Next
+
+Use the Journal during real engineering work.
+
+The next entries should not be written merely to populate the section. They should be created when actual project activity produces a useful historical record: a discovery, investigation, implementation episode, failure, experiment, or change in understanding.
+
+The quality test is simple:
+
+> Would preserving this moment make it easier to understand later how Monad became what it is?
+
+If yes, it probably belongs in the Journal.

@@ -62,11 +62,6 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
         description: 'Inspect requirements, specifications, decisions, and evidence',
         href: '/docs/artifacts',
       },
-      {
-        label: 'Project Context',
-        description: 'Distinguish planned, active, completed, released, and verified work',
-        href: '/docs/project',
-      },
     ],
   },
   {

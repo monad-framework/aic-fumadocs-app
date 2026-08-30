@@ -1,0 +1,69 @@
+---
+title: Intro to Requirements
+description: A brief introduction to project requirements and requirements.md
+---
+
+The next layer is **requirements**, but before writing individual requirements, we will create a README that explains what requirements are and how they relate to the rest of the project.
+
+Do this next:
+
+```bash
+mkdir -p docs/requirements
+touch docs/requirements/README.md
+```
+
+For now, the repository becomes:
+
+```text
+.
+├── README.md
+└── docs/
+    ├── idea.md
+    ├── project.md
+    └── requirements/
+        └── README.md
+```
+
+The conceptual progression is now:
+
+```text
+idea.md
+    ↓
+project.md
+    ↓
+requirements/
+    ↓
+architecture.md
+    ↓
+workspace.md
+    ↓
+planning/
+    ↓
+implementation
+```
+
+The distinction is important:
+
+* `idea.md` — what might we build?
+* `project.md` — what have we decided the project is?
+* `requirements/` — what must be true of the resulting system?
+* `architecture.md` — how will we structure a system that satisfies those requirements?
+* `workspace.md` — how will we physically organize and operate the engineering workspace?
+
+I recommend **not** jumping directly from `project.md` to `architecture.md`, otherwise architecture starts inventing requirements instead of responding to them.
+
+Inside `requirements/`, we should eventually separate at least:
+
+```text
+docs/requirements/
+├── README.md
+├── functional.md
+├── quality-attributes.md
+├── constraints.md
+├── interfaces.md
+├── data.md
+├── security.md
+└── acceptance.md
+```
+
+Don't create all of those yet. First, let's make `docs/requirements/README.md` another self-documenting template that teaches the future author **how requirements should be discovered, classified, written, traced, and accepted**.

@@ -1,0 +1,2464 @@
+---
+title: "System"
+description: The current authoritative explanation of Monad its conceptual model, architecture, governing principles, components, interfaces, and system behavior.
+canonical: "/docs/system/index.mdx"
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    The current authoritative model
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Monad is a system for making the meaning, structure, authority, history, and evolution of software systems more explicit and machine-interpretable without replacing the native engineering tools through which those systems are built.
+  </p>
+</div>
+
+## What this section represents
+
+This section describes the **current authoritative understanding of Monad**.
+
+It is deliberately different from the rest of the site.
+
+[Building Monad](/docs/building-monad) preserves the evolving story:
+
+> What happened?
+
+[Artifacts](/docs/artifacts) preserves the inspectable engineering record:
+
+> What evidence, decisions, requirements, and specifications support the system?
+
+[Project](/docs/project) describes the engineering program:
+
+> How is Monad being developed?
+
+System answers:
+
+> **What is Monad now?**
+
+This section should therefore change when the authoritative model changes.
+
+It does not need to preserve every abandoned architecture, earlier hypothesis, or historical argument inline.
+
+Those belong elsewhere.
+
+<Callout type="info" title="Current truth, not complete history">
+
+A statement can be historically important without remaining authoritative.
+
+When Monad changes, this section should describe the new system clearly. The history of how and why that change happened remains available through Building Monad and the artifact record.
+
+</Callout>
+
+---
+
+## Monad in one sentence
+
+**Monad is an engineering substrate that maintains an explicit, governed model of a software system and connects that model to the files, tools, artifacts, processes, humans, and AI systems through which the software is developed and operated.**
+
+The key word is **model**.
+
+Monad does not assume that a software system is adequately represented by its repository alone.
+
+A repository is critically important.
+
+But the complete engineering system also contains:
+
+* requirements,
+* concepts,
+* identities,
+* decisions,
+* policies,
+* authority,
+* evidence,
+* provenance,
+* dependencies,
+* lifecycle state,
+* generated representations,
+* external systems,
+* operational observations,
+* and relationships between all of them.
+
+Monad makes more of that system explicit.
+
+---
+
+## The core problem
+
+Modern software systems are represented indirectly.
+
+Consider a single architectural capability.
+
+Its meaning may be distributed across:
+
+```text
+source code
+configuration
+documentation
+requirements
+ADRs
+issues
+pull requests
+tests
+schemas
+CI workflows
+deployment configuration
+observability systems
+external services
+human memory
+```
+
+Each system contains part of the truth.
+
+None necessarily contains the complete truth.
+
+A developer attempting to understand the system must reconstruct that truth repeatedly.
+
+AI systems face the same problem.
+
+They may be able to read far more information than a human can, but access to information does not automatically provide:
+
+* semantic identity,
+* authority,
+* currentness,
+* provenance,
+* intent,
+* lifecycle state,
+* relationships,
+* or permission to act.
+
+Monad attempts to provide that missing layer.
+
+---
+
+## The system model
+
+At the highest level, Monad separates four concerns:
+
+```text
+┌─────────────────────────────────────────────┐
+│              Constitution                   │
+│                                             │
+│ Defines the rules governing the system      │
+└──────────────────────┬──────────────────────┘
+                       │ constrains
+                       ▼
+┌─────────────────────────────────────────────┐
+│              System Graph                   │
+│                                             │
+│ Describes the engineering reality           │
+└──────────────────────┬──────────────────────┘
+                       │ interpreted by
+                       ▼
+┌─────────────────────────────────────────────┐
+│                 Engines                     │
+│                                             │
+│ Query, validate, plan, execute, project,    │
+│ verify, govern, and evolve the system       │
+└──────────────────────┬──────────────────────┘
+                       │ interact through
+                       ▼
+┌─────────────────────────────────────────────┐
+│          Native Engineering World           │
+│                                             │
+│ Files · Git · tools · CI · services · APIs  │
+│ humans · agents · runtime environments      │
+└─────────────────────────────────────────────┘
+```
+
+A useful shorthand is:
+
+> **Constitution constrains Graph. Graph describes Reality. Engines interpret Graph.**
+
+The native engineering world remains real.
+
+Monad does not replace it.
+
+Monad gives it a more explicit semantic and governance layer.
+
+---
+
+## 01 — The Constitution
+
+The Constitution defines the rules under which the Monad system itself is allowed to operate and evolve.
+
+It sits conceptually above ordinary system state.
+
+The Constitution can define things such as:
+
+* allowed semantic primitives,
+* allowed relationship types,
+* authority hierarchy,
+* governance rules,
+* capability boundaries,
+* protected invariants,
+* lifecycle rules,
+* evolution constraints,
+* amendment procedures,
+* and rules governing changes to the model itself.
+
+This separation is important.
+
+If the system graph describes reality, the graph should not be able to casually redefine the rules governing what counts as valid reality.
+
+Conceptually:
+
+```text
+Constitution
+     │
+     │ governs
+     ▼
+System Graph
+```
+
+The Constitution is intentionally small relative to the graph.
+
+It should contain the meta-rules necessary to keep the system interpretable and governable rather than becoming a dumping ground for ordinary project policy.
+
+---
+
+## 02 — The System Graph
+
+The System Graph is the semantic model of the engineering system.
+
+"Graph" here does not imply that every implementation must use a dedicated graph database.
+
+It refers to the structure of the model:
+
+```text
+entities
+   +
+relationships
+   +
+claims
+   +
+state
+   +
+authority
+   +
+provenance
+```
+
+The graph answers questions that are difficult to answer reliably from paths and documents alone.
+
+For example:
+
+> What is this thing?
+
+> Which representations describe it?
+
+> Which requirements constrain it?
+
+> Which decision established this behavior?
+
+> Which artifacts are authoritative?
+
+> What depends on it?
+
+> Which evidence supports this claim?
+
+> What would be affected if it changed?
+
+> Which actor is allowed to modify it?
+
+The graph represents engineering meaning independently of any single tool.
+
+---
+
+## 03 — Engines
+
+Engines operate against the model.
+
+An engine is a capability that interprets system state to perform some useful function.
+
+Examples may include engines for:
+
+* query,
+* inspection,
+* validation,
+* dependency analysis,
+* impact analysis,
+* policy evaluation,
+* planning,
+* projection,
+* synchronization,
+* execution,
+* verification,
+* provenance,
+* lifecycle management,
+* release,
+* and AI-assisted reasoning.
+
+Different engines may be implemented by different tools.
+
+The architectural rule is more important than the implementation:
+
+> **Engines operate against explicit system meaning rather than independently inventing their own interpretation of the repository.**
+
+This reduces semantic drift between tools.
+
+---
+
+## 04 — The native engineering world
+
+Monad does not attempt to replace the existing engineering ecosystem.
+
+Native systems remain the places where much of software engineering actually happens.
+
+Examples include:
+
+* filesystems,
+* Git repositories,
+* GitHub,
+* package managers,
+* compilers,
+* build systems,
+* test frameworks,
+* databases,
+* CI/CD systems,
+* deployment platforms,
+* observability systems,
+* issue trackers,
+* documentation systems,
+* and external services.
+
+Monad integrates with these systems through explicit bindings and interfaces.
+
+The native system remains useful.
+
+Monad provides additional meaning around it.
+
+---
+
+## Subjects and representations
+
+One of the most important distinctions in Monad is the difference between a **thing** and a **representation of that thing**.
+
+Suppose a requirement exists.
+
+It might appear as:
+
+```text
+Markdown document
+GitHub issue
+database record
+generated documentation page
+API response
+```
+
+Those do not necessarily represent five requirements.
+
+They may represent one underlying subject.
+
+Conceptually:
+
+```text
+                    ┌── Markdown
+                    │
+                    ├── GitHub issue
+Subject ────────────┼── database record
+                    │
+                    ├── generated page
+                    │
+                    └── API representation
+```
+
+Monad calls the underlying semantic entity a **Subject**.
+
+A **Representation** is one concrete form through which that subject appears.
+
+This distinction enables identity to survive changes in representation.
+
+---
+
+## Semantic identity
+
+Traditional engineering systems often derive identity from location.
+
+For example:
+
+```text
+src/auth/token.ts
+```
+
+may be treated as the identity of a thing simply because that is where its representation currently lives.
+
+But paths change.
+
+Files split.
+
+Files merge.
+
+Code is generated.
+
+Systems migrate.
+
+A concept can survive all of these changes.
+
+Monad therefore distinguishes:
+
+```text
+semantic identity
+```
+
+from:
+
+```text
+physical location
+```
+
+and:
+
+```text
+native-system identifier
+```
+
+A subject may have relationships to native identifiers without being identical to them.
+
+This enables the system to reason about continuity across change.
+
+---
+
+## Native references
+
+Monad must still interact with native systems.
+
+A **Native Reference** identifies something inside one of those systems.
+
+Examples include:
+
+```text
+Git commit SHA
+GitHub issue number
+filesystem path
+database primary key
+package identifier
+deployment identifier
+CI run ID
+URL
+```
+
+Native references are useful and often highly stable within their own domains.
+
+But they belong to those domains.
+
+Monad can bind them to semantic subjects without requiring the native identifier itself to become the universal semantic identity.
+
+---
+
+## Claims
+
+A meaningful system cannot consist only of nodes and edges.
+
+It must also represent statements about those things.
+
+A **Claim** expresses something asserted about the system.
+
+Examples:
+
+```text
+Component A depends on Component B.
+
+Specification X governs Interface Y.
+
+Requirement R is satisfied by Capability C.
+
+Artifact A supersedes Artifact B.
+
+Subject S is represented by File F.
+```
+
+Claims become particularly important when more than one source can say something about the same subject.
+
+The existence of a claim does not automatically make the claim true.
+
+Monad therefore models additional dimensions around claims.
+
+---
+
+## Authority
+
+A central rule of Monad is:
+
+> **Information does not become authoritative merely because it exists.**
+
+A repository may simultaneously contain:
+
+* an accepted specification,
+* an obsolete design document,
+* generated documentation,
+* an AI-created hypothesis,
+* a developer's observation,
+* and an external source.
+
+All may contain claims.
+
+They should not automatically have equal authority.
+
+Monad therefore distinguishes:
+
+```text
+claim
+   +
+source
+   +
+authority
+```
+
+Authority can depend on:
+
+* artifact type,
+* scope,
+* policy,
+* lifecycle state,
+* governance,
+* explicit designation,
+* and system context.
+
+The system should be able to determine not only:
+
+> What information exists?
+
+but:
+
+> **Which information governs this question?**
+
+---
+
+## Authority is scoped
+
+Authority is rarely absolute.
+
+An artifact may be authoritative for one thing but not another.
+
+For example:
+
+```text
+Specification
+  authoritative for expected behavior
+
+Source code
+  authoritative for currently executed implementation
+
+Requirement
+  authoritative for required outcome
+
+ADR
+  authoritative for the existence and rationale of a decision
+
+Runtime observation
+  authoritative for what was observed at a particular time
+```
+
+This means authority may apply to:
+
+* subjects,
+* properties,
+* claims,
+* relationships,
+* scopes,
+* time periods,
+* or classes of information.
+
+Monad should avoid reducing authority to a single global ranking.
+
+---
+
+## Provenance
+
+Authority answers:
+
+> Why should this source govern?
+
+Provenance answers:
+
+> Where did this information come from?
+
+Monad treats provenance as first-class engineering context.
+
+Depending on the record, provenance may include:
+
+* producer,
+* derivation source,
+* originating artifact,
+* native system,
+* observed state,
+* execution environment,
+* generation process,
+* agent or human actor,
+* tool,
+* timestamp,
+* requested origin,
+* resolved origin,
+* and transformation history.
+
+Conceptually:
+
+```text
+result
+  │
+  ├── produced by
+  │
+  ├── derived from
+  │
+  ├── observed at
+  │
+  └── recorded by
+```
+
+Provenance does not prove correctness.
+
+It makes the history behind a claim inspectable.
+
+---
+
+## Evidence
+
+Monad distinguishes a claim from the evidence supporting it.
+
+For example:
+
+```text
+Claim:
+"This implementation is reproducible."
+```
+
+is different from:
+
+```text
+Evidence:
+"Three clean-environment reproductions produced
+identical outputs under these recorded conditions."
+```
+
+Evidence can include:
+
+* tests,
+* benchmarks,
+* observations,
+* experiments,
+* logs,
+* reports,
+* analyses,
+* external references,
+* reproductions,
+* and reviews.
+
+Evidence itself also has context.
+
+It may have:
+
+* scope,
+* time,
+* conditions,
+* provenance,
+* validity,
+* and relevance.
+
+An old piece of evidence does not necessarily support a current claim forever.
+
+---
+
+## Time and truth
+
+Git history tells us when files changed.
+
+That is useful.
+
+But engineering truth has more dimensions than commit history.
+
+Monad distinguishes concepts such as:
+
+```text
+when something became true
+when the system learned it was true
+when the fact was recorded
+when it stopped being true
+```
+
+These are not necessarily the same moment.
+
+For example:
+
+```text
+10:00  production behavior changes
+10:05  monitoring observes the change
+10:15  engineer confirms the cause
+10:30  system model is updated
+```
+
+A system interested only in record timestamps loses important information.
+
+Monad therefore treats temporal semantics as part of the model where they materially affect interpretation.
+
+---
+
+## Current truth and historical truth
+
+A fact can be historically valid while no longer describing the current system.
+
+For example:
+
+```text
+2026-08-01
+Architecture A is active
+
+2026-09-15
+Architecture B supersedes Architecture A
+```
+
+Both statements can be true.
+
+They are true over different intervals.
+
+This allows Monad to preserve history without treating historical claims as current authority.
+
+---
+
+## Lifecycle
+
+Important entities in Monad have lifecycle.
+
+A specification may move through states such as:
+
+```text
+draft
+   ↓
+proposed
+   ↓
+accepted
+   ↓
+active
+   ↓
+superseded
+```
+
+A hypothesis may follow a very different lifecycle:
+
+```text
+proposed
+   ↓
+investigating
+   ↓
+supported
+   ├──► refined
+   ├──► weakened
+   ├──► superseded
+   └──► rejected
+```
+
+A Work Package has another lifecycle.
+
+A release has another.
+
+Monad therefore does not assume that one universal state machine should govern every entity.
+
+Lifecycle semantics belong to the type of thing being modeled.
+
+---
+
+## Relationships
+
+The graph becomes useful because subjects are connected.
+
+But not every relationship means the same thing.
+
+Monad distinguishes different semantic relationships rather than reducing all connections to generic links.
+
+Examples may include:
+
+```text
+depends-on
+implements
+specified-by
+satisfies
+motivated-by
+derived-from
+produced-by
+represented-by
+supersedes
+conflicts-with
+constrained-by
+verified-by
+observed-by
+governed-by
+```
+
+Typed relationships allow tools to reason about consequences.
+
+For example:
+
+```text
+Requirement
+    │
+    │ specified-by
+    ▼
+Specification
+    │
+    │ implemented-by
+    ▼
+Component
+    │
+    │ verified-by
+    ▼
+Test
+```
+
+This is substantially more useful than four documents that happen to mention one another.
+
+---
+
+## Traceability
+
+Traceability is the ability to follow meaningful relationships across the engineering system.
+
+A useful trace might answer:
+
+```text
+Why does this line of implementation exist?
+```
+
+by traversing:
+
+```text
+implementation
+      ↓
+specification
+      ↓
+architectural decision
+      ↓
+requirement
+      ↓
+goal
+      ↓
+problem
+```
+
+Or:
+
+```text
+What proves this requirement is satisfied?
+```
+
+through:
+
+```text
+requirement
+      ↓
+specification
+      ↓
+implementation
+      ↓
+verification
+      ↓
+evidence
+```
+
+Traceability is therefore not merely a reporting feature.
+
+It is one of the primary consequences of preserving explicit relationships.
+
+---
+
+## Change impact
+
+Once relationships are explicit, Monad can reason about the likely consequences of change.
+
+Consider a proposed change to a schema.
+
+Without structured relationships, an engineer may need to search manually for:
+
+* code consuming it,
+* tests depending on it,
+* documentation describing it,
+* interfaces exposing it,
+* policies constraining it,
+* and downstream systems relying on it.
+
+With a sufficiently rich model:
+
+```text
+Schema
+  │
+  ├── consumed-by ──► Component A
+  ├── consumed-by ──► Component B
+  ├── documented-by ► Page C
+  ├── verified-by ──► Test D
+  └── exposed-by ───► Interface E
+```
+
+the system can assist with impact analysis.
+
+It does not need to pretend that every consequence can be known perfectly.
+
+It needs to make known relationships explicit enough to improve reasoning.
+
+---
+
+## Context
+
+Monad treats context as more than a collection of nearby files.
+
+Useful engineering context depends on the task being performed.
+
+For a particular change, relevant context may include:
+
+```text
+target subject
+applicable requirements
+governing specifications
+architecture decisions
+dependencies
+policies
+historical changes
+tests
+current implementation
+known risks
+authority
+```
+
+Different tasks require different contextual projections.
+
+Monad should therefore be able to construct task-specific views from the larger system model.
+
+---
+
+## Projections
+
+The canonical model does not need to be the format every human or tool works with directly.
+
+A **Projection** is a derived view of system state optimized for a particular purpose.
+
+Examples include:
+
+* generated documentation,
+* dependency diagrams,
+* impact reports,
+* AI context packages,
+* dashboards,
+* indexes,
+* filesystem manifests,
+* compatibility reports,
+* project views,
+* and release summaries.
+
+Conceptually:
+
+```text
+Canonical Model
+      │
+      ├──► Documentation
+      ├──► CLI view
+      ├──► AI context
+      ├──► Graph visualization
+      ├──► Project dashboard
+      └──► Generated configuration
+```
+
+The distinction matters because a projection is not automatically authoritative merely because it is convenient.
+
+Its authority derives from its source and generation rules.
+
+---
+
+## Staleness
+
+Derived views can become stale.
+
+Monad should be able to reason about whether a projection still corresponds to its authoritative sources.
+
+Conceptually:
+
+```text
+authoritative state
+      │
+      │ changes
+      ▼
+projection
+      │
+      └── stale
+```
+
+A trustworthy generated view should ideally expose:
+
+* what produced it,
+* what inputs were used,
+* when it was generated,
+* which system state it represents,
+* and whether those inputs have changed.
+
+This is especially important for AI context.
+
+A beautifully structured context package is dangerous if it is confidently obsolete.
+
+---
+
+## Human-authored and generated representations
+
+Monad does not assume one is inherently superior.
+
+Human-authored artifacts are useful for:
+
+* interpretation,
+* judgment,
+* explanation,
+* intent,
+* rationale,
+* and nuanced communication.
+
+Generated artifacts are useful for:
+
+* consistency,
+* indexing,
+* derived views,
+* synchronization,
+* traceability,
+* and mechanical transformation.
+
+The important question is not:
+
+> Was this generated?
+
+It is:
+
+> **What is its role, provenance, authority, and freshness?**
+
+---
+
+## Capabilities
+
+A capability describes what an actor or subsystem is technically able to do.
+
+Examples:
+
+```text
+read source
+modify source
+execute tests
+query graph
+create artifact
+propose decision
+publish projection
+deploy release
+modify policy
+```
+
+Capabilities are explicit because AI systems may eventually possess powerful technical abilities.
+
+But capability alone does not grant permission.
+
+---
+
+## Policy
+
+Policy determines what is permitted under particular conditions.
+
+A policy may express rules such as:
+
+```text
+An implementation agent may modify source files
+inside its authorized Work Package scope.
+
+It may not modify the System Constitution.
+
+Changes to protected schemas require review.
+
+A release requires specified verification evidence.
+```
+
+This gives Monad an important separation:
+
+```text
+Capability
+"What can this actor do?"
+
+Policy
+"What may this actor do here?"
+
+Authority
+"Why is the action permitted?"
+
+Evidence
+"What must support the resulting claim?"
+```
+
+These concerns should remain distinct.
+
+---
+
+## Governance
+
+Governance determines how important system changes become legitimate.
+
+It may govern:
+
+* proposals,
+* reviews,
+* approvals,
+* amendments,
+* lifecycle transitions,
+* protected resources,
+* release gates,
+* exception handling,
+* and changes to governing rules themselves.
+
+Governance is not intended to mean that every code edit requires a committee.
+
+The level of governance should match the significance of the change.
+
+For example:
+
+```text
+low-risk implementation detail
+        ↓
+automated authority may be sufficient
+
+public interface change
+        ↓
+specification + review
+
+constitutional change
+        ↓
+explicit amendment process
+```
+
+Monad aims to make these distinctions explicit enough to automate safely where appropriate.
+
+---
+
+## Humans and AI agents
+
+Monad models humans and AI agents as engineering actors with capabilities, authority, context, and accountability.
+
+An AI agent should be able to ask:
+
+```text
+What am I trying to accomplish?
+
+What am I allowed to change?
+
+What must remain invariant?
+
+Which information is authoritative?
+
+What depends on this?
+
+Which specification governs the work?
+
+What evidence must I produce?
+
+Who must approve the result?
+```
+
+This is a substantially stronger environment than:
+
+```text
+Here is a repository.
+Read it and try to do the right thing.
+```
+
+Monad does not assume AI removes human responsibility.
+
+It attempts to create an engineering system in which increasing machine capability can coexist with explicit human governance.
+
+---
+
+## Human authority
+
+Humans remain part of the authority structure.
+
+The exact distribution of authority may vary by system and organization.
+
+Some actions may be delegated completely.
+
+Some may require human review.
+
+Some may remain exclusively human-authorized.
+
+The architecture should support this distinction rather than embedding one universal policy about human and machine control.
+
+---
+
+## Filesystem authority
+
+Monad is deliberately not based on the rule:
+
+> The filesystem is always generated from the semantic model.
+
+Nor does it assume:
+
+> The filesystem is always the sole authority.
+
+The relationship is hybrid.
+
+Ordinary source files may remain directly editable.
+
+Other representations may be derived.
+
+Some domains may be canonical in structured Monad artifacts.
+
+Others may remain canonical in native systems.
+
+The important requirement is that authority be explicit.
+
+For example:
+
+```text
+Source file
+  canonical for implementation
+
+Specification
+  canonical for expected behavior
+
+System model
+  canonical for semantic relationships
+
+Generated documentation
+  projection
+```
+
+This allows Monad to integrate with real engineering workflows instead of demanding that every tool surrender authority to one database.
+
+---
+
+## Canonical does not mean centralized
+
+A system can have authoritative information without storing everything in one place.
+
+Canonical authority may be distributed.
+
+For example:
+
+```text
+Git repository
+  → canonical implementation
+
+Monad artifact
+  → canonical requirement
+
+External API
+  → canonical external service state
+
+Policy record
+  → canonical authorization rule
+```
+
+Monad's task is to understand these authority boundaries and relationships.
+
+The objective is not necessarily one universal database.
+
+It is one interpretable model of where truth comes from.
+
+---
+
+## Local first
+
+Monad is designed around local-first operation.
+
+A meaningful portion of the system should remain usable and inspectable without requiring a permanent connection to a proprietary cloud service.
+
+Local operation supports:
+
+* ownership,
+* privacy,
+* resilience,
+* reproducibility,
+* low-friction development,
+* inspectability,
+* and interoperability.
+
+Remote infrastructure can add valuable capabilities such as:
+
+* collaboration,
+* organization-wide governance,
+* hosted execution,
+* synchronization,
+* remote indexing,
+* shared AI services,
+* and cross-project analysis.
+
+The architecture should support both.
+
+---
+
+## Reproducibility
+
+Monad treats reproducibility as a system concern.
+
+A useful engineering record should help reconstruct:
+
+```text
+what was executed
+with which inputs
+using which tools
+under which environment
+against which system state
+producing which outputs
+```
+
+This may require preserving relationships between:
+
+* source state,
+* dependency state,
+* tool versions,
+* configuration,
+* environment,
+* commands,
+* execution context,
+* outputs,
+* and evidence.
+
+Perfect reproducibility is not always achievable.
+
+But unexplained execution state should not be accepted casually when reproducibility materially matters.
+
+---
+
+## Native tools
+
+Monad is not intended to reimplement the software engineering ecosystem.
+
+Its preferred architectural posture is:
+
+> **Integrate where another system already has strong native capability. Model the relationships and semantics that the native system does not provide.**
+
+For example:
+
+```text
+Git
+  remains responsible for version control
+
+compiler
+  remains responsible for compilation
+
+package manager
+  remains responsible for package resolution
+
+CI system
+  remains responsible for workflow execution
+
+Monad
+  connects their outputs, identities, authority,
+  provenance, intent, and engineering relationships
+```
+
+This keeps Monad focused on the layer it uniquely needs to provide.
+
+---
+
+## The read model
+
+The canonical engineering model may not be optimized for every query.
+
+Monad can therefore maintain derived read models for efficient:
+
+* search,
+* traversal,
+* indexing,
+* dependency analysis,
+* context construction,
+* reporting,
+* and visualization.
+
+Conceptually:
+
+```text
+Canonical records
+      │
+      ▼
+Normalization
+      │
+      ▼
+System Graph
+      │
+      ▼
+Read Models / Indexes
+      │
+      ├──► Search
+      ├──► Traversal
+      ├──► Impact
+      └──► Context
+```
+
+A read model is derived.
+
+Its relationship to the canonical source should remain traceable.
+
+---
+
+## Progressive formalization
+
+Not everything needs maximum structure immediately.
+
+Monad supports the principle of **progressive formalization**.
+
+Information may begin as:
+
+```text
+prose
+```
+
+then become:
+
+```text
+identified artifact
+```
+
+then:
+
+```text
+structured claims
+```
+
+then:
+
+```text
+typed relationships
+```
+
+when the additional structure becomes valuable.
+
+This matters because modeling has cost.
+
+The system should not require humans to fully formalize every thought before it can be recorded.
+
+---
+
+## Minimum-friction capture
+
+The cheapest useful capture mechanism should be preferred.
+
+If a developer has to complete twenty metadata fields to record an observation, the system will likely lose the observation entirely.
+
+Monad should therefore make capture inexpensive and allow structure to increase later when justified.
+
+Conceptually:
+
+```text
+capture first
+     ↓
+identify
+     ↓
+connect
+     ↓
+formalize when valuable
+```
+
+This keeps the system usable rather than merely theoretically complete.
+
+---
+
+## Safe inference
+
+AI and automated tooling can help infer:
+
+* likely relationships,
+* candidate identities,
+* potential duplicates,
+* provenance,
+* classifications,
+* impacted subjects,
+* and missing links.
+
+But inference should not silently become authority.
+
+The system should distinguish:
+
+```text
+observed
+inferred
+proposed
+confirmed
+authoritative
+```
+
+This enables automation without pretending uncertainty does not exist.
+
+---
+
+## Correction
+
+The model must support correction.
+
+If the system incorrectly concludes:
+
+```text
+Subject A == Subject B
+```
+
+the correction should not require rewriting history as though the error never occurred.
+
+A useful record can preserve:
+
+```text
+earlier assertion
+      ↓
+contradicting evidence
+      ↓
+correction
+      ↓
+new authoritative state
+```
+
+This principle applies to:
+
+* identity,
+* provenance,
+* relationships,
+* claims,
+* classifications,
+* and inferred context.
+
+A knowledge system that cannot represent having been wrong is not trustworthy.
+
+---
+
+## Split and merge
+
+Semantic identity eventually encounters difficult transitions.
+
+One subject may later be discovered to represent two different things.
+
+Two previously separate subjects may turn out to represent one.
+
+Monad therefore needs to reason about transitions such as:
+
+```text
+Subject A
+   │
+   ├──► Subject B
+   └──► Subject C
+```
+
+and:
+
+```text
+Subject A ──┐
+            ├──► Subject C
+Subject B ──┘
+```
+
+These transitions should preserve historical identity rather than simply rewriting identifiers.
+
+The detailed representation belongs in the relevant specifications.
+
+---
+
+## Multiple projects
+
+Monad's semantic model should not assume that all engineering reality belongs to one repository.
+
+Modern systems routinely span:
+
+* multiple repositories,
+* services,
+* packages,
+* infrastructure projects,
+* deployment environments,
+* documentation repositories,
+* shared schemas,
+* and external dependencies.
+
+The model must therefore be capable of describing relationships across project boundaries while preserving local ownership and authority.
+
+---
+
+## Components
+
+At a conceptual level, the system can be understood through several major component classes.
+
+<Cards>
+  <Card
+    title="Semantic Model"
+    href="/docs/system/concepts"
+  >
+    Subjects, representations, claims, identity, relationships, provenance, evidence, authority, and lifecycle.
+  </Card>
+
+<Card
+title="Architecture"
+href="/docs/system/architecture"
+
+>
+
+```
+The Constitution, System Graph, engines, native integrations, persistence, projections, and execution boundaries.
+```
+
+  </Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+
+>
+
+```
+Authority, policies, capabilities, protected invariants, approvals, and governed evolution.
+```
+
+  </Card>
+
+<Card
+title="Execution"
+href="/docs/system/execution"
+
+>
+
+```
+How humans, tools, and agents inspect, plan, modify, validate, and verify the engineering system.
+```
+
+  </Card>
+
+<Card
+title="Integrations"
+href="/docs/system/integrations"
+
+>
+
+```
+How Monad connects semantic subjects to files, repositories, GitHub, build systems, CI, services, and other native systems.
+```
+
+  </Card>
+
+<Card
+title="Interfaces"
+href="/docs/system/interfaces"
+
+>
+
+```
+CLI, APIs, schemas, events, projections, and other boundaries through which system capabilities are exposed.
+```
+
+  </Card>
+</Cards>
+
+---
+
+## A conceptual architecture
+
+A simplified system view looks like this:
+
+```text
+                   ┌──────────────────────┐
+                   │    Constitution      │
+                   └──────────┬───────────┘
+                              │
+                              ▼
+                   ┌──────────────────────┐
+                   │     System Graph     │
+                   │                      │
+                   │ subjects             │
+                   │ representations      │
+                   │ claims               │
+                   │ relationships        │
+                   │ authority            │
+                   │ provenance           │
+                   │ evidence             │
+                   │ lifecycle            │
+                   └──────────┬───────────┘
+                              │
+          ┌───────────────────┼───────────────────┐
+          │                   │                   │
+          ▼                   ▼                   ▼
+    ┌───────────┐       ┌───────────┐       ┌───────────┐
+    │   Query   │       │  Policy   │       │  Impact   │
+    │  Engine   │       │  Engine   │       │  Engine   │
+    └───────────┘       └───────────┘       └───────────┘
+
+          ┌───────────────────┼───────────────────┐
+          │                   │                   │
+          ▼                   ▼                   ▼
+    ┌───────────┐       ┌───────────┐       ┌───────────┐
+    │ Execution │       │ Projection│       │Verification│
+    │  Engine   │       │  Engine   │       │   Engine   │
+    └─────┬─────┘       └─────┬─────┘       └─────┬─────┘
+          │                   │                   │
+          └───────────────────┼───────────────────┘
+                              │
+                              ▼
+                  Native Engineering Systems
+                              │
+       ┌──────────┬───────────┼───────────┬──────────┐
+       ▼          ▼           ▼           ▼          ▼
+     Files       Git        GitHub       CI/CD     Runtime
+```
+
+The final implementation can evolve.
+
+The architectural responsibility boundaries are more important than the precise deployment topology.
+
+---
+
+## A governed change
+
+The value of these pieces becomes clearer when considering an actual change.
+
+Suppose an AI agent is asked to modify a public interface.
+
+Without Monad:
+
+```text
+prompt
+  ↓
+repository
+  ↓
+agent inference
+  ↓
+code change
+```
+
+With Monad, the desired workflow becomes closer to:
+
+```text
+requested change
+       ↓
+resolve affected subjects
+       ↓
+load authoritative requirements
+       ↓
+load governing specification
+       ↓
+evaluate relevant policy
+       ↓
+determine change impact
+       ↓
+verify agent authority
+       ↓
+construct task context
+       ↓
+perform change
+       ↓
+run required verification
+       ↓
+record provenance + evidence
+       ↓
+update affected model state
+       ↓
+submit for required approval
+```
+
+Not every change requires every stage.
+
+The system should determine which stages apply.
+
+That is what governed automation means.
+
+---
+
+## System invariants
+
+Some principles are fundamental enough to act as system invariants.
+
+### Identity is not location
+
+Paths and native identifiers may represent subjects but do not universally define semantic identity.
+
+### Representation is not subject
+
+Multiple representations may describe the same underlying thing.
+
+### Existence is not authority
+
+Finding information does not establish that it governs.
+
+### Capability is not permission
+
+Being able to perform an action does not imply authority to perform it.
+
+### Claim is not evidence
+
+Assertions and support for those assertions remain distinct.
+
+### History is not current truth
+
+Historical records remain valuable without governing current behavior.
+
+### Generated is not necessarily canonical
+
+Generated views derive their authority from their sources and generation rules.
+
+### Inference is not confirmation
+
+Automated inference must preserve uncertainty until policy allows promotion.
+
+### Native systems remain first-class
+
+Monad integrates with existing engineering tools rather than pretending they are merely implementation details.
+
+### Formalization must earn its cost
+
+Structure is valuable only when it improves engineering outcomes enough to justify maintaining it.
+
+---
+
+## What Monad should make possible
+
+The architecture is useful only if it enables better engineering.
+
+A mature Monad environment should increasingly support questions such as:
+
+```text
+What is this?
+
+Why does it exist?
+
+Where is it represented?
+
+Which source is authoritative?
+
+What depends on it?
+
+What does it depend on?
+
+Which requirements constrain it?
+
+Which specification governs it?
+
+Which decisions shaped it?
+
+Which policies apply?
+
+Who may modify it?
+
+What evidence supports it?
+
+Is this information current?
+
+What changed?
+
+Why did it change?
+
+What would be affected if I changed it?
+
+How should this change be verified?
+```
+
+The objective is not merely to answer these questions in prose.
+
+The objective is for answers to be grounded in the engineering system itself.
+
+---
+
+## What Monad should not become
+
+Several failure modes are worth guarding against.
+
+Monad should not become:
+
+### A metadata bureaucracy
+
+If maintaining the model takes more effort than reconstructing the lost information, the model has failed.
+
+### A graph for the sake of having a graph
+
+Relationships should exist because they enable valuable reasoning.
+
+### A replacement for every engineering tool
+
+Existing systems should continue doing what they already do well.
+
+### An omniscient database
+
+Monad should represent uncertainty and incomplete knowledge explicitly.
+
+### An AI permission bypass
+
+More capable agents make explicit governance more important, not less.
+
+### A documentation mirror
+
+The model should preserve semantics that documents alone cannot reliably provide.
+
+### A second reality
+
+Monad must remain grounded in the engineering systems it describes.
+
+If the model diverges silently from reality, it becomes dangerous.
+
+---
+
+## Trustworthiness
+
+A trustworthy system model must continuously answer:
+
+```text
+How do you know?
+```
+
+That means Monad's own state should increasingly be supported by:
+
+* provenance,
+* source bindings,
+* validation,
+* evidence,
+* freshness information,
+* lifecycle,
+* authority,
+* and reconciliation with native systems.
+
+A semantic model that confidently describes the wrong system is worse than no semantic model at all.
+
+---
+
+## Reconciliation
+
+Because native systems continue to change, Monad must detect and reconcile divergence.
+
+For example:
+
+```text
+Monad model says:
+Component A is represented by file X.
+
+Filesystem says:
+file X no longer exists.
+```
+
+That discrepancy should become visible.
+
+Possible outcomes might include:
+
+```text
+rename detected
+      ↓
+representation binding updated
+```
+
+or:
+
+```text
+subject removed
+      ↓
+lifecycle transition
+```
+
+or:
+
+```text
+unknown external modification
+      ↓
+requires investigation
+```
+
+Reconciliation is therefore a core integration responsibility.
+
+---
+
+## System evolution
+
+Monad itself must evolve under the same principles it promotes.
+
+Changes to ordinary system state may be common.
+
+Changes to fundamental semantic rules should be more deliberate.
+
+Conceptually:
+
+```text
+ordinary state change
+      ↓
+normal governed operation
+
+schema/model change
+      ↓
+migration + compatibility analysis
+
+constitutional change
+      ↓
+explicit amendment
+```
+
+The deeper the rule being changed, the stronger the governance should generally become.
+
+---
+
+## The system is inspectable
+
+Monad should expose enough of its own internal model that engineers can understand why it behaves as it does.
+
+A tool should not merely report:
+
+```text
+operation denied
+```
+
+when it can explain:
+
+```text
+Operation denied.
+
+Actor:
+  implementation-agent
+
+Requested capability:
+  modify public interface
+
+Applicable policy:
+  POL-API-004
+
+Required authority:
+  architecture-review
+
+Current authority:
+  work-package-execution
+
+Missing requirement:
+  approved interface-change decision
+```
+
+Inspectability turns governance from mysterious restriction into understandable engineering behavior.
+
+---
+
+## The system is composable
+
+Monad should expose capabilities through stable interfaces rather than requiring every useful behavior to exist inside one executable.
+
+Possible interfaces include:
+
+* CLI,
+* libraries,
+* structured files,
+* schemas,
+* APIs,
+* events,
+* plugin interfaces,
+* MCP-compatible tools,
+* agent interfaces,
+* and generated projections.
+
+This allows different environments to use the same underlying model without forcing one interaction style.
+
+---
+
+## The system is portable
+
+The canonical engineering record should not depend unnecessarily on one vendor or hosted service.
+
+Where practical, Monad favors:
+
+* documented formats,
+* explicit schemas,
+* stable identifiers,
+* local availability,
+* exportability,
+* deterministic behavior,
+* and replaceable integrations.
+
+Hosted services may add substantial value.
+
+They should not become the only place where the system's meaning can exist.
+
+---
+
+## The system is extensible
+
+Monad cannot predict every engineering domain.
+
+Its core should therefore remain relatively small while supporting controlled extension.
+
+Extensions may introduce:
+
+* domain-specific subject types,
+* relationships,
+* artifact types,
+* policies,
+* capabilities,
+* validators,
+* projections,
+* engines,
+* and integrations.
+
+Extension must remain governed so that the system does not degrade into an untyped collection of arbitrary metadata.
+
+---
+
+## System documentation
+
+The remainder of this section decomposes the system into more focused views.
+
+<Cards>
+  <Card
+    title="Concepts & Principles"
+    href="/docs/system/concepts"
+  >
+    Understand the semantic primitives and foundational rules on which Monad is built.
+  </Card>
+
+<Card
+title="Architecture"
+href="/docs/system/architecture"
+
+>
+
+```
+Explore the Constitution, System Graph, engines, persistence, execution, and integration architecture.
+```
+
+  </Card>
+
+<Card
+title="Components"
+href="/docs/system/components"
+
+>
+
+```
+Examine the major runtime and engineering components and their responsibilities.
+```
+
+  </Card>
+
+<Card
+title="Interfaces"
+href="/docs/system/interfaces"
+
+>
+
+```
+Understand the contracts connecting Monad components, native systems, humans, tools, and agents.
+```
+
+  </Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+
+>
+
+```
+Explore authority, policy, capabilities, approvals, invariants, and governed system evolution.
+```
+
+  </Card>
+
+<Card
+title="Execution"
+href="/docs/system/execution"
+
+>
+
+```
+Understand how engineering work moves from intent through planning, modification, verification, and evidence.
+```
+
+  </Card>
+
+<Card
+title="Integrations"
+href="/docs/system/integrations"
+
+>
+
+```
+See how Monad interoperates with repositories, filesystems, GitHub, build tools, CI, and external services.
+```
+
+  </Card>
+
+<Card
+title="Glossary"
+href="/docs/system/glossary"
+
+>
+
+```
+Find canonical definitions for the terms used throughout the system.
+```
+
+  </Card>
+</Cards>
+
+---
+
+## Relationship to Artifacts
+
+This section explains the system.
+
+The [Artifacts](/docs/artifacts) section contains the records supporting that explanation.
+
+For example:
+
+```text
+System
+  │
+  │ says
+  ▼
+"Semantic identity is distinct from representation."
+
+Artifacts
+  │
+  ├──► requirement
+  ├──► domain model
+  ├──► ADR
+  ├──► specification
+  ├──► experiment
+  └──► verification evidence
+```
+
+System should remain readable without requiring the reader to inspect all of those artifacts.
+
+But important claims should increasingly be traceable to them.
+
+---
+
+## Relationship to Building Monad
+
+[Building Monad](/docs/building-monad) may contain older models, abandoned terminology, failed experiments, and superseded architecture.
+
+That is intentional.
+
+Building Monad preserves:
+
+```text
+what we thought
+      ↓
+what we learned
+      ↓
+what changed
+```
+
+System preserves:
+
+```text
+what the current model says
+```
+
+The two should not be confused.
+
+---
+
+## Relationship to Project
+
+[Project](/docs/project) describes how the engineering program operates.
+
+System describes the thing that engineering program is producing.
+
+Conceptually:
+
+```text
+Project
+  │
+  │ creates and evolves
+  ▼
+System
+  │
+  │ documented and justified by
+  ▼
+Artifacts
+
+Building Monad
+  │
+  └── narrates the evolution
+```
+
+---
+
+## Relationship to implementation
+
+This site is not the implementation.
+
+The source repositories remain the place to inspect:
+
+* code,
+* tests,
+* build configuration,
+* packages,
+* tooling,
+* integration implementation,
+* CI,
+* and executable behavior.
+
+System documentation should explain how that implementation fits into the larger architecture.
+
+<div className="not-prose mt-6">
+  <a
+    href="https://github.com/monad-framework"
+    target="_blank"
+    rel="noreferrer noopener"
+    className="inline-flex items-center rounded-lg border border-fd-border px-4 py-2 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
+  >
+    Inspect the Monad repositories on GitHub →
+  </a>
+</div>
+
+---
+
+## A living authoritative model
+
+"Authoritative" does not mean "finished."
+
+Monad remains under active development.
+
+Some parts of the system are mature architectural commitments.
+
+Others remain provisional.
+
+Some concepts require additional evidence.
+
+Some implementation choices remain open.
+
+The purpose of this section is not to hide that uncertainty.
+
+It is to make the boundary visible between:
+
+```text
+current architectural commitment
+```
+
+and:
+
+```text
+open engineering question
+```
+
+When an unresolved question becomes a decision, System should change accordingly.
+
+When a decision is superseded, System should reflect the new state.
+
+The historical record remains elsewhere.
+
+---
+
+## The governing idea
+
+Most of Monad can be understood from one principle:
+
+> **A software system should preserve enough explicit meaning about itself that humans and machines can understand, govern, change, and verify it without repeatedly reconstructing that meaning from disconnected fragments.**
+
+Everything in the architecture exists in service of that goal.
+
+Semantic identity.
+
+Representations.
+
+Claims.
+
+Authority.
+
+Provenance.
+
+Evidence.
+
+Policies.
+
+Lifecycle.
+
+Traceability.
+
+The graph.
+
+The engines.
+
+The Constitution.
+
+AI integration.
+
+If one of these mechanisms cannot demonstrate useful engineering value, it should be simplified, replaced, or removed.
+
+---
+
+## Where to go next
+
+If this is your first technical introduction to Monad, continue with the concepts before diving into component details.
+
+<Cards>
+  <Card
+    title="Concepts & Principles"
+    href="/docs/system/concepts"
+  >
+    Learn the semantic vocabulary and foundational rules needed to understand the rest of the architecture.
+  </Card>
+
+<Card
+title="Architecture"
+href="/docs/system/architecture"
+
+>
+
+```
+See how the Constitution, graph, engines, persistence, projections, and native systems fit together.
+```
+
+  </Card>
+
+<Card
+title="Components"
+href="/docs/system/components"
+
+>
+
+```
+Move from conceptual architecture into concrete system responsibilities.
+```
+
+  </Card>
+
+<Card
+title="Interfaces"
+href="/docs/system/interfaces"
+
+>
+
+```
+Understand how the system communicates across component and integration boundaries.
+```
+
+  </Card>
+</Cards>
+
+---
+
+## Other views of Monad
+
+Use the other major sections when you need something other than the current system model.
+
+<Cards>
+  <Card
+    title="Building Monad"
+    href="/docs/building-monad"
+  >
+    Follow how this architecture emerged, including earlier ideas, experiments, failures, and changes in direction.
+  </Card>
+
+<Card
+title="Artifacts"
+href="/docs/artifacts"
+
+>
+
+```
+Inspect the requirements, specifications, decisions, evidence, and verification behind the system.
+```
+
+  </Card>
+
+<Card
+title="Project"
+href="/docs/project"
+
+>
+
+```
+Understand the engineering program through which Monad is designed, implemented, verified, and evolved.
+```
+
+  </Card>
+
+<Card
+title="About Monad"
+href="/docs/about"
+
+>
+
+```
+Read about the project's purpose, motivation, boundaries, and long-term direction.
+```
+
+  </Card>
+</Cards>

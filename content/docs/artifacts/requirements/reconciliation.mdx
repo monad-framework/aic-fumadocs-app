@@ -1,0 +1,3373 @@
+---
+title: Reconciliation Requirements
+description: The requirements governing how Monad detects, classifies, explains, and resolves divergence between its semantic model and the native engineering systems that remain authoritative for their own state.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-REC
+  </p>
+</div>
+
+# Reconciliation Requirements
+
+Monad does not own every engineering fact.
+
+Source repositories own commits and branches.
+
+Issue trackers own their native issues.
+
+Package registries own published packages.
+
+Deployment platforms own their deployment state.
+
+Cloud providers own infrastructure state.
+
+CI systems own their native runs.
+
+Filesystems own files that actually exist.
+
+External engineering systems continue changing whether Monad initiated those changes or not.
+
+That creates an unavoidable problem:
+
+> **What happens when Monad's understanding of a system and the native system itself no longer agree?**
+
+The answer is reconciliation.
+
+```text
+Monad model
+    │
+    │ compare
+    ▼
+Observed native state
+    │
+    ▼
+Difference
+    │
+    ├── expected
+    ├── stale
+    ├── incomplete
+    ├── conflicting
+    ├── unauthorized
+    ├── externally changed
+    └── unknown
+         │
+         ▼
+Reconciliation decision
+         │
+         ├── update Monad
+         ├── update native system
+         ├── preserve both
+         ├── escalate
+         ├── defer
+         └── require human resolution
+```
+
+Reconciliation is not merely synchronization.
+
+Synchronization attempts to make states match.
+
+Reconciliation first asks whether they **should** match, which side has authority, what actually happened, and what action—if any—is legitimate.
+
+<Callout type="info" title="Agreement is not automatically correctness">
+Two systems can agree and still be wrong. Reconciliation establishes correspondence between states; it does not by itself prove that either state satisfies the governing Requirement or Specification.
+</Callout>
+
+---
+
+# Requirement family scope
+
+The `REQ-REC-*` family governs reconciliation across:
+
+* filesystems,
+* Git repositories,
+* issue trackers,
+* pull requests,
+* CI systems,
+* package registries,
+* deployment platforms,
+* cloud infrastructure,
+* databases,
+* configuration systems,
+* documentation systems,
+* artifact stores,
+* identity providers,
+* policy systems,
+* generated projections,
+* external APIs,
+* and other native engineering systems.
+
+These requirements govern:
+
+* observation,
+* comparison,
+* divergence classification,
+* authority,
+* conflict handling,
+* convergence,
+* partial failure,
+* provenance,
+* freshness,
+* retry,
+* repair,
+* and historical preservation.
+
+They do not require all integrated systems to use the same storage model or synchronization protocol.
+
+---
+
+# Foundational reconciliation requirements
+
+## REQ-REC-001 — Monad MUST distinguish reconciliation from synchronization
+
+Synchronization asks:
+
+> How do we make these states match?
+
+Reconciliation asks:
+
+> What are the states, why do they differ, which state is authoritative for which Claims, and what should happen next?
+
+Synchronization MAY be one outcome of reconciliation.
+
+---
+
+## REQ-REC-002 — Monad MUST distinguish reconciliation from verification
+
+Reconciliation establishes agreement or explains disagreement.
+
+Verification evaluates an explicit expectation.
+
+Example:
+
+```text
+Monad state: branch exists
+Git state: branch exists
+reconciliation: agreement
+```
+
+does not establish:
+
+```text
+branch satisfies release policy
+```
+
+---
+
+## REQ-REC-003 — Monad MUST distinguish reconciliation from observation
+
+Observation obtains state.
+
+Reconciliation reasons about relationships between observed states.
+
+---
+
+## REQ-REC-004 — Monad MUST distinguish reconciliation from authority
+
+A state may exist without being authoritative.
+
+A state may be authoritative for one property and non-authoritative for another.
+
+---
+
+## REQ-REC-005 — Monad MUST distinguish divergence from error
+
+Difference does not automatically mean something is wrong.
+
+Divergence may represent:
+
+* expected latency,
+* deliberate local work,
+* an externally authored change,
+* a valid independent representation,
+* a pending transaction,
+* stale observation,
+* partial propagation,
+* conflicting authority,
+* or actual inconsistency.
+
+---
+
+## REQ-REC-006 — Reconciliation MUST preserve uncertainty when cause or authority cannot be determined
+
+Unknown MUST remain distinguishable from conflict, failure, and absence.
+
+---
+
+# Native systems remain first-class
+
+## REQ-REC-007 — Monad MUST treat native engineering systems as first-class sources of observed reality
+
+Monad SHOULD NOT assume that every relevant engineering change originates through Monad.
+
+---
+
+## REQ-REC-008 — Direct native-system changes MUST be expected unless explicitly prohibited by governance
+
+For example:
+
+```text
+developer edits source directly
+developer creates Git branch
+maintainer closes GitHub issue
+registry administrator yanks package
+operator changes deployment
+```
+
+Monad must be able to discover and reason about such changes.
+
+---
+
+## REQ-REC-009 — Monad MUST NOT require replacement of well-functioning native systems solely to simplify reconciliation
+
+The preferred pattern is:
+
+> integrate before reimplementing.
+
+---
+
+## REQ-REC-010 — Native references SHOULD preserve native identity
+
+Examples include:
+
+* Git commit SHA,
+* Git ref,
+* GitHub issue ID,
+* pull request number,
+* deployment ID,
+* package digest,
+* registry version,
+* CI run ID,
+* filesystem path.
+
+---
+
+## REQ-REC-011 — Native identity MUST remain distinct from semantic identity
+
+A file path may change while the represented Subject remains the same.
+
+A GitHub issue number may identify a native issue representation without becoming the universal semantic identity of the underlying engineering concern.
+
+---
+
+# Reconciliation subjects
+
+## REQ-REC-012 — Monad SHOULD reconcile identifiable Subjects or Claims rather than opaque blobs where practical
+
+---
+
+## REQ-REC-013 — Reconciliation scope MAY exist at multiple granularities
+
+Examples include:
+
+* entire repository,
+* branch,
+* file,
+* document section,
+* artifact,
+* field,
+* property,
+* relationship,
+* lifecycle state,
+* individual Claim.
+
+---
+
+## REQ-REC-014 — Reconciliation granularity SHOULD be no finer than useful engineering decisions require
+
+Monad SHOULD avoid field-level reconciliation where whole-artifact reconciliation is sufficient.
+
+---
+
+## REQ-REC-015 — Different properties of the same Subject MAY reconcile independently
+
+For example:
+
+```text
+Issue Subject
+
+title:
+  GitHub authoritative
+
+semantic classification:
+  Monad authoritative
+
+closed state:
+  GitHub authoritative
+
+risk classification:
+  Monad authoritative
+```
+
+---
+
+# Observation requirements
+
+## REQ-REC-016 — Reconciliation MUST rely on observed native state rather than assumed native state
+
+---
+
+## REQ-REC-017 — Native observations SHOULD identify when they were obtained
+
+---
+
+## REQ-REC-018 — Native observations SHOULD preserve the relevant native revision or version where available
+
+---
+
+## REQ-REC-019 — Reconciliation SHOULD distinguish requested references from resolved immutable state
+
+Example:
+
+```text
+requested:
+  branch: main
+
+resolved:
+  commit: 81d91ef
+```
+
+---
+
+## REQ-REC-020 — Failed observation MUST remain distinguishable from observed absence
+
+Example:
+
+```text
+API unreachable
+```
+
+does not mean:
+
+```text
+resource does not exist
+```
+
+---
+
+## REQ-REC-021 — Permission failure MUST remain distinguishable from absence
+
+A resource that cannot be inspected due to insufficient permission MUST NOT be recorded as nonexistent.
+
+---
+
+## REQ-REC-022 — Rate limiting SHOULD remain distinguishable from system unavailability
+
+---
+
+## REQ-REC-023 — Partial observations MUST expose their incompleteness
+
+---
+
+# Freshness requirements
+
+## REQ-REC-024 — Reconciliation SHOULD reason about observation freshness
+
+---
+
+## REQ-REC-025 — Freshness SHOULD be associated with the observed state, not only the reconciliation job
+
+---
+
+## REQ-REC-026 — Monad SHOULD avoid presenting stale observed state as current native truth
+
+---
+
+## REQ-REC-027 — Freshness SHOULD be evaluated according to system characteristics
+
+A Git commit is immutable.
+
+A deployment health status may change every second.
+
+Those observations have different freshness semantics.
+
+---
+
+## REQ-REC-028 — Unknown freshness SHOULD remain explicit where material
+
+---
+
+# Comparison requirements
+
+## REQ-REC-029 — Reconciliation SHOULD compare semantically meaningful state rather than raw representation only
+
+Example:
+
+Two serialized documents may differ in:
+
+* field ordering,
+* whitespace,
+* generated timestamps,
+
+while representing equivalent semantic state.
+
+---
+
+## REQ-REC-030 — Canonicalization MAY be used before comparison where the canonicalization rules are explicit
+
+---
+
+## REQ-REC-031 — Canonicalization MUST NOT silently erase meaningful differences
+
+---
+
+## REQ-REC-032 — Comparison SHOULD preserve the original observed representations where forensic analysis may matter
+
+---
+
+## REQ-REC-033 — Equality semantics SHOULD be defined by the relevant model or Specification
+
+---
+
+# Divergence classification
+
+## REQ-REC-034 — Reconciliation SHOULD classify divergence rather than treating all differences equally
+
+A conceptual vocabulary MAY include:
+
+```text
+in-sync
+expected-divergence
+stale
+missing-local
+missing-remote
+changed-local
+changed-remote
+changed-both
+conflict
+partial
+unauthorized
+unrecognized
+incomparable
+unknown
+```
+
+The final vocabulary belongs in the relevant Specification.
+
+---
+
+## REQ-REC-035 — Divergence classification SHOULD preserve the facts that produced the classification
+
+---
+
+## REQ-REC-036 — Classification SHOULD remain separate from remediation
+
+For example:
+
+```text
+classification:
+  changed-remote
+```
+
+does not automatically imply:
+
+```text
+action:
+  overwrite-local
+```
+
+---
+
+## REQ-REC-037 — Divergence SHOULD be explainable in terms meaningful to an engineer
+
+Prefer:
+
+```text
+GitHub issue state changed from open to closed outside Monad.
+```
+
+over:
+
+```text
+state mismatch code 7
+```
+
+---
+
+# Authority-aware reconciliation
+
+## REQ-REC-038 — Reconciliation MUST consult authority before deciding which state should prevail
+
+---
+
+## REQ-REC-039 — Authority SHOULD be scoped to the relevant property or Claim
+
+---
+
+## REQ-REC-040 — Native-system ownership of a capability SHOULD normally imply native authority over native facts produced by that capability unless explicitly overridden
+
+For example:
+
+* Git owns whether commit `81d91ef` exists.
+* GitHub owns whether native issue `#42` is open.
+* an OCI registry owns whether digest `sha256:...` is published there.
+* a deployment system owns whether deployment `D-104` exists.
+
+Monad may interpret those facts.
+
+It should not fabricate them.
+
+---
+
+## REQ-REC-041 — Monad MAY remain authoritative for semantic state that native systems do not own
+
+Examples include:
+
+* semantic identity,
+* cross-system relationships,
+* authority assignments,
+* evidence relationships,
+* engineering classification,
+* lifecycle interpretation,
+* governance state.
+
+---
+
+## REQ-REC-042 — Reconciliation MUST support mixed authority
+
+A single Subject MAY contain properties owned by different authorities.
+
+---
+
+## REQ-REC-043 — Authority ambiguity SHOULD cause explicit conflict or escalation rather than arbitrary overwrite
+
+---
+
+## REQ-REC-044 — Newer state MUST NOT automatically win
+
+Time does not determine authority.
+
+---
+
+## REQ-REC-045 — More persistent state MUST NOT automatically win
+
+A record existing longer does not make it authoritative.
+
+---
+
+## REQ-REC-046 — Native permission MUST NOT be confused with semantic authority
+
+An API allowing an actor to modify a resource does not mean Monad governance authorizes the modification.
+
+---
+
+# Conflict requirements
+
+## REQ-REC-047 — Reconciliation MUST support explicit conflict representation
+
+---
+
+## REQ-REC-048 — Conflicts SHOULD preserve both competing states
+
+---
+
+## REQ-REC-049 — Conflict records SHOULD identify the Claims or properties in disagreement
+
+---
+
+## REQ-REC-050 — Conflict records SHOULD preserve relevant provenance
+
+---
+
+## REQ-REC-051 — Conflict detection MUST NOT silently resolve disagreement based only on last-write-wins unless that behavior is explicitly specified
+
+---
+
+## REQ-REC-052 — Conflict resolution SHOULD be policy-aware
+
+---
+
+## REQ-REC-053 — High-consequence conflicts MAY require human resolution
+
+---
+
+## REQ-REC-054 — Conflict resolution SHOULD preserve why the resolution was chosen
+
+---
+
+## REQ-REC-055 — Resolved conflict history SHOULD remain inspectable
+
+Resolution MUST NOT erase the fact that disagreement occurred.
+
+---
+
+# Competing authoritative claims
+
+## REQ-REC-056 — Monad MUST support the possibility that apparently authoritative sources conflict
+
+Example:
+
+```text
+system A:
+  owner = Team Alpha
+
+system B:
+  owner = Team Beta
+```
+
+If both are authoritative under existing rules, the system has an authority problem—not merely a synchronization problem.
+
+---
+
+## REQ-REC-057 — Conflicting authoritative Claims SHOULD trigger authority resolution
+
+---
+
+## REQ-REC-058 — Reconciliation MUST NOT arbitrarily select one authoritative Claim when governance does not define precedence
+
+---
+
+# External changes
+
+## REQ-REC-059 — Monad SHOULD detect externally initiated native-system changes
+
+---
+
+## REQ-REC-060 — External change MUST NOT automatically be treated as unauthorized
+
+---
+
+## REQ-REC-061 — External changes SHOULD be classified according to policy and authority
+
+Possible outcomes include:
+
+```text
+valid external change
+unauthorized change
+unknown
+requires review
+requires reconciliation
+```
+
+---
+
+## REQ-REC-062 — Valid native changes SHOULD be incorporable into Monad state
+
+---
+
+## REQ-REC-063 — Incorporating valid native changes SHOULD preserve their native provenance
+
+---
+
+# Unauthorized changes
+
+## REQ-REC-064 — Reconciliation SHOULD be capable of detecting native state that violates Monad governance where sufficient information exists
+
+---
+
+## REQ-REC-065 — Detection of unauthorized state MUST remain distinct from automatic reversal
+
+A system may detect:
+
+```text
+unauthorized deployment
+```
+
+without having authority or capability to remove it.
+
+---
+
+## REQ-REC-066 — Unauthorized native changes SHOULD produce an explicit governance finding or equivalent obligation
+
+---
+
+## REQ-REC-067 — Reconciliation SHOULD preserve the actual native state even when it violates policy
+
+Monad must model reality, not merely desired reality.
+
+---
+
+# Desired state versus observed state
+
+## REQ-REC-068 — Monad SHOULD distinguish desired state from observed state
+
+Example:
+
+```text
+desired:
+  replicas: 3
+
+observed:
+  replicas: 2
+```
+
+---
+
+## REQ-REC-069 — Desired state MUST NOT overwrite observed state merely to make the model appear consistent
+
+---
+
+## REQ-REC-070 — Reconciliation MAY drive observed state toward desired state when authority and capability permit
+
+---
+
+## REQ-REC-071 — Failed convergence SHOULD leave the mismatch visible
+
+---
+
+# Canonical and derived state
+
+## REQ-REC-072 — Derived state SHOULD be reconcilable against its authoritative source
+
+---
+
+## REQ-REC-073 — Generated projections SHOULD NOT silently become authoritative because they are easier to inspect
+
+---
+
+## REQ-REC-074 — When derived state diverges from canonical state, canonical authority SHOULD normally prevail unless policy explicitly defines otherwise
+
+---
+
+## REQ-REC-075 — Regeneration SHOULD preserve semantic identity where the underlying Subject remains unchanged
+
+---
+
+# Bidirectional reconciliation
+
+## REQ-REC-076 — Bidirectional synchronization SHOULD only be used where ownership and conflict semantics are explicit
+
+Bidirectional systems multiply ambiguity.
+
+---
+
+## REQ-REC-077 — Bidirectional reconciliation SHOULD identify the direction of every resulting mutation
+
+---
+
+## REQ-REC-078 — Bidirectional reconciliation SHOULD guard against feedback loops
+
+Example:
+
+```text
+Monad updates GitHub
+GitHub event updates Monad
+Monad interprets update as new intent
+Monad updates GitHub again
+```
+
+---
+
+## REQ-REC-079 — Echoed events SHOULD be distinguishable from genuinely new external changes where practical
+
+---
+
+# One-way projections
+
+## REQ-REC-080 — One-way projections SHOULD declare their source of authority
+
+---
+
+## REQ-REC-081 — One-way projections SHOULD expose staleness
+
+---
+
+## REQ-REC-082 — Editing a derived projection SHOULD either be rejected, explicitly promoted into authoritative input, or treated as divergence according to policy
+
+---
+
+# Reconciliation actions
+
+## REQ-REC-083 — Reconciliation SHOULD support multiple remediation outcomes
+
+Possible actions include:
+
+* accept native state,
+* restore modeled state,
+* update semantic interpretation,
+* regenerate projection,
+* retry operation,
+* create conflict,
+* escalate,
+* create work item,
+* request approval,
+* defer,
+* ignore with rationale,
+* record accepted divergence,
+* perform no action.
+
+---
+
+## REQ-REC-084 — Reconciliation action SHOULD be distinct from reconciliation finding
+
+---
+
+## REQ-REC-085 — Automatic remediation SHOULD require appropriate authority
+
+---
+
+## REQ-REC-086 — Automatic remediation SHOULD require appropriate capability
+
+---
+
+## REQ-REC-087 — Capability without authority MUST NOT permit automatic remediation
+
+---
+
+## REQ-REC-088 — Authority without capability SHOULD produce a visible inability-to-remediate state rather than pretending resolution
+
+---
+
+# Reconciliation plans
+
+## REQ-REC-089 — Consequential reconciliation MAY require an explicit plan before mutation
+
+A plan MAY identify:
+
+* divergence,
+* target state,
+* selected authority,
+* intended operations,
+* risks,
+* required approvals,
+* verification,
+* rollback or compensation,
+* native systems involved.
+
+---
+
+## REQ-REC-090 — Reconciliation plans SHOULD be revision-aware
+
+If relevant state changes after planning, the plan SHOULD be revalidated.
+
+---
+
+# Pre-mutation revalidation
+
+## REQ-REC-091 — Reconciliation SHOULD re-observe relevant state immediately before consequential mutation where stale-state risk exists
+
+---
+
+## REQ-REC-092 — Changed preconditions SHOULD invalidate or revise the planned reconciliation action
+
+---
+
+## REQ-REC-093 — Monad SHOULD defend against time-of-check/time-of-use reconciliation errors
+
+---
+
+# Reconciliation execution
+
+## REQ-REC-094 — Reconciliation mutations SHOULD use the same governed execution boundary as other consequential operations
+
+---
+
+## REQ-REC-095 — Reconciliation execution SHOULD preserve native operation provenance
+
+---
+
+## REQ-REC-096 — Reconciliation execution SHOULD expose partial success
+
+---
+
+## REQ-REC-097 — Successful API response MUST NOT automatically mean reconciliation succeeded
+
+Post-operation observation may still show divergence.
+
+---
+
+# Post-action verification
+
+## REQ-REC-098 — Reconciliation that mutates state SHOULD ordinarily re-observe the affected native state
+
+---
+
+## REQ-REC-099 — Reconciliation SHOULD verify whether the intended convergence actually occurred
+
+---
+
+## REQ-REC-100 — Failed post-action convergence SHOULD remain explicit
+
+Example:
+
+```text
+mutation:
+  success
+
+re-observation:
+  remote state unchanged
+
+reconciliation:
+  unresolved
+```
+
+---
+
+# Partial failure
+
+## REQ-REC-101 — Multi-system reconciliation MUST represent partial failure explicitly
+
+Example:
+
+```text
+GitHub updated: yes
+registry updated: yes
+deployment platform updated: no
+```
+
+This is not:
+
+```text
+reconciliation complete
+```
+
+---
+
+## REQ-REC-102 — Partial reconciliation SHOULD preserve which operations succeeded and failed
+
+---
+
+## REQ-REC-103 — Retry SHOULD target unresolved operations where safe
+
+---
+
+## REQ-REC-104 — Retry MUST NOT blindly repeat already successful non-idempotent operations
+
+---
+
+## REQ-REC-105 — Compensation MAY be required when atomic convergence is impossible
+
+---
+
+# Idempotency
+
+## REQ-REC-106 — Reconciliation operations SHOULD be idempotent where practical
+
+---
+
+## REQ-REC-107 — Non-idempotent operations SHOULD declare that property
+
+---
+
+## REQ-REC-108 — Retry logic SHOULD account for uncertainty about whether a prior operation completed
+
+---
+
+# Eventual consistency
+
+## REQ-REC-109 — Reconciliation SHOULD support systems with eventual consistency
+
+---
+
+## REQ-REC-110 — Temporary divergence caused by propagation delay SHOULD remain distinguishable from persistent conflict
+
+---
+
+## REQ-REC-111 — Reconciliation MAY defer judgment until a bounded consistency window expires
+
+---
+
+## REQ-REC-112 — Consistency windows SHOULD be explicit where they materially affect interpretation
+
+---
+
+# Polling and events
+
+## REQ-REC-113 — Reconciliation MAY be driven by events, polling, explicit commands, or combinations thereof
+
+---
+
+## REQ-REC-114 — Event receipt SHOULD NOT automatically be treated as complete native truth
+
+Events may be:
+
+* delayed,
+* duplicated,
+* reordered,
+* lost,
+* partial.
+
+---
+
+## REQ-REC-115 — Periodic authoritative observation SHOULD be available where event streams alone cannot guarantee convergence
+
+---
+
+## REQ-REC-116 — Duplicate events SHOULD be handled safely
+
+---
+
+## REQ-REC-117 — Event ordering assumptions SHOULD be explicit
+
+---
+
+# Event identity
+
+## REQ-REC-118 — Native events SHOULD preserve native event identity where available
+
+---
+
+## REQ-REC-119 — Replayed events SHOULD be distinguishable from newly produced events where the provider exposes that distinction
+
+---
+
+# Reconciliation history
+
+## REQ-REC-120 — Reconciliation history SHOULD remain inspectable
+
+---
+
+## REQ-REC-121 — Historical divergence SHOULD NOT disappear merely because current state converged
+
+---
+
+## REQ-REC-122 — Engineers SHOULD be able to determine:
+
+* what diverged,
+* when it was observed,
+* what caused or likely caused it,
+* what authority applied,
+* what action was taken,
+* whether convergence succeeded,
+* and what Evidence supports that conclusion.
+
+---
+
+# Reconciliation provenance
+
+## REQ-REC-123 — Reconciliation SHOULD preserve relevant provenance for observations
+
+---
+
+## REQ-REC-124 — Reconciliation SHOULD preserve relevant provenance for decisions
+
+---
+
+## REQ-REC-125 — Reconciliation SHOULD preserve relevant provenance for mutations
+
+---
+
+## REQ-REC-126 — Automated reconciliation SHOULD identify the executing Actor or system
+
+---
+
+# Cause versus chronology
+
+## REQ-REC-127 — Reconciliation MUST distinguish observed temporal ordering from demonstrated causality
+
+Example:
+
+```text
+GitHub issue changed
+then
+Monad state changed
+```
+
+does not necessarily prove that the GitHub change caused the Monad change.
+
+---
+
+## REQ-REC-128 — Causal claims SHOULD require supporting Evidence where consequential
+
+---
+
+# Reconciliation and semantic identity
+
+## REQ-REC-129 — Reconciliation SHOULD use stable semantic identity when comparing representations of the same Subject
+
+---
+
+## REQ-REC-130 — File rename SHOULD NOT automatically produce semantic deletion plus creation
+
+---
+
+## REQ-REC-131 — Native reference changes SHOULD be capable of updating Representation bindings without changing Subject identity
+
+---
+
+## REQ-REC-132 — Ambiguous identity matches SHOULD be surfaced rather than automatically merged where the consequence is material
+
+---
+
+# Split and merge identity
+
+## REQ-REC-133 — Reconciliation SHOULD support identity split and merge scenarios once the domain model requires them
+
+Examples include:
+
+```text
+one historical Subject
+    ↓
+split into
+Subject A + Subject B
+```
+
+or:
+
+```text
+Subject A + Subject B
+    ↓
+merged into
+Subject C
+```
+
+---
+
+## REQ-REC-134 — Identity split or merge SHOULD preserve historical relationships
+
+---
+
+## REQ-REC-135 — Reconciliation MUST NOT silently infer irreversible identity merges without sufficient confidence or confirmation
+
+---
+
+# Missing state
+
+## REQ-REC-136 — Missing native state SHOULD be interpreted according to native semantics
+
+A missing resource may mean:
+
+* deleted,
+* moved,
+* renamed,
+* unavailable,
+* inaccessible,
+* filtered,
+* archived,
+* expired,
+* never existed.
+
+---
+
+## REQ-REC-137 — Reconciliation SHOULD avoid collapsing all missing observations into deletion
+
+---
+
+## REQ-REC-138 — Deletion Claims SHOULD be supported by sufficient observation where consequential
+
+---
+
+# Deletion and tombstones
+
+## REQ-REC-139 — Deleted semantic or native entities MAY require durable tombstones
+
+---
+
+## REQ-REC-140 — Tombstones SHOULD preserve enough identity to prevent accidental recreation or ambiguity where necessary
+
+---
+
+## REQ-REC-141 — Native deletion SHOULD NOT necessarily imply deletion of the semantic Subject
+
+A Representation may disappear while the Subject persists.
+
+---
+
+# Rename and move
+
+## REQ-REC-142 — Rename and move SHOULD be distinguishable from deletion and recreation where identity can be established
+
+---
+
+## REQ-REC-143 — Reconciliation SHOULD preserve native history where available to improve rename detection
+
+---
+
+## REQ-REC-144 — Rename heuristics SHOULD NOT silently establish semantic identity when confidence is insufficient
+
+---
+
+# Reconciliation and representations
+
+## REQ-REC-145 — Multiple Representations of one Subject SHOULD be reconcilable independently
+
+Example:
+
+```text
+Subject:
+  ADR-004
+
+Representations:
+  Markdown file
+  generated website page
+  graph record
+  GitHub discussion
+```
+
+---
+
+## REQ-REC-146 — Representation divergence MUST NOT automatically imply Subject divergence
+
+---
+
+## REQ-REC-147 — Representation-specific properties SHOULD remain distinct from Subject-level Claims
+
+---
+
+# Reconciliation and Claims
+
+## REQ-REC-148 — Reconciliation SHOULD compare Claims, not merely values, where provenance and authority matter
+
+Two identical values from different sources may have different semantic standing.
+
+---
+
+## REQ-REC-149 — Conflicting Claims SHOULD preserve their producers and sources
+
+---
+
+## REQ-REC-150 — Reconciliation SHOULD allow one Claim to supersede another without deleting history
+
+---
+
+# Reconciliation and Evidence
+
+## REQ-REC-151 — Consequential reconciliation conclusions SHOULD be supported by inspectable Evidence
+
+---
+
+## REQ-REC-152 — Evidence SHOULD include relevant before-and-after state where mutation occurs
+
+---
+
+## REQ-REC-153 — Native responses SHOULD be preserved or referenced when useful for forensic analysis
+
+---
+
+## REQ-REC-154 — Evidence supporting reconciliation SHOULD identify the observed revision where applicable
+
+---
+
+# Reconciliation and verification
+
+## REQ-REC-155 — Reconciliation success SHOULD be verifiable
+
+---
+
+## REQ-REC-156 — Agreement between modeled and native state MAY satisfy a reconciliation-specific expectation
+
+---
+
+## REQ-REC-157 — Reconciliation success MUST NOT automatically satisfy broader Requirements
+
+---
+
+# Reconciliation and policies
+
+## REQ-REC-158 — Policies MAY determine permissible reconciliation actions
+
+---
+
+## REQ-REC-159 — Policies MAY require escalation for certain divergence classes
+
+---
+
+## REQ-REC-160 — Policies MAY prohibit automatic overwrite of externally authored state
+
+---
+
+## REQ-REC-161 — Policies SHOULD be reevaluated when relevant state changes before action
+
+---
+
+# Reconciliation and approval
+
+## REQ-REC-162 — Consequential reconciliation MAY require approval
+
+---
+
+## REQ-REC-163 — Approval SHOULD bind to the divergence and proposed resolution being approved
+
+---
+
+## REQ-REC-164 — Materially changed divergence SHOULD invalidate stale approval where policy requires it
+
+---
+
+# Reconciliation and reviews
+
+## REQ-REC-165 — Persistent or high-risk divergence MAY trigger review
+
+---
+
+## REQ-REC-166 — Reconciliation conflicts MAY produce review Findings
+
+---
+
+## REQ-REC-167 — Review completion MUST NOT automatically resolve reconciliation conflict
+
+---
+
+# Reconciliation and decisions
+
+## REQ-REC-168 — Repeated reconciliation conflicts MAY reveal an unresolved architecture or authority Decision
+
+---
+
+## REQ-REC-169 — Architecture Decisions SHOULD define authoritative ownership where ambiguity would produce recurring conflicts
+
+---
+
+# Reconciliation and requirements
+
+## REQ-REC-170 — Requirements SHOULD define cross-system consistency expectations where those expectations matter
+
+---
+
+## REQ-REC-171 — Reconciliation SHOULD expose when consistency Requirements cannot currently be established
+
+---
+
+# Reconciliation and releases
+
+## REQ-REC-172 — Release publication SHOULD be reconciled against native registries or distribution systems where appropriate
+
+---
+
+## REQ-REC-173 — A release record MUST NOT claim successful publication solely because a publish operation was requested
+
+---
+
+## REQ-REC-174 — Partial publication across multiple registries SHOULD remain explicit
+
+---
+
+## REQ-REC-175 — Release withdrawal or yanking SHOULD be reconciled from the actual native systems
+
+---
+
+# Reconciliation and deployments
+
+## REQ-REC-176 — Deployment records SHOULD distinguish intended deployment state from observed deployment-platform state
+
+---
+
+## REQ-REC-177 — Successful release SHOULD NOT imply successful deployment
+
+---
+
+## REQ-REC-178 — Deployment rollback SHOULD be reconciled against the actual running or activated state
+
+---
+
+# Reconciliation and filesystems
+
+## REQ-REC-179 — Filesystem reconciliation SHOULD support externally authored edits
+
+---
+
+## REQ-REC-180 — Direct source edits SHOULD NOT be considered corruption merely because they bypassed Monad
+
+---
+
+## REQ-REC-181 — Filesystem observations SHOULD account for files that are:
+
+* moved,
+* renamed,
+* deleted,
+* generated,
+* ignored,
+* transient,
+* symlinked,
+* untracked,
+* or external to the repository.
+
+---
+
+## REQ-REC-182 — Generated files SHOULD be distinguishable from authored files where governance depends on that distinction
+
+---
+
+# Reconciliation and Git
+
+## REQ-REC-183 — Git reconciliation SHOULD preserve immutable commit identity
+
+---
+
+## REQ-REC-184 — Branch movement SHOULD remain distinct from commit mutation
+
+---
+
+## REQ-REC-185 — Force-push SHOULD be detectable where relevant to governed history
+
+---
+
+## REQ-REC-186 — Deleted refs SHOULD NOT erase previously observed commits from Monad history
+
+---
+
+## REQ-REC-187 — Working-tree state SHOULD remain distinct from committed repository state where applicable
+
+---
+
+# Reconciliation and issue trackers
+
+## REQ-REC-188 — Issue reconciliation SHOULD preserve native issue identity
+
+---
+
+## REQ-REC-189 — Issue lifecycle state SHOULD normally reflect the native tracker where the tracker owns lifecycle state
+
+---
+
+## REQ-REC-190 — Monad-specific semantic classification MAY coexist with native labels and fields
+
+---
+
+## REQ-REC-191 — Native tracker changes SHOULD be incorporable without recreating semantic Subjects unnecessarily
+
+---
+
+# Reconciliation and CI
+
+## REQ-REC-192 — CI reconciliation SHOULD observe actual run state
+
+---
+
+## REQ-REC-193 — Missing CI results MUST NOT automatically be interpreted as failure
+
+---
+
+## REQ-REC-194 — Re-run identity SHOULD remain distinct from the original run where the provider exposes separate run identity
+
+---
+
+## REQ-REC-195 — CI status SHOULD remain Evidence, not universal correctness
+
+---
+
+# Reconciliation and registries
+
+## REQ-REC-196 — Package publication SHOULD be verified by observing the target registry where practical
+
+---
+
+## REQ-REC-197 — Package version identity SHOULD remain distinct from immutable package content identity where the registry supports digests
+
+---
+
+## REQ-REC-198 — Mutable registry metadata SHOULD NOT silently alter the identity of previously observed package bytes
+
+---
+
+# Reconciliation and infrastructure
+
+## REQ-REC-199 — Infrastructure reconciliation SHOULD distinguish desired configuration from provider-observed state
+
+---
+
+## REQ-REC-200 — Provider drift SHOULD remain visible even when the declarative configuration has not changed
+
+---
+
+## REQ-REC-201 — Infrastructure import SHOULD preserve native identity where possible
+
+---
+
+# Reconciliation and databases
+
+## REQ-REC-202 — Database reconciliation SHOULD distinguish schema state from data state
+
+---
+
+## REQ-REC-203 — Schema agreement MUST NOT imply data equivalence
+
+---
+
+## REQ-REC-204 — Data reconciliation SHOULD define meaningful comparison scope rather than assuming full byte equality where unnecessary
+
+---
+
+# Reconciliation and documentation
+
+## REQ-REC-205 — Generated documentation SHOULD be reconcilable with authoritative source material
+
+---
+
+## REQ-REC-206 — Documentation staleness SHOULD be distinguishable from documentation incorrectness
+
+---
+
+## REQ-REC-207 — Human-authored documentation SHOULD NOT automatically be overwritten by generated content unless authority rules explicitly permit it
+
+---
+
+# AI-assisted reconciliation
+
+## REQ-REC-208 — AI MAY assist reconciliation analysis
+
+AI may help:
+
+* classify divergence,
+* infer likely identity matches,
+* summarize conflicts,
+* suggest remediation,
+* detect suspicious relationships,
+* explain provider differences.
+
+---
+
+## REQ-REC-209 — AI-inferred reconciliation conclusions SHOULD remain distinguishable from confirmed conclusions
+
+---
+
+## REQ-REC-210 — AI SHOULD NOT silently merge Subjects based solely on semantic similarity
+
+---
+
+## REQ-REC-211 — AI SHOULD NOT silently choose authority where governance does not define it
+
+---
+
+## REQ-REC-212 — AI-suggested remediation SHOULD remain subject to the same authority and policy rules as human-suggested remediation
+
+---
+
+# AI reconciliation actions
+
+## REQ-REC-213 — AI MAY execute reconciliation actions only when explicitly granted the necessary capability and authority
+
+---
+
+## REQ-REC-214 — AI capability MUST NOT imply blanket reconciliation authority
+
+---
+
+## REQ-REC-215 — High-consequence AI reconciliation SHOULD support bounded scope
+
+For example:
+
+```text
+may reconcile:
+  generated documentation
+
+may not reconcile:
+  production deployment
+  release publication
+  authority records
+```
+
+---
+
+## REQ-REC-216 — AI reconciliation SHOULD preserve the context used to choose the action where consequential
+
+---
+
+# Human reconciliation
+
+## REQ-REC-217 — Human resolution SHOULD preserve the resolver identity where consequential
+
+---
+
+## REQ-REC-218 — Human resolution SHOULD preserve rationale for ambiguous conflicts
+
+---
+
+## REQ-REC-219 — Human resolution MUST NOT rewrite historical observations merely because the conflict is inconvenient
+
+---
+
+# Reconciliation frequency
+
+## REQ-REC-220 — Reconciliation frequency SHOULD reflect the rate and consequence of native-state change
+
+---
+
+## REQ-REC-221 — High-frequency polling SHOULD NOT be required where event-driven or lower-frequency reconciliation provides sufficient assurance
+
+---
+
+## REQ-REC-222 — Low-frequency reconciliation SHOULD NOT create unacceptable periods of false confidence
+
+---
+
+# On-demand reconciliation
+
+## REQ-REC-223 — Users SHOULD be able to request reconciliation of an identifiable scope where practical
+
+Examples:
+
+```text
+repository
+release
+issue
+deployment
+artifact
+Subject
+integration
+```
+
+---
+
+## REQ-REC-224 — On-demand reconciliation SHOULD expose what was checked
+
+---
+
+# Continuous reconciliation
+
+## REQ-REC-225 — Monad MAY support continuous reconciliation
+
+---
+
+## REQ-REC-226 — Continuous reconciliation SHOULD avoid unnecessary mutation churn
+
+---
+
+## REQ-REC-227 — Repeated stable agreement SHOULD be aggregatable without losing meaningful historical transitions
+
+---
+
+# Reconciliation performance
+
+## REQ-REC-228 — Large-scale reconciliation SHOULD support incremental comparison where practical
+
+---
+
+## REQ-REC-229 — Unchanged native state SHOULD NOT require complete reprocessing when reliable change detection exists
+
+---
+
+## REQ-REC-230 — Incremental reconciliation MUST preserve correctness relative to full reconciliation
+
+---
+
+# Reconciliation batching
+
+## REQ-REC-231 — Reconciliation MAY batch related observations or actions
+
+---
+
+## REQ-REC-232 — Batch failure SHOULD preserve item-level outcomes where material
+
+---
+
+## REQ-REC-233 — A partially successful batch MUST NOT appear wholly successful
+
+---
+
+# Reconciliation concurrency
+
+## REQ-REC-234 — Reconciliation SHOULD account for concurrent native changes
+
+---
+
+## REQ-REC-235 — Concurrency conflicts SHOULD be detectable where the provider supports revision checks
+
+---
+
+## REQ-REC-236 — Optimistic concurrency SHOULD use immutable revisions, etags, versions, or equivalent mechanisms where available
+
+---
+
+## REQ-REC-237 — Failed concurrency preconditions SHOULD trigger re-observation rather than blind overwrite
+
+---
+
+# Reconciliation locks
+
+## REQ-REC-238 — Monad SHOULD avoid global reconciliation locks unless clearly justified
+
+---
+
+## REQ-REC-239 — Fine-grained coordination MAY be used where concurrent reconciliation would produce unsafe results
+
+---
+
+# Reconciliation recovery
+
+## REQ-REC-240 — Interrupted reconciliation SHOULD be resumable or safely restartable where practical
+
+---
+
+## REQ-REC-241 — Recovery SHOULD distinguish:
+
+```text
+not-started
+in-progress
+completed
+failed
+unknown
+```
+
+where native semantics allow.
+
+---
+
+## REQ-REC-242 — Unknown operation outcome SHOULD trigger observation before retry where duplicate execution could be harmful
+
+---
+
+# Reconciliation checkpoints
+
+## REQ-REC-243 — Long-running reconciliation MAY persist progress checkpoints
+
+---
+
+## REQ-REC-244 — Checkpoints SHOULD be revision-aware
+
+---
+
+## REQ-REC-245 — Resuming from a checkpoint SHOULD revalidate stale assumptions
+
+---
+
+# Reconciliation errors
+
+## REQ-REC-246 — Reconciliation errors SHOULD use structured categories where practical
+
+Possible categories include:
+
+* observation failure,
+* authentication failure,
+* authorization failure,
+* transport failure,
+* provider failure,
+* invalid native state,
+* identity ambiguity,
+* authority ambiguity,
+* conflict,
+* stale revision,
+* policy denial,
+* execution failure,
+* verification failure,
+* partial failure,
+* unsupported capability.
+
+---
+
+## REQ-REC-247 — Provider-specific errors SHOULD preserve native details while allowing normalized interpretation
+
+---
+
+# Unknown state
+
+## REQ-REC-248 — Unknown state MUST be a first-class possibility
+
+Monad SHOULD resist converting:
+
+```text
+unknown
+```
+
+into:
+
+```text
+false
+missing
+failed
+unhealthy
+unauthorized
+```
+
+without Evidence.
+
+---
+
+## REQ-REC-249 — Unknown reconciliation state SHOULD remain queryable
+
+---
+
+## REQ-REC-250 — Governance MAY treat unknown conservatively for high-risk actions without redefining unknown as false
+
+---
+
+# Accepted divergence
+
+## REQ-REC-251 — Monad SHOULD support intentional divergence where systems are not required to match
+
+---
+
+## REQ-REC-252 — Accepted divergence SHOULD record its scope
+
+---
+
+## REQ-REC-253 — Accepted divergence SHOULD record rationale where consequential
+
+---
+
+## REQ-REC-254 — Accepted divergence MAY have expiry or review conditions
+
+---
+
+## REQ-REC-255 — Accepted divergence MUST NOT be reported as accidental conflict
+
+---
+
+# Reconciliation exceptions
+
+## REQ-REC-256 — Reconciliation policy MAY permit exceptions
+
+---
+
+## REQ-REC-257 — Exceptions SHOULD preserve:
+
+* reason,
+* scope,
+* authority,
+* expiry,
+* affected systems,
+* known risk.
+
+---
+
+## REQ-REC-258 — Exception MUST NOT erase the underlying divergence
+
+---
+
+# Reconciliation security
+
+## REQ-REC-259 — Reconciliation SHOULD use the minimum native privileges required
+
+---
+
+## REQ-REC-260 — Read capability SHOULD be separable from write capability
+
+---
+
+## REQ-REC-261 — Observation SHOULD NOT require mutation privileges where the provider permits separation
+
+---
+
+## REQ-REC-262 — Secrets used for reconciliation MUST be protected according to applicable security policy
+
+---
+
+## REQ-REC-263 — Sensitive native state SHOULD support redaction where appropriate
+
+---
+
+# Reconciliation auditability
+
+## REQ-REC-264 — Consequential reconciliation SHOULD be auditable
+
+An engineer SHOULD be able to determine:
+
+```text
+who observed
+what was observed
+which revisions were involved
+what differed
+which authority applied
+what action was proposed
+who approved
+what executed
+what succeeded
+what failed
+what state existed afterward
+```
+
+---
+
+# Reconciliation portability
+
+## REQ-REC-265 — Core reconciliation semantics SHOULD remain provider-neutral
+
+---
+
+## REQ-REC-266 — Provider-specific adapters MAY expose provider-specific capabilities
+
+---
+
+## REQ-REC-267 — Provider-neutral abstraction MUST NOT erase important native semantics
+
+---
+
+## REQ-REC-268 — Native references SHOULD remain available even when normalized representations exist
+
+---
+
+# Adapter requirements
+
+## REQ-REC-269 — Integration adapters SHOULD expose capability boundaries explicitly
+
+Examples include:
+
+```text
+observe
+create
+update
+delete
+list
+subscribe
+reconcile
+```
+
+---
+
+## REQ-REC-270 — Adapter capability MUST remain distinct from actor authorization
+
+---
+
+## REQ-REC-271 — Adapter failures SHOULD preserve provider-native error context
+
+---
+
+## REQ-REC-272 — Adapter translation SHOULD be testable
+
+---
+
+## REQ-REC-273 — Adapter upgrades SHOULD trigger compatibility verification where relevant
+
+---
+
+# Reconciliation testability
+
+## REQ-REC-274 — Reconciliation logic SHOULD be testable without requiring destructive access to production systems
+
+---
+
+## REQ-REC-275 — Adapters SHOULD support fixtures, mocks, sandboxes, or test environments where practical
+
+---
+
+## REQ-REC-276 — Reconciliation tests SHOULD include:
+
+* no divergence,
+* local-only change,
+* native-only change,
+* both changed,
+* authority conflict,
+* stale observation,
+* partial failure,
+* retry,
+* inaccessible resource,
+* resource deletion,
+* rename,
+* identity ambiguity,
+* unauthorized change,
+* eventual consistency,
+* duplicate event,
+* reordered event,
+* provider failure.
+
+---
+
+# Reconciliation simulation
+
+## REQ-REC-277 — Consequential reconciliation SHOULD support dry-run or plan-only behavior where practical
+
+---
+
+## REQ-REC-278 — Dry-run MUST NOT claim mutation occurred
+
+---
+
+## REQ-REC-279 — Dry-run SHOULD identify assumptions that could change before actual execution
+
+---
+
+# Reconciliation observability
+
+## REQ-REC-280 — Reconciliation SHOULD expose operational state sufficient for diagnosis
+
+Useful information may include:
+
+* last successful observation,
+* last successful reconciliation,
+* unresolved divergences,
+* retry state,
+* provider health,
+* stale integrations,
+* queued work,
+* partial failures.
+
+---
+
+## REQ-REC-281 — Operational metrics SHOULD distinguish reconciliation volume from reconciliation quality
+
+High activity may indicate instability rather than success.
+
+---
+
+# Reconciliation metrics
+
+## REQ-REC-282 — Useful metrics MAY include:
+
+* divergence detection latency,
+* reconciliation completion latency,
+* unresolved conflict count,
+* stale observation age,
+* retry rate,
+* partial failure rate,
+* externally authored change rate,
+* reconciliation repair success,
+* recurrent divergence rate.
+
+---
+
+## REQ-REC-283 — Zero divergence SHOULD NOT automatically be treated as a positive metric
+
+Zero divergence could mean:
+
+* systems truly agree,
+* reconciliation is excellent,
+* observation is broken,
+* integration is disabled,
+* differences are being ignored.
+
+---
+
+# Reconciliation loops
+
+## REQ-REC-284 — Monad SHOULD detect recurring reconciliation loops
+
+Example:
+
+```text
+Monad sets A
+native automation sets B
+Monad restores A
+native automation restores B
+...
+```
+
+---
+
+## REQ-REC-285 — Repeated oscillation SHOULD trigger escalation rather than infinite mutation
+
+---
+
+## REQ-REC-286 — Recurrent conflict SHOULD encourage correction of underlying ownership or policy rather than permanent operational churn
+
+---
+
+# Reconciliation drift
+
+## REQ-REC-287 — Drift SHOULD remain distinguishable from intentional change
+
+---
+
+## REQ-REC-288 — Repeated drift SHOULD be traceable to likely producers where provenance permits
+
+---
+
+## REQ-REC-289 — Drift detection SHOULD preserve the state from which drift was measured
+
+---
+
+# Reconciliation and lifecycle
+
+## REQ-REC-290 — Reconciliation MAY trigger lifecycle transitions
+
+Examples:
+
+```text
+active → stale
+verified → needs-reverification
+released → withdrawn
+binding → broken
+integration → degraded
+```
+
+---
+
+## REQ-REC-291 — Lifecycle transitions triggered by reconciliation SHOULD preserve their cause
+
+---
+
+# Reconciliation and traceability
+
+## REQ-REC-292 — Reconciliation findings SHOULD be traceable to affected Subjects and native references
+
+---
+
+## REQ-REC-293 — Remediation SHOULD be traceable back to the divergence that motivated it
+
+Example:
+
+```text
+Observed divergence
+      ↓
+Reconciliation finding
+      ↓
+Review / Decision
+      ↓
+Work Package
+      ↓
+Execution
+      ↓
+Verification
+      ↓
+Resolved divergence
+```
+
+---
+
+# Reconciliation and historical truth
+
+## REQ-REC-294 — Monad SHOULD preserve historical native state observations where they support important engineering Claims
+
+---
+
+## REQ-REC-295 — Current reconciliation MUST NOT rewrite historical native truth
+
+If a branch exists today and is deleted tomorrow, both facts may be historically true at different times.
+
+---
+
+## REQ-REC-296 — Reconciliation SHOULD distinguish:
+
+* what was true,
+* what was observed,
+* when it was observed,
+* when Monad learned it,
+* and what Monad currently believes.
+
+Where those distinctions matter.
+
+---
+
+# Reconciliation and current truth
+
+## REQ-REC-297 — Current state projections SHOULD prefer sufficiently fresh authoritative observations
+
+---
+
+## REQ-REC-298 — Conflicted or stale state SHOULD not silently appear authoritative and current
+
+---
+
+# Local-first reconciliation
+
+## REQ-REC-299 — Monad SHOULD preserve locally inspectable reconciliation state where practical
+
+---
+
+## REQ-REC-300 — Remote unavailability SHOULD NOT make all previously observed engineering state unusable
+
+---
+
+## REQ-REC-301 — Previously observed remote state SHOULD retain its observation time and freshness status while offline
+
+---
+
+## REQ-REC-302 — Offline mode MUST NOT fabricate successful reconciliation with unavailable systems
+
+---
+
+# Multi-repository reconciliation
+
+## REQ-REC-303 — Monad SHOULD support reconciliation across multiple repositories without requiring them to share one Git history
+
+---
+
+## REQ-REC-304 — Cross-repository relationships SHOULD use stable semantic identity rather than relative file paths alone
+
+---
+
+## REQ-REC-305 — Repository moves or ownership transfers SHOULD be capable of preserving semantic relationships
+
+---
+
+# Multi-system transactions
+
+## REQ-REC-306 — Monad MUST NOT assume atomic transactions across independent native systems
+
+---
+
+## REQ-REC-307 — Cross-system operations SHOULD define failure and compensation semantics
+
+---
+
+## REQ-REC-308 — Partial cross-system convergence MUST remain visible
+
+---
+
+## REQ-REC-309 — Saga-like or compensating workflows MAY be used where appropriate
+
+---
+
+# Reconciliation consistency guarantees
+
+## REQ-REC-310 — Integrations SHOULD document the consistency guarantees they can realistically provide
+
+Possible guarantees include:
+
+* immediate,
+* read-after-write,
+* eventual,
+* best effort,
+* event-derived,
+* periodically reconciled.
+
+---
+
+## REQ-REC-311 — Monad MUST NOT present stronger consistency guarantees than the native systems permit
+
+---
+
+# Reconciliation ownership
+
+## REQ-REC-312 — Every automatic reconciliation relationship SHOULD have identifiable ownership
+
+Ownership may describe:
+
+* technical maintainer,
+* semantic authority,
+* operational responder,
+* escalation destination.
+
+---
+
+## REQ-REC-313 — Orphaned reconciliation relationships SHOULD be discoverable
+
+---
+
+# Reconciliation configuration
+
+## REQ-REC-314 — Reconciliation configuration SHOULD be versioned where behavior depends on it
+
+---
+
+## REQ-REC-315 — Configuration changes SHOULD be traceable to changed reconciliation behavior
+
+---
+
+## REQ-REC-316 — Invalid configuration SHOULD fail explicitly rather than silently disabling reconciliation
+
+---
+
+# Reconciliation rule evolution
+
+## REQ-REC-317 — Changes to authority or reconciliation rules SHOULD preserve historical interpretation where consequential
+
+---
+
+## REQ-REC-318 — A current rule SHOULD NOT be blindly projected backward onto historical conflicts
+
+---
+
+# Reconciliation indexes
+
+## REQ-REC-319 — Monad SHOULD support queries such as:
+
+* Which Subjects are currently divergent?
+* Which native integrations are stale?
+* Which divergences are unresolved?
+* Which conflicts require human review?
+* Which changes occurred outside Monad?
+* Which externally authored changes were accepted?
+* Which native states violate policy?
+* Which reconciliation attempts partially failed?
+* Which resources could not be observed?
+* Which Subjects have ambiguous identity?
+* Which projections are stale?
+* Which integrations are repeatedly oscillating?
+* Which divergences have accepted exceptions?
+* Which reconciliation results triggered reverification?
+* Which native Claims contradict Monad Claims?
+* Which authoritative Claims conflict?
+* Which systems have not reconciled recently?
+* Which remediations remain unverified?
+
+---
+
+# Minimum reconciliation model
+
+A minimal reconciliation record might resemble:
+
+```yaml
+id: REC-0042
+
+subject: SUBJ-018
+
+local_state:
+  revision: 81d91ef
+
+native_state:
+  provider: github
+  native_ref: issue:42
+  observed_at: 2026-08-28T18:40:00Z
+
+classification: changed-native
+
+authority:
+  lifecycle_state: native
+
+resolution:
+  action: accept-native
+
+result: converged
+```
+
+This is illustrative only.
+
+The final schema may differ.
+
+---
+
+# Rich reconciliation example
+
+```yaml
+id: REC-0042
+
+subject:
+  id: SUBJ-018
+  type: work-item
+
+native_reference:
+  provider: github
+  repository: monad-framework/monad
+  issue: 42
+
+observed_native_state:
+  state: closed
+  observed_at: 2026-08-28T18:40:00Z
+
+modeled_state:
+  state: open
+  revision: MODEL-8821
+
+divergence:
+  property: lifecycle_state
+  classification: changed-native
+
+authority:
+  property: lifecycle_state
+  source: github
+
+resolution:
+  action: update-model
+  status: completed
+
+provenance:
+  native_actor: github-user:maintainer
+  reconciler: monad-reconciler
+
+verification:
+  reobserved_native_state: closed
+  modeled_state_after: closed
+
+result:
+  status: converged
+```
+
+The important point is not the serialization.
+
+The important point is that Monad can explain:
+
+```text
+what differed
+why it differed
+which source had authority
+what action occurred
+whether convergence actually happened
+```
+
+---
+
+# Conflict example
+
+Suppose:
+
+```text
+Monad:
+  owner = Team Alpha
+
+native project system:
+  owner = Team Beta
+```
+
+and governance says both sources are authoritative for ownership.
+
+Monad should not perform:
+
+```text
+last-write-wins
+```
+
+Instead:
+
+```text
+classification:
+  authority-conflict
+
+state:
+  unresolved
+
+required-action:
+  resolve ownership authority
+```
+
+The real defect is the authority model.
+
+---
+
+# Valid external change example
+
+A developer closes an issue directly in GitHub.
+
+```text
+GitHub:
+  issue #42 = closed
+
+Monad:
+  issue #42 = open
+```
+
+If GitHub is authoritative for native issue lifecycle:
+
+```text
+classification:
+  changed-native
+
+interpretation:
+  valid external change
+
+action:
+  update Monad state
+
+result:
+  converged
+```
+
+The direct GitHub action is not inherently a governance failure.
+
+---
+
+# Unauthorized change example
+
+Suppose production policy requires release approval.
+
+An operator deploys an unapproved artifact directly through the deployment platform.
+
+Observed state:
+
+```text
+Monad desired:
+  release 1.8.0
+
+deployment platform:
+  release 1.9.0-dev
+```
+
+Reconciliation should preserve:
+
+```text
+actual production state:
+  1.9.0-dev
+
+governance state:
+  unauthorized
+
+reconciliation state:
+  divergent
+```
+
+It MUST NOT overwrite the observation with the desired state.
+
+Whether Monad automatically rolls back depends on separate:
+
+* authority,
+* capability,
+* policy,
+* risk,
+* and execution rules.
+
+---
+
+# Partial publication example
+
+A coordinated release publishes three packages:
+
+```text
+package-a → npm: success
+package-b → npm: success
+package-c → npm: failed
+```
+
+The release process MUST NOT conclude:
+
+```text
+publication successful
+```
+
+Reconciliation should expose:
+
+```text
+release publication:
+  partial
+
+published:
+  package-a
+  package-b
+
+not-published:
+  package-c
+```
+
+Further action may involve:
+
+* retry,
+* compensating publication,
+* yanking successful packages,
+* creating a new release,
+* or explicitly accepting the partial state.
+
+---
+
+# Rename example
+
+Before:
+
+```text
+docs/architecture.md
+    ↓ represents
+Subject: architecture-overview
+```
+
+After:
+
+```text
+content/docs/system/architecture.mdx
+    ↓ represents
+Subject: architecture-overview
+```
+
+Reconciliation SHOULD update the Representation binding.
+
+It SHOULD NOT automatically produce:
+
+```text
+delete Subject A
+create Subject B
+```
+
+---
+
+# Ambiguous identity example
+
+Two new files appear:
+
+```text
+architecture-old.md
+architecture-current.md
+```
+
+Both resemble the prior architecture Subject.
+
+If identity cannot be established confidently:
+
+```text
+identity:
+  ambiguous
+
+candidate-bindings:
+  architecture-old.md
+  architecture-current.md
+
+action:
+  require confirmation
+```
+
+is preferable to an irreversible automatic merge.
+
+---
+
+# Eventual consistency example
+
+A registry publish returns success.
+
+Immediate read:
+
+```text
+package not found
+```
+
+Five seconds later:
+
+```text
+package found
+```
+
+Reconciliation should understand the registry's consistency model before declaring publication failure.
+
+---
+
+# Reconciliation loop example
+
+```text
+Monad policy:
+  issue priority = high
+
+GitHub automation:
+  issue priority = medium
+
+Monad reconciliation:
+  high
+
+GitHub automation:
+  medium
+
+Monad:
+  high
+...
+```
+
+This should eventually become:
+
+```text
+reconciliation-loop detected
+```
+
+and trigger correction of:
+
+* ownership,
+* automation rules,
+* or policy.
+
+Infinite mutation is not convergence.
+
+---
+
+# Reconciliation anti-patterns
+
+## Last write wins
+
+Time alone does not establish authority.
+
+---
+
+## Monad always wins
+
+Monad does not own every native fact.
+
+---
+
+## Native always wins
+
+Native systems do not necessarily own semantic Claims.
+
+---
+
+## Difference means failure
+
+Some divergence is expected.
+
+---
+
+## Synchronize first, understand later
+
+This risks destroying valid state.
+
+---
+
+## Missing means deleted
+
+Observation may have failed.
+
+---
+
+## Permission denied means absent
+
+It does not.
+
+---
+
+## API call returned 200
+
+Execution success is not convergence.
+
+---
+
+## Retry everything
+
+Repeated non-idempotent actions may create further corruption.
+
+---
+
+## Rewrite history after conflict resolution
+
+Resolution should preserve how the conflict occurred.
+
+---
+
+## Generated output is canonical
+
+Derived state should not silently become authoritative.
+
+---
+
+## Newer state is better
+
+A newer unauthorized state may be less authoritative than an older governed one.
+
+---
+
+## Semantic identity equals path
+
+Renames then become false deletion and recreation.
+
+---
+
+## Bidirectional sync by default
+
+This creates unnecessary authority ambiguity and feedback loops.
+
+---
+
+## Events are truth
+
+Events can be lost, reordered, delayed, or duplicated.
+
+---
+
+## Zero drift means healthy
+
+Observation may simply be broken.
+
+---
+
+## Agreement means correct
+
+Two wrong systems can agree.
+
+---
+
+## AI similarity means same Subject
+
+Similarity is evidence for a candidate binding, not automatic identity.
+
+---
+
+# Progressive formalization
+
+Reconciliation can mature incrementally.
+
+## Stage 1 — Manual inspection
+
+Engineers compare native systems and Monad state manually.
+
+---
+
+## Stage 2 — Native observation
+
+Adapters can inspect native state reliably.
+
+---
+
+## Stage 3 — Divergence detection
+
+Monad identifies differences.
+
+---
+
+## Stage 4 — Authority-aware classification
+
+The system understands which side owns which properties.
+
+---
+
+## Stage 5 — Guided remediation
+
+Monad proposes actions but humans decide.
+
+---
+
+## Stage 6 — Governed automation
+
+Low-risk reconciliation can execute automatically.
+
+---
+
+## Stage 7 — Continuous reconciliation
+
+Events and periodic observation keep models current.
+
+---
+
+## Stage 8 — Impact-aware reconciliation
+
+Relevant divergence triggers:
+
+* reverification,
+* review,
+* lifecycle change,
+* release action,
+* or other downstream obligations.
+
+---
+
+## Stage 9 — Cross-system control loop
+
+Monad continuously reasons across semantic and native state without pretending to replace native systems.
+
+---
+
+# Minimal useful reconciliation system
+
+A useful first implementation may need only:
+
+```text
+Subject
+Native Reference
+Observed Native State
+Modeled State
+Divergence Classification
+Authority
+Resolution
+Result
+```
+
+plus enough provenance to understand what occurred.
+
+Further sophistication should be added only when engineering need justifies it.
+
+---
+
+# Reconciliation review checklist
+
+For a consequential reconciliation relationship, ask:
+
+1. What Subject is being reconciled?
+2. Which native system is involved?
+3. What native reference identifies the resource?
+4. What semantic identity applies?
+5. Which properties are compared?
+6. Which system owns each property?
+7. Is authority explicit?
+8. Could authority conflict?
+9. What modeled state exists?
+10. What native state was actually observed?
+11. When was it observed?
+12. Which native revision was observed?
+13. Is the observation fresh?
+14. Could observation be partial?
+15. Could permission failure look like absence?
+16. Could network failure look like deletion?
+17. Could eventual consistency explain the difference?
+18. Are the representations semantically comparable?
+19. Is canonicalization needed?
+20. Could canonicalization hide meaningful difference?
+21. What exactly diverged?
+22. Is the divergence expected?
+23. Is the divergence accepted?
+24. Is it stale?
+25. Is it conflicting?
+26. Is it unauthorized?
+27. Is cause known?
+28. Is cause merely inferred?
+29. Was the native change externally authored?
+30. Is that allowed?
+31. Does newer state have authority?
+32. Does native state have authority?
+33. Does Monad state have authority?
+34. Is authority scoped narrowly enough?
+35. Is native permission being confused with authority?
+36. What action is proposed?
+37. Who has authority to take that action?
+38. Which system has capability to execute it?
+39. Is approval required?
+40. Is the approval bound to current revisions?
+41. Could state change between inspection and execution?
+42. Is revalidation required?
+43. Is the operation idempotent?
+44. Could retry cause duplication?
+45. What if only half the operation succeeds?
+46. Is compensation possible?
+47. Is rollback safe?
+48. What will be re-observed afterward?
+49. How will convergence be verified?
+50. Does agreement establish only consistency or broader correctness?
+51. Will historical divergence remain visible?
+52. Will original native Evidence remain inspectable?
+53. Are identity mappings stable?
+54. Could a rename be mistaken for deletion?
+55. Could two Subjects be mistakenly merged?
+56. Could one Subject actually have split?
+57. Does generated state have the correct authority?
+58. Could bidirectional sync create a loop?
+59. Could events be missing or reordered?
+60. Is periodic authoritative observation still needed?
+61. Is local/offline behavior sensible?
+62. What happens if the provider is unavailable?
+63. Can stale state be mistaken for current state?
+64. Can unknown state be mistaken for false?
+65. Could automatic remediation erase valid external work?
+66. Can a human inspect why reconciliation chose its action?
+67. Can an AI explain rather than silently decide?
+68. What downstream verification becomes stale if this divergence is real?
+69. What releases are affected?
+70. What Evidence would prove the reconciliation conclusion wrong?
+
+---
+
+# Relationship to native engineering systems
+
+The reconciliation model depends on a simple principle:
+
+> Native systems remain real.
+
+Monad should not create a parallel fantasy in which the semantic graph is treated as reality merely because it is internally coherent.
+
+Instead:
+
+```text
+Native systems
+      ↕
+Observation / Execution
+      ↕
+Reconciliation
+      ↕
+Semantic system model
+```
+
+The semantic model provides cross-system meaning.
+
+Native systems continue providing native facts.
+
+Reconciliation keeps those worlds connected.
+
+---
+
+# Relationship to semantic identity
+
+Native systems primarily identify their own resources.
+
+Monad identifies engineering Subjects across those systems.
+
+That allows:
+
+```text
+Subject
+  ├── represented-by → filesystem document
+  ├── tracked-by     → GitHub issue
+  ├── implemented-by → Git commit
+  ├── released-as   → package
+  └── evidenced-by  → CI result
+```
+
+If one native reference changes, the Subject does not necessarily change.
+
+This is why reconciliation depends on identity being independent of location.
+
+---
+
+# Relationship to authority
+
+Reconciliation without authority becomes arbitrary synchronization.
+
+The critical question is not:
+
+> Which side changed most recently?
+
+It is:
+
+> Which source is authoritative for this particular Claim under this scope?
+
+Therefore:
+
+```text
+Authority
+    ↓ constrains
+Reconciliation
+    ↓ may authorize
+Mutation
+```
+
+Authority should be explicit enough that the system can explain why one state was accepted over another.
+
+---
+
+# Relationship to verification
+
+Reconciliation answers:
+
+> Do these states correspond as expected?
+
+Verification answers:
+
+> Does the system satisfy the Requirement?
+
+A healthy control loop may therefore look like:
+
+```text
+Observe
+   ↓
+Reconcile
+   ↓
+Execute correction
+   ↓
+Observe again
+   ↓
+Verify convergence
+   ↓
+Verify broader requirement
+```
+
+---
+
+# Relationship to provenance
+
+When divergence appears, the first engineering question is often:
+
+> What changed this?
+
+Useful reconciliation therefore depends heavily on provenance:
+
+```text
+producer
+source
+native event
+requested operation
+resolved target
+execution location
+observed state
+recorded Claim
+```
+
+Without provenance, reconciliation can detect mismatch but struggle to explain it.
+
+---
+
+# Relationship to Evidence
+
+A consequential reconciliation conclusion should be inspectable.
+
+For example:
+
+```text
+Claim:
+  native deployment differs from approved release
+
+Evidence:
+  approved release record
+  deployment provider response
+  observed artifact digest
+  observation timestamp
+```
+
+The conclusion becomes explainable rather than asserted.
+
+---
+
+# Relationship to execution
+
+Reconciliation may lead to execution.
+
+But it should not bypass execution governance.
+
+The sequence should conceptually remain:
+
+```text
+Observe
+  ↓
+Detect divergence
+  ↓
+Classify
+  ↓
+Determine authority
+  ↓
+Plan
+  ↓
+Govern
+  ↓
+Revalidate
+  ↓
+Execute
+  ↓
+Observe
+  ↓
+Verify
+  ↓
+Record Evidence
+```
+
+---
+
+# Relationship to releases
+
+Release state spans multiple native systems:
+
+* source control,
+* CI,
+* artifact stores,
+* package registries,
+* deployment systems,
+* release portals.
+
+A release may therefore be internally recorded as complete while publication or deployment is only partially reflected in native systems.
+
+Reconciliation is what prevents the release record from drifting away from observable reality.
+
+---
+
+# Relationship to AI
+
+AI makes reconciliation potentially more powerful and more dangerous.
+
+AI can infer:
+
+* likely Subject matches,
+* likely causal relationships,
+* likely conflict classes,
+* likely remediation.
+
+But those are not automatically authoritative conclusions.
+
+A safe pattern is:
+
+```text
+Observed divergence
+      ↓
+AI interpretation
+      ↓
+Candidate classification
+      ↓
+Policy / human / deterministic confirmation
+      ↓
+Authorized action
+```
+
+The richer the inference, the more important it becomes to preserve the distinction between:
+
+```text
+observed
+inferred
+confirmed
+authorized
+executed
+verified
+```
+
+---
+
+# Reconciliation as a control loop
+
+The broader system loop becomes:
+
+```text
+System intent
+      ↓
+Semantic model
+      ↓
+Governed execution
+      ↓
+Native systems
+      ↓
+Observation
+      ↓
+Reconciliation
+      ↓
+Verification
+      ↓
+Evidence
+      ↓
+Updated understanding
+      ↓
+Semantic model
+```
+
+This loop allows Monad to remain connected to reality without demanding that all reality be mediated through Monad.
+
+---
+
+# Definition of Ready
+
+A reconciliation activity is ready when:
+
+* the target Subject is identifiable,
+* the native system is identifiable,
+* the native reference is known where applicable,
+* relevant modeled state exists,
+* native state can be observed,
+* comparison semantics are sufficiently defined,
+* authority is known or ambiguity is explicitly recognized,
+* intended actions are known where mutation may occur,
+* required capabilities are available,
+* required policies can be evaluated,
+* relevant revisions can be identified,
+* side effects are understood,
+* verification strategy is available,
+* and partial-failure handling is defined where necessary.
+
+---
+
+# Definition of Done
+
+A consequential reconciliation is complete enough when:
+
+* relevant native state was actually observed,
+* observation provenance is retained,
+* modeled and native states were compared,
+* divergence or agreement is explicit,
+* authority was considered,
+* unresolved ambiguity remains visible,
+* any proposed action was governed,
+* current revisions were revalidated where needed,
+* execution outcomes are explicit,
+* partial failures are explicit,
+* native state was re-observed after mutation where appropriate,
+* convergence was verified,
+* unresolved divergence remains visible,
+* relevant Evidence is linked,
+* and reconciliation history is preserved.
+
+---
+
+# Core invariants
+
+The reconciliation system SHOULD preserve these distinctions:
+
+```text
+Reconciliation ≠ Synchronization
+
+Reconciliation ≠ Verification
+
+Reconciliation ≠ Observation
+
+Reconciliation ≠ Authority
+
+Agreement ≠ Correctness
+
+Divergence ≠ Error
+
+Different ≠ Invalid
+
+Newer ≠ Authoritative
+
+Native ≠ Always authoritative
+
+Monad ≠ Always authoritative
+
+Native permission ≠ Monad authority
+
+Desired state ≠ Observed state
+
+Modeled state ≠ Native reality
+
+Missing observation ≠ Deleted resource
+
+Permission denied ≠ Missing
+
+Unavailable ≠ Absent
+
+Unknown ≠ False
+
+External change ≠ Unauthorized change
+
+Generated ≠ Canonical
+
+Representation ≠ Subject
+
+Native identity ≠ Semantic identity
+
+Rename ≠ Delete + Create
+
+Partial success ≠ Success
+
+API success ≠ Convergence
+
+Retry ≠ Safe automatically
+
+Event received ≠ Complete truth
+
+Conflict resolved ≠ Conflict erased
+
+Accepted divergence ≠ Agreement
+
+Historical divergence ≠ Current divergence
+
+Authority conflict ≠ Ordinary sync conflict
+
+AI inference ≠ Confirmed identity
+
+AI recommendation ≠ Authorized action
+```
+
+---
+
+# Governing principle
+
+Monad should always be able to ask:
+
+> What does Monad currently believe?
+
+> What does the native system actually report?
+
+> When was that native state observed?
+
+> Is the observation fresh?
+
+> Which exact native revision was observed?
+
+> What differs?
+
+> Is the difference meaningful?
+
+> Is the difference expected?
+
+> Which side is authoritative for this particular property?
+
+> Is authority itself conflicted?
+
+> Did the change originate through Monad or externally?
+
+> Was the external change legitimate?
+
+> Is the difference merely propagation delay?
+
+> Is any state unknown because observation failed?
+
+> Could a rename be mistaken for deletion?
+
+> Could two resources represent the same Subject?
+
+> Could one Subject have split into several?
+
+> Is remediation allowed?
+
+> Does the actor have capability?
+
+> Does the actor have authority?
+
+> Is approval required?
+
+> Has state changed since the reconciliation plan was made?
+
+> What happened when remediation executed?
+
+> Did every native system converge?
+
+> Did only some systems converge?
+
+> Was the result verified afterward?
+
+> Does agreement prove only consistency, or actual correctness?
+
+> What history should remain after convergence?
+
+> What Evidence would show that the reconciliation conclusion was wrong?
+
+Reconciliation should therefore be understood as:
+
+```text
+observation
++
+semantic identity
++
+comparison
++
+authority
++
+provenance
++
+governed remediation
++
+verification
+```
+
+not as blind synchronization.
+
+> **Monad should reconcile its model with reality without confusing its model for reality, native state for universal authority, or convergence for correctness.**
+
+---
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/integration" title="Integration Requirements">
+    Define how Monad connects to native tools and engineering systems without unnecessarily replacing the capabilities they already own.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/verification" title="Verification Requirements">
+    Define how explicit engineering expectations are evaluated against observed state and inspectable Evidence.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/authority" title="Authority Requirements">
+    Define how legitimate decision and mutation authority is represented and constrained across engineering state.
+  </Card>
+
+  <Card href="/docs/system/integrations" title="Integrations">
+    Read the authoritative System-level explanation of how Monad relates to native engineering systems.
+  </Card>
+</Cards>

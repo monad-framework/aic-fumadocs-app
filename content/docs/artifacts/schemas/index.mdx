@@ -1,0 +1,4150 @@
+---
+title: Schemas
+description: The machine-validatable structural contracts that encode selected parts of Monad's models, artifacts, interfaces, configuration, and persisted state.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Machine-validatable structure
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Schemas turn selected parts of Monad's conceptual and domain models into explicit structural contracts that tools, humans, and automated systems can validate consistently.
+  </p>
+</div>
+
+# What is a schema?
+
+A **Schema** defines the expected structure of a machine-readable representation.
+
+It can specify things such as:
+
+```text
+required fields
+
+allowed values
+
+data types
+
+identifier formats
+
+nested structures
+
+relationship references
+
+version information
+
+constraints
+
+extension points
+```
+
+A Schema answers a question such as:
+
+> **What structure must this representation satisfy in order to be considered valid?**
+
+Schemas are important because they move structural assumptions out of implementation code and into inspectable engineering artifacts.
+
+---
+
+# Why schemas matter
+
+Without explicit Schemas, structural contracts tend to become scattered across:
+
+* parser implementations,
+* TypeScript interfaces,
+* validation code,
+* database migrations,
+* CLI assumptions,
+* test fixtures,
+* documentation,
+* generated types,
+* and developer memory.
+
+That creates ambiguity.
+
+Two tools may believe they understand the same artifact while actually accepting different structures.
+
+Monad treats important machine-readable structures as explicit contracts.
+
+<Callout type="info" title="Schemas make structure inspectable">
+
+A machine-readable artifact should not require reverse-engineering every consumer to determine what constitutes valid structure.
+
+</Callout>
+
+---
+
+# Schemas are not the model
+
+A Schema encodes a representation of a Model.
+
+It is not the Model itself.
+
+For example, the Model may establish:
+
+```text
+Subject
+   │
+   │ represented-by
+   ▼
+Representation
+```
+
+A Schema might encode that relationship as:
+
+```yaml
+subject: subject:auth-service
+representation:
+  kind: file
+  path: src/auth/service.ts
+```
+
+Another valid representation might encode the same semantic relationship differently.
+
+Therefore:
+
+```text
+model ≠ schema
+```
+
+The Model defines meaning.
+
+The Schema defines one machine-validatable structural representation of that meaning.
+
+---
+
+# Schemas are not specifications
+
+A Schema can tell us:
+
+```text
+status must be one of:
+draft
+approved
+superseded
+```
+
+But it does not necessarily tell us:
+
+```text
+who may approve the artifact
+
+when approval is legal
+
+what transition preconditions exist
+
+what happens when an artifact is superseded
+```
+
+Those are behavioral semantics.
+
+They belong primarily in [Specifications](/docs/artifacts/specifications), lifecycle definitions, or Policies.
+
+The distinction is:
+
+```text
+Schema
+→ Is the structure valid?
+
+Specification
+→ Is the behavior correct?
+```
+
+---
+
+# Schemas are contracts
+
+Once a Schema becomes authoritative, producers and consumers can rely on it.
+
+A producer can ask:
+
+```text
+Am I emitting valid data?
+```
+
+A consumer can ask:
+
+```text
+Can I safely interpret this representation?
+```
+
+A migration tool can ask:
+
+```text
+Which schema version produced this artifact?
+```
+
+A validator can ask:
+
+```text
+Does this artifact satisfy the required structural contract?
+```
+
+That shared contract reduces hidden coupling.
+
+---
+
+# What schemas can govern
+
+Monad may eventually use Schemas for several classes of data.
+
+Examples include:
+
+```text
+project configuration
+
+system manifests
+
+artifact metadata
+
+domain entities
+
+relationships
+
+claims
+
+provenance records
+
+evidence records
+
+policies
+
+lifecycle definitions
+
+capabilities
+
+plugin manifests
+
+repository manifests
+
+execution plans
+
+verification results
+
+release records
+
+API payloads
+
+event envelopes
+
+generated projections
+```
+
+Not every structure needs its own Schema.
+
+Schemas should be introduced where structural precision creates real engineering value.
+
+---
+
+# Schema categories
+
+A useful catalog may distinguish several kinds of Schema.
+
+## Artifact schemas
+
+Define the structure of durable engineering artifacts.
+
+Examples:
+
+```text
+Requirement
+Decision
+Specification
+Experiment
+Evidence
+Verification
+Release
+```
+
+## Domain schemas
+
+Encode structures from a Domain Model.
+
+Examples:
+
+```text
+Subject
+Representation
+Claim
+Relationship
+Authority
+Provenance
+```
+
+## Configuration schemas
+
+Define user-editable system configuration.
+
+Examples:
+
+```text
+monad.toml
+
+workspace configuration
+
+repository configuration
+
+policy configuration
+```
+
+## Interface schemas
+
+Define structured data exchanged across boundaries.
+
+Examples:
+
+```text
+API request
+
+API response
+
+event payload
+
+plugin message
+
+engine result
+```
+
+## Persistence schemas
+
+Define durable internal representations.
+
+Examples:
+
+```text
+graph record
+
+read-model record
+
+event record
+
+migration state
+```
+
+## Execution schemas
+
+Define structures used during governed work.
+
+Examples:
+
+```text
+execution plan
+
+task context
+
+authorization request
+
+tool invocation
+
+verification result
+```
+
+## Extension schemas
+
+Define structures through which external integrations or plugins participate in Monad.
+
+---
+
+# The Schema Catalog
+
+Monad should eventually maintain a **Schema Catalog**.
+
+The catalog provides the authoritative inventory of recognized machine-readable contracts.
+
+Conceptually:
+
+```text
+Schema Catalog
+├── Artifact Schemas
+├── Domain Schemas
+├── Configuration Schemas
+├── Interface Schemas
+├── Persistence Schemas
+├── Execution Schemas
+└── Extension Schemas
+```
+
+Each catalog entry should identify at least:
+
+```text
+schema identity
+title
+purpose
+scope
+version
+status
+format
+authority
+canonical location
+compatibility expectations
+related Model
+related Specification
+```
+
+---
+
+# Schema identity
+
+A Schema requires durable identity independent of its filename.
+
+For example:
+
+```text
+schema:artifact.requirement
+```
+
+or:
+
+```text
+schema:monad/requirement
+```
+
+The exact identifier syntax is an architectural decision.
+
+The important principle is:
+
+```text
+schema identity ≠ file path
+```
+
+A Schema may move within the repository without becoming conceptually new.
+
+---
+
+# Schema versions
+
+Schemas evolve.
+
+Therefore consumers need a way to know which structural contract applies.
+
+For example:
+
+```text
+artifact.requirement@1
+```
+
+may differ from:
+
+```text
+artifact.requirement@2
+```
+
+Versioning should communicate meaningful compatibility boundaries.
+
+It should not increase simply because prose documentation changed.
+
+---
+
+# Schema version versus artifact version
+
+These are different concepts.
+
+Consider:
+
+```text
+Requirement REQ-001
+artifact version: 7
+schema version: 2
+```
+
+This means:
+
+* the Requirement itself has evolved seven times,
+* its current Representation conforms to Schema version 2.
+
+Therefore:
+
+```text
+artifact version ≠ schema version
+```
+
+Collapsing them creates unnecessary coupling between content evolution and structural evolution.
+
+---
+
+# Schema version declaration
+
+A serialized artifact should usually make its applicable Schema identifiable.
+
+Conceptually:
+
+```yaml
+schema: monad://schemas/requirement/v1
+id: REQ-001
+title: Reproducible builds
+status: approved
+```
+
+or:
+
+```json
+{
+  "$schema": "monad://schemas/requirement/v1",
+  "id": "REQ-001",
+  "title": "Reproducible builds",
+  "status": "approved"
+}
+```
+
+The exact syntax depends on the representation format.
+
+The important requirement is deterministic schema resolution.
+
+---
+
+# Schema resolution
+
+Given a Schema reference, Monad should be able to determine:
+
+```text
+which Schema is meant
+
+which version applies
+
+where the canonical definition lives
+
+whether it is supported
+
+whether a migration is required
+```
+
+Schema resolution should not depend on guesswork.
+
+---
+
+# Canonical schema location
+
+A canonical Schema may live in a repository path such as:
+
+```text
+schemas/
+```
+
+but the location itself should not define identity.
+
+A possible organization might eventually resemble:
+
+```text
+schemas/
+├── artifacts/
+│   ├── requirement/
+│   ├── decision/
+│   ├── specification/
+│   └── evidence/
+├── domain/
+│   ├── subject/
+│   ├── claim/
+│   └── relationship/
+├── configuration/
+├── execution/
+├── interfaces/
+└── plugins/
+```
+
+That structure is illustrative rather than prescriptive.
+
+The eventual filesystem layout should follow the canonical artifact and repository architecture.
+
+---
+
+# Choosing a schema language
+
+Different schema languages serve different purposes.
+
+Possible technologies include:
+
+```text
+JSON Schema
+
+OpenAPI Schema
+
+Protocol Buffers
+
+TypeBox
+
+Zod
+
+Valibot
+
+XML Schema
+
+Avro
+
+custom DSL
+```
+
+Monad should avoid choosing a format merely because it is familiar.
+
+The choice should be driven by requirements such as:
+
+* portability,
+* language neutrality,
+* validation support,
+* tooling ecosystem,
+* code generation,
+* readability,
+* composability,
+* compatibility management,
+* extension support,
+* and deterministic serialization.
+
+---
+
+# JSON Schema
+
+JSON Schema is a strong candidate for many portable structural contracts because it is:
+
+* language-neutral,
+* broadly implemented,
+* declarative,
+* machine-readable,
+* capable of describing JSON-like structures,
+* and supported by many editors and validators.
+
+For example:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "monad://schemas/requirement/v1",
+  "title": "Requirement",
+  "type": "object",
+  "required": ["id", "title", "status"],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "approved",
+        "superseded"
+      ]
+    }
+  },
+  "additionalProperties": false
+}
+```
+
+This is structurally expressive.
+
+But JSON Schema alone does not solve every semantic problem.
+
+---
+
+# Schema language should not redefine the domain
+
+If a schema language cannot naturally express a domain concept, Monad should not distort the Model merely to satisfy the tooling.
+
+For example, if the Model requires:
+
+```text
+scoped Authority
+```
+
+but the chosen schema tool makes that inconvenient, the solution should not automatically become:
+
+```text
+global boolean:
+authoritative = true
+```
+
+Tool limitations should not silently erase semantic distinctions.
+
+---
+
+# Serialization format and schema language are distinct
+
+A Schema may describe data serialized as:
+
+```text
+JSON
+YAML
+TOML
+```
+
+depending on tooling.
+
+For example, a JSON Schema can validate the logical data structure loaded from YAML.
+
+Therefore:
+
+```text
+serialization syntax ≠ schema semantics
+```
+
+This distinction can let Monad offer human-friendly representations while retaining one structural contract.
+
+---
+
+# YAML representations
+
+YAML can provide readable authored artifacts.
+
+For example:
+
+```yaml
+schema: monad://schemas/requirement/v1
+
+id: REQ-001
+title: Builds must be reproducible
+status: approved
+
+derived_from:
+  - GOAL-003
+```
+
+Advantages include:
+
+* concise human editing,
+* comments,
+* readable diffs when conventions are disciplined.
+
+Risks include:
+
+* implicit typing surprises,
+* parser differences,
+* duplicate keys,
+* formatting inconsistency,
+* and complex syntax.
+
+If used, Monad should define a constrained profile rather than relying on every feature YAML permits.
+
+---
+
+# JSON representations
+
+JSON provides fewer ambiguities.
+
+For example:
+
+```json
+{
+  "schema": "monad://schemas/requirement/v1",
+  "id": "REQ-001",
+  "title": "Builds must be reproducible",
+  "status": "approved",
+  "derived_from": ["GOAL-003"]
+}
+```
+
+Advantages include:
+
+* broad tooling,
+* deterministic parsing,
+* familiar machine interchange.
+
+Disadvantages include:
+
+* lower authoring ergonomics,
+* no standard comments,
+* noisier large documents.
+
+Different representation roles may justify different formats.
+
+---
+
+# TOML representations
+
+TOML may be appropriate for configuration-oriented Schemas.
+
+For example:
+
+```toml
+schema = "monad://schemas/project/v1"
+
+[project]
+name = "monad"
+version = "0.1.0"
+```
+
+Its strengths are especially relevant for configuration.
+
+It may be less natural for deeply nested graph-like records.
+
+---
+
+# One logical schema, multiple serializations
+
+Monad may eventually permit more than one serialized representation of the same logical structure.
+
+For example:
+
+```text
+Requirement Model
+      │
+      ├── YAML Representation
+      └── JSON Representation
+```
+
+If this is allowed, compatibility must be defined at the logical data-model level.
+
+Otherwise serialization differences can accidentally become semantic differences.
+
+---
+
+# Required fields
+
+A Schema can establish structural minimums.
+
+For example:
+
+```yaml
+required:
+  - id
+  - type
+  - status
+```
+
+But every required field imposes capture cost.
+
+Therefore a field should not become mandatory merely because it might someday be useful.
+
+---
+
+# Required structure must earn its cost
+
+Monad values progressive formalization.
+
+That means Schema design should distinguish between:
+
+```text
+information required to interpret the record safely
+```
+
+and:
+
+```text
+information that would be nice to have
+```
+
+Overly strict Schemas can make capture so expensive that engineers bypass the system.
+
+---
+
+# Optional does not mean meaningless
+
+A field can be optional because:
+
+* information may genuinely be unknown,
+* the field applies only to some states,
+* progressive formalization is allowed,
+* the value is derived,
+* or the field belongs to an extension.
+
+Optionality should be intentional.
+
+---
+
+# Unknown versus absent
+
+These may carry different meanings.
+
+For example:
+
+```yaml
+owner: null
+```
+
+might mean:
+
+```text
+owner is known to be currently unspecified
+```
+
+while omitting:
+
+```text
+owner
+```
+
+might mean:
+
+```text
+this Schema version does not record ownership
+```
+
+Whether Monad needs this distinction should be decided per domain.
+
+But the possibility should not be overlooked.
+
+---
+
+# Null semantics
+
+Schemas should define what `null` means where it is allowed.
+
+Possible interpretations include:
+
+```text
+unknown
+
+not applicable
+
+explicitly cleared
+
+not yet determined
+```
+
+One value should not silently carry four different meanings.
+
+---
+
+# Enumerations
+
+Enums are useful when the allowed vocabulary is deliberately constrained.
+
+For example:
+
+```json
+{
+  "status": {
+    "enum": [
+      "draft",
+      "proposed",
+      "approved",
+      "superseded"
+    ]
+  }
+}
+```
+
+Enums provide validation and consistency.
+
+But they can also make systems difficult to extend.
+
+---
+
+# Closed versus extensible vocabularies
+
+Some vocabularies should be closed.
+
+For example:
+
+```text
+canonical lifecycle states
+```
+
+may need strict semantics.
+
+Others may be extensible.
+
+For example:
+
+```text
+representation role
+```
+
+might allow:
+
+```text
+canonical
+authored
+generated
+coordination
+external
+transient
+x-project-specific-role
+```
+
+if project-defined extensions are part of the design.
+
+The Schema must make that distinction explicit.
+
+---
+
+# Extension namespaces
+
+Extensions should avoid collisions with canonical fields.
+
+One possible pattern is:
+
+```yaml
+extensions:
+  project.example:
+    risk_class: experimental
+```
+
+Another might use namespaced keys.
+
+The specific mechanism remains an architectural decision.
+
+The principle is:
+
+> Extensions should be possible without allowing arbitrary fields to quietly become de facto core semantics.
+
+---
+
+# `additionalProperties`
+
+Open-ended objects create extensibility but weaken validation.
+
+Closed objects improve predictability but can hinder evolution.
+
+For example:
+
+```json
+{
+  "additionalProperties": false
+}
+```
+
+provides strong structural guarantees.
+
+But if every extension requires a core Schema release, experimentation becomes expensive.
+
+Monad may therefore need explicit extension points rather than globally permissive objects.
+
+---
+
+# Schema composition
+
+Larger contracts should avoid unnecessary duplication.
+
+Schema composition can allow common structures such as:
+
+```text
+Identity
+
+Provenance
+
+Lifecycle
+
+Authority
+
+Temporal Metadata
+```
+
+to be reused.
+
+Conceptually:
+
+```text
+Artifact
+├── Identity
+├── Provenance
+└── Lifecycle
+```
+
+Then:
+
+```text
+Requirement
+└── Artifact
+```
+
+may extend the common structure.
+
+---
+
+# Composition should reflect semantics
+
+Schema inheritance should not be used merely because two structures happen to share fields.
+
+For example:
+
+```text
+Requirement
+```
+
+and:
+
+```text
+Actor
+```
+
+may both have:
+
+```text
+id
+title
+```
+
+That does not mean they share a meaningful domain superclass.
+
+Schema composition should follow the Model rather than accidental structural similarity.
+
+---
+
+# References
+
+Schemas can refer to other Schemas.
+
+For example:
+
+```json
+{
+  "properties": {
+    "provenance": {
+      "$ref": "monad://schemas/provenance/v1"
+    }
+  }
+}
+```
+
+This encourages reuse.
+
+It also introduces dependency management.
+
+---
+
+# Schema dependencies
+
+If Schema A references Schema B, then compatibility changes in B may affect A.
+
+Conceptually:
+
+```text
+Requirement Schema
+       │
+       └── depends-on ──► Provenance Schema
+```
+
+Monad should be able to inspect those dependencies.
+
+They become part of change-impact analysis.
+
+---
+
+# Circular schema dependencies
+
+Schema composition can accidentally create cycles.
+
+For example:
+
+```text
+Subject
+   ↓
+Relationship
+   ↓
+Subject
+```
+
+This may be conceptually valid but difficult for some validators or generators.
+
+Schema design must distinguish:
+
+```text
+semantic cyclic relationships
+```
+
+from:
+
+```text
+structural recursive embedding
+```
+
+References can often represent the former without recursively nesting whole objects.
+
+---
+
+# Embedded objects versus references
+
+Consider:
+
+```yaml
+requirement:
+  id: REQ-001
+  title: ...
+  status: approved
+```
+
+versus:
+
+```yaml
+requirement: REQ-001
+```
+
+Embedding provides local completeness.
+
+References preserve identity and avoid duplication.
+
+The correct choice depends on semantics.
+
+For entities with durable identity, references are often safer than repeating full records.
+
+---
+
+# References must be resolvable
+
+If a Schema permits:
+
+```yaml
+requirement: REQ-001
+```
+
+the system must define how `REQ-001` is resolved.
+
+Possible scopes include:
+
+```text
+same document
+
+same repository
+
+same project
+
+workspace
+
+global namespace
+```
+
+Reference resolution semantics belong in the relevant Specification.
+
+---
+
+# Native references
+
+Schemas may also encode references owned by native systems.
+
+For example:
+
+```yaml
+native_reference:
+  system: github
+  kind: issue
+  repository: monad-framework/monad
+  id: "42"
+```
+
+This is different from Monad semantic identity.
+
+Schemas should preserve that distinction.
+
+---
+
+# Identifier formats
+
+Schemas can validate identifier syntax.
+
+For example:
+
+```text
+REQ-001
+ADR-004
+subject:auth
+```
+
+But syntax alone does not create semantic identity.
+
+An identifier Schema can establish:
+
+```text
+well-formed identifier
+```
+
+It cannot establish:
+
+```text
+this identifier correctly refers to the intended Subject
+```
+
+That may require resolution and semantic validation.
+
+---
+
+# Structural versus semantic validation
+
+This is one of the most important distinctions in the Schema system.
+
+## Structural validation
+
+Asks whether a representation conforms to its Schema.
+
+Examples:
+
+```text
+required field exists
+
+value has correct type
+
+enum value is permitted
+
+identifier matches syntax
+```
+
+## Semantic validation
+
+Asks whether the record is meaningful and consistent with the larger system.
+
+Examples:
+
+```text
+referenced Subject exists
+
+superseded artifact is not current
+
+Actor possesses required Authority
+
+relationship type is legal for these entity types
+
+Requirement transition is valid
+```
+
+Therefore:
+
+```text
+schema valid ≠ system valid
+```
+
+---
+
+# Syntactic validity is not truth
+
+A Claim may satisfy every structural rule:
+
+```yaml
+subject: auth-service
+predicate: database
+value: sqlite
+```
+
+and still be factually wrong.
+
+Schema validation establishes structural validity.
+
+Authority, Evidence, provenance, observation, and reconciliation determine whether the Claim should be accepted.
+
+---
+
+# Domain validation
+
+Some rules are too semantic for ordinary schema languages.
+
+For example:
+
+```text
+A Decision may supersede another Decision
+only when both govern overlapping Scope.
+```
+
+This may require domain-aware validation logic.
+
+Such validators should still be traceable to Specifications rather than existing as undocumented code behavior.
+
+---
+
+# Policy validation
+
+Some state changes are valid structurally and semantically but prohibited by Policy.
+
+For example:
+
+```text
+Schema:
+valid
+
+Domain:
+valid transition
+
+Policy:
+Actor lacks permission
+```
+
+These layers should remain distinct.
+
+---
+
+# Validation pipeline
+
+A governed validation pipeline may eventually resemble:
+
+```text
+parse
+  ↓
+schema validation
+  ↓
+reference resolution
+  ↓
+domain validation
+  ↓
+policy validation
+  ↓
+consistency checks
+  ↓
+accept / reject / warn
+```
+
+Different operations may require different subsets.
+
+---
+
+# Validation severity
+
+Not every failure needs identical treatment.
+
+Possible classifications include:
+
+```text
+error
+warning
+advisory
+deprecation
+```
+
+For example:
+
+```text
+missing required identifier
+→ error
+
+deprecated field
+→ warning
+
+recommended metadata absent
+→ advisory
+```
+
+Severity semantics should be specified consistently.
+
+---
+
+# Deterministic validation
+
+Given:
+
+```text
+same Schema
+
+same input
+
+same validator version
+
+same relevant external state
+```
+
+validation should produce predictable results.
+
+Nondeterministic validation makes automation and reproducibility difficult.
+
+---
+
+# Validation output
+
+Machine-readable validation results should be structured.
+
+Conceptually:
+
+```json
+{
+  "valid": false,
+  "schema": "monad://schemas/requirement/v1",
+  "errors": [
+    {
+      "path": "/status",
+      "code": "invalid_enum",
+      "message": "Expected one of: draft, approved, superseded"
+    }
+  ]
+}
+```
+
+Stable error codes are more useful than prose alone.
+
+---
+
+# Error location
+
+Validation should identify where a problem occurred.
+
+Possible location forms include:
+
+```text
+JSON Pointer
+
+field path
+
+source line and column
+
+artifact fragment identifier
+```
+
+The representation format determines what can be provided reliably.
+
+---
+
+# Validation should preserve context
+
+An error such as:
+
+```text
+invalid value
+```
+
+is rarely sufficient.
+
+A useful result should answer:
+
+```text
+Which artifact?
+
+Which Schema?
+
+Which field?
+
+Which value?
+
+Which rule?
+
+Which version?
+
+What corrective action is likely?
+```
+
+---
+
+# Schema provenance
+
+Schemas themselves should have provenance.
+
+For example:
+
+```text
+authored by
+
+derived from
+
+generated from
+
+approved by
+
+introduced by Decision
+
+changed by migration
+```
+
+This allows structural contracts to participate in the same inspectable engineering record as other artifacts.
+
+---
+
+# Schema authority
+
+Multiple Schemas may claim to describe the same data.
+
+For example:
+
+```text
+generated TypeScript type
+
+JSON Schema
+
+database table definition
+
+documentation example
+```
+
+Monad must know which source governs.
+
+A generated type may be useful but derived.
+
+A canonical JSON Schema may be authoritative.
+
+Or the database schema may govern persistence.
+
+Authority should be explicit by Scope.
+
+---
+
+# Canonical schema versus generated types
+
+A common useful pattern is:
+
+```text
+Canonical Schema
+      │
+      ├──► TypeScript types
+      ├──► Rust types
+      ├──► Python models
+      └──► editor tooling
+```
+
+If practical, this reduces duplicate declarations.
+
+But generation should be adopted only if it preserves the semantics required by each target language.
+
+---
+
+# Generated types are projections
+
+If TypeScript types are generated from a canonical Schema:
+
+```text
+TypeScript type
+```
+
+is a Projection.
+
+Therefore:
+
+```text
+generated type ≠ independent authority
+```
+
+A manual change to the generated output should not silently redefine the contract.
+
+---
+
+# Code-first schemas
+
+The inverse architecture is also possible:
+
+```text
+TypeScript validator
+      │
+      └──► generated JSON Schema
+```
+
+This may improve developer ergonomics.
+
+But it may also make a specific language runtime the de facto source of semantic authority.
+
+Monad should choose intentionally.
+
+---
+
+# Schema-first versus code-first
+
+The decision can be evaluated using criteria such as:
+
+| Concern                  | Schema-first     | Code-first        |
+| ------------------------ | ---------------- | ----------------- |
+| Language neutrality      | Strong           | Weaker            |
+| Developer ergonomics     | Medium           | Strong            |
+| Portable tooling         | Strong           | Depends           |
+| Native language types    | Generated        | Native            |
+| Risk of runtime coupling | Lower            | Higher            |
+| Expressiveness           | Schema-dependent | Library-dependent |
+
+There is no universal winner.
+
+The architecture should reflect Monad's portability and interoperability goals.
+
+---
+
+# Schema drift
+
+Schema drift occurs when two supposedly equivalent contracts diverge.
+
+For example:
+
+```text
+JSON Schema:
+status = draft | approved
+
+TypeScript:
+status = draft | approved | archived
+```
+
+Now different parts of the system accept different states.
+
+Drift is exactly the kind of hidden inconsistency explicit schema governance should prevent.
+
+---
+
+# Detecting drift
+
+Monad may eventually verify alignment among:
+
+```text
+canonical schema
+
+generated types
+
+database schema
+
+documentation examples
+
+fixtures
+
+API contracts
+```
+
+The goal is not to make all representations identical.
+
+It is to detect meaningful incompatibility.
+
+---
+
+# Schemas and databases
+
+A database Schema defines persistence structure.
+
+A domain Schema defines logical structure.
+
+They are related but distinct.
+
+For example:
+
+```text
+Domain:
+Subject has many Representations
+```
+
+might be persisted as:
+
+```text
+subjects table
+representations table
+subject_representation table
+```
+
+or:
+
+```text
+graph nodes and edges
+```
+
+The database should not become the only definition of domain meaning.
+
+---
+
+# Persistence schemas
+
+Persistence Schemas may legitimately contain implementation-specific concerns such as:
+
+```text
+indexes
+
+storage keys
+
+foreign keys
+
+partitioning
+
+database types
+
+migration metadata
+```
+
+These should be clearly identified as persistence contracts.
+
+They should not be mistaken for the canonical Domain Model.
+
+---
+
+# Read-model schemas
+
+Monad may maintain derived read models for efficient queries.
+
+For example:
+
+```text
+Canonical system state
+        │
+        ▼
+Derived SQLite read model
+```
+
+That read model has its own Schema.
+
+But it is a Projection.
+
+Its Schema should optimize query behavior without quietly redefining canonical semantics.
+
+---
+
+# Projection schemas
+
+Generated views can benefit from Schemas too.
+
+Examples:
+
+```text
+traceability report
+
+dependency snapshot
+
+AI context packet
+
+release manifest
+
+inspection report
+```
+
+A Projection Schema makes output predictable for downstream consumers.
+
+---
+
+# Schema freshness
+
+A generated Projection may conform perfectly to its Schema and still be stale.
+
+Therefore:
+
+```text
+schema validity ≠ freshness
+```
+
+Freshness metadata may need to accompany derived records.
+
+For example:
+
+```yaml
+generated_from:
+  source_revision: abc123
+  generated_at: 2026-08-28T12:00:00Z
+```
+
+The exact fields depend on the provenance Model.
+
+---
+
+# Schemas and time
+
+Some records require temporal semantics.
+
+For example:
+
+```yaml
+valid_from: ...
+observed_at: ...
+recorded_at: ...
+```
+
+A Schema can require the fields.
+
+It cannot by itself explain their semantic differences.
+
+Those meanings belong in the Model and Specification.
+
+---
+
+# Schemas and lifecycle
+
+A lifecycle Schema may describe:
+
+```yaml
+states:
+  - draft
+  - proposed
+  - approved
+  - superseded
+
+transitions:
+  - from: draft
+    to: proposed
+    action: propose
+
+  - from: proposed
+    to: approved
+    action: approve
+```
+
+This creates an inspectable Representation of lifecycle structure.
+
+Additional constraints such as authorization requirements may be defined separately or referenced.
+
+---
+
+# Schemas and policies
+
+Policies themselves may be machine-readable.
+
+For example:
+
+```yaml
+policy:
+  action: modify
+  target: system.constitution
+
+requires:
+  authority: constitutional-amendment
+```
+
+A Policy Schema ensures consistent structure.
+
+It does not determine whether the policy is legitimate.
+
+That comes from governance and authority.
+
+---
+
+# Schemas and capabilities
+
+A Capability Schema may describe machine-actionable capabilities.
+
+For example:
+
+```yaml
+id: capability:repository.write
+
+parameters:
+  path:
+    type: string
+
+effects:
+  - repository-modified
+```
+
+This may help tools and agents reason about what operations exist.
+
+But Capability definition remains separate from authorization.
+
+---
+
+# Schemas and tools
+
+Tool interfaces benefit from explicit input and output Schemas.
+
+For example:
+
+```text
+inspect_repository(
+  input: RepositoryInspectionRequest
+) → RepositoryInspectionResult
+```
+
+This helps:
+
+* humans,
+* agents,
+* test harnesses,
+* plugin systems,
+* and compatibility checks.
+
+---
+
+# Tool invocation schemas
+
+A tool invocation contract may define:
+
+```text
+tool identity
+
+input structure
+
+output structure
+
+failure structure
+
+side-effect classification
+
+capability requirement
+```
+
+This becomes especially important when AI agents select and invoke tools dynamically.
+
+---
+
+# Schemas and AI
+
+Structured Schemas can constrain AI-generated data.
+
+For example, rather than requesting:
+
+```text
+Describe the affected requirements.
+```
+
+Monad may request output conforming to:
+
+```json
+{
+  "affected_requirements": [
+    {
+      "id": "REQ-001",
+      "impact": "modified",
+      "confidence": 0.91
+    }
+  ]
+}
+```
+
+Schema validation can reject malformed output.
+
+But it cannot guarantee that the AI's conclusions are correct.
+
+---
+
+# Structured output does not create epistemic certainty
+
+An AI can produce:
+
+```json
+{
+  "valid": true,
+  "confidence": 1
+}
+```
+
+and still be wrong.
+
+Schemas improve:
+
+```text
+shape
+consistency
+interoperability
+```
+
+They do not prove:
+
+```text
+truth
+authority
+evidence
+```
+
+Monad's broader semantic model must preserve those distinctions.
+
+---
+
+# AI-generated artifacts
+
+If an AI generates a structured artifact, the artifact should still carry appropriate:
+
+```text
+provenance
+
+Actor identity
+
+model/provider context where relevant
+
+authority status
+
+review status
+
+evidence
+```
+
+A Schema can ensure those fields are structurally present when required.
+
+---
+
+# Schemas and plugins
+
+A plugin ecosystem needs particularly clear contracts.
+
+A Plugin Manifest Schema may define:
+
+```text
+plugin identity
+
+version
+
+compatibility
+
+declared capabilities
+
+commands
+
+events
+
+configuration
+
+permissions requested
+
+entry points
+```
+
+Without a stable contract, every plugin becomes a special-case integration.
+
+---
+
+# Plugin compatibility
+
+A plugin should be able to declare compatibility such as:
+
+```yaml
+requires:
+  monad_api: ">=1 <2"
+  schema_catalog: ">=3"
+```
+
+The exact mechanism remains to be specified.
+
+The goal is explicit compatibility rather than hopeful runtime discovery.
+
+---
+
+# Schemas and external systems
+
+Monad may consume structures it does not control.
+
+Examples:
+
+```text
+GitHub API payloads
+
+Git objects
+
+package manifests
+
+OpenAPI documents
+
+CI results
+```
+
+Monad should usually model these as Native Representations rather than pretending its own Schema governs them.
+
+Adapters may translate them into Monad structures.
+
+---
+
+# Adapter schemas
+
+An adapter may have three contracts:
+
+```text
+Native Input
+     ↓
+Mapping
+     ↓
+Monad Representation
+```
+
+The Mapping itself may deserve a Specification.
+
+This allows integration behavior to be inspected and tested.
+
+---
+
+# Schema compatibility
+
+Compatibility asks whether data written under one Schema version can be consumed under another.
+
+Possible classifications include:
+
+```text
+backward compatible
+
+forward compatible
+
+fully compatible
+
+incompatible
+```
+
+These terms should be defined precisely before being used in automated tooling.
+
+---
+
+# Backward compatibility
+
+A newer consumer is backward compatible if it can correctly consume data produced under an older supported Schema.
+
+Conceptually:
+
+```text
+consumer v2
+   ✓ reads
+schema v1 data
+```
+
+---
+
+# Forward compatibility
+
+An older consumer is forward compatible if it can safely handle data produced under a newer Schema.
+
+Conceptually:
+
+```text
+consumer v1
+   ✓ safely handles
+schema v2 data
+```
+
+This is harder when structures evolve aggressively.
+
+Explicit extension mechanisms can help.
+
+---
+
+# Compatibility is semantic
+
+Adding an optional field may look structurally backward compatible.
+
+But if the field changes interpretation of existing fields, it may be semantically incompatible.
+
+For example:
+
+```text
+v1:
+status = approved means globally approved
+
+v2:
+status = approved means approved only within Scope
+```
+
+The structure may barely change.
+
+The semantics changed significantly.
+
+Schema compatibility analysis must therefore reference Model semantics.
+
+---
+
+# Breaking changes
+
+Examples of potentially breaking changes include:
+
+```text
+removing required field
+
+renaming field
+
+changing field type
+
+narrowing enum
+
+changing identifier meaning
+
+changing default behavior
+
+changing reference scope
+
+changing null semantics
+```
+
+Breaking changes require deliberate versioning and migration policy.
+
+---
+
+# Non-breaking changes
+
+Potentially compatible changes may include:
+
+```text
+adding optional field
+
+adding explicitly extensible enum value
+
+relaxing a constraint
+
+adding metadata ignored by old consumers
+```
+
+But compatibility must still be verified rather than assumed.
+
+---
+
+# Schema migrations
+
+When a Schema changes incompatibly, existing data may need migration.
+
+Conceptually:
+
+```text
+Artifact v1
+    │
+    │ migrate
+    ▼
+Artifact v2
+```
+
+The migration should be:
+
+* deterministic where possible,
+* inspectable,
+* testable,
+* reversible when feasible,
+* and explicit about information loss.
+
+---
+
+# Migration identity
+
+Migrations themselves should have durable identifiers.
+
+For example:
+
+```text
+migration:requirement:v1-to-v2
+```
+
+This allows systems to record:
+
+```text
+which transformation ran
+
+which version produced the result
+
+which code performed it
+
+when it ran
+
+whether it succeeded
+```
+
+---
+
+# Migration chains
+
+Long-lived systems may require:
+
+```text
+v1 → v2 → v3 → v4
+```
+
+Consumers should not be expected to understand every historical version forever.
+
+Monad may eventually establish migration support windows and canonical upgrade paths.
+
+---
+
+# Migration idempotency
+
+Where practical, migration operations should be safe against repeated execution or detect that they have already been applied.
+
+This is especially important in automation.
+
+---
+
+# Migration evidence
+
+A migration can produce Evidence.
+
+For example:
+
+```text
+records scanned: 1,248
+records migrated: 1,248
+validation failures: 0
+```
+
+That Evidence can support a Claim that migration completed successfully.
+
+---
+
+# Schema deprecation
+
+A Schema version may remain valid but discouraged.
+
+For example:
+
+```text
+v1
+status: deprecated
+
+v2
+status: current
+```
+
+Deprecation gives consumers time to migrate before support is removed.
+
+---
+
+# Schema retirement
+
+Eventually a Schema version may become unsupported.
+
+That transition should be explicit.
+
+A retired Schema may still be required for historical interpretation even if no current artifact may be authored against it.
+
+---
+
+# Historical schema resolution
+
+If Monad preserves old engineering records, it must remain possible to interpret them correctly.
+
+That may require retaining:
+
+```text
+historical schema definitions
+
+migration metadata
+
+semantic version documentation
+```
+
+Deleting old Schemas can make historical artifacts unintelligible.
+
+---
+
+# Schema immutability
+
+Published Schema versions should generally be immutable once relied upon.
+
+For example:
+
+```text
+artifact.requirement@1
+```
+
+should not silently change its structural meaning.
+
+Corrections should usually create:
+
+```text
+artifact.requirement@2
+```
+
+or another formally defined revision mechanism.
+
+---
+
+# Content-addressed schemas
+
+Monad may eventually consider content digests for Schema integrity.
+
+For example:
+
+```text
+schema ID
++
+version
++
+digest
+```
+
+This could prove useful for:
+
+* reproducibility,
+* distributed verification,
+* caching,
+* and historical certainty.
+
+Whether that complexity is justified should be evidence-driven.
+
+---
+
+# Schema registries
+
+A local Schema registry could resolve identifiers such as:
+
+```text
+monad://schemas/requirement/v1
+```
+
+to authoritative definitions.
+
+A registry does not necessarily imply a network service.
+
+It may simply be a deterministic local catalog.
+
+This fits Monad's local-first principles.
+
+---
+
+# Local-first schema resolution
+
+Core validation should not require network access merely to discover a Schema needed by the local project.
+
+Where practical, required Schemas should be:
+
+* available locally,
+* versioned,
+* deterministic,
+* and inspectable.
+
+Remote registries may supplement this.
+
+They should not become an unnecessary runtime dependency.
+
+---
+
+# Schema caching
+
+External or plugin Schemas may need caching.
+
+A cache should preserve:
+
+```text
+schema identity
+
+version
+
+source
+
+digest
+
+retrieval time
+
+freshness state
+```
+
+Cached data should not silently become canonical merely because it is local.
+
+---
+
+# Schema trust
+
+A structurally valid Schema obtained from an unknown source is not automatically trustworthy.
+
+The system may need to consider:
+
+```text
+publisher
+
+signature
+
+origin
+
+authority
+
+integrity digest
+```
+
+especially for plugins and external extensions.
+
+---
+
+# Signed schemas
+
+Digital signatures may eventually provide authenticity for distributed Schema packages.
+
+That would answer:
+
+```text
+Was this Schema actually published by the expected authority?
+```
+
+It would not answer:
+
+```text
+Is this Schema well designed?
+```
+
+Cryptographic authenticity and engineering correctness are distinct.
+
+---
+
+# Schema packages
+
+Related Schemas may eventually be distributed as packages.
+
+For example:
+
+```text
+monad-core-schemas
+monad-artifact-schemas
+monad-plugin-schemas
+```
+
+A package could include:
+
+```text
+schemas
+
+catalog metadata
+
+migrations
+
+generated bindings
+
+tests
+
+documentation
+```
+
+Whether packaging should use an existing ecosystem or a Monad-specific mechanism remains an implementation decision.
+
+---
+
+# Schema portability
+
+Portable Schemas should avoid embedding assumptions specific to one programming language.
+
+For example:
+
+Prefer:
+
+```text
+integer
+string
+array
+object
+```
+
+over semantics dependent on:
+
+```text
+TypeScript class instance
+Rust enum layout
+Python object behavior
+```
+
+unless the Schema intentionally describes a language-specific interface.
+
+---
+
+# Canonicalization
+
+If Monad signs, hashes, compares, or synchronizes structured records, equivalent data may require deterministic canonicalization.
+
+For example:
+
+```json
+{"a":1,"b":2}
+```
+
+and:
+
+```json
+{"b":2,"a":1}
+```
+
+are semantically equivalent JSON objects.
+
+But their raw byte sequences differ.
+
+Canonicalization defines a stable representation for operations such as:
+
+```text
+hashing
+
+signing
+
+deduplication
+
+comparison
+
+content addressing
+```
+
+---
+
+# Canonicalization is not formatting
+
+Pretty-printing is primarily for human readability.
+
+Canonicalization is for deterministic machine interpretation.
+
+A canonical format may prescribe:
+
+```text
+field ordering
+
+number representation
+
+string encoding
+
+whitespace
+
+normalization
+```
+
+The exact rules must be formally defined if they become part of identity or integrity.
+
+---
+
+# Canonicalization and YAML
+
+YAML's flexible syntax makes deterministic byte-level canonicalization more difficult.
+
+One possible approach is:
+
+```text
+YAML authoring
+   ↓ parse
+logical data model
+   ↓ canonical encode
+canonical JSON or binary form
+```
+
+This would preserve human-friendly authoring while giving machines deterministic content.
+
+It is only one possible architecture.
+
+---
+
+# Schema validation and canonicalization
+
+The order may matter.
+
+A possible pipeline is:
+
+```text
+parse
+  ↓
+validate
+  ↓
+normalize
+  ↓
+canonicalize
+  ↓
+hash / sign / persist
+```
+
+The exact ordering should be specified because it affects reproducibility and security.
+
+---
+
+# Defaults
+
+Schema-level defaults can be convenient.
+
+For example:
+
+```json
+{
+  "status": {
+    "type": "string",
+    "default": "draft"
+  }
+}
+```
+
+But defaults can obscure whether a value was:
+
+```text
+explicitly authored
+```
+
+or:
+
+```text
+implicitly assumed
+```
+
+That distinction may matter for provenance.
+
+---
+
+# Prefer explicit semantics over magical defaults
+
+Where the difference matters, Monad should preserve whether a value was:
+
+```text
+provided
+
+derived
+
+defaulted
+
+inferred
+```
+
+rather than silently normalizing all states into the same stored form.
+
+---
+
+# Normalization
+
+Normalization can transform multiple accepted forms into one preferred logical representation.
+
+For example:
+
+```text
+"GitHub"
+"github"
+"GITHUB"
+```
+
+may normalize to:
+
+```text
+github
+```
+
+if the domain defines case-insensitive identifiers.
+
+Normalization rules should be deterministic and specified.
+
+---
+
+# Validation before normalization
+
+Automatically normalizing invalid input can hide errors.
+
+For example:
+
+```text
+requirement id:
+" req 001 "
+```
+
+Should that become:
+
+```text
+REQ-001
+```
+
+or fail validation?
+
+The answer depends on the contract.
+
+Loose input acceptance may improve usability but can weaken reproducibility.
+
+---
+
+# Lossless versus lossy normalization
+
+A transformation is lossless if original semantics are preserved.
+
+It is lossy if information disappears.
+
+Lossy normalization should be especially deliberate.
+
+For example:
+
+```text
+timestamp with timezone
+```
+
+to:
+
+```text
+date only
+```
+
+destroys information.
+
+---
+
+# Schema annotations
+
+Schemas often contain descriptive metadata.
+
+For example:
+
+```json
+{
+  "title": "Requirement",
+  "description": "An engineering requirement."
+}
+```
+
+Annotations can improve:
+
+* documentation,
+* editors,
+* generated forms,
+* AI context,
+* diagnostics.
+
+They should not be confused with enforceable constraints.
+
+---
+
+# Documentation generation
+
+Schema annotations may support generated reference documentation.
+
+Conceptually:
+
+```text
+Canonical Schema
+      │
+      ├──► validator
+      ├──► types
+      └──► reference docs
+```
+
+Generated reference material can reduce drift.
+
+But conceptual explanations should remain in human-authored System and Artifact documentation where necessary.
+
+---
+
+# Examples
+
+Schemas should include or reference valid examples.
+
+For example:
+
+```yaml
+schema: monad://schemas/evidence/v1
+
+id: EVD-0042
+kind: test-result
+supports:
+  - claim:release-017-verified
+
+source:
+  tool: monad-test
+
+result:
+  status: passed
+```
+
+Examples make structural expectations concrete.
+
+---
+
+# Negative examples
+
+Invalid examples are also valuable.
+
+For example:
+
+```yaml
+id: EVD-0042
+result: passed
+```
+
+may be invalid because:
+
+```text
+schema reference missing
+
+evidence kind missing
+
+source missing
+```
+
+Negative fixtures are especially useful for validator acceptance tests.
+
+---
+
+# Schema conformance tests
+
+Each authoritative Schema should have tests that verify:
+
+```text
+valid fixtures pass
+
+invalid fixtures fail
+
+edge cases behave as specified
+
+compatibility expectations hold
+
+generated bindings remain aligned
+```
+
+The Schema is not complete merely because the file parses.
+
+---
+
+# Acceptance tests
+
+A Schema acceptance test suite might include:
+
+```text
+minimal valid instance
+
+fully populated valid instance
+
+missing required field
+
+unknown field
+
+invalid enum
+
+malformed identifier
+
+incorrect reference type
+
+deprecated field
+
+old compatible version
+
+known incompatible version
+```
+
+This creates executable Evidence for the structural contract.
+
+---
+
+# Property-based testing
+
+For some Schemas, generated test data can explore broader input spaces.
+
+For example:
+
+```text
+generate valid Requirement records
+→ validator must accept
+
+mutate one invariant
+→ validator must reject
+```
+
+Property-based testing can uncover validator inconsistencies that hand-written fixtures miss.
+
+---
+
+# Validator independence
+
+Where feasible, important portable Schemas should be tested against more than one standards-compliant validator.
+
+This can reveal:
+
+```text
+implementation-specific behavior
+
+unsupported keywords
+
+ambiguous interpretation
+
+non-portable assumptions
+```
+
+The value of this depends on how widely the Schema is expected to travel.
+
+---
+
+# Schema linting
+
+Beyond validity, Monad may enforce conventions.
+
+Examples:
+
+```text
+every Schema has an ID
+
+every Schema has a description
+
+field names follow naming rules
+
+deprecated fields identify replacements
+
+references use canonical identifiers
+```
+
+Linting governs project conventions.
+
+It should remain distinct from standards validation.
+
+---
+
+# Schema review
+
+A serious Schema review should ask:
+
+1. Which Model does this encode?
+2. What is its Scope?
+3. Which Representation does it govern?
+4. Is the Schema authoritative or derived?
+5. Which fields are required?
+6. Why are they required?
+7. What does absence mean?
+8. What does `null` mean?
+9. Which vocabularies are closed?
+10. Which are extensible?
+11. How are references resolved?
+12. How is identity represented?
+13. Which constraints are structural?
+14. Which constraints require semantic validation?
+15. How is versioning handled?
+16. What constitutes a breaking change?
+17. How are migrations performed?
+18. Are old versions interpretable?
+19. Is the Schema portable?
+20. Does the structure impose unnecessary capture cost?
+
+---
+
+# Schema minimalism
+
+A Schema should require only what the system needs to interpret and operate safely.
+
+Consider:
+
+```yaml
+id: REQ-001
+title: Reproducible builds
+status: approved
+owner: core-platform
+priority: high
+criticality: high
+reviewed_by: ...
+created_at: ...
+updated_at: ...
+tags: ...
+milestone: ...
+```
+
+All of these fields might be useful.
+
+That does not mean all should be required.
+
+Over-modeling structural metadata can create bureaucracy without improving correctness.
+
+---
+
+# Progressive formalization
+
+Schemas should support Monad's principle of progressive formalization where appropriate.
+
+For example:
+
+```text
+captured observation
+        ↓
+provisional structured record
+        ↓
+validated artifact
+        ↓
+authoritative artifact
+```
+
+The Schema system may use:
+
+* multiple artifact types,
+* lifecycle-dependent requirements,
+* optional enrichment,
+* or staged validation.
+
+The mechanism should preserve clarity without blocking capture.
+
+---
+
+# Validation profiles
+
+One possible approach is to define validation profiles.
+
+For example:
+
+```text
+capture profile
+→ minimum safe structure
+
+review profile
+→ stronger completeness
+
+authoritative profile
+→ full required contract
+```
+
+This could support progressive formalization without creating unrelated Schema versions.
+
+Whether Monad adopts profiles should be based on implementation evidence.
+
+---
+
+# Conditional requirements
+
+Some fields may become required only in certain states.
+
+For example:
+
+```text
+status = draft
+→ approver not required
+
+status = approved
+→ approval record required
+```
+
+Schemas can express some conditional rules.
+
+More complex lifecycle semantics may belong in semantic validation.
+
+---
+
+# Schema complexity
+
+A Schema language can express extremely complicated logic.
+
+That does not mean it should.
+
+A Schema that technically validates everything but cannot be understood or maintained may be worse than a simpler Schema plus clear domain validation.
+
+---
+
+# Keep structural logic structural
+
+Prefer Schemas for rules such as:
+
+```text
+field must exist
+
+value must be string
+
+enum must be recognized
+
+object must have this shape
+```
+
+Prefer semantic validators or Specifications for rules such as:
+
+```text
+Actor must possess Authority over this Scope
+
+Evidence must originate after the relevant build
+
+Decision must govern this Requirement
+```
+
+The boundary need not be absolute, but it should remain intentional.
+
+---
+
+# Schemas and security
+
+Schemas form part of a trust boundary when accepting structured input.
+
+Validation can reduce risks such as:
+
+```text
+unexpected fields
+
+malformed values
+
+oversized structures
+
+type confusion
+
+invalid references
+```
+
+But structural validation alone is not a complete security system.
+
+---
+
+# Input size constraints
+
+Some Schemas may need explicit limits.
+
+For example:
+
+```text
+maximum array length
+
+maximum string size
+
+maximum nesting depth
+```
+
+Especially when consuming untrusted data, unrestricted structurally valid input can still create denial-of-service or resource exhaustion problems.
+
+---
+
+# Dangerous extension points
+
+Open extension objects can become injection channels if downstream tools interpret unknown fields unsafely.
+
+Extension values should therefore be:
+
+* namespaced,
+* scoped,
+* validated,
+* and treated as untrusted unless otherwise established.
+
+---
+
+# Deserialization safety
+
+Monad should avoid formats or libraries that instantiate arbitrary executable objects during parsing.
+
+Schema-based parsing should operate on safe data structures.
+
+This is particularly important for plugin and external input.
+
+---
+
+# Schema-driven authorization is insufficient
+
+A Schema may allow:
+
+```yaml
+action: delete
+target: release
+```
+
+That does not mean the action should be executed.
+
+Authorization occurs separately.
+
+Schemas describe valid structure.
+
+Policies and Authority govern permission.
+
+---
+
+# Schemas and reproducibility
+
+Pinned Schema versions improve reproducibility.
+
+Given:
+
+```text
+artifact bytes
+
+schema version
+
+validator version
+```
+
+the same structural validation should be reproducible.
+
+Floating Schema references such as:
+
+```text
+latest
+```
+
+can undermine this.
+
+---
+
+# Avoid `latest` in durable records
+
+A durable artifact should generally identify the exact applicable Schema version.
+
+For example:
+
+Prefer:
+
+```text
+monad://schemas/requirement/v2
+```
+
+over:
+
+```text
+monad://schemas/requirement/latest
+```
+
+Aliases may be useful interactively.
+
+They should not make historical interpretation ambiguous.
+
+---
+
+# Schemas and content addressing
+
+If Schema files become part of reproducible builds or release manifests, digests can bind validation to exact bytes.
+
+For example:
+
+```text
+schema:
+  id: monad://schemas/requirement/v2
+  sha256: ...
+```
+
+Whether this should be required depends on the trust and reproducibility model.
+
+---
+
+# Release schema manifests
+
+A Monad release may eventually record the Schema set it supports.
+
+Conceptually:
+
+```yaml
+release: 0.4.0
+
+schemas:
+  requirement: 2
+  decision: 1
+  evidence: 3
+  plugin_manifest: 1
+```
+
+This would make compatibility boundaries inspectable.
+
+---
+
+# Schema change impact
+
+Changing a Schema can affect more than stored data.
+
+Potential dependents include:
+
+```text
+validators
+
+CLI commands
+
+generators
+
+AI structured-output contracts
+
+plugins
+
+database migrations
+
+read models
+
+documentation
+
+tests
+
+external integrations
+```
+
+Schema changes therefore deserve impact analysis.
+
+---
+
+# Schema dependency graph
+
+Monad should eventually be able to answer:
+
+```text
+Which Schemas depend on this Schema?
+
+Which artifacts conform to it?
+
+Which generators consume it?
+
+Which plugins require it?
+
+Which migrations touch it?
+```
+
+This turns Schema evolution into governed system change rather than repository-wide guesswork.
+
+---
+
+# Schema-related traceability
+
+An important Schema change may participate in a chain such as:
+
+```text
+Requirement
+   ↓
+Decision
+   ↓
+Model Change
+   ↓
+Schema Change
+   ↓
+Migration
+   ↓
+Implementation
+   ↓
+Verification
+   ↓
+Evidence
+```
+
+That chain explains not only what changed but why.
+
+---
+
+# Schemas and Requirements
+
+[Requirements](/docs/artifacts/requirements) may demand structural capabilities.
+
+For example:
+
+```text
+Requirement:
+Artifact formats must be machine-validatable.
+```
+
+A Schema is one implementation artifact satisfying that Requirement.
+
+---
+
+# Schemas and Decisions
+
+[Architecture Decisions](/docs/artifacts/decisions) should record consequential Schema choices.
+
+Examples:
+
+```text
+Use JSON Schema for portable artifact contracts.
+
+Treat published schema versions as immutable.
+
+Separate domain schemas from persistence schemas.
+```
+
+These decisions should not be hidden inside validator code.
+
+---
+
+# Schemas and Models
+
+[Models](/docs/artifacts/models) define semantic structure.
+
+Schemas encode selected Models into machine-validatable forms.
+
+Conceptually:
+
+```text
+Model
+  ↓
+Schema
+  ↓
+Instance
+```
+
+A Schema should be traceable back to the Model whose semantics it represents.
+
+---
+
+# Schemas and Specifications
+
+[Specifications](/docs/artifacts/specifications) define behavior around the structural contract.
+
+For example:
+
+```text
+Schema:
+Requirement.status allows "approved".
+
+Specification:
+Transition to "approved" requires review and authorization.
+```
+
+Both are required for a complete contract.
+
+---
+
+# Schemas and Policies
+
+[Policies](/docs/artifacts/policies) may govern:
+
+* Schema publication,
+* compatibility,
+* migration,
+* extension,
+* and modification.
+
+For example:
+
+```text
+Published core Schema versions MUST NOT
+be modified in place after release.
+```
+
+---
+
+# Schemas and Verification
+
+[Verification](/docs/artifacts/verification) can demonstrate that:
+
+```text
+validators conform
+
+migrations preserve semantics
+
+generated types match
+
+compatibility promises hold
+
+invalid fixtures are rejected
+```
+
+Schema correctness should be evidenced, not assumed.
+
+---
+
+# Schemas and Evidence
+
+[Evidence](/docs/artifacts/evidence) may include:
+
+```text
+validation reports
+
+compatibility test results
+
+migration reports
+
+conformance matrices
+
+cross-validator results
+```
+
+This Evidence supports Claims about Schema reliability.
+
+---
+
+# Schemas and Releases
+
+[Releases](/docs/artifacts/releases) may establish which Schema versions are supported by a particular Monad release.
+
+This becomes especially important once third-party integrations depend on stable contracts.
+
+---
+
+# Schemas and Traceability
+
+[Traceability](/docs/artifacts/traceability) should make it possible to follow:
+
+```text
+Model concept
+   ↓
+Schema definition
+   ↓
+Implementation
+   ↓
+Validator
+   ↓
+Verification
+```
+
+That prevents machine-readable structure from becoming disconnected from engineering intent.
+
+---
+
+# A possible Schema artifact structure
+
+A substantial Schema entry might eventually be documented as:
+
+```text
+Schema Identity
+Title
+Purpose
+Scope
+Status
+Version
+Canonical Representation
+Model Mapping
+Structural Rules
+Reference Semantics
+Extension Rules
+Compatibility
+Migration
+Examples
+Invalid Examples
+Generated Bindings
+Verification
+Related Decisions
+Related Specifications
+```
+
+The actual repository convention should be defined by the canonical artifact architecture.
+
+---
+
+# Schema status
+
+Useful statuses may include:
+
+```text
+draft
+
+proposed
+
+current
+
+deprecated
+
+retired
+
+superseded
+```
+
+Status should be distinguished from version.
+
+For example:
+
+```text
+v1 → retired
+v2 → current
+v3 → proposed
+```
+
+---
+
+# Draft schemas
+
+Draft Schemas should be permitted to evolve quickly.
+
+Consumers should not treat them as stable compatibility contracts unless explicitly authorized.
+
+---
+
+# Published schemas
+
+Published Schemas should have stronger stability expectations.
+
+A published contract may be depended upon by:
+
+* repositories,
+* tooling,
+* plugins,
+* integrations,
+* external users.
+
+Therefore publication is a governance event, not merely a Git commit.
+
+---
+
+# Schema governance
+
+Schema governance should answer:
+
+```text
+Who may create a core Schema?
+
+Who approves breaking changes?
+
+What review is required?
+
+How are migrations authorized?
+
+How long are old versions supported?
+
+What compatibility guarantees exist?
+
+Who may define extensions?
+```
+
+These rules belong in the governance and policy system.
+
+---
+
+# Core versus project schemas
+
+Monad may distinguish:
+
+```text
+core schemas
+```
+
+from:
+
+```text
+project-defined schemas
+```
+
+Core Schemas define interoperable Monad concepts.
+
+Project Schemas may extend the system for local domains.
+
+This supports flexibility without allowing every project-specific field to pollute the canonical core.
+
+---
+
+# Extension safety
+
+A project-specific extension should not redefine core semantics.
+
+For example:
+
+```yaml
+extensions:
+  acme.example:
+    approval_tier: 3
+```
+
+is safer than redefining:
+
+```yaml
+status: approved
+```
+
+to mean something different in one project.
+
+Core terms should retain portable meanings.
+
+---
+
+# Schema namespaces
+
+Namespaces can prevent collisions.
+
+Conceptually:
+
+```text
+monad.core.*
+monad.artifact.*
+monad.execution.*
+project.example.*
+plugin.vendor.*
+```
+
+The exact naming convention remains open.
+
+The important property is deterministic ownership of names.
+
+---
+
+# Multi-project environments
+
+If Monad manages multiple projects, project-local Schemas may need Scope.
+
+For example:
+
+```text
+workspace
+├── Project A
+│   └── schema:deployment-target
+└── Project B
+    └── schema:deployment-target
+```
+
+These may intentionally differ.
+
+Resolution must distinguish them.
+
+---
+
+# Global identity should not be assumed casually
+
+Making every Schema globally unique can simplify distributed resolution.
+
+It also increases naming and governance cost.
+
+Monad should decide whether identity is:
+
+```text
+project-local
+
+workspace-local
+
+globally namespaced
+
+layered
+```
+
+based on actual interoperability needs.
+
+---
+
+# Schema discovery
+
+A user or tool should be able to discover:
+
+```text
+available Schemas
+
+current versions
+
+deprecated versions
+
+documentation
+
+extensions
+
+compatibility
+```
+
+without scanning implementation code.
+
+The Schema Catalog should become the obvious entry point.
+
+---
+
+# Machine-readable catalog
+
+The catalog itself should likely be machine-readable.
+
+Conceptually:
+
+```yaml
+schemas:
+  - id: monad://schemas/requirement/v2
+    status: current
+    path: artifacts/requirement/v2.schema.json
+
+  - id: monad://schemas/requirement/v1
+    status: deprecated
+    path: artifacts/requirement/v1.schema.json
+```
+
+The exact format should be specified rather than improvised.
+
+---
+
+# Catalog validation
+
+The Schema Catalog itself needs validation.
+
+For example:
+
+```text
+duplicate Schema identity
+→ error
+
+missing canonical path
+→ error
+
+unknown status
+→ error
+
+current Schema has no version
+→ error
+```
+
+This is a useful case of schemas validating the system that manages Schemas.
+
+---
+
+# Bootstrapping
+
+Eventually, Monad may need a very small trusted bootstrap layer.
+
+For example:
+
+```text
+Schema Catalog Schema
+        ↓
+Schema Catalog
+        ↓
+All other Schemas
+```
+
+The system should minimize circular authority in this bootstrapping process.
+
+---
+
+# Self-description
+
+Monad should eventually be capable of describing its own structural contracts using the same mechanisms available to governed projects.
+
+That is part of dogfooding.
+
+But self-description should not allow unrestricted self-modification.
+
+The Constitution and governance rules remain above ordinary system state.
+
+---
+
+# Schema failure modes
+
+Common failures include:
+
+## Schema as ontology
+
+Trying to encode all domain meaning directly into structural validation.
+
+## Schema as database
+
+Treating persistence layout as the canonical semantic contract.
+
+## Schema as code mirror
+
+Duplicating implementation types without independent purpose.
+
+## Versionless schemas
+
+Making historical interpretation dependent on current code.
+
+## Mutable published versions
+
+Changing contracts in place after consumers depend on them.
+
+## Unbounded extensibility
+
+Allowing arbitrary fields until no consumer knows what is meaningful.
+
+## Excessive strictness
+
+Making authoring so burdensome that users bypass the format.
+
+## Hidden defaults
+
+Losing provenance about what was explicit versus assumed.
+
+## Validation overclaim
+
+Treating structurally valid data as factually correct.
+
+## Schema drift
+
+Maintaining several independent definitions of supposedly identical structure.
+
+## Migration neglect
+
+Changing structure without preserving existing data.
+
+---
+
+# A practical test
+
+For each proposed Schema, ask:
+
+```text
+Which machine-readable contract does this make explicit?
+
+Which errors can validation now detect?
+
+Which producers and consumers benefit?
+
+Which Model does it encode?
+
+What maintenance burden does it introduce?
+```
+
+If those answers are weak, the Schema may not yet be necessary.
+
+---
+
+# Schemas should earn their existence
+
+Not every JSON object requires a formal Schema.
+
+A Schema is justified when the value of:
+
+```text
+shared interpretation
+
+validation
+
+compatibility
+
+generation
+
+migration
+
+automation
+```
+
+exceeds the cost of maintaining the contract.
+
+<Callout type="info" title="Formalization has a cost">
+
+The presence of a Schema should reduce uncertainty or integration risk—not merely increase the number of files in the repository.
+
+</Callout>
+
+---
+
+# The smallest useful Schema system
+
+A first useful Schema system may require only:
+
+```text
+a canonical Schema directory
+
+stable Schema identities
+
+explicit versions
+
+a catalog
+
+a validator
+
+test fixtures
+
+compatibility rules
+```
+
+It does not require a global registry, custom language, code generator, or network service on day one.
+
+Those capabilities should be introduced when requirements justify them.
+
+---
+
+# A possible evolution path
+
+Monad's Schema system could mature incrementally:
+
+```text
+Stage 1
+Explicit local Schemas
+
+        ↓
+
+Stage 2
+Schema Catalog + validation
+
+        ↓
+
+Stage 3
+Generated language bindings
+
+        ↓
+
+Stage 4
+Compatibility + migrations
+
+        ↓
+
+Stage 5
+Extension/plugin schemas
+
+        ↓
+
+Stage 6
+Distributed schema packages
+```
+
+Each stage should solve a real problem before the next is added.
+
+---
+
+# Questions the Schema system must eventually answer
+
+The authoritative architecture should ultimately resolve questions such as:
+
+```text
+Which schema language is canonical?
+
+How are Schema IDs encoded?
+
+Where is the Schema Catalog stored?
+
+Are published versions immutable?
+
+How are extension namespaces assigned?
+
+How are migrations represented?
+
+How are compatibility promises expressed?
+
+Can one logical Schema support multiple serializations?
+
+How are Native References represented?
+
+How are generated types verified?
+
+How are historical Schemas retained?
+
+What is the bootstrap trust model?
+```
+
+Until decided, these should remain explicit architectural questions rather than accidental implementation choices.
+
+---
+
+# The governing principle
+
+Schemas should make machine-readable structure explicit without pretending that structure alone captures meaning.
+
+> **Use Schemas to define what valid representations look like; use Models to define what they mean, Specifications to define how they behave, and Evidence to establish what is actually true.**
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Policies"
+    href="/docs/artifacts/policies"
+  >
+    Explore the rules that constrain governed behavior, change, and authority.
+  </Card>
+
+<Card
+title="Models"
+href="/docs/artifacts/models"
+>
+Return to the semantic and domain structures that Schemas encode.
+</Card>
+
+<Card
+title="Specifications"
+href="/docs/artifacts/specifications"
+>
+See the behavioral contracts that operate alongside structural validation.
+</Card>
+
+<Card
+title="Verification"
+href="/docs/artifacts/verification"
+>
+Inspect how Schema implementations, validators, migrations, and compatibility promises are tested.
+</Card>
+</Cards>
+
+---
+
+## Related artifact views
+
+<Cards>
+  <Card
+    title="Architecture Decisions"
+    href="/docs/artifacts/decisions"
+  >
+    Inspect consequential choices about schema languages, versioning, compatibility, and authority.
+  </Card>
+
+<Card
+title="Evidence"
+href="/docs/artifacts/evidence"
+>
+Review validation reports, migration results, and conformance evidence.
+</Card>
+
+<Card
+title="Releases"
+href="/docs/artifacts/releases"
+>
+See which structural contracts and Schema versions participate in released system states.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

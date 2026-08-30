@@ -1,0 +1,2566 @@
+---
+title: ADR-0003 — Canonical Artifact and Representation Model
+description: Defines the relationship between semantic Subjects, authored artifacts, Representations, Native References, generated projections, fragments, and canonicality in Monad.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Architecture Decision Record · ADR-0003
+  </p>
+</div>
+
+# ADR-0003 — Canonical Artifact and Representation Model
+
+**Status:** Accepted
+**Decision type:** Foundational architecture
+**Requirements baseline:** RB-001
+**Traceability artifact:** RTM-001
+**Depends on:** ADR-0001, ADR-0002
+**Primary requirement families:** `REQ-SEM`, `REQ-ID`, `REQ-PROV`, `REQ-INT`, `REQ-REC`
+**Consequential consumers:** `REQ-AUTH`, `REQ-EVD`, `REQ-VFY`, `REQ-AI`, `REQ-GOV`
+
+---
+
+# Decision
+
+Monad will model an engineering concept independently from the concrete artifacts through which that concept is represented.
+
+The canonical relationship is:
+
+```text id="gmtuh8"
+Subject
+  │
+  ├── represented by → Representation
+  │                       │
+  │                       └── located through → Native Reference
+  │
+  ├── described by → Claims
+  │
+  ├── related to → other Subjects
+  │
+  └── governed through → authority, provenance, evidence, policy
+```
+
+A **Subject** is the stable semantic identity of the thing Monad reasons about.
+
+A **Representation** is a particular expression, encoding, or materialization of that Subject.
+
+A **Native Reference** identifies the corresponding resource, location, object, or address within some native system.
+
+An authored file, GitHub Issue, database row, API object, generated page, section of a document, or other concrete artifact is therefore **not automatically identical to the Subject it represents**.
+
+Monad will explicitly preserve these distinctions.
+
+<Callout type="info" title="Core rule">
+A thing and the place where that thing is currently represented are not the same identity.
+
+Moving, renaming, regenerating, reformatting, or migrating a Representation must not automatically create a new Subject.
+</Callout>
+
+---
+
+# Context
+
+Engineering knowledge appears through many different concrete forms.
+
+A requirement may exist as:
+
+```text id="hbbxkc"
+an MDX section
+a GitHub Issue
+a database record
+a generated HTML page
+an API object
+a roadmap card
+an exported JSON object
+```
+
+An ADR may exist simultaneously as:
+
+```text id="617na9"
+authoritative MDX
+rendered website page
+search-index record
+semantic graph node
+PDF export
+```
+
+A source component may be identified through:
+
+```text id="7rshvc"
+filesystem path
+Git tree entry
+repository URL
+language symbol
+package coordinate
+generated documentation entry
+```
+
+If Monad equates any one of those representations with semantic identity, ordinary operations such as moving a file or changing providers can accidentally change the identity of the underlying engineering concept.
+
+This would make reliable reasoning impossible.
+
+---
+
+# Problem
+
+Monad requires a canonical model that answers:
+
+* What is the thing itself?
+* What is merely a Representation of it?
+* Where does that Representation live?
+* Which Representation is authoritative?
+* Can there be more than one authoritative Representation?
+* How are generated artifacts distinguished from authored artifacts?
+* How are fragments of larger documents identified?
+* What happens when a Representation moves?
+* What happens when two Representations are discovered to refer to the same Subject?
+* What happens when one artifact actually contains multiple Subjects?
+* How are native identifiers preserved without becoming semantic identity?
+* How can Monad reason across different representations without flattening their native semantics?
+
+---
+
+# Decision drivers
+
+The model must support:
+
+* stable semantic identity,
+* artifact movement and rename,
+* multiple representations,
+* native-system interoperability,
+* provenance,
+* explicit authority,
+* generated projections,
+* fragment addressing,
+* provider migration,
+* reconciliation,
+* source-control workflows,
+* local-first operation,
+* and future AI-assisted discovery.
+
+---
+
+# Canonical entity distinction
+
+Monad adopts three foundational concepts:
+
+```text id="hi8l4w"
+Subject
+Representation
+Native Reference
+```
+
+They are related but not interchangeable.
+
+---
+
+# Subject
+
+A **Subject** is the semantic thing Monad identifies and reasons about.
+
+Examples include:
+
+* a Requirement,
+* an ADR,
+* a Specification,
+* a software component,
+* a package,
+* a repository,
+* a deployment,
+* a Claim,
+* an Evidence item,
+* a release,
+* a work item,
+* a policy,
+* a capability,
+* a testable expectation,
+* or another domain entity.
+
+A Subject has stable semantic identity independent of the location of any one Representation.
+
+Example:
+
+```yaml id="q7l66f"
+subject:
+  id: req:0191f574-b9c7-7c1d-a7db-38ca251bd192
+  kind: requirement
+```
+
+---
+
+# Representation
+
+A **Representation** is a concrete or addressable expression of a Subject.
+
+Examples:
+
+```text id="fb1ewy"
+MDX document
+Markdown section
+JSON record
+GitHub Issue
+source file
+database record
+rendered page
+API resource
+generated report
+```
+
+A Representation may be:
+
+* authored,
+* generated,
+* native,
+* derived,
+* cached,
+* historical,
+* external,
+* or transformed.
+
+---
+
+# Native Reference
+
+A **Native Reference** identifies a resource according to the identity or addressing rules of a native system.
+
+Examples:
+
+```text id="3r85ug"
+filesystem path
+Git blob/tree/commit identifier
+GitHub node ID
+issue number scoped to repository
+package coordinate
+database primary key
+cloud resource ID
+URL
+CI run ID
+deployment ID
+```
+
+A Native Reference does not replace semantic identity.
+
+---
+
+# Core relationship
+
+The foundational relationship is:
+
+```text id="bc32du"
+Subject
+  │
+  └── Representation
+          │
+          └── Native Reference
+```
+
+More formally:
+
+```text id="66sr91"
+Subject identity
+    !=
+Representation identity
+    !=
+Native system identity
+```
+
+---
+
+# Why Representation is a first-class entity
+
+Monad will model Representation explicitly rather than treating it as a field on Subject.
+
+This is required because a Subject may have:
+
+* multiple Representations,
+* multiple historical locations,
+* multiple media types,
+* multiple providers,
+* different authority roles,
+* different revision histories,
+* different freshness,
+* different provenance,
+* and different lifecycle states.
+
+Example:
+
+```text id="e0prj0"
+REQ-042
+├── authoritative MDX
+├── GitHub Issue
+├── generated HTML
+└── JSON export
+```
+
+Each has distinct identity and semantics.
+
+---
+
+# One Subject, multiple Representations
+
+A Subject MAY have zero, one, or many Representations.
+
+Examples:
+
+```text id="3cf8cf"
+Requirement
+├── authored MDX
+├── indexed semantic record
+├── rendered web page
+└── GitHub planning item
+```
+
+These are not four Requirements.
+
+They are four Representations or bindings concerning one Requirement Subject.
+
+---
+
+# Zero-Representation Subjects
+
+Monad MAY represent a Subject before a concrete artifact exists.
+
+Example:
+
+```text id="rpdy5n"
+planned component
+```
+
+may exist semantically before source code is created.
+
+Therefore:
+
+```text id="jshsqw"
+Subject existence
+≠
+Representation existence requirement
+```
+
+---
+
+# One Representation, multiple Subjects
+
+A single artifact may contain multiple Subjects.
+
+Example:
+
+```text id="w4xrlr"
+requirements.mdx
+├── REQ-AUTH-001
+├── REQ-AUTH-002
+├── REQ-AUTH-003
+└── REQ-AUTH-004
+```
+
+The document is a Representation container.
+
+Each addressable requirement may represent a distinct Subject.
+
+---
+
+# Container Representation
+
+Monad MAY model a larger artifact as its own Subject while also recognizing contained Subjects.
+
+Example:
+
+```text id="qz6w88"
+Subject: Requirements Catalog
+  │
+  └── Representation: requirements.mdx
+       ├── fragment → REQ-001
+       ├── fragment → REQ-002
+       └── fragment → REQ-003
+```
+
+The container and contained Subjects remain distinct.
+
+---
+
+# Representation fragment
+
+A Representation MAY identify a fragment within a larger artifact.
+
+Conceptually:
+
+```yaml id="zfy3pz"
+representation:
+  id: rep:0191...
+  subject: req:0191...
+  container:
+    path: content/docs/requirements/authority.mdx
+  fragment:
+    kind: semantic-anchor
+    value: REQ-AUTH-042
+```
+
+---
+
+# Fragment addressing requirement
+
+Durable fragment identity MUST NOT rely solely on presentation text when semantic relationships depend on it.
+
+Unsafe:
+
+```text id="xe84iz"
+# Authentication Requirements
+```
+
+if the heading may be renamed.
+
+Prefer:
+
+```text id="y3lp5j"
+REQ-AUTH-042
+```
+
+or another stable semantic anchor.
+
+---
+
+# Heading anchors
+
+Generated slug anchors MAY be useful for navigation.
+
+They MUST NOT automatically become durable semantic identifiers.
+
+For example:
+
+```text id="u5tx7e"
+# Stable Identity
+```
+
+may generate:
+
+```text id="x69cl6"
+#stable-identity
+```
+
+That anchor is navigational.
+
+It is not necessarily semantic identity.
+
+---
+
+# Native artifact versus Representation
+
+A native artifact is a resource in a native system.
+
+A Representation is Monad's semantic relationship between that resource and a Subject.
+
+Therefore the same native artifact can exist independently of whether Monad has modeled it.
+
+---
+
+# Native Reference scope
+
+Native References MUST preserve the scope required for uniqueness.
+
+Example:
+
+```text id="kyrm2w"
+issue #42
+```
+
+is insufficient.
+
+Use something conceptually equivalent to:
+
+```yaml id="qdrukl"
+provider: github
+repository_id: R_kgDO...
+issue_number: 42
+```
+
+or the provider's globally stable native identifier where available.
+
+---
+
+# Human-readable identifiers
+
+Human-readable labels such as:
+
+```text id="x516ct"
+ADR-0003
+REQ-INT-042
+SPEC-001
+```
+
+MAY be important domain identifiers.
+
+They SHOULD be retained as aliases or governed domain identifiers where appropriate.
+
+They are not required to serve as the underlying global semantic identity.
+
+---
+
+# Semantic identity versus domain identifier
+
+Example:
+
+```text id="3sodwu"
+semantic identity:
+sub:0191f574...
+
+domain identifier:
+ADR-0003
+```
+
+The domain identifier is meaningful to humans and project governance.
+
+The semantic identifier supports stable machine identity.
+
+Both may be needed.
+
+---
+
+# Native identifier preservation
+
+Monad MUST preserve native identifiers when they are available and meaningful.
+
+Examples:
+
+```text id="1znpdw"
+Git commit SHA
+GitHub node ID
+package digest
+deployment ID
+database primary key
+```
+
+It MUST NOT needlessly replace them with invented Monad-local identifiers at the integration boundary.
+
+---
+
+# Native identifier is not semantic identifier
+
+Even when a native identifier is globally unique, it identifies the native resource—not automatically the semantic Subject.
+
+Example:
+
+```text id="4xn8ut"
+GitHub Issue node ID
+```
+
+identifies the issue object.
+
+The Subject may instead be:
+
+```text id="jrdq80"
+Requirement REQ-042
+```
+
+which could later move to another planning system.
+
+---
+
+# Binding
+
+The association between a Subject and a Native Reference MUST be modeled explicitly.
+
+Conceptually:
+
+```yaml id="mv2w7h"
+binding:
+  subject: req:0191...
+  representation: rep:0191...
+  native_reference:
+    provider: github
+    native_id: I_kw...
+```
+
+---
+
+# Binding provenance
+
+Consequential bindings SHOULD preserve how they were established.
+
+Examples:
+
+```text id="cu33p7"
+declared manually
+imported from manifest
+derived from parser
+confirmed by reviewer
+inferred by AI
+migrated from previous provider
+```
+
+---
+
+# Binding confidence
+
+Inferred bindings MAY carry confidence or certainty metadata.
+
+Example:
+
+```yaml id="csnhyu"
+binding:
+  method: inferred
+  confidence: 0.82
+```
+
+Consequential identity bindings SHOULD require confirmation where policy demands it.
+
+---
+
+# AI inference does not establish identity automatically
+
+AI MAY suggest:
+
+```text id="eh4s32"
+these two artifacts probably represent the same Requirement
+```
+
+but the system MUST NOT silently convert a consequential inference into authoritative identity equivalence unless policy explicitly allows it.
+
+---
+
+# Authoritative Representation
+
+A Representation MAY be authoritative for one or more governed properties.
+
+Example:
+
+```text id="vay1fs"
+ADR MDX file
+→ authoritative for ADR wording
+```
+
+while another Representation may be authoritative for another property:
+
+```text id="v5op0y"
+GitHub Project item
+→ authoritative for current scheduling state
+```
+
+---
+
+# Authority may be property-scoped
+
+Monad rejects:
+
+```text id="f0pd6b"
+this whole artifact is authoritative for everything
+```
+
+as the only authority model.
+
+A more precise model is:
+
+```yaml id="5m8bxt"
+authority:
+  wording: rep:mdx
+  workflow_state: native:github-project
+  semantic_identity: monad
+```
+
+---
+
+# Multiple authoritative Representations
+
+Monad SHOULD avoid multiple independently writable authoritative Representations for the same property unless reconciliation semantics are explicitly defined.
+
+Otherwise, conflict is inevitable.
+
+---
+
+# Canonical Representation
+
+A **canonical Representation** is the preferred Representation for a defined purpose or property.
+
+Canonicality MUST be scoped.
+
+Examples:
+
+```text id="ju0u55"
+canonical authored representation
+canonical rendered representation
+canonical provider binding
+canonical export format
+```
+
+The phrase:
+
+```text id="oqhg3z"
+the canonical artifact
+```
+
+is insufficient unless the relevant scope is clear.
+
+---
+
+# Canonicality does not equal semantic identity
+
+A Subject may change canonical Representation without changing identity.
+
+Example:
+
+```text id="wvng8i"
+Markdown
+→ MDX
+```
+
+or:
+
+```text id="urzufc"
+GitHub Issues
+→ another issue tracker
+```
+
+The Subject remains the same if semantic continuity is established.
+
+---
+
+# Canonicality does not imply exclusive Representation
+
+Choosing MDX as canonical authored form does not prohibit:
+
+* rendered HTML,
+* PDF,
+* JSON,
+* search indexes,
+* GitHub mirrors,
+* or machine-generated summaries.
+
+---
+
+# Authored Representation
+
+An authored Representation is directly edited as part of normal engineering work.
+
+Examples:
+
+```text id="8x55ar"
+source file
+ADR
+Requirement page
+Specification
+configuration
+```
+
+---
+
+# Generated Representation
+
+A generated Representation is produced from another state source.
+
+Example:
+
+```text id="vk0urr"
+MDX
+↓
+HTML
+```
+
+or:
+
+```text id="fcrukf"
+semantic graph
+↓
+relationship report
+```
+
+Generated output MUST retain provenance sufficient to identify the source and generation context where consequential.
+
+---
+
+# Generated is not canonical automatically
+
+A generated file may be convenient or widely consumed.
+
+That does not make it authoritative.
+
+```text id="rweug2"
+generated
+≠
+canonical automatically
+```
+
+---
+
+# Derived Representation
+
+A derived Representation expresses information computed from one or more other sources.
+
+Examples:
+
+* dependency graph,
+* status dashboard,
+* coverage summary,
+* impact report,
+* semantic index.
+
+Derived state may contain useful new computation without becoming authoritative input.
+
+---
+
+# Cached Representation
+
+A cached Representation exists primarily for performance or offline access.
+
+It must retain freshness semantics.
+
+---
+
+# Historical Representation
+
+Monad MAY preserve historical Representations after they stop being current.
+
+Examples:
+
+```text id="ghqlke"
+old file path
+superseded provider object
+retired generated format
+archived document revision
+```
+
+Historical Representations remain useful for provenance and traceability.
+
+---
+
+# External Representation
+
+A Representation MAY exist in a system Monad does not control.
+
+Examples:
+
+* vendor issue tracker,
+* public registry,
+* cloud provider,
+* third-party documentation.
+
+Monad records the relationship without pretending to own the resource.
+
+---
+
+# Representation lifecycle
+
+Representations SHOULD support lifecycle states such as:
+
+```text id="xw5h2q"
+planned
+active
+superseded
+retired
+missing
+unknown
+```
+
+Exact vocabulary may differ by Representation class.
+
+---
+
+# Missing versus deleted
+
+Monad MUST distinguish:
+
+```text id="l2d8ns"
+not observed
+```
+
+from:
+
+```text id="4m496v"
+confirmed deleted
+```
+
+and:
+
+```text id="v5l5rf"
+access denied
+```
+
+Therefore:
+
+```text id="d48mhi"
+missing ≠ deleted
+```
+
+---
+
+# Representation move
+
+Moving a Representation does not inherently change Subject identity.
+
+Example:
+
+```text id="8pf769"
+content/docs/architecture.md
+
+→
+
+content/docs/system/architecture/index.mdx
+```
+
+If continuity is established:
+
+```text id="am9i7s"
+same Subject
+new locator
+```
+
+---
+
+# Rename
+
+Renaming a Representation SHOULD update its locator and history without producing:
+
+```text id="9fvham"
+delete Subject A
+create Subject B
+```
+
+unless semantic analysis shows it actually became a new Subject.
+
+---
+
+# Provider migration
+
+Changing native provider does not inherently change semantic identity.
+
+Example:
+
+```text id="dlkap4"
+GitHub Issue
+→ Linear issue
+```
+
+could preserve the same Work Item Subject.
+
+The old and new native resources are distinct Representations or bindings.
+
+---
+
+# Representation replacement
+
+A Representation may be replaced.
+
+Example:
+
+```text id="4xpr72"
+legacy specification PDF
+→ maintained MDX source
+```
+
+The system should retain:
+
+* predecessor relationship,
+* historical locator,
+* migration provenance,
+* and continuity decision.
+
+---
+
+# Supersession
+
+Supersession is different from relocation.
+
+```text id="93jgya"
+relocation:
+same semantic content, new location
+
+supersession:
+new Representation replaces old content or role
+```
+
+These events require different provenance.
+
+---
+
+# Subject supersession
+
+A Subject itself may be superseded by another Subject.
+
+Example:
+
+```text id="d56ogb"
+SPEC-001
+superseded-by
+SPEC-014
+```
+
+This is not the same as changing the Representation of SPEC-001.
+
+---
+
+# Split
+
+A previously modeled Subject may later be understood to contain multiple distinct Subjects.
+
+Example:
+
+```text id="5533jc"
+original Subject A
+       ↓ split
+Subject B
+Subject C
+```
+
+Monad MUST preserve the identity transition rather than rewriting history as though B and C had always been separately known.
+
+---
+
+# Merge
+
+Two Subjects may later be determined to represent one semantic thing.
+
+Example:
+
+```text id="xgjbsm"
+Subject A ─┐
+           ├── merge/equivalence resolution → Subject C
+Subject B ─┘
+```
+
+Merge semantics must preserve aliases and provenance.
+
+---
+
+# Merge is not deletion
+
+Historical references to merged identities must remain resolvable.
+
+---
+
+# Equivalence
+
+Monad MAY represent relationships such as:
+
+```text id="mfky1c"
+same-as
+equivalent-to
+alias-of
+superseded-by
+derived-from
+```
+
+These relationships MUST have precise semantics rather than being treated as interchangeable.
+
+---
+
+# Representation equivalence
+
+Two Representations may be semantically equivalent without being byte-identical.
+
+Example:
+
+```text id="4qoo4y"
+Markdown source
+rendered HTML
+```
+
+---
+
+# Byte equivalence
+
+Where exact bytes matter, Monad may use:
+
+* cryptographic digest,
+* Git blob ID,
+* artifact digest,
+* content hash.
+
+Byte equivalence is a stronger and different assertion from semantic equivalence.
+
+---
+
+# Semantic equivalence
+
+Semantic equivalence may require normalization.
+
+Examples:
+
+```text id="6983dx"
+different whitespace
+different generated formatting
+different ordering of semantically unordered properties
+```
+
+The normalization rules must be explicit for consequential comparison.
+
+---
+
+# Normalization
+
+Monad MAY normalize Representations for comparison.
+
+Normalization MUST NOT silently destroy native data needed for forensic explanation.
+
+---
+
+# Lossless and lossy transformation
+
+Transformations SHOULD declare whether they are expected to be:
+
+```text id="8e92xd"
+lossless
+lossy
+unknown
+```
+
+---
+
+# Round-trip guarantee
+
+A Representation format MUST NOT be assumed round-trippable unless tested.
+
+Example:
+
+```text id="tm7ak2"
+structured semantic state
+→ Markdown
+→ structured semantic state
+```
+
+may lose:
+
+* type information,
+* provenance,
+* ordering,
+* identifiers,
+* or relationship metadata.
+
+---
+
+# Native Reference types
+
+Native References SHOULD be typed.
+
+Examples:
+
+```text id="28c1lm"
+filesystem
+git
+github
+package-registry
+ci
+deployment
+database
+http
+documentation-system
+```
+
+Typed references enable provider-specific semantics without collapsing everything into a generic string.
+
+---
+
+# Generic URL is insufficient
+
+URLs MAY be useful navigation locators.
+
+They SHOULD NOT replace stronger native identity when available.
+
+Example:
+
+```text id="426rxp"
+https://host/repo/issues/42
+```
+
+may change after a repository transfer.
+
+The provider's stable native ID may not.
+
+---
+
+# Locator versus identity
+
+Monad distinguishes:
+
+```text id="lrkvij"
+locator
+```
+
+from:
+
+```text id="9out54"
+identifier
+```
+
+A path is often a locator.
+
+A Git commit SHA is closer to content identity.
+
+A semantic ID represents the Subject.
+
+These must not be conflated.
+
+---
+
+# Filesystem Representation
+
+A filesystem Representation SHOULD preserve:
+
+* project root identity,
+* normalized relative path,
+* artifact role,
+* content type,
+* revision or digest where consequential.
+
+Example:
+
+```yaml id="gujnek"
+native_reference:
+  kind: filesystem
+  root: workspace
+  path: content/docs/system/index.mdx
+```
+
+---
+
+# Absolute paths
+
+Portable semantic identity SHOULD NOT depend on machine-specific absolute paths.
+
+Unsafe:
+
+```text id="dgxeul"
+/home/alice/project/content/docs/system/index.mdx
+```
+
+Prefer project-relative addressing where appropriate.
+
+---
+
+# Symlinks
+
+Filesystem identity resolution must handle symbolic links explicitly.
+
+The system MUST NOT blindly assume:
+
+```text id="11t8bh"
+two paths
+=
+two different Subjects
+```
+
+nor:
+
+```text id="1ctyxc"
+same resolved inode
+=
+same semantic Subject
+```
+
+without context.
+
+---
+
+# Git Representation
+
+Git-aware Representations may preserve:
+
+* repository identity,
+* commit,
+* tree or blob identity,
+* path,
+* branch/ref where relevant.
+
+---
+
+# Mutable Git refs
+
+Branch names are mutable references.
+
+```text id="768lmh"
+main
+```
+
+does not identify immutable content.
+
+---
+
+# Immutable revision binding
+
+Where Evidence or Verification depends on exact repository state, Representation provenance SHOULD bind to an immutable commit or equivalent revision.
+
+---
+
+# GitHub and Git are distinct
+
+A repository hosted on GitHub has at least two relevant systems:
+
+```text id="gxek4n"
+Git
+GitHub
+```
+
+Monad MUST NOT treat provider hosting metadata as part of Git's intrinsic identity model.
+
+---
+
+# Source symbol Representation
+
+A software Subject may be represented by an addressable source symbol.
+
+Example:
+
+```text id="92pxqt"
+package
+module
+class
+function
+method
+type
+schema
+```
+
+The symbol locator may include:
+
+* repository,
+* revision,
+* file,
+* language,
+* qualified symbol path.
+
+---
+
+# Symbol movement
+
+Moving a function between files does not necessarily mean the semantic component changed identity.
+
+Automated identity matching may assist but must preserve uncertainty where appropriate.
+
+---
+
+# Generated code
+
+Generated source code SHOULD be marked as generated where known.
+
+Monad should distinguish:
+
+```text id="148ulw"
+generator input
+generated source
+generated binary
+```
+
+---
+
+# Documentation Representation
+
+Documentation systems often separate:
+
+```text id="rwlo2s"
+source document
+rendered page
+navigation index
+search index
+```
+
+Monad should represent those roles distinctly.
+
+---
+
+# Build artifact Representation
+
+A compiled artifact may represent a software component at a particular revision.
+
+Useful native identity includes:
+
+* digest,
+* artifact coordinate,
+* build run,
+* source revision,
+* build configuration.
+
+---
+
+# Package Representation
+
+Package identity may involve:
+
+```text id="atwx3x"
+package name
+version
+registry
+digest
+```
+
+These dimensions must remain distinct.
+
+---
+
+# Deployment Representation
+
+A deployed instance may represent a release in a runtime environment.
+
+Its native identity should preserve:
+
+* provider,
+* account/project,
+* environment,
+* region or cluster,
+* deployment ID,
+* artifact digest or source revision.
+
+---
+
+# Database Representation
+
+A database-backed representation may use:
+
+```text id="lvh4bw"
+database identity
+schema/table
+primary key
+revision
+```
+
+A row ID is scoped to its database context unless guaranteed otherwise.
+
+---
+
+# API Representation
+
+An API object may be modeled through a Native Reference containing:
+
+* provider identity,
+* endpoint or object type,
+* native object ID,
+* API version if relevant.
+
+---
+
+# Representation revision
+
+Representations SHOULD expose revision semantics where the underlying system supports them.
+
+Examples:
+
+```text id="hdri06"
+Git commit
+ETag
+database revision
+updated sequence
+package digest
+artifact digest
+provider version
+```
+
+---
+
+# Current Representation versus revision
+
+A Representation is the enduring representational relationship.
+
+A revision is one state of that Representation.
+
+Conceptually:
+
+```text id="qa4933"
+Representation
+├── revision 1
+├── revision 2
+├── revision 3
+└── current revision
+```
+
+---
+
+# Revision identity
+
+Consequential Evidence SHOULD bind to a specific Representation revision rather than merely:
+
+```text id="mpn3e4"
+the current file
+```
+
+---
+
+# Representation provenance
+
+A Representation SHOULD preserve consequential provenance such as:
+
+* creator or producing system,
+* creation time,
+* generator version,
+* source revision,
+* transformation,
+* provider,
+* import process,
+* approval where relevant.
+
+---
+
+# Provenance is not authority
+
+A Representation may have excellent provenance and still not be authoritative.
+
+---
+
+# Representation is not Evidence automatically
+
+A Representation can serve as Evidence when an explicit evidentiary relationship exists.
+
+Example:
+
+```text id="ygdvel"
+CI result Representation
+→ Evidence supporting verification Claim
+```
+
+But merely storing the CI result does not establish what it proves.
+
+---
+
+# Representation is not a Claim automatically
+
+A document may contain Claims.
+
+The document itself is not semantically identical to each Claim it contains.
+
+---
+
+# Representation extraction
+
+Monad MAY extract structured Subjects, Claims, and relationships from artifacts.
+
+Example:
+
+```text id="frkn7a"
+ADR MDX
+   ↓ parse
+ADR Subject
+Decision Claim
+Requirement references
+Related ADR links
+```
+
+---
+
+# Extraction provenance
+
+Extracted semantic state SHOULD retain:
+
+* source Representation,
+* source revision,
+* extraction mechanism,
+* parser/model version,
+* extraction time.
+
+---
+
+# Deterministic extraction
+
+Deterministic parsers SHOULD be preferred for structures with formal syntax.
+
+Examples:
+
+```text id="1yazlt"
+frontmatter
+requirement IDs
+explicit links
+structured manifests
+```
+
+---
+
+# AI-assisted extraction
+
+AI MAY assist where semantics are not syntactically explicit.
+
+Such extraction should retain uncertainty and provenance.
+
+---
+
+# Explicit beats inferred
+
+Where an artifact explicitly declares:
+
+```text id="w7jpyt"
+represents: req:0191...
+```
+
+that declaration SHOULD generally take precedence over fuzzy inference, subject to validation and authority rules.
+
+---
+
+# Duplicate detection
+
+Monad SHOULD be able to identify possible duplicate Subjects or Representations.
+
+Detection MAY use:
+
+* stable domain IDs,
+* native IDs,
+* content hashes,
+* provenance,
+* semantic similarity,
+* explicit mappings.
+
+---
+
+# Duplicate detection is not automatic merge
+
+Possible duplicate detection produces a hypothesis.
+
+It does not automatically establish semantic equivalence.
+
+---
+
+# Artifact discovery
+
+Monad MAY discover Representations by scanning native systems.
+
+Examples:
+
+```text id="gyfsrp"
+filesystem scan
+Git traversal
+GitHub API
+package registry
+documentation index
+CI provider
+```
+
+Discovery must preserve source provenance.
+
+---
+
+# Discovery does not imply ownership
+
+Finding an artifact does not make Monad authoritative for it.
+
+---
+
+# Discovery does not imply Subject creation
+
+Implementations MAY create provisional Subjects during ingestion, but they must preserve provisional status when semantic identity remains unresolved.
+
+---
+
+# Provisional identity
+
+A newly discovered artifact may produce:
+
+```text id="d5kdcc"
+provisional Subject
+```
+
+until identity is established.
+
+---
+
+# Identity promotion
+
+A provisional Subject may become established after:
+
+* explicit declaration,
+* deterministic binding,
+* human confirmation,
+* policy-authorized inference.
+
+The transition SHOULD be recorded.
+
+---
+
+# Relationship to persistence
+
+ADR-0002 establishes where semantic records and Representations may be persisted.
+
+This ADR establishes what those records mean.
+
+---
+
+# Relationship to reconciliation
+
+Reconciliation compares distinct Representations or modeled/native states that are expected to correspond.
+
+Without Representation identity, reconciliation would incorrectly compare Subjects directly to storage locations.
+
+---
+
+# Relationship to integration
+
+Integrations discover, observe, mutate, and resolve Native References.
+
+They do not redefine the semantic Subject model.
+
+---
+
+# Relationship to authority
+
+Authority may attach to:
+
+* Subject properties,
+* Representation roles,
+* native systems,
+* actors,
+* or operations.
+
+Representation identity enables authority to be assigned precisely.
+
+---
+
+# Relationship to Evidence
+
+Evidence should reference the exact Representation revision that bears on a Claim whenever feasible.
+
+---
+
+# Relationship to Verification
+
+Verification methods may inspect one or more Representations.
+
+The result must distinguish:
+
+```text id="k2uj4o"
+Subject under evaluation
+Representation inspected
+revision observed
+Evidence produced
+```
+
+---
+
+# Relationship to execution
+
+Execution may mutate a native Representation.
+
+That mutation does not automatically update every other Representation of the Subject.
+
+Reconciliation may therefore follow execution.
+
+---
+
+# Relationship to AI
+
+AI tools must reason over explicit representation metadata rather than assuming two similarly named files or provider objects are the same thing.
+
+---
+
+# Content addressing
+
+Content hashes MAY supplement identity.
+
+They are useful for:
+
+* detecting byte equality,
+* deduplication,
+* immutable artifacts,
+* Evidence binding,
+* cache validation.
+
+They are not universal semantic IDs.
+
+---
+
+# Why hashes are not Subject identity
+
+The same Subject can change content over time.
+
+Therefore:
+
+```text id="b7p8l8"
+content hash changes
+```
+
+must not necessarily mean:
+
+```text id="zyi6cf"
+new Subject
+```
+
+---
+
+# Why paths are not Subject identity
+
+Paths change.
+
+---
+
+# Why titles are not Subject identity
+
+Titles change and collide.
+
+---
+
+# Why provider IDs are not Subject identity
+
+Providers change.
+
+---
+
+# Why semantic IDs are required
+
+Semantic identity must survive legitimate changes in:
+
+* location,
+* provider,
+* format,
+* title,
+* revision,
+* representation count.
+
+---
+
+# Materialization direction
+
+The system should preserve transformation direction.
+
+Example:
+
+```text id="iyzku6"
+semantic record
+    ↓ generates
+MDX report
+```
+
+is different from:
+
+```text id="gizzu9"
+MDX source
+    ↓ parsed into
+semantic record
+```
+
+---
+
+# Bidirectional editing
+
+Bidirectional editing MAY be supported.
+
+It requires an explicit ownership contract.
+
+Example:
+
+```text id="15wf1s"
+fields:
+  title:
+    authority: mdx
+
+  workflow_state:
+    authority: github
+
+  semantic_identity:
+    authority: monad
+```
+
+---
+
+# Field-level synchronization
+
+Where Representations expose overlapping fields, mappings SHOULD define:
+
+* field correspondence,
+* source authority,
+* transformation,
+* lossiness,
+* directionality,
+* conflict handling.
+
+---
+
+# Unmapped fields
+
+A provider-specific field with no Monad equivalent MUST NOT be silently discarded merely to fit the canonical model.
+
+It may remain native extension data.
+
+---
+
+# Lowest-common-denominator modeling rejected
+
+Monad's semantic model should normalize genuinely shared meaning without reducing every Representation to only the fields common across all providers.
+
+---
+
+# Provider-specific extensions
+
+Representation and Native Reference models MAY retain provider-specific properties under typed extension namespaces.
+
+Example:
+
+```yaml id="6i0dmu"
+native:
+  provider: github
+  extensions:
+    pull_request:
+      draft: true
+```
+
+---
+
+# Serialization
+
+Representation metadata SHOULD have a portable machine-readable serialization.
+
+Exact schema syntax belongs in a downstream Specification.
+
+---
+
+# Minimal Representation model
+
+A minimal model requires:
+
+```yaml id="qal77e"
+id: rep:0191...
+subject: req:0191...
+
+role: authoritative-authored
+
+native_reference:
+  kind: filesystem
+  path: content/docs/artifacts/requirements/authority.mdx
+```
+
+---
+
+# Rich Representation model
+
+```yaml id="zluar6"
+id: rep:0191f5c2-d7cc-71cf-85d7-c4fb8ad3b7aa
+
+subject:
+  id: req:0191f574-b9c7-7c1d-a7db-38ca251bd192
+
+kind: document-fragment
+role: authoritative-authored
+
+native_reference:
+  kind: filesystem
+  workspace: monad
+  path: content/docs/artifacts/requirements/authority.mdx
+
+fragment:
+  scheme: semantic-anchor
+  identifier: REQ-AUTH-042
+
+revision:
+  kind: git
+  repository: monad
+  commit: 9ca04d1
+
+content:
+  media_type: text/mdx
+
+authority:
+  properties:
+    wording: authoritative
+    workflow_state: non-authoritative
+
+provenance:
+  created_by: actor:0191...
+  created_at: 2026-08-29T04:12:00Z
+
+lifecycle:
+  state: active
+```
+
+---
+
+# Multiple Representations example
+
+```yaml id="wvqa6o"
+subject:
+  id: adr:0003
+
+representations:
+  - id: rep:mdx
+    role: authoritative-authored
+    native_reference:
+      kind: filesystem
+      path: content/docs/artifacts/decisions/adr-0003-canonical-artifact-and-representation-model.mdx
+
+  - id: rep:web
+    role: generated
+    native_reference:
+      kind: http
+      route: /docs/artifacts/decisions/adr-0003-canonical-artifact-and-representation-model
+
+  - id: rep:index
+    role: derived
+    native_reference:
+      kind: semantic-index
+      key: adr:0003
+```
+
+---
+
+# Native migration example
+
+Before:
+
+```yaml id="oz8utn"
+subject: work:0191...
+
+representation:
+  provider: github
+  native_id: I_kwD...
+  role: native-operational
+```
+
+After migration:
+
+```yaml id="h6w8f9"
+subject: work:0191...
+
+representations:
+  - provider: github
+    native_id: I_kwD...
+    lifecycle: historical
+
+  - provider: other-tracker
+    native_id: ENG-482
+    lifecycle: active
+```
+
+The Subject ID remains unchanged.
+
+---
+
+# Fragment example
+
+```text id="69pj8v"
+content/docs/artifacts/requirements/integration.mdx
+```
+
+may contain:
+
+```text id="d6mqz4"
+REQ-INT-001
+REQ-INT-002
+REQ-INT-003
+```
+
+The file path identifies the container Representation.
+
+The requirement IDs identify semantic fragments bound to separate Requirement Subjects.
+
+---
+
+# Anti-patterns
+
+## Path-is-identity
+
+```text id="dq4yeg"
+Subject ID = content/docs/foo.mdx
+```
+
+Rejected.
+
+---
+
+## Title-is-identity
+
+```text id="7x1csg"
+Subject ID = "Architecture"
+```
+
+Rejected.
+
+---
+
+## Provider-object-is-the-domain-object
+
+```text id="35605z"
+GitHub Issue #42 = Requirement
+```
+
+Rejected unless the domain explicitly defines the native resource itself as the Subject.
+
+More often:
+
+```text id="opze4b"
+GitHub Issue #42
+represents
+Requirement X
+```
+
+---
+
+## Generated-is-canonical
+
+```text id="4ztifz"
+HTML exists, therefore HTML owns truth
+```
+
+Rejected.
+
+---
+
+## One artifact, one Subject assumption
+
+Rejected.
+
+Documents often contain many semantic entities.
+
+---
+
+## One Subject, one artifact assumption
+
+Rejected.
+
+Semantic entities often span multiple systems.
+
+---
+
+## Every rename creates a new Subject
+
+Rejected.
+
+---
+
+## Delete old bindings during provider migration
+
+Rejected.
+
+Historical provenance must remain inspectable.
+
+---
+
+## Fuzzy matching silently merges Subjects
+
+Rejected.
+
+---
+
+## Native IDs discarded after normalization
+
+Rejected.
+
+---
+
+## Everything forced into generic URL references
+
+Rejected.
+
+---
+
+## Provider-specific semantics erased
+
+Rejected.
+
+---
+
+## Heading slug used as permanent fragment ID
+
+Rejected where durable identity matters.
+
+---
+
+## Current locator overwrites historical locator
+
+Rejected.
+
+---
+
+## Representation metadata treated as Subject properties
+
+Rejected unless those semantics genuinely belong to the Subject.
+
+Example:
+
+```text id="cr40t7"
+filesystem path
+```
+
+normally belongs to Representation.
+
+---
+
+# Progressive formalization
+
+The Representation model may be introduced progressively.
+
+## Stage 1 — Explicit Subject IDs
+
+Artifacts receive stable semantic IDs.
+
+---
+
+## Stage 2 — Representation records
+
+Locations and artifact forms become first-class records.
+
+---
+
+## Stage 3 — Native References
+
+Provider-specific identities become explicit.
+
+---
+
+## Stage 4 — Representation roles
+
+Authored, generated, derived, cached, external, and historical roles become formalized.
+
+---
+
+## Stage 5 — Revision binding
+
+Representations bind to provider-native revision semantics.
+
+---
+
+## Stage 6 — Fragment identity
+
+Addressable sub-artifacts receive durable bindings.
+
+---
+
+## Stage 7 — Authority mapping
+
+Authority becomes property-scoped across Representations.
+
+---
+
+## Stage 8 — Reconciliation
+
+Expected correspondences and divergence rules become explicit.
+
+---
+
+## Stage 9 — Automated identity assistance
+
+Deterministic and AI-assisted discovery proposes bindings under governance.
+
+---
+
+## Stage 10 — Cross-system canonical model
+
+Subjects can migrate among providers and Representation types without semantic identity loss.
+
+---
+
+# Query requirements
+
+The model must eventually answer:
+
+```text id="jmtg94"
+What Representations exist for this Subject?
+
+Which Representation is authoritative for wording?
+
+Where is the current authored artifact?
+
+What native resource corresponds to this Subject?
+
+What was its previous path?
+
+What revision was inspected during verification?
+
+Which Representations are generated?
+
+Which Representations are stale?
+
+Which native bindings are unresolved?
+
+Which Subjects share a container artifact?
+
+Which Subject does this file fragment represent?
+
+Which Representations have conflicting values?
+
+Which Representations are historical?
+
+Which Subjects changed provider?
+
+Which bindings were inferred by AI?
+
+Which identity merges or splits occurred?
+```
+
+---
+
+# Definition of Ready
+
+ADR-0003 was ready because:
+
+* [x] stable Subject identity was established in ADR-0001,
+* [x] hybrid persistence was established in ADR-0002,
+* [x] native systems remain first-class,
+* [x] Monad must support multiple artifact formats and providers,
+* [x] filesystem paths cannot safely serve as semantic identity,
+* [x] reconciliation requires distinct representations,
+* [x] provenance requires precise source binding,
+* [x] requirements and ADRs may exist as fragments within documents,
+* [x] generated and authored artifacts require different semantics.
+
+---
+
+# Definition of Done
+
+ADR-0003 is complete when:
+
+* [x] Subject is distinguished from Representation,
+* [x] Representation is distinguished from Native Reference,
+* [x] multiple Representations per Subject are supported,
+* [x] multiple Subjects per container artifact are supported,
+* [x] fragments are first-class addressable concepts,
+* [x] paths and provider IDs are rejected as universal semantic identity,
+* [x] Representation roles are defined,
+* [x] canonicality is explicitly scoped,
+* [x] provider migration preserves Subject identity,
+* [x] rename and relocation semantics preserve continuity,
+* [x] revision binding is supported,
+* [x] generated and derived Representations are distinguished from authority,
+* [x] identity inference retains provenance and uncertainty,
+* [x] split and merge transitions preserve history,
+* [x] cross-system mappings retain native semantics.
+
+---
+
+# Acceptance criteria
+
+## File rename
+
+Renaming:
+
+```text id="umdjpo"
+requirements/auth.mdx
+```
+
+to:
+
+```text id="15yqax"
+requirements/authority.mdx
+```
+
+does not create a new Requirement Subject when continuity is established.
+
+---
+
+## Provider migration
+
+Moving a Work Item from one issue tracker to another retains the Work Item's semantic identity.
+
+---
+
+## Multi-representation
+
+One Requirement can be represented simultaneously in MDX, a GitHub Issue, rendered HTML, and a semantic index.
+
+---
+
+## Multi-subject artifact
+
+One requirements document can contain multiple independently addressable Requirement Subjects.
+
+---
+
+## Historical traceability
+
+A previous native resource or path remains resolvable after migration.
+
+---
+
+## Exact Evidence binding
+
+Verification Evidence can identify the exact Representation and revision inspected.
+
+---
+
+## Generated artifact
+
+A generated web page does not automatically become authoritative because it is the most visible Representation.
+
+---
+
+## AI matching
+
+An AI-proposed identity match remains distinguishable from a confirmed binding.
+
+---
+
+## Fragment stability
+
+Changing a heading label does not invalidate a fragment's semantic identity when a stable semantic anchor exists.
+
+---
+
+## Lossy projection
+
+A native provider with fewer fields than Monad's semantic model does not cause richer semantic data to be discarded.
+
+---
+
+# Verification obligations
+
+```text id="c0352y"
+VFO-REP-001
+Moving a filesystem Representation preserves Subject identity.
+
+VFO-REP-002
+Renaming a Representation preserves historical locator provenance.
+
+VFO-REP-003
+A Subject can have multiple active Representations.
+
+VFO-REP-004
+A single container artifact can represent multiple Subjects.
+
+VFO-REP-005
+Native Reference identity remains distinct from Subject identity.
+
+VFO-REP-006
+Generated Representations are not promoted to authority automatically.
+
+VFO-REP-007
+Evidence can bind to an immutable Representation revision.
+
+VFO-REP-008
+Provider migration preserves semantic identity.
+
+VFO-REP-009
+Historical provider bindings remain queryable.
+
+VFO-REP-010
+AI-inferred bindings retain inference provenance.
+
+VFO-REP-011
+Unconfirmed identity hypotheses are not treated as confirmed equivalence.
+
+VFO-REP-012
+Fragment identity survives presentation-only heading changes.
+
+VFO-REP-013
+Lossy transformations are identifiable as lossy.
+
+VFO-REP-014
+Native provider-specific fields can be preserved without polluting the universal semantic model.
+
+VFO-REP-015
+Split and merge identity transitions preserve traceability to previous identities.
+```
+
+---
+
+# Core invariants
+
+```text id="v2iajw"
+Subject ≠ Representation
+
+Representation ≠ Native Reference
+
+Subject identity ≠ File path
+
+Subject identity ≠ URL
+
+Subject identity ≠ Title
+
+Subject identity ≠ Provider object ID
+
+Native identity ≠ Semantic identity
+
+Locator ≠ Identity
+
+Representation revision ≠ Representation identity
+
+Content hash ≠ Semantic identity
+
+Generated ≠ Canonical automatically
+
+Canonical ≠ Authoritative universally
+
+Canonical ≠ Exclusive
+
+Representation ≠ Claim
+
+Representation ≠ Evidence automatically
+
+Representation ≠ Subject
+
+Container artifact ≠ Contained Subject
+
+Heading slug ≠ Durable semantic identity automatically
+
+Rename ≠ New Subject
+
+Move ≠ New Subject
+
+Provider migration ≠ New Subject
+
+Representation deletion ≠ Subject deletion
+
+Missing ≠ Deleted
+
+Unobserved ≠ Missing conclusively
+
+Permission denied ≠ Missing
+
+Same content ≠ Same Subject automatically
+
+Different content ≠ Different Subject automatically
+
+Equivalent ≠ Byte-identical
+
+Inferred binding ≠ Confirmed binding
+
+AI match ≠ Identity authority
+
+Merge ≠ Historical erasure
+
+Split ≠ Historical rewrite
+
+Generated projection ≠ Authored source
+
+Native field ≠ Universal semantic property
+
+Provider-neutral ≠ Provider-blind
+```
+
+---
+
+# Governing principle
+
+> **Monad must identify engineering concepts independently from the artifacts, paths, providers, and formats through which those concepts happen to be represented.**
+
+Artifacts move.
+
+Files are renamed.
+
+Providers change.
+
+Representations multiply.
+
+Formats are regenerated.
+
+Semantic identity must survive those changes.
+
+The canonical model is therefore:
+
+```text id="3g36qb"
+stable Subject
+      │
+      ├── Representation A
+      ├── Representation B
+      ├── Representation C
+      │
+      └── historical Representation D
+```
+
+with explicit provenance, authority, revision, and native identity at every meaningful boundary.
+
+<Cards>
+  <Card
+    href="/docs/artifacts/decisions/adr-0001-semantic-identifier-strategy"
+    title="ADR-0001 — Semantic Identifier Strategy"
+  >
+    Review the stable semantic identity model used by Subjects.
+  </Card>
+
+<Card
+href="/docs/artifacts/decisions/adr-0002-semantic-model-persistence-strategy"
+title="ADR-0002 — Semantic Model Persistence Strategy"
+>
+Review how Subjects, Representations, and derived state are persisted.
+</Card>
+
+<Card
+href="/docs/artifacts/requirements/reconciliation"
+title="Reconciliation Requirements"
+>
+Review how divergence between Representations and native systems is detected and resolved.
+</Card>
+
+<Card
+href="/docs/artifacts/requirements/provenance"
+title="Provenance Requirements"
+>
+Review the provenance that binds Representations to origin, revision, and derivation.
+</Card>
+</Cards>

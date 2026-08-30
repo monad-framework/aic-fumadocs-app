@@ -1,0 +1,3367 @@
+---
+title: ADR-0005 — Claim, Evidence, Provenance, and Verification Model
+description: Defines Monad's epistemic model for assertions, supporting evidence, origin and derivation context, verification results, confidence, freshness, and traceable conclusions.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Architecture Decision Record · ADR-0005
+  </p>
+</div>
+
+# ADR-0005 — Claim, Evidence, Provenance, and Verification Model
+
+**Status:** Accepted
+**Decision type:** Foundational architecture
+**Requirements baseline:** RB-001
+**Traceability artifact:** RTM-001
+**Depends on:** ADR-0001, ADR-0002, ADR-0003, ADR-0004
+**Primary requirement families:** `REQ-PROV`, `REQ-EVD`, `REQ-VFY`
+**Consequential consumers:** `REQ-AUTH`, `REQ-REC`, `REQ-INT`, `REQ-EXEC`, `REQ-AI`, `REQ-REL`
+
+---
+
+# Decision
+
+Monad will represent **Claims, Evidence, Provenance, and Verification as distinct first-class concepts**.
+
+They will not be collapsed into a generic:
+
+```text
+fact
+```
+
+or:
+
+```text
+status
+```
+
+field.
+
+The conceptual chain is:
+
+```text
+Claim
+  │
+  │ supported / challenged by
+  ▼
+Evidence
+  │
+  │ originated / derived through
+  ▼
+Provenance
+
+Expectation
+  │
+  │ evaluated using
+  ▼
+Verification Method
+  │
+  │ executes / inspects
+  ▼
+Observation
+  │
+  │ yields
+  ▼
+Evidence
+  │
+  │ supports
+  ▼
+Verification Result
+```
+
+A Claim states something.
+
+Evidence bears on whether that Claim should be believed.
+
+Provenance explains where the Evidence or Claim came from and how it was produced.
+
+Verification evaluates an explicit expectation using a defined method and produces a result grounded in Evidence.
+
+<Callout type="info" title="Core rule">
+Monad must never treat an assertion as verified merely because it exists, an observation as Evidence merely because it was collected, or Evidence as conclusive merely because it supports a Claim.
+
+Each epistemic transition must remain inspectable.
+</Callout>
+
+---
+
+# Context
+
+Modern engineering systems produce enormous quantities of assertions.
+
+Examples include:
+
+```text
+"The build passed."
+
+"The implementation satisfies REQ-042."
+
+"This package was produced from commit abc123."
+
+"The production service is healthy."
+
+"The architecture follows ADR-0004."
+
+"This issue is complete."
+
+"This migration preserved all data."
+
+"This AI-generated patch is correct."
+```
+
+Those statements vary dramatically in strength.
+
+Some are:
+
+* human assertions,
+* provider status values,
+* generated interpretations,
+* test results,
+* observations,
+* approvals,
+* inferred conclusions,
+* or verified outcomes.
+
+Without explicit epistemic modeling, they are easily flattened into labels such as:
+
+```text
+done
+passed
+verified
+compliant
+healthy
+approved
+```
+
+That destroys the information needed to answer:
+
+```text
+Why should I believe this?
+
+Who asserted it?
+
+What Evidence supports it?
+
+What Evidence contradicts it?
+
+How fresh is the Evidence?
+
+What exact revision was evaluated?
+
+Which method was used?
+
+Did the method actually run?
+
+What did it observe?
+
+Was the result deterministic?
+
+Has the underlying state changed since?
+```
+
+---
+
+# Problem
+
+Monad must support reliable reasoning across:
+
+* requirements,
+* architecture decisions,
+* source code,
+* tests,
+* build systems,
+* deployments,
+* documentation,
+* generated artifacts,
+* issue trackers,
+* AI output,
+* human reviews,
+* operational telemetry,
+* and external systems.
+
+This requires a formal distinction between:
+
+```text
+what someone says
+what was observed
+what supports the assertion
+where the support came from
+what procedure evaluated it
+what conclusion that procedure reached
+```
+
+Without that distinction, Monad cannot provide trustworthy traceability.
+
+---
+
+# Decision drivers
+
+The model must support:
+
+* human and machine assertions,
+* explicit Evidence,
+* competing Evidence,
+* Evidence freshness,
+* Evidence revision binding,
+* provenance chains,
+* deterministic and probabilistic evaluation,
+* reproducible verification,
+* AI-assisted reasoning,
+* review,
+* release readiness,
+* reconciliation,
+* auditability,
+* historical reconstruction,
+* local-first operation,
+* and progressive formalization.
+
+---
+
+# Claim
+
+A **Claim** is an assertion that some proposition is true, false, expected, believed, or otherwise asserted about a Subject.
+
+Example:
+
+```yaml
+id: CLM-0042
+
+subject: requirement:REQ-042
+
+proposition:
+  predicate: satisfied
+  value: true
+
+asserted_by: actor:developer
+```
+
+---
+
+# Claims are not facts automatically
+
+Monad MUST NOT treat a Claim as true merely because the Claim exists.
+
+```text
+Claim existence ≠ Claim truth
+```
+
+---
+
+# Claim identity
+
+Claims SHOULD have stable identity when they participate in:
+
+* Evidence relationships,
+* verification,
+* review,
+* contradiction,
+* supersession,
+* release decisions,
+* or audit history.
+
+---
+
+# Claim subject
+
+A Claim SHOULD identify what it is about.
+
+The target may be:
+
+* a Subject,
+* a Representation,
+* an Execution,
+* a release,
+* a deployment,
+* another Claim,
+* or a relationship.
+
+---
+
+# Claim proposition
+
+The proposition MAY begin as prose.
+
+Example:
+
+```yaml
+statement: >
+  The generated lockfile corresponds to the current manifest.
+```
+
+More structured forms MAY later be introduced.
+
+---
+
+# Structured Claims
+
+Where useful, a Claim MAY contain:
+
+```yaml
+predicate: satisfies
+object: requirement:REQ-042
+```
+
+or:
+
+```yaml
+predicate: deployment.health
+value: healthy
+```
+
+---
+
+# Progressive Claim structure
+
+Monad does not require every Claim to begin as formal logic.
+
+The architecture supports progression from:
+
+```text
+opaque prose
+    ↓
+typed Claim
+    ↓
+predicate/value
+    ↓
+domain-specific structured assertion
+```
+
+without changing the conceptual role of Claim.
+
+---
+
+# Claim source
+
+A Claim SHOULD retain who or what asserted it.
+
+Possible sources include:
+
+* human actor,
+* automated system,
+* integration,
+* verification process,
+* AI model,
+* imported artifact,
+* policy engine.
+
+---
+
+# Claim timestamp
+
+A Claim SHOULD record when it was asserted where temporal interpretation matters.
+
+---
+
+# Claim scope
+
+A Claim may be scoped to:
+
+* revision,
+* environment,
+* platform,
+* configuration,
+* time interval,
+* repository,
+* package version,
+* execution run,
+* deployment,
+* or other contextual boundary.
+
+---
+
+# Revision-bound Claims
+
+A Claim about software correctness SHOULD normally bind to the revision it concerns.
+
+Example:
+
+```text
+commit abc123 satisfies REQ-042
+```
+
+must not silently become:
+
+```text
+current main satisfies REQ-042
+```
+
+after later changes.
+
+---
+
+# Claim lifecycle
+
+Claims MAY move through states such as:
+
+```text
+asserted
+supported
+challenged
+verified
+refuted
+superseded
+withdrawn
+stale
+```
+
+These lifecycle states describe epistemic status.
+
+They must not be confused with truth itself.
+
+---
+
+# Supported Claim
+
+A Claim may be supported without being conclusively verified.
+
+---
+
+# Challenged Claim
+
+Evidence MAY challenge a Claim without conclusively disproving it.
+
+---
+
+# Contradictory Claims
+
+Monad MUST permit contradictory Claims to coexist.
+
+Example:
+
+```text
+CLM-001:
+deployment is healthy
+
+CLM-002:
+deployment is unhealthy
+```
+
+The system should represent the disagreement rather than immediately deleting one assertion.
+
+---
+
+# Claim supersession
+
+A newer Claim MAY supersede an older one.
+
+Supersession does not erase historical assertions.
+
+---
+
+# Claim correction
+
+Corrections SHOULD preserve:
+
+* original Claim,
+* correcting Claim,
+* relationship,
+* reason,
+* provenance.
+
+---
+
+# Evidence
+
+**Evidence** is an inspectable artifact, observation, record, output, or other item that bears on a Claim.
+
+---
+
+# Evidence is distinct from Claim
+
+Example:
+
+```text
+Claim:
+"All unit tests pass."
+
+Evidence:
+test report from run 9182
+```
+
+The test report is not the Claim itself.
+
+---
+
+# Evidence need not support
+
+Evidence MAY:
+
+* support,
+* challenge,
+* refute,
+* qualify,
+* contextualize,
+* or remain inconclusive toward a Claim.
+
+---
+
+# Evidence relationship
+
+The relationship between Evidence and Claim SHOULD be explicit.
+
+Example:
+
+```yaml
+claim: CLM-0042
+evidence: EVD-0191
+relation: supports
+```
+
+---
+
+# Evidence strength
+
+Evidence MAY carry an evaluation of strength.
+
+Example:
+
+```text
+weak
+moderate
+strong
+conclusive-within-defined-method
+```
+
+Monad must not assume every Evidence item is equally persuasive.
+
+---
+
+# Evidence type
+
+Evidence MAY include:
+
+* source code,
+* test output,
+* build logs,
+* package digest,
+* deployment observation,
+* benchmark result,
+* static-analysis report,
+* review record,
+* external provider response,
+* screenshot,
+* generated report,
+* structured query result,
+* telemetry,
+* human inspection record.
+
+---
+
+# Evidence identity
+
+Consequential Evidence SHOULD have stable identity.
+
+---
+
+# Evidence content
+
+Evidence may contain:
+
+* inline structured content,
+* immutable content,
+* content digest,
+* external/native reference,
+* artifact reference,
+* or a combination.
+
+---
+
+# Evidence preservation
+
+Evidence used for consequential decisions SHOULD remain inspectable for as long as the decision must remain auditable.
+
+---
+
+# Evidence immutability
+
+Evidence SHOULD be append-oriented.
+
+If Evidence content changes, the new content should normally become a new revision or Evidence record.
+
+---
+
+# Evidence revision
+
+Evidence should bind to the exact revision or observed state from which it was produced.
+
+---
+
+# Evidence scope
+
+Evidence SHOULD identify relevant scope such as:
+
+* Subject,
+* revision,
+* execution,
+* environment,
+* platform,
+* configuration,
+* provider,
+* time,
+* test subset.
+
+---
+
+# Evidence freshness
+
+Evidence can become stale.
+
+Monad MUST therefore distinguish:
+
+```text
+valid when collected
+```
+
+from:
+
+```text
+still sufficiently fresh for this decision
+```
+
+---
+
+# Freshness policy
+
+Freshness requirements SHOULD be policy- or verification-specific.
+
+Example:
+
+```text
+dependency-license scan:
+acceptable age = 24 hours
+
+immutable package digest:
+may remain valid indefinitely
+```
+
+---
+
+# Stale Evidence
+
+Stale Evidence is not deleted.
+
+It remains historical Evidence but may cease to satisfy a current decision requirement.
+
+---
+
+# Evidence validity
+
+Evidence MAY become invalid because:
+
+* source revision changed,
+* environment changed,
+* configuration changed,
+* collection method was defective,
+* provenance was corrupted,
+* artifact expired,
+* verification contract changed.
+
+---
+
+# Evidence invalidation
+
+Invalidation MUST preserve why the Evidence became unusable.
+
+---
+
+# Missing Evidence
+
+Missing required Evidence MUST NOT be interpreted as passing Evidence.
+
+```text
+missing ≠ pass
+```
+
+---
+
+# Unavailable Evidence
+
+Evidence may be unavailable without being nonexistent.
+
+Example:
+
+```text
+permission denied
+```
+
+must not become:
+
+```text
+evidence does not exist
+```
+
+---
+
+# Partial Evidence
+
+Partially collected Evidence must be represented as incomplete.
+
+---
+
+# Evidence collection failure
+
+Failure to collect Evidence is distinct from negative Evidence.
+
+---
+
+# Negative Evidence
+
+Negative Evidence explicitly bears against a Claim.
+
+Example:
+
+```text
+Claim:
+service is reachable
+
+Evidence:
+three independent connection attempts failed
+```
+
+---
+
+# Absence of Evidence
+
+Absence of Evidence is not automatically Evidence of absence.
+
+---
+
+# Evidence aggregation
+
+Multiple Evidence items MAY jointly support a Claim.
+
+---
+
+# Evidence conflict
+
+Evidence items MAY conflict.
+
+Example:
+
+```text
+unit tests pass
+integration tests fail
+```
+
+The system must preserve both.
+
+---
+
+# Evidence weighting
+
+Policies or verification methods MAY weight Evidence differently.
+
+---
+
+# Evidence source independence
+
+Monad SHOULD be capable of distinguishing multiple Evidence items generated from the same underlying source.
+
+Ten derived reports from one failing observation do not necessarily constitute ten independent pieces of Evidence.
+
+---
+
+# Provenance
+
+**Provenance** records origin, custody, derivation, transformation, and contextual history relevant to interpreting a Claim, Evidence item, or artifact.
+
+---
+
+# Provenance is distinct from Evidence
+
+Provenance answers:
+
+```text
+Where did this come from?
+How was it produced?
+What transformed it?
+Under what context?
+```
+
+Evidence answers:
+
+```text
+What supports or challenges the Claim?
+```
+
+---
+
+# Provenance chain
+
+A provenance chain MAY include:
+
+```text
+source repository
+      ↓
+checkout
+      ↓
+build execution
+      ↓
+test execution
+      ↓
+test report
+      ↓
+Evidence record
+      ↓
+verification result
+```
+
+---
+
+# Provenance source
+
+Provenance SHOULD identify native source references where relevant.
+
+---
+
+# Provenance actor
+
+Provenance MAY identify:
+
+* author,
+* executor,
+* service principal,
+* AI agent,
+* reviewer,
+* collector,
+* importer.
+
+---
+
+# Provenance timestamps
+
+Important provenance events SHOULD include time.
+
+---
+
+# Provenance revisions
+
+Where versioned artifacts are involved, provenance MUST bind to stable revisions when consequential.
+
+Examples:
+
+```text
+Git commit SHA
+artifact digest
+package version + digest
+configuration revision
+policy revision
+```
+
+---
+
+# Provenance transformations
+
+Transformations SHOULD be represented where they affect interpretation.
+
+Example:
+
+```text
+source
+→ transpilation
+→ bundling
+→ packaging
+→ signing
+```
+
+---
+
+# Derived Evidence
+
+Evidence generated through transformation MUST retain derivation provenance.
+
+---
+
+# Provenance does not imply trust
+
+Knowing where something came from does not prove it is correct.
+
+```text
+provenance ≠ trustworthiness
+```
+
+---
+
+# Trust policy
+
+A policy MAY use provenance as one input when deciding whether Evidence is acceptable.
+
+---
+
+# Chain gaps
+
+Missing provenance links SHOULD be explicit.
+
+The system should not fabricate continuity.
+
+---
+
+# Unknown provenance
+
+Unknown provenance MUST be representable.
+
+---
+
+# Provenance correction
+
+Provenance corrections must preserve prior recorded provenance and the correcting event.
+
+---
+
+# External provenance
+
+External systems MAY provide native provenance such as:
+
+* build IDs,
+* commit SHAs,
+* workflow IDs,
+* package digests,
+* deployment IDs,
+* request IDs.
+
+These should be preserved rather than normalized away.
+
+---
+
+# AI provenance
+
+AI-produced artifacts or Claims SHOULD retain consequential inference context.
+
+Relevant provenance may include:
+
+* model/provider identity,
+* model version where available,
+* prompt or prompt digest,
+* input artifact references,
+* tool calls,
+* generated output,
+* runtime configuration,
+* timestamp.
+
+---
+
+# AI context boundaries
+
+AI provenance SHOULD capture enough context to reconstruct what information the model was allowed to use when the conclusion materially matters.
+
+---
+
+# Prompt confidentiality
+
+Provenance requirements do not imply every prompt must be universally visible.
+
+Sensitive context may be protected while retaining appropriate audit references.
+
+---
+
+# Verification
+
+**Verification** is an explicit evaluation of an expectation against observed state using a defined method.
+
+---
+
+# Verification expectation
+
+A Verification MUST identify what was expected.
+
+Example:
+
+```yaml
+expectation:
+  requirement: REQ-042
+  predicate: satisfied
+```
+
+---
+
+# Verification method
+
+A Verification SHOULD identify how the expectation is evaluated.
+
+Examples:
+
+```text
+unit test
+integration test
+schema validation
+static analysis
+manual review
+artifact digest comparison
+runtime probe
+policy evaluation
+formal proof
+AI-assisted assessment
+```
+
+---
+
+# Verification target
+
+A Verification MUST identify the target it evaluated.
+
+---
+
+# Verification revision
+
+Where mutable artifacts are involved, a Verification MUST bind to the evaluated revision.
+
+---
+
+# Verification execution
+
+Where the method requires execution, Monad MUST distinguish:
+
+```text
+verification definition
+```
+
+from:
+
+```text
+verification execution
+```
+
+---
+
+# Verification result
+
+A Verification execution produces a result.
+
+Possible results may include:
+
+```text
+pass
+fail
+indeterminate
+error
+skipped
+not-applicable
+```
+
+---
+
+# Error is not failure
+
+A method error is not automatically evidence that the expectation is false.
+
+Example:
+
+```text
+test runner crashed
+```
+
+is different from:
+
+```text
+test assertion failed
+```
+
+---
+
+# Skipped is not pass
+
+```text
+skipped ≠ pass
+```
+
+---
+
+# Indeterminate is first-class
+
+A Verification MUST be allowed to conclude that available Evidence is insufficient.
+
+---
+
+# Verification result Evidence
+
+A Verification result SHOULD identify the Evidence on which it depends.
+
+---
+
+# Pass Evidence
+
+A pass result must not exist solely as an ungrounded Boolean where inspection or reproducibility matters.
+
+---
+
+# Failure Evidence
+
+A failure result should retain the observations that caused failure.
+
+---
+
+# Verification Evidence chain
+
+A useful chain is:
+
+```text
+Requirement
+   ↓
+Expectation
+   ↓
+Verification Method
+   ↓
+Execution
+   ↓
+Observation
+   ↓
+Evidence
+   ↓
+Verification Result
+```
+
+---
+
+# Verification definition versus result
+
+A test existing in the repository is not the same as that test having passed.
+
+```text
+verification method exists
+≠
+verification passed
+```
+
+---
+
+# Implementation versus satisfaction
+
+The existence of implementation code does not prove requirement satisfaction.
+
+---
+
+# Requirement traceability
+
+Requirement satisfaction SHOULD be supported by explicit Verification relationships.
+
+Example:
+
+```text
+REQ-042
+   ↓ verified by
+VFY-019
+   ↓ produced
+EVD-082
+```
+
+---
+
+# Multi-method verification
+
+One expectation MAY require several verification methods.
+
+Example:
+
+```text
+security requirement
+├── static analysis
+├── integration test
+├── configuration inspection
+└── human review
+```
+
+---
+
+# Composite verification
+
+A composite result SHOULD preserve component outcomes.
+
+---
+
+# Verification policy
+
+Policy MAY define which methods and Evidence are sufficient for a particular requirement.
+
+---
+
+# Verification confidence
+
+Verification MAY carry confidence or certainty semantics where the method is inherently probabilistic.
+
+---
+
+# Deterministic verification
+
+A deterministic method SHOULD report deterministic semantics where applicable.
+
+Example:
+
+```text
+SHA-256 digest equals expected digest
+```
+
+---
+
+# Probabilistic verification
+
+AI-based evaluation, heuristics, statistical tests, and sampling MAY be probabilistic.
+
+They MUST NOT be represented as deterministic merely for UI simplicity.
+
+---
+
+# AI verification
+
+An AI evaluation MAY contribute to verification.
+
+It should identify:
+
+* model,
+* relevant context,
+* evaluation rubric,
+* input revisions,
+* output,
+* confidence where meaningful,
+* supporting Evidence.
+
+---
+
+# AI evaluation is not universal proof
+
+An AI saying:
+
+```text
+This implementation satisfies REQ-042.
+```
+
+is a Claim unless a verification contract explicitly defines the AI evaluation itself as an accepted verification method.
+
+---
+
+# Verification contracts
+
+A verification contract defines:
+
+* expectation,
+* target scope,
+* method,
+* required inputs,
+* acceptance criteria,
+* Evidence requirements,
+* freshness,
+* acceptable uncertainty,
+* result semantics.
+
+---
+
+# Verification reproducibility
+
+Verification SHOULD be reproducible when technically feasible.
+
+---
+
+# Reproducibility context
+
+Reproducibility may require preserving:
+
+* source revision,
+* dependency lock,
+* tool versions,
+* environment,
+* configuration,
+* operating system,
+* architecture,
+* seed,
+* external service revisions.
+
+---
+
+# Non-reproducible methods
+
+Some verification methods are inherently non-reproducible.
+
+Example:
+
+```text
+live production observation
+```
+
+Such results remain valid historical observations when provenance is sufficient.
+
+---
+
+# Verification timestamp
+
+A Verification result MUST record when the evaluation occurred where time matters.
+
+---
+
+# Verification freshness
+
+A Verification result may become stale when its target changes.
+
+---
+
+# Change invalidation
+
+A consequential change to an evaluated artifact SHOULD invalidate or mark stale affected Verification results.
+
+---
+
+# Impact analysis
+
+Monad SHOULD eventually identify which verification results may be invalidated by a given change.
+
+---
+
+# Rerun
+
+Rerunning Verification creates new execution history.
+
+It MUST NOT overwrite prior results.
+
+---
+
+# Latest result
+
+The most recent Verification result may be operationally useful.
+
+It does not erase older results.
+
+---
+
+# Flaky verification
+
+Repeated inconsistent results SHOULD be detectable.
+
+---
+
+# Flakiness is Evidence
+
+Flakiness itself may become Evidence about test reliability or system nondeterminism.
+
+---
+
+# Verification method reliability
+
+Monad MAY track reliability of verification methods.
+
+---
+
+# False positive risk
+
+A Verification contract MAY document expected false-positive risk.
+
+---
+
+# False negative risk
+
+A Verification contract MAY document expected false-negative risk.
+
+---
+
+# Sampling
+
+Sample-based Verification MUST make its sampling strategy explicit when consequential.
+
+---
+
+# Manual verification
+
+Human inspection MAY be a legitimate Verification method.
+
+It should retain:
+
+* reviewer,
+* method/checklist,
+* target revision,
+* timestamp,
+* observations,
+* result.
+
+---
+
+# Review versus Verification
+
+Review and Verification may overlap but are not identical.
+
+A review can contain:
+
+* comments,
+* recommendations,
+* discussion,
+* approval.
+
+Only explicit evaluation against an expectation constitutes Verification.
+
+---
+
+# Approval versus Verification
+
+Approval answers:
+
+```text
+May we proceed?
+```
+
+Verification answers:
+
+```text
+Did the defined expectation hold?
+```
+
+Approval MUST NOT be used as Evidence that a requirement passed unless the verification contract explicitly says the approval itself is the required condition.
+
+---
+
+# Evidence versus approval
+
+An approval record can be Evidence that approval occurred.
+
+It is not automatically Evidence that the approved artifact is technically correct.
+
+---
+
+# Execution versus Verification
+
+Execution changes or interrogates real systems.
+
+Verification evaluates expectations.
+
+An Execution may be part of Verification.
+
+They remain distinct.
+
+---
+
+# Successful execution versus successful verification
+
+Example:
+
+```text
+deployment command succeeded
+```
+
+does not imply:
+
+```text
+deployed service satisfies health requirement
+```
+
+A subsequent Verification may be required.
+
+---
+
+# API acceptance versus Verification
+
+A provider returning:
+
+```text
+202 Accepted
+```
+
+means the operation was accepted.
+
+It does not verify the desired outcome.
+
+---
+
+# Observation
+
+An observation records what was perceived through an inspection mechanism.
+
+---
+
+# Observation versus Evidence
+
+An observation may become Evidence when it is retained and linked to a Claim or Verification.
+
+---
+
+# Observation time
+
+Observation MUST distinguish:
+
+```text
+event time
+observation time
+```
+
+where the difference matters.
+
+---
+
+# Observation source
+
+Observation SHOULD identify the system or method used.
+
+---
+
+# Observation completeness
+
+Observations may be:
+
+```text
+complete
+partial
+sampled
+filtered
+unknown
+```
+
+---
+
+# Cached observations
+
+Cached observations MUST be distinguishable from live observations.
+
+---
+
+# Verification and authority
+
+Verification does not create authority.
+
+A passing Verification may be required by policy before an authorized operation, but the Verification itself does not authorize that operation.
+
+---
+
+# Verification and reconciliation
+
+Reconciliation may use Verification to determine whether convergence succeeded.
+
+---
+
+# Reconciliation result versus Verification
+
+Agreement between two systems is not automatically Verification of correctness.
+
+---
+
+# Release readiness
+
+A release-ready Claim SHOULD be supported by exact Verification results and Evidence for the release candidate revision.
+
+Example:
+
+```text
+release:1.8.0
+  ├── requirement verification
+  ├── security verification
+  ├── build provenance
+  ├── artifact digest
+  └── deployment-readiness checks
+```
+
+---
+
+# Release mutation
+
+Changing the release candidate revision invalidates revision-bound readiness conclusions unless the verification contract explicitly permits reuse.
+
+---
+
+# Build provenance
+
+A release artifact SHOULD be traceable to the exact source and build process that produced it.
+
+---
+
+# Artifact digest
+
+Immutable artifact digests provide strong Evidence for artifact identity.
+
+They do not independently prove correctness.
+
+---
+
+# Test report
+
+A test report is Evidence about the test execution.
+
+It does not automatically prove that:
+
+* the tests were sufficient,
+* the correct revision was tested,
+* the environment was representative,
+* or every Requirement was covered.
+
+---
+
+# Coverage
+
+Coverage metrics are Evidence.
+
+They are not equivalent to correctness.
+
+---
+
+# Static analysis
+
+Static-analysis success is Evidence within the analyzer's defined capability.
+
+It is not universal verification.
+
+---
+
+# Formal proof
+
+A formal proof can provide stronger Verification within its formal model.
+
+The result still depends on the relationship between the model and the real implementation.
+
+---
+
+# Benchmark Evidence
+
+Benchmark results must bind to:
+
+* implementation revision,
+* benchmark definition,
+* environment,
+* workload,
+* configuration.
+
+---
+
+# Performance Claim
+
+A performance Claim without those contextual boundaries is usually too ambiguous to verify reliably.
+
+---
+
+# Operational Evidence
+
+Telemetry MAY support Claims about runtime behavior.
+
+---
+
+# Telemetry sampling
+
+Sampled telemetry must not be treated as complete observation unless the method justifies that interpretation.
+
+---
+
+# Logs
+
+Logs may be Evidence.
+
+Logs are not automatically complete records of reality.
+
+---
+
+# Screenshots
+
+Screenshots may be Evidence for visual or contextual observations.
+
+They should retain origin and time when consequential.
+
+---
+
+# User reports
+
+User reports are Claims or Evidence depending on context.
+
+A report that:
+
+```text
+"The button does not work."
+```
+
+is primarily a Claim.
+
+A recording showing the failure may become Evidence supporting it.
+
+---
+
+# Imported provider status
+
+A CI provider's:
+
+```text
+success
+```
+
+is a native Claim/result about its run.
+
+Monad should preserve the native semantics and provenance before deriving stronger conclusions.
+
+---
+
+# Derived Claims
+
+Monad MAY derive Claims from Evidence.
+
+Example:
+
+```text
+all required checks passed
+→ release readiness supported
+```
+
+The derivation rule must remain inspectable.
+
+---
+
+# Derived verification result
+
+Composite verification MAY derive a result from child results.
+
+The derivation logic should be explicit.
+
+---
+
+# Claim dependencies
+
+A Claim MAY depend on other Claims.
+
+Example:
+
+```text
+release ready
+```
+
+may depend on:
+
+```text
+requirements satisfied
+security review complete
+artifacts built
+deployment plan valid
+```
+
+---
+
+# Circular Claim support
+
+Monad SHOULD detect unsupported circular reasoning where possible.
+
+Example:
+
+```text
+A is true because B
+B is true because A
+```
+
+without independent Evidence.
+
+---
+
+# Evidence duplication
+
+Duplicate copies of the same underlying Evidence SHOULD NOT automatically increase evidentiary strength.
+
+---
+
+# Evidence lineage
+
+Monad SHOULD be able to identify common lineage among derived Evidence.
+
+---
+
+# Provenance graph
+
+Conceptually:
+
+```text
+Source
+  ↓
+Representation
+  ↓
+Transformation
+  ↓
+Execution
+  ↓
+Observation
+  ↓
+Evidence
+  ↓
+Claim
+  ↓
+Decision
+```
+
+Each edge contributes context without collapsing the entities.
+
+---
+
+# Epistemic status
+
+Monad MAY compute an epistemic status for Claims.
+
+Example:
+
+```text
+unsubstantiated
+supported
+strongly-supported
+contested
+verified-under-contract
+refuted
+stale
+```
+
+The status must be derived from explicit rules rather than arbitrary UI labels.
+
+---
+
+# Truth is not stored as a magical Boolean
+
+Monad SHOULD avoid a universal:
+
+```yaml
+truth: true
+```
+
+field that pretends uncertainty, scope, time, and Evidence do not exist.
+
+---
+
+# Current best understanding
+
+Monad MAY expose a convenient current interpretation.
+
+That interpretation must remain traceable to the Claims, Evidence, provenance, and verification behind it.
+
+---
+
+# Epistemic conflict
+
+Conflicting supported Claims should produce an explicit epistemic conflict rather than silent winner selection.
+
+---
+
+# Recency
+
+More recent Evidence MAY be more relevant.
+
+Recency alone does not establish correctness.
+
+---
+
+# Authority of assertion
+
+An authoritative actor may issue a Claim.
+
+That gives the Claim governance significance.
+
+It does not automatically make the proposition factually correct.
+
+---
+
+# Trusted source
+
+A trusted source may raise default confidence.
+
+Trust does not eliminate the need for Evidence where Verification is required.
+
+---
+
+# Source reputation
+
+Monad MAY eventually model reliability characteristics of Evidence sources.
+
+---
+
+# Retraction
+
+A Claim or Evidence source MAY retract a prior assertion.
+
+Retraction must preserve historical provenance.
+
+---
+
+# Tamper Evidence
+
+Consequential Evidence MAY include integrity protection such as:
+
+* digest,
+* signature,
+* immutable storage reference,
+* provider-native checksum.
+
+---
+
+# Signature semantics
+
+A valid signature proves something about signing identity and content integrity according to the signature mechanism.
+
+It does not automatically prove correctness of the signed content.
+
+---
+
+# Evidence integrity
+
+Evidence integrity and evidentiary relevance are distinct.
+
+---
+
+# Evidence accessibility
+
+Evidence MAY exist but become inaccessible.
+
+The system should distinguish inaccessible from deleted.
+
+---
+
+# Evidence retention
+
+Retention policy SHOULD consider:
+
+* audit needs,
+* release lifetime,
+* regulatory constraints,
+* cost,
+* provider expiration,
+* reproducibility.
+
+---
+
+# Expired external Evidence
+
+If a native provider removes an artifact because of retention limits, Monad should preserve enough metadata to show that the Evidence once existed and is now unavailable.
+
+---
+
+# Evidence localization
+
+Monad MAY cache or preserve critical Evidence locally where permitted.
+
+---
+
+# Local-first Verification
+
+Verification that depends only on locally available state SHOULD remain executable locally.
+
+---
+
+# Remote Verification
+
+Verification requiring native-system state must preserve integration and observation provenance.
+
+---
+
+# Offline state
+
+When required Evidence cannot be refreshed offline, Monad should represent the resulting uncertainty explicitly.
+
+---
+
+# Security
+
+Evidence and provenance can contain:
+
+* secrets,
+* credentials,
+* personal data,
+* internal paths,
+* infrastructure details.
+
+The model MUST support redaction and access control.
+
+---
+
+# Redaction
+
+Redaction SHOULD preserve the fact that information existed while hiding unauthorized content.
+
+---
+
+# Redaction provenance
+
+Security-sensitive redaction MAY itself be represented as a transformation.
+
+---
+
+# Secret leakage
+
+Evidence collection MUST NOT require indiscriminate persistence of secrets.
+
+---
+
+# AI prompt injection
+
+Externally sourced Evidence is untrusted data.
+
+Instructions embedded in external Evidence MUST NOT automatically become AI execution instructions.
+
+---
+
+# AI-generated Evidence
+
+AI-generated summaries or interpretations should normally be treated as derived Claims or derived Evidence with provenance to the underlying sources.
+
+---
+
+# AI summary is not source Evidence
+
+A summary of a log does not replace the log where the original Evidence is required.
+
+---
+
+# AI citation
+
+AI conclusions SHOULD link back to inspectable supporting Evidence when used consequentially.
+
+---
+
+# Human judgment
+
+Human judgment may be required when Evidence is ambiguous.
+
+Such judgment should become an explicit Claim, review, Verification, or decision rather than disappearing into undocumented interpretation.
+
+---
+
+# Verification governance
+
+Policies MAY define which actors may:
+
+* define verification methods,
+* approve verification contracts,
+* waive verification,
+* accept failed verification,
+* accept stale Evidence.
+
+---
+
+# Verification waiver
+
+A waiver does not turn a failed or missing Verification into a pass.
+
+It records that governance permitted proceeding despite the unmet verification condition.
+
+---
+
+# Waiver modeling
+
+Example:
+
+```yaml
+verification:
+  result: fail
+
+waiver:
+  approved: true
+  reason: emergency release
+```
+
+not:
+
+```yaml
+verification:
+  result: pass
+```
+
+---
+
+# Exception
+
+A policy exception is a governance artifact.
+
+It must not rewrite historical Evidence.
+
+---
+
+# Verification override
+
+Manual override SHOULD be represented separately from the original Verification result.
+
+---
+
+# Requirement satisfaction
+
+Monad SHOULD distinguish:
+
+```text
+requirement asserted satisfied
+requirement supported as satisfied
+requirement verified as satisfied
+requirement accepted despite failed verification
+```
+
+---
+
+# Traceability
+
+A requirement trace SHOULD eventually support traversal such as:
+
+```text
+Requirement
+  ↓
+Claim of satisfaction
+  ↓
+Verification
+  ↓
+Verification execution
+  ↓
+Evidence
+  ↓
+Provenance
+  ↓
+source revision / runtime observation
+```
+
+---
+
+# Decision Evidence
+
+ADRs MAY reference Evidence supporting a decision.
+
+The ADR remains a governance decision.
+
+The Evidence remains epistemic support.
+
+---
+
+# Decision invalidation
+
+New Evidence may undermine an accepted ADR's assumptions without automatically revoking the ADR.
+
+Governance determines what happens next.
+
+---
+
+# Hypotheses
+
+Hypotheses are Claims explicitly marked as uncertain and intended for evaluation.
+
+---
+
+# Experiment
+
+An experiment can produce Evidence used to evaluate a hypothesis.
+
+---
+
+# Hypothesis result
+
+A failed hypothesis is not a failed project operation.
+
+It is a successful epistemic outcome if the experiment validly provided informative Evidence.
+
+---
+
+# Experiment provenance
+
+Experimental Evidence SHOULD retain:
+
+* hypothesis,
+* method,
+* variables,
+* environment,
+* inputs,
+* outputs,
+* evaluator,
+* revision.
+
+---
+
+# Reproducibility status
+
+Experiment or Verification records MAY state whether results were independently reproduced.
+
+---
+
+# Independent corroboration
+
+Independent Evidence MAY increase confidence.
+
+Its independence should be justified by provenance rather than assumed.
+
+---
+
+# Historical reconstruction
+
+Monad SHOULD make it possible to determine:
+
+```text
+What did we believe at time T?
+
+Which Claims supported that belief?
+
+Which Evidence was available?
+
+What was its provenance?
+
+Which verification results existed?
+
+Which later Evidence changed our understanding?
+```
+
+---
+
+# Time-aware Claims
+
+A Claim may be valid for one period and false later.
+
+Example:
+
+```text
+production deployment healthy at 12:00
+```
+
+does not imply health at 15:00.
+
+---
+
+# Current truth projection
+
+A current-state projection may select the most relevant active Claims and Evidence.
+
+The underlying history remains intact.
+
+---
+
+# Unknown
+
+Monad MUST preserve unknown states.
+
+```text
+unknown ≠ false
+```
+
+---
+
+# Inconclusive
+
+Inconclusive verification is a legitimate result.
+
+---
+
+# Confidence
+
+Confidence MAY be represented separately from result.
+
+Example:
+
+```yaml
+result: pass
+confidence: 0.71
+```
+
+only when the method meaningfully supports probabilistic interpretation.
+
+---
+
+# False precision
+
+Probabilistic methods MUST NOT invent numerical confidence where the underlying method does not justify it.
+
+---
+
+# Claim confidence
+
+Claim confidence MAY derive from:
+
+* Evidence strength,
+* source reliability,
+* number of independent Evidence paths,
+* verification results,
+* freshness,
+* contradiction.
+
+---
+
+# Evidence confidence
+
+Confidence does not replace Evidence.
+
+---
+
+# Multi-repository verification
+
+Verification MAY span multiple repositories.
+
+Each participating revision must be identified.
+
+---
+
+# Multi-system verification
+
+Verification MAY depend on several native systems.
+
+Example:
+
+```text
+source repository revision
++
+CI run
++
+artifact registry digest
++
+deployment observation
+```
+
+---
+
+# Cross-system consistency
+
+Cross-system agreement MAY be Evidence.
+
+It does not automatically prove correctness.
+
+---
+
+# Reconciliation Evidence
+
+A reconciliation run MAY generate Evidence describing:
+
+* compared states,
+* divergence,
+* authority basis,
+* action taken,
+* resulting state.
+
+---
+
+# Reconciliation is not Verification automatically
+
+A successful reconciliation establishes convergence according to its model.
+
+A separate Verification may still be required to establish the desired system property.
+
+---
+
+# Execution Evidence
+
+Execution records MAY become Evidence.
+
+Example:
+
+```text
+migration execution completed
+```
+
+is Evidence that the operation ran.
+
+It is not sufficient alone to prove that all data was preserved.
+
+---
+
+# Post-execution Verification
+
+Consequential executions SHOULD support post-execution Verification when successful command completion is insufficient.
+
+---
+
+# Deployment example
+
+```text
+Execution:
+deployment requested
+
+Evidence:
+provider accepted deployment
+
+Observation:
+deployment reached ready state
+
+Verification:
+health checks passed
+
+Claim:
+release successfully deployed
+```
+
+These are related but distinct records.
+
+---
+
+# Package example
+
+```text
+Claim:
+package 1.4.0 corresponds to commit abc123
+
+Evidence:
+build provenance record
++
+registry digest
+
+Verification:
+published digest == locally produced digest
+```
+
+---
+
+# Requirements example
+
+```text
+Claim:
+REQ-AUTH-042 is satisfied
+
+Evidence:
+policy engine contract tests
+
+Verification:
+VFY-AUTH-018 passes against commit abc123
+
+Provenance:
+repository + commit + test runner + environment
+```
+
+---
+
+# AI review example
+
+```yaml
+claim:
+  statement: >
+    Implementation appears consistent with REQ-REC-042.
+
+asserted_by:
+  type: ai
+
+provenance:
+  model: model-ref
+  inputs:
+    - requirement: REQ-REC-042
+    - source_revision: abc123
+
+status: supported-but-unverified
+```
+
+If project policy defines a formal AI rubric as a verification method, a separate Verification record may reference this evaluation.
+
+---
+
+# Minimal Claim model
+
+```yaml
+id: CLM-0042
+
+subject: requirement:REQ-042
+
+statement: >
+  The implementation satisfies the requirement.
+
+asserted_by: actor:developer
+
+asserted_at: 2026-08-29T18:00:00Z
+```
+
+---
+
+# Minimal Evidence model
+
+```yaml
+id: EVD-0082
+
+type: test-report
+
+source:
+  execution: EXEC-0191
+
+supports:
+  - CLM-0042
+```
+
+---
+
+# Minimal Provenance model
+
+```yaml
+subject: EVD-0082
+
+derived_from:
+  - git_commit: abc123
+  - execution: EXEC-0191
+
+observed_at: 2026-08-29T18:03:00Z
+```
+
+---
+
+# Minimal Verification model
+
+```yaml
+id: VFY-019
+
+expectation:
+  requirement: REQ-042
+
+target:
+  revision: abc123
+
+method:
+  type: automated-test
+  specification: tests/req-042.test.ts
+
+result:
+  status: pass
+
+evidence:
+  - EVD-0082
+```
+
+---
+
+# Rich Verification model
+
+```yaml
+id: VFY-019
+
+expectation:
+  subject: requirement:REQ-042
+  predicate: satisfied
+
+target:
+  subject: component:reconciliation-engine
+  revision:
+    git_commit: abc123
+
+method:
+  id: VFM-011
+  type: automated-integration-test
+  version: 4
+
+execution:
+  id: EXEC-0191
+  started_at: 2026-08-29T18:02:00Z
+  completed_at: 2026-08-29T18:03:12Z
+
+environment:
+  operating_system: linux
+  runtime: bun
+  dependency_lock_digest: sha256:...
+
+observations:
+  - OBS-188
+  - OBS-189
+
+evidence:
+  - EVD-0082
+  - EVD-0083
+
+result:
+  status: pass
+
+confidence:
+  semantics: deterministic-within-method
+
+freshness:
+  invalidates_on:
+    - target_revision_change
+    - verification_method_change
+
+provenance:
+  integration: local-execution
+  collector_version: 2.1.0
+```
+
+---
+
+# Rich Claim example
+
+```yaml
+id: CLM-1042
+
+subject: release:1.8.0
+
+proposition:
+  predicate: ready_for_release
+  value: true
+
+asserted_by:
+  system: release-readiness-engine
+
+depends_on:
+  - claim: CLM-1031
+  - claim: CLM-1032
+  - verification: VFY-0411
+  - verification: VFY-0412
+
+status:
+  epistemic: verified-under-contract
+
+scope:
+  source_revision: abc123
+  artifact_digest: sha256:...
+
+provenance:
+  policy: POL-RELEASE-04
+  policy_revision: 12
+```
+
+---
+
+# Rich Evidence example
+
+```yaml
+id: EVD-0083
+
+type: test-execution-report
+
+subject:
+  verification: VFY-019
+
+content:
+  native_ref: native://ci/run/9182
+  digest: sha256:...
+
+scope:
+  repository: monad
+  revision: abc123
+  environment: linux-x86_64
+
+collected_at: 2026-08-29T18:03:12Z
+
+relation:
+  claim: CLM-0042
+  effect: supports
+
+provenance:
+  provider: ci
+  native_run_id: "9182"
+  workflow_revision: def456
+```
+
+---
+
+# Anti-patterns
+
+## Claim equals fact
+
+Rejected.
+
+---
+
+## Boolean verified field
+
+Example:
+
+```yaml
+verified: true
+```
+
+with no method, target revision, Evidence, or timestamp.
+
+Rejected for consequential use.
+
+---
+
+## Test exists therefore requirement is verified
+
+Rejected.
+
+---
+
+## Test passed once therefore permanently verified
+
+Rejected.
+
+---
+
+## Build success equals correctness
+
+Rejected.
+
+---
+
+## Deployment accepted equals deployment healthy
+
+Rejected.
+
+---
+
+## Issue closed equals requirement satisfied
+
+Rejected.
+
+---
+
+## Approval equals technical verification
+
+Rejected.
+
+---
+
+## Reviewer said LGTM equals proof
+
+Rejected unless explicitly defined as the governing verification condition.
+
+---
+
+## AI said it is correct
+
+Rejected as deterministic proof.
+
+---
+
+## Latest Evidence wins automatically
+
+Rejected.
+
+---
+
+## More Evidence always means more confidence
+
+Rejected.
+
+Duplicate derivations may share one underlying source.
+
+---
+
+## Missing Evidence equals negative Evidence
+
+Rejected.
+
+---
+
+## Evidence unavailable equals Evidence absent
+
+Rejected.
+
+---
+
+## Provider status equals universal truth
+
+Rejected.
+
+---
+
+## Log exists therefore event occurred exactly as interpreted
+
+Rejected.
+
+---
+
+## Provenance proves correctness
+
+Rejected.
+
+---
+
+## Signature proves correctness
+
+Rejected.
+
+---
+
+## Digest proves semantic correctness
+
+Rejected.
+
+---
+
+## Current Claim overwrites historical Claim
+
+Rejected.
+
+---
+
+## Rerun overwrites previous verification
+
+Rejected.
+
+---
+
+## Failed collector equals failed expectation
+
+Rejected.
+
+---
+
+## Skipped test equals pass
+
+Rejected.
+
+---
+
+## Timeout equals failure of target
+
+Rejected.
+
+---
+
+## Reconciliation success equals system correctness
+
+Rejected.
+
+---
+
+## Execution success equals Verification success
+
+Rejected.
+
+---
+
+## Waiver converts failure to pass
+
+Rejected.
+
+---
+
+## Human assertion has no provenance because it is human
+
+Rejected.
+
+---
+
+## AI output does not need provenance
+
+Rejected.
+
+---
+
+## Summary replaces source Evidence
+
+Rejected where source Evidence is required.
+
+---
+
+# Progressive formalization
+
+## Stage 1 — Assertions and references
+
+Capture important Claims and their supporting artifact references.
+
+---
+
+## Stage 2 — First-class Evidence
+
+Create stable Evidence objects linked to Claims.
+
+---
+
+## Stage 3 — Provenance chains
+
+Record origin, revision, execution, and transformation context.
+
+---
+
+## Stage 4 — Verification definitions
+
+Make expectations and verification methods explicit.
+
+---
+
+## Stage 5 — Verification executions
+
+Separate method definitions from individual runs.
+
+---
+
+## Stage 6 — Freshness and invalidation
+
+Invalidate or stale verification when targets or methods change.
+
+---
+
+## Stage 7 — Composite reasoning
+
+Derive higher-level Claims from multiple verification results and Evidence paths.
+
+---
+
+## Stage 8 — Confidence and conflict
+
+Represent contradictory Claims, probabilistic methods, and Evidence strength.
+
+---
+
+## Stage 9 — Automated impact analysis
+
+Identify which Claims and verification results may be affected by a change.
+
+---
+
+## Stage 10 — Governed machine reasoning
+
+Humans and AI can make inspectable conclusions over a traceable epistemic graph without collapsing inference into undocumented "facts."
+
+---
+
+# Alternatives considered
+
+## Alternative A — Generic fact model
+
+Rejected.
+
+It hides who asserted the proposition and why it should be believed.
+
+---
+
+## Alternative B — Boolean verification fields
+
+Rejected.
+
+They cannot retain method, revision, Evidence, freshness, or provenance.
+
+---
+
+## Alternative C — Treat test results as Claims only
+
+Rejected.
+
+It loses the important role of Evidence and explicit verification contracts.
+
+---
+
+## Alternative D — Treat every provider status as Evidence and truth
+
+Rejected.
+
+Provider semantics differ and observations are contextual.
+
+---
+
+## Alternative E — Use provenance only
+
+Rejected.
+
+Knowing origin does not explain whether an artifact supports a Claim.
+
+---
+
+## Alternative F — Use Evidence only
+
+Rejected.
+
+Evidence without Claims and explicit expectations lacks evaluative context.
+
+---
+
+## Alternative G — Treat AI conclusions as ordinary verified facts
+
+Rejected.
+
+AI evaluation remains probabilistic unless accepted through an explicit verification contract.
+
+---
+
+# Consequences
+
+## Positive
+
+This model enables:
+
+* trustworthy requirement traceability,
+* inspectable reasoning,
+* reproducible verification,
+* explicit uncertainty,
+* stronger release gates,
+* historical epistemic reconstruction,
+* Evidence freshness,
+* AI provenance,
+* competing Claims,
+* failure diagnosis,
+* and future automated reasoning.
+
+---
+
+## Negative
+
+The model requires:
+
+* more entities,
+* more relationships,
+* more provenance capture,
+* explicit invalidation rules,
+* storage for Evidence,
+* method definitions,
+* and careful distinction between epistemic states.
+
+This is intentional.
+
+A system intended to reason about engineering reality cannot safely compress:
+
+```text
+assertion
+observation
+support
+origin
+evaluation
+conclusion
+```
+
+into one Boolean.
+
+---
+
+# Definition of Ready
+
+ADR-0005 was ready because:
+
+* [x] stable Subject identity exists,
+* [x] Representations and Native References are distinct,
+* [x] authority is explicit,
+* [x] integrations preserve native observations,
+* [x] reconciliation requires inspectable Evidence,
+* [x] verification requirements already distinguish expectations from results,
+* [x] AI output requires provenance,
+* [x] release readiness requires revision-bound proof,
+* [x] historical reconstruction is a system goal.
+
+---
+
+# Definition of Done
+
+ADR-0005 is complete when:
+
+* [x] Claims are first-class,
+* [x] Claims are distinct from truth,
+* [x] Evidence is distinct from Claims,
+* [x] Evidence may support or challenge Claims,
+* [x] Evidence binds to scope and revision,
+* [x] Evidence freshness is modeled,
+* [x] missing Evidence does not become pass,
+* [x] Provenance is first-class,
+* [x] provenance and Evidence are distinct,
+* [x] derivation chains are preserved,
+* [x] Verification has explicit expectations,
+* [x] verification methods are distinct from executions,
+* [x] Verification results bind to Evidence,
+* [x] pass, fail, error, skipped, and indeterminate remain distinct,
+* [x] re-runs preserve historical results,
+* [x] deterministic and probabilistic methods remain distinct,
+* [x] AI evaluation requires explicit provenance,
+* [x] requirement satisfaction can be traced through Verification to Evidence,
+* [x] execution success does not imply verification success,
+* [x] waivers do not rewrite failed Verification.
+
+---
+
+# Acceptance criteria
+
+## Claim independence
+
+A Claim can exist without being accepted as true.
+
+---
+
+## Contradictory Claims
+
+Two contradictory Claims may coexist without destructive overwrite.
+
+---
+
+## Evidence linkage
+
+Evidence can explicitly support or challenge a Claim.
+
+---
+
+## Provenance lineage
+
+An Evidence record can be traced to the source revision and execution that generated it.
+
+---
+
+## Freshness
+
+A once-valid Evidence item can become stale without disappearing from history.
+
+---
+
+## Missing Evidence
+
+A verification requiring unavailable Evidence does not produce a false pass.
+
+---
+
+## Error distinction
+
+Verification-method failure is distinguishable from expectation failure.
+
+---
+
+## Revision binding
+
+A Verification result for commit A does not automatically apply to commit B.
+
+---
+
+## Rerun history
+
+Rerunning the same method creates a new execution/result rather than overwriting the previous one.
+
+---
+
+## AI evaluation
+
+AI output remains a Claim or probabilistic evaluation unless an explicit verification contract recognizes it as a verification method.
+
+---
+
+## Approval distinction
+
+Approval to proceed does not convert failed Verification into passing Verification.
+
+---
+
+## Release traceability
+
+A release-readiness conclusion can identify the exact verification results and Evidence supporting it.
+
+---
+
+# Verification obligations
+
+```text
+VFO-EPIS-001
+A Claim can exist without being treated as verified truth.
+
+VFO-EPIS-002
+Contradictory Claims remain representable simultaneously.
+
+VFO-EPIS-003
+Evidence can explicitly support, challenge, or refute a Claim.
+
+VFO-EPIS-004
+Evidence retains source and revision provenance.
+
+VFO-EPIS-005
+Evidence can become stale without historical deletion.
+
+VFO-EPIS-006
+Missing required Evidence cannot produce an unjustified pass.
+
+VFO-EPIS-007
+Unavailable Evidence is distinguishable from absent Evidence.
+
+VFO-EPIS-008
+Verification method definition is distinct from verification execution.
+
+VFO-EPIS-009
+Verification results bind to exact evaluated revisions.
+
+VFO-EPIS-010
+Verification error is distinguishable from expectation failure.
+
+VFO-EPIS-011
+Skipped Verification cannot evaluate as pass.
+
+VFO-EPIS-012
+Indeterminate Verification is representable.
+
+VFO-EPIS-013
+Verification results retain supporting Evidence references.
+
+VFO-EPIS-014
+Verification reruns preserve previous execution history.
+
+VFO-EPIS-015
+Changing an evaluated revision can stale prior Verification.
+
+VFO-EPIS-016
+AI evaluation retains model and input provenance when consequential.
+
+VFO-EPIS-017
+AI evaluation does not become deterministic verification without an explicit contract.
+
+VFO-EPIS-018
+Approval and Verification remain distinct.
+
+VFO-EPIS-019
+Execution success does not imply Verification success.
+
+VFO-EPIS-020
+Provider API acceptance does not imply desired outcome verification.
+
+VFO-EPIS-021
+Evidence lineage can identify multiple outputs derived from one underlying source.
+
+VFO-EPIS-022
+A policy waiver does not mutate failed Verification into pass.
+
+VFO-EPIS-023
+A requirement-satisfaction Claim can trace through Verification to Evidence and source revision.
+
+VFO-EPIS-024
+Historical Claims, Evidence, and Verification remain reconstructable after later corrections.
+
+VFO-EPIS-025
+Probabilistic verification cannot silently present itself as deterministic.
+
+VFO-EPIS-026
+Cached observations remain distinguishable from live observations.
+
+VFO-EPIS-027
+A signature or digest proves only the properties defined by its verification method.
+
+VFO-EPIS-028
+Reconciliation convergence is not automatically treated as correctness Verification.
+
+VFO-EPIS-029
+A verification result can preserve component outcomes for composite Verification.
+
+VFO-EPIS-030
+Current-state projections do not erase epistemic history.
+```
+
+---
+
+# Core invariants
+
+```text
+Claim ≠ Truth
+
+Claim ≠ Evidence
+
+Claim ≠ Verification
+
+Evidence ≠ Claim
+
+Evidence ≠ Truth automatically
+
+Evidence ≠ Verification
+
+Evidence ≠ Provenance
+
+Provenance ≠ Evidence
+
+Provenance ≠ Trust
+
+Provenance ≠ Correctness
+
+Observation ≠ Evidence automatically
+
+Observation ≠ Verification
+
+Verification method ≠ Verification execution
+
+Verification execution ≠ Verification result
+
+Verification result ≠ Evidence
+
+Verification result depends on Evidence
+
+Method exists ≠ Method ran
+
+Test exists ≠ Test passed
+
+Test passed ≠ Requirement satisfied universally
+
+Implementation exists ≠ Requirement satisfied
+
+Build passed ≠ Software correct
+
+Deployment accepted ≠ Deployment healthy
+
+Execution succeeded ≠ Verification passed
+
+API success ≠ Semantic success
+
+Approval ≠ Verification
+
+Approval ≠ Evidence of correctness
+
+Waiver ≠ Pass
+
+Skipped ≠ Pass
+
+Error ≠ Fail
+
+Indeterminate ≠ Fail automatically
+
+Missing Evidence ≠ Pass
+
+Missing Evidence ≠ Negative Evidence
+
+Unavailable ≠ Absent
+
+Unknown ≠ False
+
+Newer Evidence ≠ Better Evidence automatically
+
+More Evidence ≠ Independent Evidence
+
+Signature ≠ Correctness
+
+Digest equality ≠ Semantic correctness
+
+Coverage ≠ Correctness
+
+Static analysis ≠ Universal proof
+
+Provider status ≠ Universal truth
+
+AI assertion ≠ Verified fact
+
+AI confidence ≠ Objective probability automatically
+
+AI summary ≠ Source Evidence
+
+Current Claim ≠ Historical truth
+
+Current membership ≠ Past provenance
+
+Stale ≠ Historically invalid
+
+Retracted ≠ Never asserted
+
+Corrected ≠ Erased
+
+Reconciled ≠ Verified
+
+Converged ≠ Correct
+
+Release approved ≠ Release verified
+
+Verified revision A ≠ Verified revision B
+
+Evidence valid at T1 ≠ Evidence fresh at T2
+```
+
+---
+
+# Governing principle
+
+> **Monad must preserve the difference between what is asserted, what is observed, what supports an assertion, where that support came from, how an expectation was evaluated, and what conclusion that evaluation justified.**
+
+The epistemic model therefore preserves:
+
+```text
+Claim
+Evidence
+Provenance
+Observation
+Verification Method
+Verification Execution
+Verification Result
+Confidence
+Freshness
+Scope
+Revision
+```
+
+as related but non-interchangeable concepts.
+
+The objective is not to turn engineering reality into a pile of unquestionable facts.
+
+It is to make the basis of belief inspectable.
+
+That is what allows humans, automation, and AI to reason about the system without silently transforming:
+
+```text
+someone said so
+```
+
+into:
+
+```text
+therefore it is true
+```
+
+<Cards>
+  <Card
+    href="/docs/artifacts/requirements/provenance"
+    title="Provenance Requirements"
+  >
+    Review the normative requirements governing origin, lineage, derivation, revision binding, and historical reconstruction.
+  </Card>
+
+<Card
+href="/docs/artifacts/requirements/evidence"
+title="Evidence Requirements"
+>
+Review the normative requirements governing evidentiary support, freshness, scope, validity, conflict, and retention.
+</Card>
+
+<Card
+href="/docs/artifacts/requirements/verification"
+title="Verification Requirements"
+>
+Review the normative requirements governing expectations, methods, executions, observations, results, and verification history.
+</Card>
+
+<Card
+href="/docs/artifacts/decisions/adr-0004-authority-and-source-of-truth-model"
+title="ADR-0004 — Authority and Source-of-Truth Model"
+>
+Review how epistemic confidence remains distinct from governance authority.
+</Card>
+</Cards>

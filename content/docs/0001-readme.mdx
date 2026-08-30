@@ -1,0 +1,92 @@
+---
+title: README
+description: First step in the journey
+---
+
+Next, we are going to give the repository at least a minimal identity before introducing any toolchain.
+
+Create a `README.md`:
+
+```bash
+cat > README.md <<'EOF'
+# Project
+
+Greenfield project.
+
+## Status
+
+Initial repository bootstrap.
+EOF
+```
+
+Now check what Git sees:
+
+```bash
+git status
+```
+
+You should see:
+
+```text
+Untracked files:
+  README.md
+```
+
+Then make the **first commit**:
+
+```bash
+git add README.md
+git commit -m "chore: initialize repository"
+```
+
+Verify:
+
+```bash
+git log --oneline --decorate -1
+git status
+```
+
+Ideally `git status` now reports:
+
+```text
+nothing to commit, working tree clean
+```
+
+### Why only a README?
+
+At this point we deliberately **do not** create:
+
+```text
+package.json
+pyproject.toml
+Cargo.toml
+moon.yml
+nx.json
+flake.nix
+.env
+.editorconfig
+.github/
+apps/
+packages/
+src/
+```
+
+Those files encode decisions we haven't made yet.
+
+Right now the repository has exactly two important properties:
+
+```text
+project-root/
+├── .git/
+└── README.md
+```
+
+and a clean historical checkpoint:
+
+```text
+chore: initialize repository
+```
+
+That gives us a pristine point we can always return to.
+
+Once that's done, the next step should be **[project definition](/docs/0002-project-definition)**, before toolchain selection: we establish what this project actually is, its boundaries, expected deliverables, and constraints.

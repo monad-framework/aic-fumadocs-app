@@ -1,0 +1,700 @@
+---
+title: About Monad
+description: Monad is an open engineering project exploring how software systems can become more understandable, governable, reproducible, and capable of working effectively with increasingly capable AI.
+---
+
+## What is Monad?
+
+Monad begins with a simple observation:
+
+**Software systems contain far more knowledge than their source code can express.**
+
+A real system includes not only code, but also:
+
+* requirements,
+* intentions,
+* architectural decisions,
+* constraints,
+* policies,
+* dependencies,
+* interfaces,
+* identities,
+* assumptions,
+* evidence,
+* provenance,
+* operational state,
+* historical context,
+* and the reasoning that connects all of these things.
+
+Today, that information is usually fragmented across files, repositories, issue trackers, documents, pull requests, chat conversations, deployment systems, databases, and human memory.
+
+The software may run correctly while nobody—and no machine—possesses a complete, trustworthy model of what the system actually means.
+
+Monad asks what happens if we treat that problem as fundamental.
+
+---
+
+## The central question
+
+The project is organized around a broader question:
+
+> **What would software engineering look like if a software system could explicitly preserve and expose enough of its own meaning to be reliably understood by both humans and machines?**
+
+That question leads to many others.
+
+How should important things in a system retain identity when files move or representations change?
+
+How do we distinguish authoritative information from generated views, observations, hypotheses, and transient state?
+
+How do we preserve why a decision was made rather than only the resulting code?
+
+How should evidence and provenance be represented?
+
+How should policies constrain automated changes?
+
+What should an AI system be allowed to infer?
+
+What should always require explicit human authority?
+
+How can a system evolve without losing the knowledge required to understand what it became?
+
+Monad exists to investigate these questions through working engineering rather than speculation alone.
+
+---
+
+## Why now?
+
+Software engineering has always suffered from fragmented knowledge.
+
+AI makes the consequences more visible.
+
+An experienced engineer can often compensate for missing structure by reconstructing context:
+
+* reading source code,
+* searching history,
+* asking teammates,
+* tracing dependencies,
+* interpreting conventions,
+* reading issues,
+* comparing documentation,
+* and remembering prior decisions.
+
+An AI agent must perform much of the same reconstruction.
+
+Giving it a larger context window helps, but does not solve the underlying problem.
+
+A million tokens of information can still contain:
+
+* contradictory claims,
+* obsolete documentation,
+* unclear authority,
+* duplicated concepts,
+* unstated constraints,
+* missing provenance,
+* and no reliable way to determine what matters.
+
+The problem is not merely access to information.
+
+The problem is **structured meaning, authority, and context**.
+
+Monad investigates what engineering systems might look like if those became first-class concerns.
+
+---
+
+## What Monad is exploring
+
+Monad is not defined by a single technology.
+
+It is an evolving system built around several related ideas.
+
+### Semantic system model
+
+Important concepts in a software system should be representable independently of whichever file, database row, issue, API, or tool happens to expose them.
+
+The representation may change.
+
+The underlying subject should not necessarily lose its identity.
+
+### Durable identity
+
+A concept should be able to survive:
+
+* file renames,
+* directory moves,
+* regeneration,
+* projection into other systems,
+* refactoring,
+* migration,
+* and changes in representation.
+
+Identity should describe what something **is**, not merely where it currently happens to be stored.
+
+### Explicit authority
+
+Not all information should be treated equally.
+
+A system may contain:
+
+* authoritative claims,
+* derived views,
+* observations,
+* proposed changes,
+* hypotheses,
+* generated artifacts,
+* external references,
+* cached information,
+* and transient execution state.
+
+Monad explores how those distinctions can be represented explicitly.
+
+### Provenance
+
+Knowing something is often insufficient.
+
+We also need to know:
+
+* where it came from,
+* who or what produced it,
+* what it was derived from,
+* when it was observed,
+* what evidence supports it,
+* and whether it remains valid.
+
+### Governed evolution
+
+As AI systems become capable of performing more engineering work, the important question becomes less:
+
+> Can the machine change the system?
+
+and more:
+
+> Under what authority, constraints, evidence, and verification may the machine change the system?
+
+Monad treats governance as part of the technical architecture.
+
+### Reproducibility
+
+A trustworthy engineering environment should make it possible to reconstruct important states and understand the conditions under which artifacts were produced.
+
+### AI-ready engineering context
+
+AI should not have to infer the entire meaning of a software system from an arbitrary collection of files every time it begins work.
+
+Monad explores how engineering context can become more explicit, structured, inspectable, and governed.
+
+---
+
+## What Monad is not
+
+It is useful to define several boundaries.
+
+Monad is not simply:
+
+* an AI coding assistant,
+* a documentation generator,
+* a knowledge graph layered over a repository,
+* a replacement for Git,
+* a new package manager,
+* a build system,
+* a project-management application,
+* a monorepo tool,
+* or an autonomous software-development agent.
+
+Some of those capabilities may eventually interact with Monad.
+
+None individually defines the project.
+
+The project is concerned with a deeper layer:
+
+**the representation, preservation, interpretation, governance, and evolution of engineering meaning across the software system.**
+
+---
+
+## The category is intentionally unfinished
+
+There is a temptation to immediately classify Monad.
+
+Is it:
+
+* a developer platform?
+* an engineering operating system?
+* a semantic control plane?
+* an AI engineering environment?
+* a knowledge system?
+* a software governance platform?
+* an agent infrastructure layer?
+
+Perhaps it will eventually fit one of these categories.
+
+Perhaps it will combine several.
+
+Perhaps the project will reveal that a different category is necessary.
+
+For now, the architecture should emerge from the problem rather than from the need to fit a marketing label.
+
+---
+
+## First principles
+
+Several principles guide the project.
+
+### The filesystem matters, but it is not the whole system
+
+Files remain one of the most useful, interoperable, inspectable, and durable representations in software engineering.
+
+Monad does not begin by assuming they should disappear.
+
+But a file path is not necessarily the identity of the thing represented by that file.
+
+### Humans remain sources of authority
+
+Increasing automation does not eliminate human responsibility.
+
+Monad is interested in making authority explicit enough that automation can operate safely within it.
+
+### AI should operate inside the engineering system
+
+AI should not exist as an external intelligence repeatedly dropped into an opaque repository.
+
+The long-term objective is an environment where AI operates against explicit system state, policy, relationships, constraints, and evidence.
+
+### Native tools should remain useful
+
+Monad should integrate with the software engineering ecosystem rather than require every useful tool to be rebuilt.
+
+Git should remain Git.
+
+Compilers should remain compilers.
+
+Package managers should remain package managers.
+
+CI systems should remain CI systems.
+
+Monad should add structure and coordination where structure and coordination are missing.
+
+### Complexity must justify itself
+
+A semantic model is not automatically better than a simple index.
+
+A graph is not automatically better than files.
+
+Formal metadata is not automatically better than convention.
+
+Every additional structure introduces maintenance cost.
+
+Monad must continuously demonstrate that the value of richer semantics exceeds the cost of preserving them.
+
+---
+
+## A falsifiable project
+
+Monad should be capable of being wrong.
+
+Several outcomes would challenge important parts of the project thesis.
+
+For example:
+
+* simple search and indexing may provide nearly all the practical value,
+* developers may refuse to maintain richer engineering metadata,
+* inferred semantics may prove sufficiently reliable without explicit modeling,
+* semantic models may become too expensive to maintain,
+* governance structures may create more friction than value,
+* or AI systems may become capable enough to reconstruct trustworthy context dynamically.
+
+These possibilities are not threats to be hidden.
+
+They are hypotheses to test.
+
+<Callout type="idea" title="The goal is discovery, not validation">
+
+The purpose of Monad is not to prove that the original Monad idea was correct.
+
+The purpose is to discover what engineering structures are actually necessary for reliable human-and-machine software development.
+
+</Callout>
+
+---
+
+## The project builds itself
+
+Monad is one of its own first governed systems.
+
+This is deliberate.
+
+The project should experience the same problems it claims to solve:
+
+* knowledge fragmentation,
+* architectural change,
+* requirements evolution,
+* competing representations,
+* provenance,
+* governance,
+* implementation history,
+* verification,
+* and AI-assisted engineering.
+
+This creates a powerful constraint.
+
+If Monad's own engineering model cannot help manage Monad, that is significant evidence against the design.
+
+At the same time, the project should not become dependent on self-hosting alone.
+
+External reference systems are necessary to determine whether the architecture generalizes beyond its own repository.
+
+---
+
+## Building in public
+
+Monad is being designed and built publicly.
+
+That means publishing more than polished results.
+
+The public record includes:
+
+* questions,
+* hypotheses,
+* alternatives,
+* architectural reasoning,
+* specifications,
+* engineering journal entries,
+* experiments,
+* failed approaches,
+* evidence,
+* implementation,
+* verification,
+* and retrospectives.
+
+This serves two purposes.
+
+First, it allows others to inspect and critique the work.
+
+Second, it preserves the engineering history required to test one of Monad's own central ideas:
+
+**that the relationships between engineering artifacts may be as important as the artifacts themselves.**
+
+<Cards>
+  <Card
+    title="Building Monad"
+    href="/docs/building-monad"
+  >
+    Follow the public narrative of the project from question to implementation.
+  </Card>
+
+<Card
+title="System"
+href="/docs/system"
+
+>
+
+```
+Read the current authoritative explanation of the system.
+```
+
+  </Card>
+
+<Card
+title="Artifacts"
+href="/docs/artifacts"
+
+>
+
+```
+Inspect specifications, decisions, requirements, evidence, and other engineering records.
+```
+
+  </Card>
+</Cards>
+
+---
+
+## How the site is organized
+
+The website deliberately separates several kinds of information.
+
+### Start Here
+
+The homepage provides orientation.
+
+It explains the project and directs readers toward the part of the site most relevant to them.
+
+### Building Monad
+
+This is the historical and narrative layer.
+
+It answers:
+
+**What happened?**
+
+### System
+
+This is the authoritative explanatory layer.
+
+It answers:
+
+**What do we currently believe to be true about Monad?**
+
+### Artifacts
+
+This is the inspectable engineering record.
+
+It answers:
+
+**What decisions, specifications, evidence, and records support that understanding?**
+
+### About
+
+This page explains the enduring purpose, boundaries, principles, and character of the project.
+
+These sections intentionally overlap in subject matter while serving different epistemic roles.
+
+---
+
+## Who this project is for
+
+Monad will be especially interesting to people working on questions around:
+
+* software architecture,
+* developer infrastructure,
+* AI-assisted development,
+* autonomous engineering agents,
+* software governance,
+* engineering knowledge systems,
+* provenance,
+* reproducibility,
+* semantic modeling,
+* monorepos,
+* build systems,
+* system evolution,
+* technical documentation,
+* software supply chains,
+* and long-lived software systems.
+
+But the project is not intended only for specialists.
+
+A broader question sits underneath all of it:
+
+> **How should humans organize the knowledge required to build increasingly complex systems with increasingly capable machines?**
+
+That question will eventually affect almost everyone who builds software.
+
+---
+
+## How Monad is being developed
+
+The project follows a deliberately explicit engineering process.
+
+Broadly:
+
+```text
+problem discovery
+      ↓
+domain understanding
+      ↓
+product definition
+      ↓
+requirements
+      ↓
+architecture
+      ↓
+specification
+      ↓
+implementation
+      ↓
+verification
+      ↓
+release
+      ↓
+observation
+      ↓
+revision
+```
+
+Important transitions should produce durable engineering artifacts.
+
+Decisions should be inspectable.
+
+Assumptions should be identifiable.
+
+Evidence should be linked to claims.
+
+Implementation should trace back to intent.
+
+Verification should trace back to requirements.
+
+The process itself is part of what Monad is testing.
+
+---
+
+## Open by default
+
+Where practical, the project favors:
+
+* inspectable formats,
+* portable representations,
+* local operation,
+* reproducibility,
+* open standards,
+* explicit interfaces,
+* replaceable integrations,
+* and compatibility with existing engineering tools.
+
+The objective is not to create a closed world that only Monad understands.
+
+The objective is to make more of the engineering system understandable.
+
+---
+
+## Local first
+
+An important architectural direction is local-first operation.
+
+A developer should be able to understand and operate a meaningful portion of the system without depending entirely on a remote proprietary service.
+
+Cloud infrastructure may provide:
+
+* collaboration,
+* coordination,
+* indexing,
+* remote execution,
+* synchronization,
+* hosted AI,
+* and organization-level governance.
+
+But local ownership and inspectability remain important design values.
+
+---
+
+## AI-ready does not mean AI-dependent
+
+Monad is motivated partly by the increasing role of AI in engineering.
+
+But the underlying problems exist without AI.
+
+Humans also struggle with:
+
+* lost context,
+* unclear ownership,
+* undocumented assumptions,
+* stale documentation,
+* fragmented requirements,
+* mysterious architecture,
+* inconsistent terminology,
+* and decisions whose rationale disappeared years ago.
+
+A system that improves engineering knowledge should remain useful even when no AI agent is involved.
+
+AI raises the stakes.
+
+It does not create the entire problem.
+
+---
+
+## The long-term direction
+
+The project ultimately imagines an engineering environment in which a software system can expose a much richer account of itself.
+
+An engineer—or an AI agent—might be able to ask:
+
+* What does this component do?
+* Why does it exist?
+* What requirements constrain it?
+* Which specifications govern it?
+* What depends on it?
+* Which representations describe the same underlying thing?
+* What decisions produced this architecture?
+* What evidence supports those decisions?
+* What is authoritative?
+* What is stale?
+* What may I change?
+* What approval is required?
+* What would this change affect?
+* What tests would demonstrate correctness?
+* What historical assumptions would this invalidate?
+
+And receive answers grounded in the engineering system itself.
+
+That is a much more ambitious goal than code completion.
+
+It is closer to making the software system **legible**.
+
+---
+
+## Where Monad goes from here
+
+The project will evolve incrementally.
+
+Some parts of the architecture already have strong foundations.
+
+Others remain hypotheses.
+
+The order matters:
+
+**understand the problem before formalizing the solution.**
+
+That means Monad will continue to move through cycles of:
+
+```text
+question
+   ↓
+model
+   ↓
+build
+   ↓
+observe
+   ↓
+challenge
+   ↓
+revise
+```
+
+The public record will evolve alongside the system.
+
+---
+
+## Follow the work
+
+If you want to understand Monad from the beginning, start with Building Monad.
+
+If you want the current technical picture, go directly to System.
+
+If you want to inspect the engineering record, browse Artifacts.
+
+<Cards>
+  <Card
+    title="Follow the story"
+    href="/docs/building-monad"
+  >
+    Read how Monad is being discovered, designed, challenged, and built.
+  </Card>
+
+<Card
+title="Understand the system"
+href="/docs/system"
+
+>
+
+Explore the current architecture, concepts, components, and interfaces.
+
+  </Card>
+
+<Card
+title="Inspect the evidence"
+href="/docs/artifacts"
+
+>
+
+Browse the specifications, ADRs, requirements, experiments, reviews, and other records.
+
+  </Card>
+</Cards>
+
+<div className="not-prose mt-6">
+  <a
+    href="https://github.com/monad-framework"
+    target="_blank"
+    rel="noreferrer noopener"
+    className="inline-flex items-center rounded-lg border border-fd-border px-4 py-2 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
+  >
+    View the project on GitHub →
+  </a>
+</div>

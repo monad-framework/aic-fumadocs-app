@@ -1,0 +1,4359 @@
+---
+title: Integrations
+description: How Monad connects to native engineering systems through explicit adapters, bindings, capability contracts, observation, synchronization, and reconciliation while preserving native authority.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Native engineering integration
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Monad is not intended to replace the engineering ecosystem. It connects semantic meaning to the systems where engineering reality already exists: filesystems, Git, source hosts, build tools, CI, databases, deployment systems, observability platforms, and external services.
+  </p>
+</div>
+
+## What this page defines
+
+[Architecture](/docs/system/architecture) establishes a boundary between Monad's semantic model and native engineering systems.
+
+[Components](/docs/system/components) assigns that boundary to the Integration Component and native adapters.
+
+[Interfaces](/docs/system/interfaces) defines the contracts used to cross it.
+
+[Execution](/docs/system/execution) explains how authorized operations eventually reach native systems.
+
+This page explains the integration doctrine itself.
+
+It answers:
+
+> **How can Monad understand, observe, and act through existing engineering systems without duplicating their responsibilities, erasing their native identities, or creating a second reality that silently diverges from them?**
+
+---
+
+# Integration before replacement
+
+Monad begins from a strong architectural preference:
+
+> **If another system already owns a capability well, integrate with it before attempting to reimplement it.**
+
+For example:
+
+```text
+Git
+  owns distributed version-control behavior
+
+compiler
+  owns compilation
+
+package manager
+  owns package resolution
+
+GitHub
+  owns GitHub repository and collaboration state
+
+CI platform
+  owns workflow execution
+
+database
+  owns persisted application data
+
+deployment platform
+  owns deployment operations
+```
+
+Monad should not recreate these capabilities merely to place them under one product.
+
+Instead, Monad provides the layer those systems generally do not share:
+
+```text
+semantic identity
+relationships
+authority
+provenance
+governance
+context
+impact
+traceability
+reconciliation
+```
+
+---
+
+# The integration model
+
+At a high level:
+
+```text
+┌─────────────────────────────────────────────────────┐
+│                 Monad Semantic Model                │
+│                                                     │
+│ Subjects · Claims · Relationships · Authority       │
+│ Provenance · Lifecycle · Policy · Evidence          │
+└─────────────────────────┬───────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────┐
+│                  Integration Layer                  │
+│                                                     │
+│ bindings · adapters · capability contracts          │
+│ discovery · observation · execution · events        │
+└─────────────────────────┬───────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────┐
+│             Native Engineering Systems              │
+│                                                     │
+│ Files · Git · GitHub · Build · CI · Databases       │
+│ Deployment · Observability · External APIs          │
+└─────────────────────────────────────────────────────┘
+```
+
+The integration layer translates between two different worlds.
+
+Monad understands engineering semantics.
+
+Native systems understand their own resources and operations.
+
+The adapter boundary connects them.
+
+---
+
+# Native systems are first-class
+
+A **native system** is a system that independently owns some part of engineering reality.
+
+Examples include:
+
+```text
+filesystem
+Git repository
+GitHub
+package registry
+build system
+CI system
+database
+deployment platform
+cloud provider
+issue tracker
+documentation platform
+observability service
+```
+
+Monad does not assume these are merely storage backends.
+
+They have:
+
+* their own identifiers,
+* their own authority,
+* their own lifecycle,
+* their own failure modes,
+* their own permissions,
+* and their own semantics.
+
+Integration should preserve that reality.
+
+---
+
+# Native authority
+
+A core rule is:
+
+> **Monad should not claim authority over state merely because Monad can observe or represent it.**
+
+For example:
+
+```text
+Git
+  authoritative for Git commit history
+```
+
+```text
+Filesystem
+  may be authoritative for current authored source contents
+```
+
+```text
+GitHub
+  authoritative for the current native state of a GitHub issue
+```
+
+```text
+Deployment platform
+  authoritative for whether deployment X currently exists
+```
+
+Monad may model these facts.
+
+It may add semantic interpretation.
+
+It may connect them to other knowledge.
+
+But the underlying native state still belongs to the native system unless authority has explicitly been transferred.
+
+---
+
+# Native state versus semantic state
+
+A native system answers questions such as:
+
+```text
+What file exists at this path?
+
+What is commit abc123?
+
+What is GitHub issue #42?
+
+Did workflow 817 succeed?
+
+Which version is deployed?
+```
+
+Monad answers different questions:
+
+```text
+What Subject does this file represent?
+
+Why does this issue exist?
+
+Which requirement does this workflow verify?
+
+Which deployment implements Release R?
+
+Which source is authoritative for this claim?
+```
+
+Conceptually:
+
+```text
+Native state
+   +
+Semantic interpretation
+   =
+Engineering understanding
+```
+
+Neither layer should silently replace the other.
+
+---
+
+# Integration Component
+
+The Integration Component owns the architectural boundary between Monad and native systems.
+
+It provides:
+
+* adapter registration,
+* capability discovery,
+* normalized native operations,
+* native-reference resolution,
+* event normalization,
+* observation interfaces,
+* side-effect invocation,
+* and integration health.
+
+It should present higher-level components with stable contracts even when underlying systems vary substantially.
+
+---
+
+# Adapter
+
+An **adapter** implements integration with one native system or one coherent native capability.
+
+Examples:
+
+```text
+Filesystem Adapter
+Git Adapter
+GitHub Adapter
+Build Adapter
+CI Adapter
+Package Registry Adapter
+Database Adapter
+Deployment Adapter
+Observability Adapter
+```
+
+Conceptually:
+
+```text
+Monad capability
+      │
+      ▼
+Adapter
+      │
+      ▼
+Native API / CLI / protocol
+```
+
+---
+
+# Adapter responsibilities
+
+An adapter may provide:
+
+```text
+discover
+read
+observe
+resolve
+write
+execute
+subscribe
+```
+
+depending on what the native system supports.
+
+It may also:
+
+* translate native errors,
+* expose native identifiers,
+* capture native revisions,
+* return provenance,
+* normalize native events,
+* declare supported operations,
+* and communicate consistency guarantees.
+
+---
+
+# What adapters must not own
+
+An adapter should not independently determine:
+
+```text
+semantic identity
+authority
+policy
+project lifecycle
+system meaning
+```
+
+For example:
+
+```text
+Filesystem Adapter:
+  "path foo.ts moved to bar.ts"
+```
+
+is an observation.
+
+It should not automatically conclude:
+
+```text
+"Subject A has retained semantic identity."
+```
+
+That belongs to the Identity and Reconciliation components.
+
+Likewise:
+
+```text
+GitHub Adapter:
+  token can merge pull request
+```
+
+does not imply:
+
+```text
+Actor is authorized to merge pull request
+```
+
+That belongs to Governance.
+
+---
+
+# Thin adapters
+
+Adapters should generally remain as thin as practical.
+
+A healthy adapter primarily knows:
+
+```text
+how the native system works
+```
+
+rather than:
+
+```text
+what Monad means
+```
+
+This reduces semantic duplication.
+
+Bad:
+
+```text
+GitHub adapter contains its own implementation
+of Subject identity, lifecycle, and policy.
+```
+
+Preferred:
+
+```text
+GitHub adapter exposes native facts and operations.
+
+Identity Component interprets identity.
+Policy Component interprets permission.
+Lifecycle Component interprets lifecycle.
+```
+
+---
+
+# Capability declarations
+
+Different integrations support different operations.
+
+An adapter should declare what it can actually do.
+
+For example:
+
+```text
+Filesystem Adapter
+
+Capabilities:
+  discover
+  read
+  stat
+  observe
+  write
+  move
+  delete
+```
+
+while:
+
+```text
+External Documentation Adapter
+
+Capabilities:
+  discover
+  read
+```
+
+and:
+
+```text
+CI Adapter
+
+Capabilities:
+  discover-workflow
+  start-run
+  read-run
+  cancel-run
+  observe-run
+```
+
+Higher-level components should not assume universal capability.
+
+---
+
+# Read and write capabilities remain distinct
+
+An integration may support:
+
+```text
+read
+```
+
+without supporting:
+
+```text
+write
+```
+
+This is useful for:
+
+* external systems,
+* read-only references,
+* production environments,
+* restricted credentials,
+* and progressive integration.
+
+For example:
+
+```text
+Production Database Adapter
+
+Capabilities:
+  inspect-schema
+  query-metadata
+
+Not available:
+  mutate-schema
+```
+
+The capability model should preserve this distinction.
+
+---
+
+# Capability is not authority
+
+Even if an adapter supports:
+
+```text
+delete-repository
+```
+
+a caller still requires governance authority.
+
+Conceptually:
+
+```text
+Adapter Capability
+      +
+Actor Authority
+      +
+Policy
+      +
+Scope
+      =
+Permitted Operation
+```
+
+A supported API method is not permission.
+
+---
+
+# Native References
+
+A **Native Reference** identifies a resource using the native system's own identity model.
+
+Examples include:
+
+```text
+Filesystem:
+  packages/auth/src/index.ts
+
+Git:
+  commit abc123
+
+GitHub:
+  issue #42
+
+CI:
+  workflow run 8172
+
+Deployment:
+  deployment dep_04H...
+
+Package Registry:
+  @monad/core@1.2.0
+```
+
+Monad should retain native identifiers rather than replacing them unnecessarily.
+
+---
+
+# Native identity and semantic identity
+
+Native references answer:
+
+> Where or what is this inside the native system?
+
+Semantic identity answers:
+
+> What underlying engineering thing does this represent?
+
+For example:
+
+```text
+Subject:
+  authentication-interface
+
+Representation:
+  TypeScript interface
+
+Native Reference:
+  packages/auth/src/public.ts
+```
+
+If the path changes, only the native reference may need to change.
+
+The Subject can remain stable.
+
+---
+
+# Bindings
+
+A **binding** connects Monad semantic state to native-system state.
+
+Conceptually:
+
+```text
+Subject
+   │
+   ▼
+Representation
+   │
+   ▼
+Binding
+   │
+   ▼
+Native Reference
+```
+
+A binding may preserve information such as:
+
+```text
+native system
+native identifier
+representation role
+scope
+authority
+binding state
+revision
+provenance
+```
+
+---
+
+# Binding lifecycle
+
+Bindings themselves may change.
+
+A conceptual lifecycle might include:
+
+```text
+discovered
+   ↓
+proposed
+   ↓
+confirmed
+   ↓
+active
+   ↓
+stale
+   ↓
+historical
+```
+
+The exact lifecycle belongs in specification.
+
+The important idea is that native relationships need not be treated as timeless facts.
+
+---
+
+# Discovery
+
+Discovery identifies native resources that may matter to Monad.
+
+Examples:
+
+```text
+files
+repositories
+packages
+workflows
+issues
+pull requests
+services
+deployments
+schemas
+```
+
+Discovery answers:
+
+> **What exists in this native system that Monad may need to understand?**
+
+It does not automatically answer:
+
+> What does it mean?
+
+---
+
+# Discovery pipeline
+
+Conceptually:
+
+```text
+Native System
+      │
+      ▼
+Adapter Discovery
+      │
+      ▼
+Native References
+      │
+      ▼
+Classification / Resolution
+      │
+      ▼
+Candidate Representations
+      │
+      ▼
+Identity Resolution
+```
+
+Discovery supplies raw candidates.
+
+Semantic interpretation happens afterward.
+
+---
+
+# Selective discovery
+
+Monad should not automatically model every object in every connected system.
+
+For example, a repository may contain:
+
+```text
+thousands of build-cache files
+temporary artifacts
+generated vendor files
+irrelevant logs
+```
+
+Discovering everything would produce noise.
+
+Integration should therefore support:
+
+* scope,
+* inclusion rules,
+* exclusion rules,
+* ownership boundaries,
+* resource classes,
+* and policy.
+
+The goal is useful engineering meaning, not maximal ingestion.
+
+---
+
+# Observation
+
+Observation reads the current state of a native resource.
+
+Examples:
+
+```text
+file hash changed
+branch points to commit X
+GitHub issue closed
+CI run failed
+deployment reports version Y
+```
+
+Observation allows Monad to remain grounded in reality.
+
+---
+
+# Observation is not interpretation
+
+An adapter may observe:
+
+```text
+path A disappeared
+path B appeared
+```
+
+Possible interpretations include:
+
+```text
+rename
+copy + deletion
+Subject replacement
+generated output regeneration
+unrelated events
+```
+
+The adapter should preserve the observation.
+
+Reconciliation and identity logic determine the interpretation.
+
+---
+
+# Polling, watching, and events
+
+Different systems expose change differently.
+
+Possible mechanisms include:
+
+```text
+filesystem watcher
+webhook
+event stream
+polling
+API revision check
+Git diff
+database change feed
+manual refresh
+```
+
+Monad should not require every integration to expose one universal mechanism.
+
+The Integration Component can normalize these sources into meaningful change signals.
+
+---
+
+# Event normalization
+
+Native events may look very different.
+
+For example:
+
+```text
+Filesystem:
+  rename event
+
+GitHub:
+  pull_request.closed
+
+CI:
+  workflow_run.completed
+```
+
+Monad may normalize them conceptually into:
+
+```text
+NativeChange {
+  source
+  resource
+  operation
+  actor
+  observed_at
+  native_revision
+  payload_reference
+}
+```
+
+The exact schema belongs in specification.
+
+---
+
+# Events are observations
+
+A native event generally means:
+
+> The native system reports that something happened.
+
+It does not automatically mean:
+
+> Monad's semantic state should change in this exact way.
+
+That requires interpretation and reconciliation.
+
+---
+
+# Reconciliation
+
+Reconciliation compares:
+
+```text
+what Monad believes
+```
+
+with:
+
+```text
+what native reality currently shows
+```
+
+Conceptually:
+
+```text
+Monad Model
+     │
+     ▼
+expected binding/state
+     │
+     ▼
+compare
+     ▲
+     │
+observed native state
+     ▲
+     │
+Native System
+```
+
+This is one of the most important integration responsibilities.
+
+---
+
+# Why reconciliation is necessary
+
+Any system with independently writable native sources eventually experiences divergence.
+
+Examples:
+
+```text
+developer moves a file manually
+
+GitHub issue is transferred
+
+dependency version changes outside Monad
+
+CI configuration is edited directly
+
+deployment is rolled back manually
+
+external API state changes
+```
+
+If Monad assumes its earlier understanding remains permanently correct, the model becomes dangerous.
+
+---
+
+# Reconciliation outcomes
+
+A reconciliation may result in:
+
+```text
+confirmed
+updated binding
+new Representation discovered
+binding marked stale
+identity proposal
+conflict
+warning
+required review
+unknown change
+```
+
+The system should preserve the distinction.
+
+---
+
+# Reconciliation is authority-aware
+
+The correct action depends on who owns the relevant truth.
+
+For example:
+
+```text
+Filesystem:
+  source contents changed
+
+Authority:
+  source file is canonical for implementation
+
+Result:
+  Monad updates its observation of implementation
+```
+
+versus:
+
+```text
+Generated documentation changed manually
+
+Authority:
+  generated documentation is derived
+
+Result:
+  generated projection considered modified / invalid
+```
+
+versus:
+
+```text
+Specification and implementation disagree
+
+Authority:
+  specification governs expected behavior
+  implementation governs observed current behavior
+
+Result:
+  conflict surfaced
+```
+
+Reconciliation is not a universal "last writer wins" system.
+
+---
+
+# Synchronization
+
+Synchronization moves state between systems.
+
+It differs from reconciliation.
+
+```text
+Synchronization
+  attempts to make representations correspond
+
+Reconciliation
+  determines what disagreement means
+```
+
+Synchronization may involve:
+
+```text
+publish projection
+update coordination issue
+refresh generated docs
+write manifest
+push metadata
+```
+
+A synchronization mechanism should operate only when authority and direction are known.
+
+---
+
+# One-way synchronization
+
+Many relationships should be intentionally one-way.
+
+For example:
+
+```text
+Canonical Requirement
+      │
+      ▼
+Generated Documentation
+```
+
+The generated page should normally not synchronize edits back into the requirement.
+
+Likewise:
+
+```text
+Monad semantic state
+      │
+      ▼
+GitHub project view
+```
+
+may create a coordination projection.
+
+Changes in that projection might be restricted or interpreted selectively.
+
+---
+
+# Bidirectional synchronization
+
+Some integrations may legitimately allow changes in either system.
+
+For example:
+
+```text
+Monad Work Item
+      ⇄
+GitHub Issue
+```
+
+Bidirectional synchronization requires stronger semantics.
+
+The system must understand:
+
+```text
+field ownership
+conflict handling
+identity
+versions
+authority
+update direction
+```
+
+Otherwise synchronization becomes data corruption with a friendly name.
+
+---
+
+# Field-level authority
+
+Authority may apply at a finer level than an entire object.
+
+For example:
+
+```text
+GitHub Issue
+
+title:
+  coordination system owns
+
+implementation status:
+  Monad lifecycle owns
+
+discussion:
+  GitHub owns
+
+semantic requirement identity:
+  Monad owns
+```
+
+This is an important concept for sophisticated integrations.
+
+The correct abstraction may not be:
+
+```text
+which system owns the issue?
+```
+
+but:
+
+```text
+which system owns this claim or property?
+```
+
+---
+
+# Conflict
+
+A synchronization conflict exists when multiple authorities or concurrent changes cannot be reconciled automatically.
+
+Examples:
+
+```text
+Monad says lifecycle = active
+
+GitHub says status = cancelled
+```
+
+or:
+
+```text
+generated file changed locally
+while source model also changed
+```
+
+The integration layer should surface conflict rather than silently choose a winner.
+
+---
+
+# Conflict resolution
+
+Possible strategies include:
+
+```text
+native authority wins
+Monad authority wins
+more-specific authority wins
+merge
+require review
+create correction proposal
+```
+
+The strategy should be explicit and scoped.
+
+There should not be one global synchronization conflict rule.
+
+---
+
+# Direct native writes
+
+Monad deliberately supports native systems remaining directly writable.
+
+A developer may still:
+
+```text
+edit file
+run Git
+open pull request
+change issue
+run build
+```
+
+without routing every action through Monad.
+
+This compatibility is important.
+
+---
+
+# Direct-write flow
+
+A direct native change may produce:
+
+```text
+Human
+  │
+  ▼
+Native Tool
+  │
+  ▼
+Native System
+  │
+  ▼
+Observation
+  │
+  ▼
+Reconciliation
+  │
+  ▼
+Monad Model
+```
+
+Monad remains informed without becoming a mandatory chokepoint for ordinary engineering work.
+
+---
+
+# Governed Monad writes
+
+Other changes may originate from Monad.
+
+```text
+Human / Agent
+      │
+      ▼
+Monad Plan
+      │
+      ▼
+Governance
+      │
+      ▼
+Execution
+      │
+      ▼
+Adapter
+      │
+      ▼
+Native System
+      │
+      ▼
+Observation + Reconciliation
+```
+
+The post-execution observation remains important.
+
+Monad should verify native reality rather than merely assuming its request succeeded.
+
+---
+
+# The filesystem integration
+
+The filesystem is one of Monad's most important native systems.
+
+Potential adapter capabilities include:
+
+```text
+discover
+stat
+read
+write
+move
+delete
+watch
+hash
+```
+
+Native references are usually:
+
+```text
+path
+```
+
+possibly combined with:
+
+```text
+repository
+workspace
+revision
+```
+
+---
+
+# Filesystem authority
+
+Different file classes may have different roles.
+
+For example:
+
+```text
+source file
+  authored / implementation authority
+
+generated file
+  derived projection
+
+configuration file
+  native configuration authority
+
+artifact file
+  canonical Monad record
+
+cache file
+  transient
+```
+
+The adapter should not infer the role merely from the fact that something is a file.
+
+---
+
+# Path is not identity
+
+A filesystem path identifies a location.
+
+It should not automatically define semantic identity.
+
+```text
+packages/auth/src/api.ts
+```
+
+can move.
+
+The underlying Subject may remain unchanged.
+
+This is one reason filesystem integration depends on identity and reconciliation rather than owning semantic identity itself.
+
+---
+
+# File move example
+
+Suppose:
+
+```text
+packages/auth/src/api.ts
+```
+
+moves to:
+
+```text
+packages/auth/src/public-api.ts
+```
+
+The filesystem observes:
+
+```text
+old path removed
+new path added
+```
+
+Git may observe:
+
+```text
+rename similarity
+```
+
+Monad may also know:
+
+```text
+both representations contain the same known Subject
+```
+
+The Identity Component can then propose:
+
+```text
+same Subject
+updated Native Reference
+```
+
+rather than:
+
+```text
+old Subject deleted
+new Subject created
+```
+
+---
+
+# Git integration
+
+Git owns repository history.
+
+Useful capabilities may include:
+
+```text
+resolve revision
+inspect tree
+read diff
+read history
+inspect status
+create commit
+create tag
+resolve branch
+```
+
+Git gives Monad a strong source of change and provenance information.
+
+---
+
+# Git is not the semantic model
+
+Git knows:
+
+```text
+file A changed to file B
+commit abc123 has parent def456
+```
+
+Git does not necessarily know:
+
+```text
+Requirement R was superseded by Requirement S
+
+Component A changed because ADR-017 was accepted
+
+Subject X retained identity despite representation split
+```
+
+Monad builds semantic meaning around Git without replacing Git history.
+
+---
+
+# Git provenance
+
+Git metadata may contribute to provenance:
+
+```text
+commit
+author
+committer
+parents
+timestamp
+tree
+diff
+```
+
+But Git provenance should not automatically be treated as complete engineering provenance.
+
+For example, Git alone may not explain:
+
+```text
+which requirement motivated the change
+which Work Package authorized it
+which AI agent produced a patch
+which evidence verified the result
+```
+
+Monad can connect those layers.
+
+---
+
+# Git worktree state
+
+The working tree matters because current engineering reality may exist before commit.
+
+For example:
+
+```text
+uncommitted source changes
+```
+
+may be relevant to:
+
+* planning,
+* impact,
+* verification,
+* and execution preconditions.
+
+Monad should avoid assuming:
+
+```text
+HEAD == current local reality
+```
+
+when the working tree differs.
+
+---
+
+# GitHub integration
+
+GitHub may provide native state for:
+
+* repositories,
+* issues,
+* pull requests,
+* reviews,
+* projects,
+* actions,
+* releases,
+* branches,
+* and repository metadata.
+
+Monad should treat these as native resources.
+
+---
+
+# GitHub issues as representations
+
+A GitHub issue might represent:
+
+```text
+requirement
+work package
+defect
+proposal
+coordination task
+```
+
+The issue number is the native identity of the issue.
+
+It should not automatically become the semantic identity of the underlying Subject.
+
+For example:
+
+```text
+Subject:
+  WP-042
+
+Representation:
+  GitHub issue
+
+Native Reference:
+  monad-framework/monad#187
+```
+
+---
+
+# GitHub as coordination system
+
+GitHub may remain authoritative for some coordination state.
+
+For example:
+
+```text
+discussion comments
+review state
+pull-request merge state
+issue existence
+```
+
+Monad may remain authoritative for:
+
+```text
+semantic identity
+artifact relationships
+governed lifecycle
+engineering intent
+```
+
+The integration should preserve these boundaries rather than forcing GitHub or Monad to own everything.
+
+---
+
+# Pull requests
+
+Pull requests provide rich native information about proposed code change.
+
+Monad can connect a pull request to:
+
+```text
+Work Package
+Plan
+Requirements
+Specifications
+Verification
+Reviews
+Affected Subjects
+Release
+```
+
+Conceptually:
+
+```text
+Work Package
+      │
+      ▼
+Implementation
+      │
+      ▼
+Pull Request
+      │
+      ├──► Review
+      ├──► CI Evidence
+      └──► Merge
+```
+
+The pull request remains a GitHub object.
+
+Monad adds engineering relationships around it.
+
+---
+
+# Build-system integration
+
+Build systems transform source and configuration into outputs.
+
+Useful adapter capabilities may include:
+
+```text
+discover targets
+run target
+inspect dependencies
+read outputs
+observe result
+```
+
+The native build system should remain responsible for build behavior.
+
+Monad may attach:
+
+* semantic identity,
+* requirements,
+* provenance,
+* evidence,
+* reproducibility information,
+* and release relationships.
+
+---
+
+# Build output versus verification
+
+A successful build answers:
+
+```text
+Did the build system complete successfully?
+```
+
+It does not necessarily answer:
+
+```text
+Does this implementation satisfy the requirements?
+```
+
+The Build Adapter provides native execution results.
+
+The Verification Component interprets those results relative to contracts.
+
+---
+
+# Test-system integration
+
+Test systems may provide capabilities such as:
+
+```text
+discover tests
+run tests
+read result
+capture logs
+capture artifacts
+```
+
+Monad can connect tests to:
+
+```text
+Requirement
+Specification
+Component
+Claim
+Release
+```
+
+This creates more meaningful verification traceability.
+
+---
+
+# Test identity
+
+A test should not necessarily be identified only by:
+
+```text
+filesystem path + test name
+```
+
+if the underlying verification responsibility needs stable semantic identity.
+
+A test's native identity and semantic verification role may therefore remain separate.
+
+---
+
+# CI integration
+
+CI systems provide asynchronous execution environments.
+
+Potential capabilities include:
+
+```text
+trigger workflow
+read workflow run
+cancel workflow
+read logs
+read artifacts
+observe completion
+```
+
+A CI run may become important evidence.
+
+---
+
+# CI result semantics
+
+CI may report:
+
+```text
+success
+failure
+cancelled
+timed out
+```
+
+Monad should preserve the native result.
+
+Verification may then interpret:
+
+```text
+CI success
+```
+
+as supporting one or more engineering claims.
+
+The two should not be collapsed.
+
+---
+
+# CI provenance
+
+A meaningful CI record may contribute:
+
+```text
+workflow identity
+run identity
+source revision
+environment
+runner
+tool versions
+artifacts
+result
+time
+```
+
+This can become part of reproducibility and verification evidence.
+
+---
+
+# Package-manager integration
+
+Package managers own native dependency resolution.
+
+Potential integrations may observe:
+
+```text
+manifest
+lockfile
+resolved dependency
+package version
+registry
+```
+
+Monad may model relationships such as:
+
+```text
+Component A
+  depends-on Package B
+```
+
+while the package manager remains authoritative for actual resolution.
+
+---
+
+# Lockfiles
+
+Lockfiles are particularly useful native artifacts because they record resolved dependency state.
+
+Monad may use them for:
+
+* reproducibility,
+* provenance,
+* dependency modeling,
+* impact analysis,
+* and release verification.
+
+The lockfile remains a native representation.
+
+Monad need not replace it with a second dependency resolver.
+
+---
+
+# Package registries
+
+Registries may be authoritative for:
+
+```text
+published package version
+artifact metadata
+distribution availability
+```
+
+Monad can bind releases to registry-native identifiers.
+
+For example:
+
+```text
+Release:
+  monad-core 1.4.0
+
+Native Representation:
+  npm package @monad/core@1.4.0
+```
+
+---
+
+# Database integration
+
+Databases can appear in several roles.
+
+They may be:
+
+```text
+Monad persistence
+application runtime state
+external authority
+migration target
+analytical source
+```
+
+Those roles should not be confused.
+
+---
+
+# Application database authority
+
+For an application database:
+
+```text
+database
+```
+
+may remain authoritative for actual stored runtime state.
+
+Monad may know:
+
+* schema relationships,
+* migration history,
+* ownership,
+* requirements,
+* provenance,
+* and policies.
+
+It should not imply that every database row belongs in the Monad semantic graph.
+
+---
+
+# Schema integration
+
+Database schemas can be meaningful representations.
+
+Monad may model:
+
+```text
+schema
+table
+column
+migration
+```
+
+where those concepts are useful for:
+
+* compatibility,
+* impact analysis,
+* governance,
+* and release.
+
+Again, modeling should be selective.
+
+---
+
+# Migration integration
+
+Migration tooling may provide native operations:
+
+```text
+plan migration
+apply migration
+inspect status
+rollback where supported
+```
+
+Monad can wrap these inside governed execution.
+
+A migration execution may then connect to:
+
+```text
+Specification
+Approval
+Migration Plan
+Native Execution
+Verification
+Evidence
+Release
+```
+
+---
+
+# Deployment integration
+
+Deployment platforms own deployment operations and native deployment state.
+
+Potential capabilities include:
+
+```text
+deploy
+rollback
+inspect deployment
+read status
+observe health
+```
+
+Monad may connect deployments to:
+
+```text
+Release
+Environment
+Service
+Artifact
+Policy
+Verification
+```
+
+---
+
+# Deployment identity
+
+A semantic deployment concept may be represented through native deployment identifiers.
+
+For example:
+
+```text
+Subject:
+  production deployment of service A
+
+Native Reference:
+  deployment platform ID dep_123
+```
+
+The semantic identity may continue even as individual deployment instances change.
+
+The exact model depends on what engineering questions need to be answered.
+
+---
+
+# Runtime integration
+
+Runtime systems expose what software is actually doing.
+
+Relevant native sources may include:
+
+```text
+service discovery
+runtime configuration
+health status
+feature flags
+deployment state
+version information
+```
+
+Runtime observations can challenge design-time assumptions.
+
+---
+
+# Desired versus observed state
+
+Monad should preserve the distinction:
+
+```text
+Specification:
+  desired state
+
+Deployment configuration:
+  intended runtime state
+
+Runtime observation:
+  observed state
+```
+
+Disagreement between these is valuable engineering information.
+
+---
+
+# Observability integration
+
+Observability platforms expose:
+
+```text
+logs
+metrics
+traces
+alerts
+events
+```
+
+Monad should not ingest all telemetry into the permanent semantic model.
+
+Instead, important observations may be selected and promoted into durable evidence where justified.
+
+---
+
+# Telemetry promotion
+
+Conceptually:
+
+```text
+Telemetry
+   │
+   │ engineering significance identified
+   ▼
+Observation
+   │
+   │ selected as support
+   ▼
+Evidence
+```
+
+This keeps the semantic record useful rather than overwhelming it with operational noise.
+
+---
+
+# External API integration
+
+External systems may expose information through APIs.
+
+An adapter may provide:
+
+```text
+discover
+read
+write
+observe
+```
+
+depending on permissions and API capability.
+
+Monad should preserve:
+
+```text
+external identity
+source
+authority
+freshness
+provenance
+```
+
+for information obtained externally.
+
+---
+
+# External information is not automatically authoritative
+
+Suppose an external documentation API claims:
+
+```text
+Library X supports feature Y.
+```
+
+Monad may record:
+
+```text
+source:
+  external docs
+
+claim:
+  feature Y supported
+```
+
+But whether that claim governs project behavior depends on context and authority.
+
+Native source and semantic authority remain separate concepts.
+
+---
+
+# Documentation-system integration
+
+Documentation systems may contain:
+
+* authored explanations,
+* generated projections,
+* API docs,
+* architecture docs,
+* operational procedures.
+
+Monad should understand their role.
+
+A generated documentation page should remain distinguishable from the source material that produced it.
+
+---
+
+# Issue-tracker integration
+
+Issue trackers other than GitHub can function as:
+
+```text
+coordination systems
+work representations
+defect records
+planning systems
+```
+
+Monad should integrate through the same principles:
+
+```text
+native identity
+representation role
+binding
+authority
+synchronization
+reconciliation
+```
+
+No one tracker needs privileged architectural status.
+
+---
+
+# IDE integration
+
+An IDE integration may expose Monad context near active engineering work.
+
+Potential capabilities include:
+
+```text
+inspect Subject
+show governing specification
+show related requirements
+show impact
+show policy
+request plan
+request verification
+```
+
+The IDE should consume shared application interfaces.
+
+It should not create a second semantic implementation.
+
+---
+
+# AI-tool integration
+
+AI coding tools may interact with Monad through:
+
+```text
+CLI
+library
+HTTP API
+MCP-compatible interface
+agent tools
+```
+
+They should receive structured context and bounded operations rather than unrestricted access to every native integration by default.
+
+---
+
+# Agent integration pattern
+
+Preferred:
+
+```text
+Agent
+  │
+  ▼
+Monad Agent Interface
+  │
+  ▼
+Governed Capability
+  │
+  ▼
+Execution Component
+  │
+  ▼
+Adapter
+  │
+  ▼
+Native System
+```
+
+rather than:
+
+```text
+Agent
+  │
+  ▼
+all credentials
+  │
+  ▼
+arbitrary native systems
+```
+
+This maintains governance even when agents become highly capable.
+
+---
+
+# Credential isolation
+
+Native integrations frequently require credentials.
+
+Examples:
+
+```text
+GitHub token
+cloud credential
+registry token
+database credential
+CI credential
+```
+
+Credentials should remain as close as practical to the integration that requires them.
+
+Preferred:
+
+```text
+Execution Component
+  requests publish
+
+Registry Adapter
+  owns registry credential
+```
+
+instead of:
+
+```text
+Agent receives registry credential
+and decides how to use it
+```
+
+This narrows trust boundaries.
+
+---
+
+# Authentication and native authorization
+
+The native system may enforce its own access controls.
+
+For example:
+
+```text
+GitHub
+  rejects operation
+```
+
+even if Monad policy permits it.
+
+Likewise:
+
+```text
+GitHub token
+  allows operation
+```
+
+even if Monad policy denies it.
+
+Both layers matter.
+
+---
+
+# Native authorization failure
+
+A native authorization failure should remain distinguishable from a Monad governance denial.
+
+For example:
+
+```text
+Monad:
+  permit
+
+GitHub:
+  403 forbidden
+```
+
+should produce:
+
+```text
+NativeAuthorizationFailed
+```
+
+rather than:
+
+```text
+PolicyDenied
+```
+
+These failures have different causes and remediation paths.
+
+---
+
+# Error translation
+
+Native systems expose different error models.
+
+Adapters should normalize errors without erasing useful native detail.
+
+For example:
+
+```text
+Native:
+  HTTP 404
+
+Normalized:
+  NativeResourceNotFound
+
+Native details:
+  GitHub issue #42
+```
+
+or:
+
+```text
+Native:
+  git index.lock exists
+
+Normalized:
+  NativeResourceBusy
+```
+
+The native diagnostic should remain available where useful.
+
+---
+
+# Native revision
+
+Many integrations expose a concept of revision.
+
+Examples:
+
+```text
+Git commit
+file hash
+ETag
+database version
+resource version
+deployment version
+workflow run
+```
+
+Monad can use these values for concurrency and freshness.
+
+---
+
+# Revision-aware operations
+
+For example:
+
+```text
+expected GitHub issue version:
+  v7
+
+current:
+  v9
+```
+
+may indicate that a planned update is stale.
+
+The adapter should expose enough native revision information for higher-level components to make safe decisions.
+
+---
+
+# Optimistic concurrency
+
+Where supported, integrations should prefer revision-aware updates.
+
+Conceptually:
+
+```text
+Read revision A
+      │
+      ▼
+Plan operation
+      │
+      ▼
+Write only if revision still A
+```
+
+If revision becomes B:
+
+```text
+stale-state
+```
+
+rather than silent overwrite.
+
+---
+
+# Idempotency
+
+Integrations should support idempotent operations where possible.
+
+Prefer:
+
+```text
+ensure label exists
+```
+
+to:
+
+```text
+blindly create label
+```
+
+Prefer:
+
+```text
+ensure binding matches desired state
+```
+
+to:
+
+```text
+append another binding
+```
+
+This improves recovery from retries and partial failure.
+
+---
+
+# Native operation identity
+
+Some native systems provide stable operation IDs.
+
+Examples:
+
+```text
+CI run ID
+deployment ID
+API request ID
+job ID
+```
+
+Monad should preserve these identifiers in execution provenance.
+
+They are useful for:
+
+* correlation,
+* debugging,
+* reconciliation,
+* and recovery.
+
+---
+
+# Asynchronous native systems
+
+Many integrations operate asynchronously.
+
+Examples:
+
+```text
+CI
+deployment
+cloud provisioning
+package publication
+```
+
+An adapter may return:
+
+```text
+accepted
+native_operation_id
+```
+
+rather than final success.
+
+---
+
+# Asynchronous flow
+
+Conceptually:
+
+```text
+Execution
+   │
+   ▼
+Adapter
+   │
+   ▼
+Native Operation Submitted
+   │
+   ▼
+Native ID
+   │
+   ▼
+observe / wait
+   │
+   ▼
+Native Final State
+   │
+   ▼
+Verification
+```
+
+Submission is not completion.
+
+---
+
+# Timeout and unknown state
+
+Suppose an API request times out after submission.
+
+Monad may know:
+
+```text
+request sent
+```
+
+but not:
+
+```text
+operation succeeded
+```
+
+The correct state may be:
+
+```text
+unknown
+```
+
+followed by reconciliation.
+
+It should not blindly retry a non-idempotent operation.
+
+---
+
+# Partial failure across integrations
+
+One execution may span multiple native systems.
+
+For example:
+
+```text
+Filesystem:
+  success
+
+Git:
+  success
+
+GitHub:
+  success
+
+Package Registry:
+  failure
+```
+
+There is no universal distributed transaction.
+
+Monad should preserve partial completion.
+
+---
+
+# No imaginary global transaction
+
+The integration architecture must not imply atomicity where none exists.
+
+For example:
+
+```text
+filesystem + Git + GitHub + registry
+```
+
+cannot generally be committed as one true transaction.
+
+The correct design is:
+
+```text
+explicit stages
+operation identities
+observed results
+reconciliation
+compensation where possible
+```
+
+---
+
+# Compensation
+
+Some integrations support reversal.
+
+Examples:
+
+```text
+delete created draft issue
+rollback deployment
+revert commit
+unpublish temporary projection
+```
+
+Other effects may be partially or fully irreversible.
+
+Compensation should be modeled as a new operation.
+
+It does not erase history.
+
+---
+
+# Integration health
+
+An adapter can become unavailable or unhealthy.
+
+Examples:
+
+```text
+credential expired
+API unavailable
+filesystem inaccessible
+Git repository corrupted
+rate limit reached
+schema incompatible
+```
+
+Integration health should be observable.
+
+Higher-level components should distinguish:
+
+```text
+target does not exist
+```
+
+from:
+
+```text
+adapter could not determine whether target exists
+```
+
+---
+
+# Offline operation
+
+Local-first behavior means Monad should tolerate unavailable remote integrations where possible.
+
+For example:
+
+```text
+GitHub unavailable
+```
+
+should not necessarily prevent:
+
+```text
+local semantic queries
+local source inspection
+local planning
+local testing
+```
+
+The unavailable integration should instead be represented explicitly.
+
+---
+
+# Cached native state
+
+Monad may cache native observations.
+
+Cached state must preserve freshness.
+
+For example:
+
+```text
+GitHub issue state
+observed:
+  12 minutes ago
+```
+
+is not equivalent to:
+
+```text
+live GitHub state
+```
+
+Consumers should be able to know the difference where it matters.
+
+---
+
+# Integration freshness
+
+Useful freshness metadata may include:
+
+```text
+observed_at
+native_revision
+cache_age
+source
+refresh_status
+```
+
+This becomes especially important for agent context.
+
+An agent should not unknowingly operate on stale external state.
+
+---
+
+# Offline writes
+
+Some integrations may support queued local changes.
+
+But queued writes create difficult questions:
+
+```text
+Is authority still valid later?
+
+Has native state changed?
+
+Is the operation still appropriate?
+
+Will synchronization conflict?
+```
+
+Any offline-write model should therefore be revision-aware and governed.
+
+This should not be assumed as a universal capability.
+
+---
+
+# Integration configuration
+
+Integrations need configuration such as:
+
+```text
+system type
+endpoint
+repository
+workspace
+scope
+credential reference
+capabilities
+polling/event settings
+```
+
+Configuration should remain distinct from the semantic model itself.
+
+It tells Monad:
+
+```text
+how to connect
+```
+
+not:
+
+```text
+what the connected engineering concepts mean
+```
+
+---
+
+# Integration identity
+
+Each configured integration should itself have identity.
+
+For example:
+
+```text
+github:monad-primary
+```
+
+or:
+
+```text
+filesystem:workspace-root
+```
+
+This helps distinguish multiple instances of the same system type.
+
+For example:
+
+```text
+GitHub Enterprise instance A
+GitHub.com organization B
+```
+
+may both exist.
+
+---
+
+# Multiple native systems of the same type
+
+Monad should support:
+
+```text
+multiple repositories
+multiple GitHub organizations
+multiple CI providers
+multiple registries
+multiple cloud environments
+```
+
+without assuming one global instance.
+
+This is important for multi-project and enterprise systems.
+
+---
+
+# Workspace boundaries
+
+Integrations should operate within declared workspace or project boundaries.
+
+For example:
+
+```text
+Workspace A
+  repositories:
+    frontend
+    backend
+    infrastructure
+```
+
+Monad may understand cross-repository relationships while preserving each repository's native identity.
+
+---
+
+# Cross-project relationships
+
+Suppose:
+
+```text
+Project A / Package X
+```
+
+is consumed by:
+
+```text
+Project B / Service Y
+```
+
+Monad may represent:
+
+```text
+Service Y
+  depends-on
+Package X
+```
+
+without pretending both projects share the same authority or lifecycle.
+
+Cross-project understanding should preserve boundaries.
+
+---
+
+# External systems
+
+Some resources may remain outside the managed workspace entirely.
+
+For example:
+
+```text
+third-party API
+external package
+vendor documentation
+hosted service
+```
+
+Monad may know enough to model dependency and provenance without attempting to govern the external system.
+
+---
+
+# Managed versus referenced integrations
+
+A useful distinction is:
+
+```text
+managed
+```
+
+versus:
+
+```text
+referenced
+```
+
+A managed integration may allow Monad to:
+
+```text
+read
+observe
+write
+execute
+```
+
+A referenced external system may support only:
+
+```text
+identify
+describe
+link
+observe limited state
+```
+
+Not every connected entity must become managed infrastructure.
+
+---
+
+# Projection targets
+
+Native systems can also serve as destinations for projections.
+
+For example:
+
+```text
+Monad semantic state
+      │
+      ▼
+Projection Component
+      │
+      ▼
+GitHub Project
+```
+
+or:
+
+```text
+Requirements
+      │
+      ▼
+Documentation Projection
+      │
+      ▼
+Fumadocs site
+```
+
+The destination should remain identifiable as derived where appropriate.
+
+---
+
+# Generated native representations
+
+A generated representation should carry enough provenance to answer:
+
+```text
+what generated this?
+from what?
+at which revision?
+```
+
+For example:
+
+```text
+Generated documentation
+
+Source:
+  active system model revision 42
+
+Projection:
+  docs/system-index@3
+
+Generated:
+  2026-08-28
+```
+
+This allows the integration to determine whether the representation is stale.
+
+---
+
+# Manual edits to generated output
+
+Suppose a user edits a generated representation directly.
+
+Possible policies include:
+
+```text
+reject
+overwrite on next generation
+preserve local change as conflict
+convert to authored source
+request review
+```
+
+The correct behavior depends on representation role and authority.
+
+Generated content should not accidentally become canonical merely because it was edited.
+
+---
+
+# Import
+
+An integration may import existing native state into Monad.
+
+Import is not merely copying.
+
+A meaningful import may require:
+
+```text
+discovery
+classification
+identity creation or resolution
+binding
+authority assignment
+provenance
+validation
+```
+
+Import should preserve the distinction between:
+
+```text
+we observed this
+```
+
+and:
+
+```text
+we have confirmed its semantic meaning
+```
+
+---
+
+# Bootstrap from existing repositories
+
+One important use case is introducing Monad to an existing codebase.
+
+Conceptually:
+
+```text
+Existing Repository
+      │
+      ▼
+Discovery
+      │
+      ├── files
+      ├── Git history
+      ├── manifests
+      ├── tests
+      └── CI
+      │
+      ▼
+Candidate Subjects / Representations
+      │
+      ▼
+Identity Resolution
+      │
+      ▼
+Initial Model
+      │
+      ▼
+Progressive Formalization
+```
+
+Monad should not require a repository to have been created with Monad from day one.
+
+---
+
+# Progressive integration
+
+The first integration with a project may be modest.
+
+For example:
+
+```text
+Stage 1
+  observe files and Git
+
+Stage 2
+  model important Subjects
+
+Stage 3
+  connect GitHub coordination
+
+Stage 4
+  connect tests and CI evidence
+
+Stage 5
+  allow governed execution
+
+Stage 6
+  add release / deployment integration
+```
+
+This matches Monad's broader principle of progressive formalization.
+
+---
+
+# Integration discovery should earn its cost
+
+Not every possible integration should be built.
+
+A new adapter is justified when it provides meaningful engineering value such as:
+
+```text
+important authority
+important identity
+important evidence
+important execution capability
+important change signals
+important context
+```
+
+Integrations should not exist merely to maximize the number of logos Monad can display.
+
+---
+
+# Extension-provided adapters
+
+Many integrations should eventually be implemented as extensions.
+
+Conceptually:
+
+```text
+Extension
+   │
+   └── provides Adapter
+```
+
+The adapter should declare:
+
+```text
+native system type
+capabilities
+required permissions
+supported versions
+configuration schema
+```
+
+The Extension Component governs whether it can be loaded.
+
+---
+
+# Adapter compatibility
+
+Adapters may target specific native-system versions or APIs.
+
+They should expose compatibility information.
+
+For example:
+
+```text
+Adapter:
+  GitHub Adapter v3
+
+Supports:
+  GitHub API version X
+
+Requires:
+  capability set Y
+```
+
+This is important for long-lived systems.
+
+---
+
+# Integration version drift
+
+Native systems evolve independently.
+
+An API may change.
+
+A CLI may alter output.
+
+A schema may be deprecated.
+
+Monad should detect unsupported native versions rather than quietly misinterpret state.
+
+Possible result:
+
+```text
+UnsupportedNativeVersion
+```
+
+with a meaningful diagnostic.
+
+---
+
+# Contract testing
+
+Adapters should be tested against explicit integration contracts.
+
+A contract test might verify:
+
+```text
+discover returns stable Native References
+
+read preserves native revision
+
+write reports actual native result
+
+error mapping is deterministic
+
+idempotent operation behaves idempotently
+```
+
+This protects higher-level components from integration drift.
+
+---
+
+# Integration verification
+
+Beyond adapter unit tests, Monad should verify integration behavior against real or realistic native systems.
+
+This may include:
+
+```text
+filesystem fixture
+temporary Git repository
+test GitHub repository
+local package registry
+CI test environment
+containerized service
+```
+
+The goal is evidence that the adapter semantics match native reality.
+
+---
+
+# Integration provenance
+
+Operations crossing native boundaries should preserve provenance where meaningful.
+
+For example:
+
+```text
+Execution:
+  update GitHub issue
+
+Actor:
+  implementation-agent
+
+Adapter:
+  github-adapter@3
+
+Native Reference:
+  issue #42
+
+Native Result:
+  issue revision 19
+```
+
+This helps reconstruct what happened.
+
+---
+
+# Integration observability
+
+Useful operational signals include:
+
+```text
+adapter latency
+adapter failures
+native API rate limits
+event lag
+reconciliation backlog
+stale cached state
+credential failure
+unsupported native version
+```
+
+These signals help operate Monad.
+
+They are not automatically permanent engineering artifacts.
+
+---
+
+# Integration security
+
+Every adapter creates a trust boundary.
+
+Security concerns include:
+
+* credential scope,
+* untrusted native content,
+* command injection,
+* path traversal,
+* API misuse,
+* secret leakage,
+* unsafe deserialization,
+* webhook authenticity,
+* plugin isolation,
+* and environment boundaries.
+
+Integration is therefore one of the highest-risk parts of the system.
+
+---
+
+# Untrusted native content
+
+Native systems can contain content produced by untrusted Actors.
+
+Examples:
+
+```text
+issue text
+pull-request description
+repository files
+external docs
+API response
+logs
+```
+
+The adapter should treat content as data.
+
+It should not allow native text to redefine policy or execution authority merely because it was retrieved through a trusted integration.
+
+---
+
+# Webhook authenticity
+
+Webhook-driven adapters should verify authenticity where the provider supports it.
+
+Conceptually:
+
+```text
+Webhook
+   │
+   ▼
+Authenticate Source
+   │
+   ▼
+Normalize Event
+   │
+   ▼
+Process
+```
+
+An unauthenticated event should not silently become authoritative native observation.
+
+---
+
+# Least authority for adapters
+
+Adapter credentials should have the minimum native permissions necessary.
+
+For example:
+
+```text
+GitHub read-only discovery adapter
+```
+
+should not require:
+
+```text
+organization admin
+```
+
+Likewise:
+
+```text
+package publisher
+```
+
+should not automatically gain unrelated repository permissions.
+
+Least authority should exist in both:
+
+```text
+Monad governance
+```
+
+and:
+
+```text
+native-system credentials
+```
+
+---
+
+# Integration policy
+
+Governance may constrain integrations directly.
+
+Examples:
+
+```text
+No source may leave local environment.
+
+Production deployment adapter may only be used by release authority.
+
+External AI integration may not receive security artifacts.
+
+GitHub adapter may update issue metadata but not merge pull requests.
+```
+
+Integration capabilities therefore participate in the policy model.
+
+---
+
+# Policy-aware context
+
+An integration may expose information that an Actor is not permitted to access.
+
+The Context Component should not simply include every connected native resource.
+
+Policy should limit what native data can enter a context projection.
+
+---
+
+# Policy-aware discovery
+
+Even discovery may need boundaries.
+
+For example:
+
+```text
+Agent may inspect repository A
+
+Agent may not enumerate security repository B
+```
+
+The Integration Component should respect these constraints rather than leaking resource existence through discovery APIs.
+
+---
+
+# Integration topology
+
+A local Monad installation might look like:
+
+```text
+┌───────────────────────┐
+│      Monad Core       │
+└───────────┬───────────┘
+            │
+       Integration
+            │
+    ┌───────┼─────────┐
+    ▼       ▼         ▼
+ Filesystem Git     GitHub
+```
+
+A larger environment may add:
+
+```text
+CI
+build farm
+package registry
+cloud provider
+databases
+observability
+issue trackers
+shared services
+```
+
+The conceptual integration model remains the same.
+
+---
+
+# Local and remote adapters
+
+Some adapters operate locally:
+
+```text
+filesystem
+Git CLI
+local build tool
+local database
+```
+
+Others operate remotely:
+
+```text
+GitHub
+cloud provider
+hosted CI
+package registry
+```
+
+Monad should preserve the difference because it affects:
+
+* latency,
+* availability,
+* credentials,
+* freshness,
+* privacy,
+* and failure semantics.
+
+---
+
+# Adapter placement
+
+An adapter may eventually execute:
+
+```text
+inside Monad process
+```
+
+or:
+
+```text
+in plugin process
+```
+
+or:
+
+```text
+as remote integration service
+```
+
+The deployment topology can evolve.
+
+The logical contract should remain stable.
+
+---
+
+# Integration anti-patterns
+
+Monad should guard against several failures.
+
+## Replace everything
+
+Monad begins reimplementing Git, CI, package management, deployment, and issue tracking.
+
+The semantic system turns into an enormous platform with no clear boundary.
+
+## Adapter owns semantics
+
+Every integration invents its own model of identity, authority, and lifecycle.
+
+## Last writer wins
+
+Bidirectional synchronization resolves every conflict by timestamp.
+
+## Native token equals authority
+
+Possession of a credential bypasses Monad governance.
+
+## Import everything
+
+Every native object becomes a permanent semantic entity.
+
+## Poll everything forever
+
+Integration cost grows without regard to engineering value.
+
+## Silent stale cache
+
+Cached native state appears indistinguishable from live state.
+
+## Generated becomes canonical
+
+Projection targets become accidental new authorities.
+
+## Write-only execution
+
+Monad performs a native operation but never observes the resulting state.
+
+## Provider lock-in
+
+Core semantics depend directly on one vendor's API model.
+
+---
+
+# Integration design principles
+
+A healthy integration should be:
+
+## Native-aware
+
+It respects the source system's semantics.
+
+## Semantically narrow
+
+It does not redefine Monad's core model.
+
+## Capability-explicit
+
+Supported operations are declared.
+
+## Authority-aware
+
+Native capability does not become permission.
+
+## Revision-aware
+
+Concurrent native changes can be detected.
+
+## Observable
+
+Current native state can be inspected where necessary.
+
+## Reconciliable
+
+Divergence can be surfaced and interpreted.
+
+## Replaceable
+
+One native provider can be substituted where the capability allows.
+
+## Secure
+
+Credentials and trust boundaries are narrow.
+
+## Progressive
+
+Useful integration can begin before every native object is modeled.
+
+---
+
+# Integration quality criteria
+
+A mature integration should increasingly answer:
+
+```text
+What native system is this?
+
+What capabilities does the adapter provide?
+
+Which native identity refers to this resource?
+
+What semantic Subject does it represent?
+
+Which system is authoritative for each relevant property?
+
+When was native state last observed?
+
+Which revision was observed?
+
+What happens when native state changes?
+
+How are conflicts resolved?
+
+Which operations may Monad perform?
+
+Which Actors may invoke those operations?
+
+How are native failures represented?
+
+Can the integration recover from partial failure?
+```
+
+If these questions remain undefined, the integration boundary is incomplete.
+
+---
+
+# Minimum useful integrations
+
+The first Monad kernel does not require integrations with every engineering service.
+
+A strong initial set is likely:
+
+```text
+Filesystem
+Git
+```
+
+These provide:
+
+* source discovery,
+* representations,
+* native identity,
+* history,
+* revisions,
+* change observation,
+* and local-first behavior.
+
+A later step can add:
+
+```text
+GitHub
+```
+
+for coordination and external workflow state.
+
+Then:
+
+```text
+Build
+Test
+CI
+```
+
+for verification and evidence.
+
+Then:
+
+```text
+Release
+Registry
+Deployment
+```
+
+for governed delivery.
+
+This progression lets integration complexity grow alongside demonstrated value.
+
+---
+
+# Integration maturity
+
+A staged model might be:
+
+## Stage 1 — Read
+
+```text
+discover
+read
+resolve
+```
+
+Monad can inspect native reality.
+
+## Stage 2 — Observe
+
+```text
+watch
+poll
+events
+freshness
+```
+
+Monad can detect change.
+
+## Stage 3 — Reconcile
+
+```text
+compare model and native state
+resolve bindings
+surface conflicts
+```
+
+Monad stays grounded.
+
+## Stage 4 — Governed write
+
+```text
+policy
+authority
+execution
+native mutation
+```
+
+Monad can safely act.
+
+## Stage 5 — Synchronize
+
+```text
+projection
+field-level authority
+bidirectional coordination where justified
+```
+
+Monad coordinates systems.
+
+## Stage 6 — Distributed integration
+
+```text
+multi-project
+organization-level adapters
+remote integration services
+cross-system reconciliation
+```
+
+Monad operates across larger engineering environments.
+
+---
+
+# Example: repository integration
+
+Suppose Monad is introduced to an existing repository.
+
+Discovery finds:
+
+```text
+package manifests
+source directories
+tests
+Git history
+CI workflow
+documentation
+```
+
+Monad initially records native representations and candidate relationships.
+
+It may know:
+
+```text
+File:
+  packages/auth/src/index.ts
+
+Git:
+  last changed in abc123
+
+Package:
+  @example/auth
+```
+
+Later, domain and identity work establish:
+
+```text
+Subject:
+  authentication-service
+
+Representations:
+  packages/auth/src/index.ts
+  package @example/auth
+```
+
+The integration has progressed from:
+
+```text
+native facts
+```
+
+to:
+
+```text
+semantic understanding
+```
+
+without replacing the repository.
+
+---
+
+# Example: direct filesystem change
+
+A developer renames:
+
+```text
+packages/auth/src/index.ts
+```
+
+to:
+
+```text
+packages/auth/src/service.ts
+```
+
+The workflow becomes:
+
+```text
+Developer
+   │
+   ▼
+Filesystem
+   │
+   ▼
+Filesystem Adapter
+   │
+   ▼
+Native change observed
+   │
+   ▼
+Reconciliation
+   │
+   ▼
+Identity analysis
+   │
+   ▼
+Binding updated
+```
+
+If confidence is high, the update may be automatic.
+
+If identity is ambiguous, a proposal may require review.
+
+---
+
+# Example: GitHub projection
+
+Suppose a Work Package is projected into GitHub as an issue.
+
+```text
+Work Package WP-042
+      │
+      ▼
+Projection
+      │
+      ▼
+GitHub Issue #187
+```
+
+Monad remains authoritative for:
+
+```text
+Work Package identity
+scope
+governing specification
+lifecycle semantics
+```
+
+GitHub may remain authoritative for:
+
+```text
+issue comments
+GitHub-native issue state
+native timestamps
+```
+
+The binding records the relationship.
+
+If the issue is deleted, reconciliation can report:
+
+```text
+coordination representation missing
+```
+
+without claiming:
+
+```text
+Work Package deleted
+```
+
+---
+
+# Example: CI verification
+
+A change requires an acceptance suite.
+
+Monad requests:
+
+```text
+run acceptance suite
+against commit abc123
+```
+
+The CI Adapter returns:
+
+```text
+workflow run:
+  8172
+```
+
+Later:
+
+```text
+workflow run:
+  8172
+
+status:
+  completed
+
+result:
+  success
+```
+
+Verification interprets this result relative to:
+
+```text
+Requirement REQ-042
+Verification Method VER-008
+```
+
+Evidence records:
+
+```text
+native run:
+  8172
+
+source revision:
+  abc123
+
+result:
+  passed
+```
+
+CI remains CI.
+
+Monad connects the run to engineering meaning.
+
+---
+
+# Example: deployment discrepancy
+
+Monad records:
+
+```text
+Release:
+  1.4.0
+
+Expected production deployment:
+  1.4.0
+```
+
+The deployment adapter observes:
+
+```text
+production:
+  1.3.9
+```
+
+The correct response is not to silently rewrite one side.
+
+Instead:
+
+```text
+Expected state:
+  1.4.0
+
+Observed state:
+  1.3.9
+
+Conflict:
+  deployment differs from released desired state
+```
+
+Policy may determine whether to:
+
+```text
+redeploy
+accept rollback
+open incident
+require review
+```
+
+The integration surfaces reality.
+
+Governance decides what should happen next.
+
+---
+
+# Integrations and the semantic graph
+
+Native-system integration is how the graph remains connected to engineering reality.
+
+For example:
+
+```text
+Requirement
+   │
+   ▼
+Specification
+   │
+   ▼
+Component
+   │
+   ▼
+Representation
+   │
+   ▼
+Filesystem Reference
+```
+
+or:
+
+```text
+Work Package
+   │
+   ▼
+GitHub Issue Representation
+```
+
+or:
+
+```text
+Verification
+   │
+   ▼
+CI Run Evidence
+```
+
+or:
+
+```text
+Release
+   │
+   ▼
+Package Registry Artifact
+   │
+   ▼
+Deployment
+```
+
+These bindings make cross-system reasoning possible.
+
+---
+
+# Integrations and provenance
+
+Integration is one of the primary sources of provenance.
+
+A meaningful native operation may preserve:
+
+```text
+adapter
+native system
+native identifier
+actor
+native revision
+requested operation
+observed result
+timestamp
+```
+
+This allows higher layers to reconstruct engineering history.
+
+---
+
+# Integrations and authority
+
+Integrations expose facts.
+
+Authority determines how those facts should govern.
+
+For example:
+
+```text
+Filesystem says:
+  implementation = X
+
+Specification says:
+  expected behavior = Y
+```
+
+Both can be authoritative.
+
+They govern different questions.
+
+The integration layer must not flatten them into one global truth.
+
+---
+
+# Integrations and execution
+
+[Execution](/docs/system/execution) uses adapters to cross from governed plans into native side effects.
+
+Conceptually:
+
+```text
+Authorized Operation
+      │
+      ▼
+Execution Component
+      │
+      ▼
+Integration Interface
+      │
+      ▼
+Adapter
+      │
+      ▼
+Native System
+```
+
+The adapter should not be directly invoked by ungoverned higher-level reasoning when the operation requires governance.
+
+---
+
+# Integrations and reconciliation
+
+Every writable integration creates the possibility of divergence.
+
+Every independently writable integration guarantees it eventually.
+
+That is why:
+
+```text
+Integration
+   +
+Reconciliation
+```
+
+must be designed together.
+
+An integration architecture without reconciliation eventually becomes a stale-model architecture.
+
+---
+
+# Integrations and projections
+
+Some native systems are projection targets.
+
+Examples:
+
+```text
+GitHub project
+documentation site
+generated manifest
+dashboard
+```
+
+Projection should preserve source identity and freshness.
+
+Integrations provide the mechanism for publishing those derived views.
+
+---
+
+# Integrations and interfaces
+
+Adapters implement contracts defined by [Interfaces](/docs/system/interfaces).
+
+A generic native interface may define conceptual operations such as:
+
+```text
+discover
+read
+observe
+write
+execute
+resolve
+subscribe
+```
+
+Specific adapters map them to provider-native behavior.
+
+---
+
+# Integrations and components
+
+[Components](/docs/system/components) separates:
+
+```text
+Integration Component
+```
+
+from:
+
+```text
+Identity
+Policy
+Execution
+Reconciliation
+```
+
+This division is intentional.
+
+Integration knows how to speak to native systems.
+
+Other components determine what native observations mean and whether native actions are legitimate.
+
+---
+
+# Integrations and Artifacts
+
+Formal integration contracts belong under [Artifacts](/docs/artifacts).
+
+Those may include:
+
+```text
+adapter specification
+capability matrix
+native reference schema
+binding schema
+event schema
+reconciliation specification
+compatibility policy
+contract tests
+```
+
+System documentation explains the architecture.
+
+Artifacts define precise contracts.
+
+---
+
+# Integration invariants
+
+Several invariants should remain true.
+
+## Native identity remains native
+
+Monad does not unnecessarily replace provider identifiers.
+
+## Semantic identity remains separate
+
+Native identifiers do not universally define Subjects.
+
+## Observation does not imply interpretation
+
+Adapters report facts before higher layers assign meaning.
+
+## Capability does not imply authority
+
+A writable integration does not grant permission to use it.
+
+## Native authority remains explicit
+
+Monad does not silently become authoritative over externally owned state.
+
+## Derived output remains derived
+
+Projection targets do not automatically become canonical.
+
+## Divergence remains detectable
+
+The model must not assume native state stays synchronized forever.
+
+## Reconciliation is authority-aware
+
+Conflict handling depends on who governs the relevant claim or property.
+
+## Direct native change remains possible
+
+Monad integrates with ordinary engineering workflows.
+
+## Native errors preserve meaning
+
+Provider failure should not collapse into generic Monad failure.
+
+## Unknown is valid
+
+If native outcome cannot be determined, the system should represent uncertainty.
+
+---
+
+# The integration rule of thumb
+
+When connecting a new system, ask:
+
+> **What does this native system actually own?**
+
+Then:
+
+> **Which identifiers does it already provide?**
+
+Then:
+
+> **Which operations can it perform?**
+
+Then:
+
+> **Which of those operations should Monad expose?**
+
+Then:
+
+> **Who is authoritative for each relevant property or claim?**
+
+Then:
+
+> **How will change be observed?**
+
+Then:
+
+> **How will divergence be reconciled?**
+
+Then:
+
+> **What happens when the native system is unavailable, stale, or contradictory?**
+
+Those questions determine whether an integration is architectural or merely an API wrapper.
+
+---
+
+# The governing principle
+
+Monad integration can be summarized as:
+
+> **Preserve native systems as legitimate owners of engineering reality while adding explicit semantic identity, authority, provenance, relationships, governance, and reconciliation around them.**
+
+The goal is not:
+
+```text
+put the engineering world inside Monad
+```
+
+The goal is:
+
+```text
+make the engineering world legible to Monad
+without erasing the systems that already make it work
+```
+
+---
+
+## Where to go next
+
+With concepts, architecture, components, interfaces, governance, execution, and integrations defined, the remaining core System page should establish the canonical vocabulary used across all of them.
+
+<Cards>
+  <Card
+    title="Glossary"
+    href="/docs/system/glossary"
+  >
+    Use the canonical reference definitions for Subjects, Representations, Claims, Authority, Provenance, Evidence, Policy, Capability, Context, Projection, and other Monad terms.
+  </Card>
+
+<Card
+title="Execution"
+href="/docs/system/execution"
+>
+Review how native integrations participate in governed engineering operations.
+</Card>
+
+<Card
+title="Interfaces"
+href="/docs/system/interfaces"
+>
+Inspect the contracts adapters implement and the semantic boundaries they preserve.
+</Card>
+
+<Card
+title="Artifacts"
+href="/docs/artifacts"
+>
+Inspect the specifications, schemas, compatibility rules, and verification evidence behind the integration model.
+</Card>
+</Cards>
+
+---
+
+## Related system views
+
+<Cards>
+  <Card
+    title="Architecture"
+    href="/docs/system/architecture"
+  >
+    Return to the native-system boundary and larger architecture in which integrations operate.
+  </Card>
+
+<Card
+title="Components"
+href="/docs/system/components"
+>
+Review the Integration, Reconciliation, Execution, Identity, and Projection components.
+</Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+>
+Understand how policy and authority constrain access to native-system capabilities.
+</Card>
+
+<Card
+title="System Overview"
+href="/docs/system"
+>
+Return to the current authoritative overview of Monad.
+</Card>
+</Cards>

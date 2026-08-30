@@ -1,0 +1,19 @@
+{
+  "title": "Artifacts",
+  "description": "The inspectable engineering record behind Monad.",
+  "pages": [
+    "index",
+    "decisions",
+    "evidence",
+    "experiments",
+    "models",
+    "policies",
+    "releases",
+    "requirements",
+    "reviews",
+    "schemas",
+    "specifications",
+    "traceability",
+    "verification"
+  ]
+}

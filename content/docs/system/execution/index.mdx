@@ -1,0 +1,3703 @@
+---
+title: Execution
+description: How Monad turns engineering intent into governed action through context resolution, planning, authorization, native-system execution, verification, provenance, reconciliation, and lifecycle transition.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Governed execution
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Execution is where understanding becomes change. Monad separates intent, planning, authority, side effects, verification, and reconciliation so that humans and machines can act without collapsing reasoning and permission into raw tool access.
+  </p>
+</div>
+
+## What this page defines
+
+[Architecture](/docs/system/architecture) establishes the execution boundary.
+
+[Components](/docs/system/components) assigns responsibility to Planning, Policy, Context, Execution, Verification, Provenance, and Reconciliation components.
+
+[Interfaces](/docs/system/interfaces) defines the contracts connecting those responsibilities.
+
+[Governance](/docs/system/governance) determines what may happen and under whose authority.
+
+This page explains how those pieces work together during actual engineering activity.
+
+It answers:
+
+> **How does a requested change move from intent to authorized action, native-system side effects, verification, evidence, and an updated understanding of the system?**
+
+---
+
+# Execution is more than command invocation
+
+A conventional automation system may model execution approximately as:
+
+```text
+request
+   ↓
+command
+   ↓
+process
+   ↓
+exit code
+```
+
+That is sufficient for many low-level operations.
+
+It is not sufficient for governed engineering.
+
+A meaningful engineering execution may need to preserve:
+
+```text
+what was requested
+why it was requested
+which Subjects are affected
+which system state was assumed
+which requirements apply
+which policies apply
+who is acting
+what authority they possess
+what plan was authorized
+which tools were invoked
+what native changes occurred
+what evidence was produced
+what verification succeeded or failed
+what the system now believes
+```
+
+Monad therefore treats execution as an engineering lifecycle rather than merely a process launch.
+
+---
+
+# The execution pipeline
+
+A complete governed execution can be understood as:
+
+```text
+Intent
+   │
+   ▼
+Resolve
+   │
+   ▼
+Understand
+   │
+   ▼
+Analyze Impact
+   │
+   ▼
+Plan
+   │
+   ▼
+Govern
+   │
+   ▼
+Authorize
+   │
+   ▼
+Execute
+   │
+   ▼
+Observe
+   │
+   ▼
+Verify
+   │
+   ▼
+Record Evidence + Provenance
+   │
+   ▼
+Reconcile
+   │
+   ▼
+Transition Lifecycle
+   │
+   ▼
+Refresh Derived State
+```
+
+Not every operation requires every stage.
+
+The pipeline should be **risk-proportional**.
+
+A read-only query may stop after resolution.
+
+A local formatting change may require only a small subset.
+
+A public API change may require nearly the entire flow.
+
+---
+
+# Execution begins with intent
+
+Every governed change begins with some desired outcome.
+
+Intent may originate from:
+
+```text
+human request
+AI proposal
+requirement
+defect
+work package
+policy obligation
+failed verification
+runtime observation
+release preparation
+reconciliation conflict
+```
+
+Examples:
+
+```text
+Fix the failing authentication test.
+```
+
+```text
+Implement Requirement REQ-AUTH-004.
+```
+
+```text
+Upgrade dependency X without changing the public API.
+```
+
+```text
+Bring the generated documentation back into sync.
+```
+
+```text
+Rollback release 1.4.2.
+```
+
+The first execution responsibility is not to act.
+
+It is to understand what the request refers to.
+
+---
+
+# 01 — Resolve the request
+
+Natural-language intent often refers to engineering concepts indirectly.
+
+For example:
+
+```text
+"change the auth API"
+```
+
+may correspond to:
+
+```text
+Subject:
+  authentication-interface
+
+Representations:
+  packages/auth/src/api.ts
+  docs/system/authentication.mdx
+
+Governed by:
+  SPEC-AUTH-003
+```
+
+Execution should therefore begin with identity resolution.
+
+Conceptually:
+
+```text
+Intent
+   │
+   ▼
+Identity Resolution
+   │
+   ├──► target Subjects
+   ├──► relevant Representations
+   └──► ambiguity
+```
+
+If resolution is ambiguous, the system should preserve that ambiguity rather than guessing silently.
+
+---
+
+## Resolution outcomes
+
+Possible results include:
+
+```text
+confirmed
+probable
+ambiguous
+unresolved
+conflicting
+```
+
+For example:
+
+```text
+Requested target:
+  auth service
+
+Candidate Subjects:
+  authentication-service
+  authorization-service
+
+Result:
+  ambiguous
+```
+
+A high-risk operation should normally stop until the ambiguity is resolved.
+
+---
+
+# 02 — Establish current state
+
+Before planning a change, Monad must know which state the plan is based on.
+
+Relevant state may include:
+
+```text
+repository revision
+artifact revisions
+Subject lifecycle states
+policy versions
+Constitution version
+native-system revisions
+active specifications
+current representations
+```
+
+Conceptually:
+
+```text
+Resolved Target
+      │
+      ▼
+Current State Snapshot
+```
+
+The execution should be able to say:
+
+> **This plan was created against this understood state.**
+
+---
+
+# State snapshot
+
+A state snapshot need not duplicate the entire system.
+
+It may instead identify the revisions necessary to determine whether assumptions remain valid.
+
+For example:
+
+```text
+Repository:
+  abc123
+
+Specification:
+  SPEC-AUTH-003@7
+
+Policy:
+  POL-API-004@3
+
+System Model:
+  revision 842
+```
+
+This allows later precondition checks.
+
+---
+
+# 03 — Construct context
+
+Once the target and current state are known, Monad can construct task-specific context.
+
+Useful context may include:
+
+```text
+target Subjects
+requirements
+specifications
+architectural decisions
+dependencies
+current implementation
+tests
+policies
+authority
+known risks
+previous failures
+historical changes
+```
+
+Conceptually:
+
+```text
+Task
+ +
+Targets
+ +
+Actor
+ +
+Current State
+ +
+Scope
+      │
+      ▼
+Context Component
+      │
+      ▼
+Task Context
+```
+
+---
+
+# Context is part of execution safety
+
+Poor context produces poor plans.
+
+This matters for humans.
+
+It matters especially for AI agents.
+
+An agent modifying a public interface should not receive only:
+
+```text
+source file
+```
+
+when the system knows about:
+
+```text
+governing requirement
+public compatibility contract
+dependent consumers
+required tests
+applicable review policy
+```
+
+Context construction is therefore part of execution architecture rather than a convenience feature.
+
+---
+
+# Context should be bounded
+
+More context is not always better.
+
+The system should prefer:
+
+```text
+relevant
+authoritative
+current
+task-specific
+```
+
+over:
+
+```text
+everything available
+```
+
+A context bundle may therefore be constrained by:
+
+```text
+scope
+relationship depth
+authority
+freshness
+risk
+Actor permissions
+context budget
+```
+
+---
+
+# 04 — Analyze impact
+
+Before a meaningful change is authorized, Monad should estimate what the change may affect.
+
+Impact analysis may traverse:
+
+```text
+depends-on
+implemented-by
+specified-by
+consumed-by
+verified-by
+governed-by
+represented-by
+derived-from
+```
+
+relationships.
+
+Conceptually:
+
+```text
+Proposed Change
+      │
+      ▼
+Target Subjects
+      │
+      ▼
+Impact Analysis
+      │
+      ├──► known impact
+      ├──► probable impact
+      ├──► inferred impact
+      └──► unknown impact
+```
+
+---
+
+# Impact changes execution behavior
+
+Impact is not merely informational.
+
+It can affect:
+
+* scope,
+* required review,
+* verification obligations,
+* risk classification,
+* required context,
+* authority,
+* release requirements,
+* and whether the work may proceed automatically.
+
+For example:
+
+```text
+Internal implementation change
+  known dependents: 1
+  public impact: none
+```
+
+may receive broad automation.
+
+But:
+
+```text
+Schema change
+  known dependents: 18
+  external consumers: uncertain
+  migration required
+```
+
+may require substantially stronger governance.
+
+---
+
+# Unknown impact is meaningful
+
+The absence of known impact does not prove no impact exists.
+
+A mature execution result may say:
+
+```text
+Known affected Subjects:
+  5
+
+Probable:
+  2
+
+External impact:
+  unknown
+```
+
+Unknown impact can itself become a governance input.
+
+---
+
+# 05 — Build the plan
+
+The Planning Component turns intent and impact into bounded proposed work.
+
+A plan may contain:
+
+```text
+operations
+order
+targets
+affected scope
+required tools
+expected outputs
+required approvals
+verification obligations
+preconditions
+```
+
+For example:
+
+```text
+Plan:
+  1. update authentication schema
+  2. update implementation
+  3. update compatibility fixture
+  4. run unit tests
+  5. run compatibility tests
+  6. refresh generated API docs
+```
+
+Planning creates an inspectable proposal.
+
+It does not yet perform the change.
+
+---
+
+# A plan should explain itself
+
+A useful plan should increasingly expose:
+
+```text
+why each operation exists
+which Subject it concerns
+which requirement or obligation motivates it
+what depends on successful completion
+```
+
+For example:
+
+```text
+Operation:
+  run compatibility suite
+
+Reason:
+  public interface change
+
+Required by:
+  POL-API-004
+
+Verifies:
+  REQ-COMPAT-002
+```
+
+This turns plans into engineering structures rather than arbitrary task lists.
+
+---
+
+# Plans should have identity
+
+Significant plans should be identifiable.
+
+Conceptually:
+
+```text
+Plan:
+  PLAN-042
+
+Revision:
+  3
+```
+
+This matters because authorization should bind to a specific plan.
+
+---
+
+# Plan revision
+
+Suppose:
+
+```text
+PLAN-042@3
+```
+
+is approved.
+
+Then an agent adds:
+
+```text
+delete compatibility layer
+```
+
+to create:
+
+```text
+PLAN-042@4
+```
+
+That is not necessarily the same authorized operation.
+
+Material changes to an approved plan should trigger reevaluation.
+
+---
+
+# 06 — Evaluate governance
+
+Once the plan exists, Monad evaluates whether it may proceed.
+
+Governance considers:
+
+```text
+Actor
+Capability
+Authority
+Scope
+Target
+Plan
+Impact
+Risk
+Lifecycle
+Policy
+Evidence
+Approvals
+```
+
+Conceptually:
+
+```text
+Plan
+  +
+Actor
+  +
+System State
+  +
+Policies
+     │
+     ▼
+Governance Evaluation
+```
+
+---
+
+# Governance outcomes
+
+Possible outcomes include:
+
+```text
+permit
+deny
+permit with obligations
+require approval
+require evidence
+require narrower scope
+require replanning
+require escalation
+```
+
+For example:
+
+```text
+Decision:
+  permit-with-obligations
+
+Required:
+  compatibility verification
+  architecture review
+
+Reason:
+  public API affected
+```
+
+Execution cannot interpret this as unconditional permission.
+
+---
+
+# 07 — Satisfy pre-execution obligations
+
+Some obligations must be satisfied before side effects occur.
+
+Examples:
+
+```text
+required review
+approved specification
+migration plan
+security approval
+confirmed Subject identity
+current source revision
+required environment
+```
+
+The execution may therefore pause in a state such as:
+
+```text
+planned
+   ↓
+awaiting-approval
+   ↓
+authorized
+```
+
+The exact lifecycle belongs in specification.
+
+The distinction itself matters.
+
+---
+
+# Authorization
+
+Authorization should bind to a specific operation context.
+
+A useful authorization may identify:
+
+```text
+Actor
+Plan
+Scope
+Target Revision
+Policy Revision
+Constitution Version
+Obligations
+Expiration
+```
+
+Authorization therefore means something closer to:
+
+> Actor A may execute Plan P against state S within scope X under these conditions.
+
+It should not mean:
+
+> Actor A may do whatever it wants now.
+
+---
+
+# 08 — Revalidate before execution
+
+Time may pass between planning and execution.
+
+The system may have changed.
+
+Before performing side effects, the Execution Component should verify important preconditions.
+
+For example:
+
+```text
+Expected repository revision:
+  abc123
+
+Current revision:
+  def456
+```
+
+The plan may now be stale.
+
+Conceptually:
+
+```text
+Authorized Plan
+      │
+      ▼
+Precondition Validation
+      │
+      ├──► current → continue
+      └──► stale → stop / replan
+```
+
+This is essential for concurrent human and agent activity.
+
+---
+
+# Stale authorization
+
+Authorization may also become stale if:
+
+```text
+policy changed
+scope changed
+approval expired
+Actor authority revoked
+target lifecycle changed
+Constitution changed
+```
+
+Execution should not assume earlier authorization remains valid indefinitely.
+
+---
+
+# 09 — Cross the execution boundary
+
+Only after the relevant conditions are satisfied should the operation cross the execution boundary.
+
+```text
+Reasoning
+   │
+   ▼
+Plan
+   │
+   ▼
+Governance
+   │
+   ▼
+Authorization
+   │
+   ▼
+──────── EXECUTION BOUNDARY ────────
+   │
+   ▼
+Native Side Effect
+```
+
+This is one of Monad's most important architectural separations.
+
+---
+
+# The execution boundary
+
+The execution boundary separates:
+
+```text
+what the system believes should happen
+```
+
+from:
+
+```text
+what actually changes engineering reality
+```
+
+Examples of side effects include:
+
+```text
+write file
+move file
+create commit
+update issue
+publish package
+change database schema
+deploy service
+modify infrastructure
+```
+
+A plan may be completely valid without ever being executed.
+
+A proposed change may exist without becoming reality.
+
+That distinction must remain explicit.
+
+---
+
+# 10 — Invoke native tools
+
+Monad does not need to reimplement native engineering tools.
+
+The Execution Component delegates work through adapters.
+
+Conceptually:
+
+```text
+Execution Component
+       │
+       ▼
+Integration Interface
+       │
+       ▼
+Native Adapter
+       │
+       ▼
+Native Tool / System
+```
+
+Examples:
+
+```text
+Filesystem Adapter
+  → write file
+
+Git Adapter
+  → create commit
+
+GitHub Adapter
+  → update issue
+
+Build Adapter
+  → run build
+
+CI Adapter
+  → trigger workflow
+
+Deployment Adapter
+  → deploy release
+```
+
+---
+
+# Native tools remain authoritative within scope
+
+The adapter should return actual native results.
+
+For example:
+
+```text
+requested:
+  create Git commit
+
+native result:
+  commit 8f2ac7d
+```
+
+Monad should not invent a successful state before the native operation succeeds.
+
+---
+
+# Tool capability does not imply unrestricted use
+
+An adapter may technically expose:
+
+```text
+delete
+```
+
+but the Execution Component should call it only when governance permits that operation.
+
+Adapters implement capability.
+
+They do not define authority.
+
+---
+
+# 11 — Record execution state
+
+Execution should have its own lifecycle.
+
+Possible states may include:
+
+```text
+planned
+authorized
+starting
+running
+completed
+failed
+partially-completed
+cancelled
+compensating
+compensated
+```
+
+The exact states may vary.
+
+The important principle is:
+
+> **Intended execution and observed execution outcome are different things.**
+
+---
+
+# Execution record
+
+A meaningful execution record may include:
+
+```text
+execution identity
+plan identity
+Actor
+authorization
+start time
+end time
+native operations
+inputs
+outputs
+errors
+system revision
+environment
+tool versions
+```
+
+Not every trivial operation requires permanent preservation of all these fields.
+
+The system should preserve enough information to reconstruct significant engineering outcomes.
+
+---
+
+# 12 — Handle partial failure
+
+Engineering operations frequently cross systems that cannot be updated atomically.
+
+For example:
+
+```text
+1. file updated
+2. commit created
+3. GitHub issue updated
+4. package publication failed
+```
+
+The correct result is not:
+
+```text
+success
+```
+
+and not necessarily:
+
+```text
+nothing happened
+```
+
+It is:
+
+```text
+partial execution
+```
+
+---
+
+# Partial execution must remain visible
+
+A partial result may identify:
+
+```text
+completed operations
+failed operation
+unattempted operations
+remaining obligations
+native state
+required recovery
+```
+
+For example:
+
+```text
+Completed:
+  source update
+  Git commit
+
+Failed:
+  package publication
+
+Not attempted:
+  release announcement
+
+Required:
+  reconcile release state
+```
+
+This is critical for trustworthy automation.
+
+---
+
+# Transaction boundaries
+
+Some operations can be atomic.
+
+Others cannot.
+
+Monad should therefore model transaction boundaries explicitly where they matter.
+
+For example:
+
+```text
+database transaction
+  atomic
+```
+
+versus:
+
+```text
+filesystem + GitHub + package registry
+  distributed
+  not globally atomic
+```
+
+The system must not pretend a distributed workflow has stronger transactional guarantees than the underlying systems provide.
+
+---
+
+# Compensation
+
+Where rollback is possible, Monad may define compensating operations.
+
+For example:
+
+```text
+deployment completed
+health verification failed
+      │
+      ▼
+rollback deployment
+```
+
+But compensation is not identical to perfect reversal.
+
+An attempted operation may have produced:
+
+* logs,
+* notifications,
+* external observations,
+* new identifiers,
+* or irreversible effects.
+
+Execution history should preserve what actually happened.
+
+---
+
+# 13 — Observe the result
+
+After native operations occur, Monad must observe the resulting state.
+
+This is separate from trusting the intended side effect.
+
+For example:
+
+```text
+Execution requested:
+  write configuration X
+```
+
+should ideally be followed by:
+
+```text
+Observed:
+  configuration X now exists
+  with hash H
+```
+
+when correctness materially depends on the result.
+
+---
+
+# Observation closes the reality gap
+
+Without observation, execution can become:
+
+```text
+Monad asked for X
+therefore Monad assumes X exists
+```
+
+A more trustworthy model is:
+
+```text
+Monad requested X
+      ↓
+native system responded
+      ↓
+Monad observed resulting state
+```
+
+This keeps semantic state grounded in reality.
+
+---
+
+# 14 — Verify the change
+
+Observation answers:
+
+> What happened?
+
+Verification asks:
+
+> **Did what happened satisfy the governing contract?**
+
+Inputs may include:
+
+```text
+requirements
+specifications
+acceptance criteria
+policy obligations
+implementation
+native result
+observations
+```
+
+Conceptually:
+
+```text
+Observed Result
+      │
+      ▼
+Applicable Contracts
+      │
+      ▼
+Verification
+```
+
+---
+
+# Verification methods
+
+Verification may include:
+
+```text
+unit tests
+integration tests
+acceptance tests
+schema validation
+architecture checks
+static analysis
+security checks
+compatibility tests
+reproducibility tests
+benchmarks
+manual review
+runtime observation
+```
+
+The verification method should match the claim being evaluated.
+
+---
+
+# Verification is claim-specific
+
+For example:
+
+```text
+Claim:
+  public API remains backward compatible
+```
+
+may require:
+
+```text
+compatibility test
+```
+
+rather than merely:
+
+```text
+unit tests pass
+```
+
+Likewise:
+
+```text
+Claim:
+  release is reproducible
+```
+
+needs evidence about reproduction.
+
+The existence of tests is not sufficient.
+
+The tests must correspond to the relevant contract.
+
+---
+
+# Verification outcomes
+
+Useful outcomes include:
+
+```text
+passed
+failed
+incomplete
+blocked
+requires-review
+not-applicable
+```
+
+A mature execution workflow should not collapse:
+
+```text
+verification could not run
+```
+
+into:
+
+```text
+verification failed
+```
+
+or:
+
+```text
+verification passed
+```
+
+These states have different meanings.
+
+---
+
+# 15 — Produce evidence
+
+Verification produces or references evidence.
+
+Evidence may include:
+
+```text
+test result
+benchmark output
+review record
+static analysis report
+runtime observation
+reproduction record
+security scan
+compatibility report
+```
+
+Conceptually:
+
+```text
+Claim
+   │
+   ▼
+Verification Method
+   │
+   ▼
+Evidence
+```
+
+---
+
+# Evidence should preserve conditions
+
+A test result should not become timeless truth.
+
+Useful evidence context may include:
+
+```text
+system revision
+environment
+inputs
+method
+tool version
+time
+scope
+```
+
+For example:
+
+```text
+Evidence:
+  compatibility suite passed
+
+Against:
+  commit abc123
+
+Environment:
+  linux-x86_64
+
+Suite:
+  compat-v3
+
+Time:
+  2026-08-28
+```
+
+This allows later evaluation of relevance.
+
+---
+
+# 16 — Record provenance
+
+Execution also generates provenance.
+
+Provenance answers:
+
+> **How did this new state come to exist?**
+
+A provenance chain might look like:
+
+```text
+Requirement
+      │
+      ▼
+Plan
+      │
+      ▼
+Agent
+      │
+      ▼
+Execution
+      │
+      ▼
+Git commit
+      │
+      ▼
+Verification
+      │
+      ▼
+Evidence
+```
+
+This makes engineering outcomes traceable to their origins.
+
+---
+
+# Execution provenance
+
+Depending on significance, provenance may capture:
+
+```text
+request origin
+Actor
+plan
+authorization
+tool
+adapter
+native operation
+input state
+output state
+environment
+derived artifacts
+verification
+```
+
+The objective is not unlimited logging.
+
+The objective is reconstructable engineering meaning.
+
+---
+
+# 17 — Reconcile semantic state
+
+Once native reality changes, Monad's semantic model may need to change too.
+
+For example:
+
+```text
+source file moved
+```
+
+may require:
+
+```text
+Representation binding updated
+```
+
+A new implementation may satisfy:
+
+```text
+Specification S
+```
+
+and therefore establish a new:
+
+```text
+implements
+```
+
+relationship.
+
+A failed operation may invalidate a prior assumption.
+
+Reconciliation integrates the observed result into Monad's understanding.
+
+---
+
+# Reconciliation is not projection
+
+Projection pushes derived state outward.
+
+Reconciliation compares modeled state with reality and updates understanding.
+
+Conceptually:
+
+```text
+Semantic Model
+      ⇅
+Reconciliation
+      ⇅
+Native Reality
+```
+
+Reconciliation is therefore central to keeping the model trustworthy.
+
+---
+
+# Reconciliation outcomes
+
+Possible results include:
+
+```text
+model confirmed
+binding updated
+new Representation discovered
+identity proposal created
+conflict detected
+projection marked stale
+Subject lifecycle changed
+unresolved discrepancy
+```
+
+The system should not hide disagreement.
+
+---
+
+# 18 — Complete governance obligations
+
+Execution success alone may not satisfy every governance obligation.
+
+For example:
+
+```text
+implementation complete
+tests passed
+```
+
+but:
+
+```text
+architecture review pending
+```
+
+The overall governed operation may remain incomplete.
+
+Conceptually:
+
+```text
+Execution Complete
+      │
+      ▼
+Verification Complete
+      │
+      ▼
+Obligations Evaluated
+      │
+      ├──► satisfied
+      └──► outstanding
+```
+
+Only when required obligations are satisfied should the relevant lifecycle transition occur.
+
+---
+
+# 19 — Transition lifecycle
+
+Completion may change the state of one or more Subjects.
+
+Examples:
+
+```text
+Work Package:
+  executing → verifying → complete
+```
+
+```text
+Specification:
+  accepted → active
+```
+
+```text
+Release:
+  candidate → verified → released
+```
+
+Lifecycle transitions should occur explicitly where state carries meaning.
+
+---
+
+# Completion is semantic
+
+A task being technically finished does not necessarily mean the engineering operation is complete.
+
+Completion may require:
+
+```text
+implementation
+verification
+evidence
+review
+reconciliation
+obligations
+lifecycle transition
+```
+
+depending on the work.
+
+This is why Monad distinguishes:
+
+```text
+command returned exit code 0
+```
+
+from:
+
+```text
+engineering work is done
+```
+
+---
+
+# 20 — Refresh derived state
+
+A successful change may invalidate derived views.
+
+Examples include:
+
+```text
+search indexes
+dependency indexes
+generated documentation
+AI context packages
+dashboards
+compatibility reports
+```
+
+The Projection or Read Model components may need to refresh them.
+
+Conceptually:
+
+```text
+Authoritative State Changed
+          │
+          ▼
+Derived State Invalidated
+          │
+          ▼
+Refresh / Regenerate
+```
+
+---
+
+# Projection freshness after execution
+
+A completed execution should not silently leave stale projections appearing current.
+
+The system should be able to represent:
+
+```text
+projection stale
+```
+
+until regeneration occurs.
+
+This is especially important when derived state is consumed by agents.
+
+---
+
+# End-to-end execution
+
+The complete flow can be represented as:
+
+```text
+┌─────────────────────────────────────────────────────┐
+│                     INTENT                          │
+└─────────────────────────┬───────────────────────────┘
+                          ▼
+                    Resolve Subjects
+                          │
+                          ▼
+                   Read Current State
+                          │
+                          ▼
+                    Construct Context
+                          │
+                          ▼
+                     Analyze Impact
+                          │
+                          ▼
+                      Build Plan
+                          │
+                          ▼
+                 Governance Evaluation
+                          │
+                          ▼
+                    Authorization
+                          │
+                          ▼
+                 Revalidate Preconditions
+                          │
+                          ▼
+               ─── Execution Boundary ───
+                          │
+                          ▼
+                   Invoke Native Tools
+                          │
+                          ▼
+                     Observe Result
+                          │
+                          ▼
+                       Verify
+                          │
+                          ▼
+                Evidence + Provenance
+                          │
+                          ▼
+                     Reconcile
+                          │
+                          ▼
+               Satisfy Obligations
+                          │
+                          ▼
+                Lifecycle Transition
+                          │
+                          ▼
+               Refresh Derived State
+```
+
+This is the operational backbone of governed change.
+
+---
+
+# Different execution paths
+
+Not every request follows the full path.
+
+Monad should select the smallest safe workflow.
+
+---
+
+# Read-only execution
+
+A query may follow:
+
+```text
+Intent
+  ↓
+Resolve
+  ↓
+Query
+  ↓
+Result
+```
+
+No side-effect boundary is crossed.
+
+---
+
+# Low-risk local change
+
+A low-risk operation may follow:
+
+```text
+Intent
+  ↓
+Resolve
+  ↓
+Plan
+  ↓
+Policy
+  ↓
+Execute
+  ↓
+Run affected tests
+  ↓
+Reconcile
+```
+
+No human review may be required.
+
+---
+
+# High-risk change
+
+A high-risk change may require:
+
+```text
+Intent
+  ↓
+Resolve
+  ↓
+Context
+  ↓
+Impact
+  ↓
+Plan
+  ↓
+Architecture Review
+  ↓
+Security Review
+  ↓
+Authorization
+  ↓
+Execution
+  ↓
+Verification
+  ↓
+Evidence
+  ↓
+Approval
+  ↓
+Release
+```
+
+The system architecture supports both without forcing them to use identical ceremony.
+
+---
+
+# Human execution
+
+A human can participate in the same execution model.
+
+For example:
+
+```text
+Human requests Work Package
+      │
+      ▼
+Monad constructs context
+      │
+      ▼
+Human edits source directly
+      │
+      ▼
+Monad observes filesystem change
+      │
+      ▼
+Verification
+      │
+      ▼
+Reconciliation
+```
+
+The human does not need to perform every file edit through Monad.
+
+The system can support direct native-system editing while still preserving semantic and governance structure.
+
+---
+
+# AI execution
+
+An AI agent can participate through the same underlying model.
+
+```text
+Agent receives:
+  task
+  target Subjects
+  context
+  scope
+  capabilities
+  policy
+  verification obligations
+```
+
+The agent may then:
+
+```text
+inspect
+plan
+modify
+test
+explain
+```
+
+within its authorized boundary.
+
+It should not need unrestricted ambient authority.
+
+---
+
+# Agent execution loop
+
+A typical agent loop might look like:
+
+```text
+Task
+  ↓
+Context
+  ↓
+Agent proposes plan
+  ↓
+Policy evaluation
+  ↓
+Authorized scope
+  ↓
+Agent performs bounded change
+  ↓
+Verification
+  ↓
+Agent receives diagnostics
+  ↓
+Agent repairs if allowed
+  ↓
+Final verification
+```
+
+This permits autonomy while preserving constraints.
+
+---
+
+# Human review of agent work
+
+Where required:
+
+```text
+Agent Implementation
+       │
+       ▼
+Verification Evidence
+       │
+       ▼
+Human Review
+       │
+       ▼
+Approval
+```
+
+The human reviewer should be able to inspect:
+
+```text
+what changed
+why
+which requirement applies
+what impact was identified
+what the agent was authorized to do
+what tests were run
+what evidence exists
+```
+
+rather than reviewing an unexplained patch in isolation.
+
+---
+
+# Execution scope
+
+Every governed execution should have a meaningful scope.
+
+Scope may define:
+
+```text
+repositories
+paths
+Subjects
+operations
+environments
+time
+Work Package
+risk class
+```
+
+For example:
+
+```text
+Scope:
+  Work Package WP-042
+
+Subjects:
+  auth-service
+  auth-api
+
+Paths:
+  packages/auth/**
+
+Operations:
+  modify-source
+  add-test
+  run-test
+```
+
+Anything outside that boundary may require escalation.
+
+---
+
+# Scope expansion
+
+During work, an agent or engineer may discover that the authorized scope is insufficient.
+
+For example:
+
+```text
+Task:
+  modify auth implementation
+
+Discovery:
+  public specification must change
+```
+
+The correct behavior is:
+
+```text
+request scope expansion
+```
+
+rather than:
+
+```text
+silently modify specification
+```
+
+This makes execution safer and more explainable.
+
+---
+
+# Execution environment
+
+Some operations depend on execution environment.
+
+Relevant environment state may include:
+
+```text
+operating system
+toolchain
+dependencies
+runtime versions
+environment variables
+container image
+Nix environment
+network access
+credentials
+```
+
+Where reproducibility matters, these conditions should be captured or referenceable.
+
+---
+
+# Environment is not authority
+
+Having a production credential in the environment does not grant governance authority to use it.
+
+This invariant is worth repeating:
+
+```text
+credential availability
+      ≠
+permission
+```
+
+Execution should bind native capability to explicit policy.
+
+---
+
+# Secret handling
+
+Secrets should be exposed only to components or adapters that require them.
+
+Preferred:
+
+```text
+Agent
+  requests deployment
+
+Deployment Adapter
+  uses protected credential
+```
+
+rather than:
+
+```text
+Agent
+  receives production credential
+  performs arbitrary cloud operations
+```
+
+This supports least authority and limits compromise impact.
+
+---
+
+# Execution identity
+
+Significant executions should have stable identities.
+
+For example:
+
+```text
+Execution:
+  EXEC-00842
+```
+
+This enables:
+
+* event correlation,
+* retries,
+* provenance,
+* diagnostics,
+* evidence linking,
+* and recovery.
+
+Several native operations may belong to one engineering execution.
+
+---
+
+# Correlation and causation
+
+Consider:
+
+```text
+Work Package
+   ↓
+Execution
+   ↓
+Build
+   ↓
+Test
+   ↓
+Verification
+   ↓
+Projection Refresh
+```
+
+These records may share one broader correlation identity.
+
+Each event may also record what directly caused it.
+
+This allows Monad to answer:
+
+```text
+Which broader engineering operation did this belong to?
+```
+
+and:
+
+```text
+What immediately caused this action?
+```
+
+---
+
+# Idempotency
+
+Retry behavior must be deliberate.
+
+Some operations should be idempotent.
+
+For example:
+
+```text
+ensure Subject binding exists
+```
+
+should not create a duplicate every time it is retried.
+
+Other operations may naturally be non-idempotent:
+
+```text
+publish release
+```
+
+and therefore require stronger protection.
+
+Interfaces should communicate those semantics.
+
+---
+
+# Retry
+
+A failed operation may be retryable.
+
+Retry should consider:
+
+```text
+did any side effect occur?
+is the operation idempotent?
+has the target state changed?
+is authorization still valid?
+does the plan remain current?
+```
+
+Blind retry is unsafe in distributed engineering workflows.
+
+---
+
+# Concurrency
+
+Execution must assume multiple Actors can change the system.
+
+For example:
+
+```text
+Agent A plans against revision X.
+
+Human B modifies target.
+
+Repository becomes revision Y.
+
+Agent A begins execution.
+```
+
+The correct response may be:
+
+```text
+stale-state
+```
+
+rather than continuing with assumptions from revision X.
+
+---
+
+# Optimistic concurrency
+
+A practical default is often:
+
+```text
+plan against known revision
+      ↓
+execute only if revision still matches
+```
+
+rather than attempting to lock entire repositories for long periods.
+
+The exact concurrency strategy depends on the integration.
+
+The invariant is that stale assumptions must be detectable.
+
+---
+
+# Cancellation
+
+Long-running executions should support cancellation where possible.
+
+Cancellation may occur:
+
+```text
+before side effects
+during execution
+after some operations completed
+```
+
+These cases differ.
+
+A cancelled operation may require reconciliation if native state already changed.
+
+---
+
+# Timeout
+
+Timeout is not necessarily failure of the underlying native operation.
+
+For example:
+
+```text
+Monad timeout
+```
+
+does not prove:
+
+```text
+deployment failed
+```
+
+The deployment may still complete remotely.
+
+Timeout handling should therefore often transition into:
+
+```text
+unknown
+      ↓
+reconcile
+```
+
+rather than assuming a false final state.
+
+---
+
+# External asynchronous systems
+
+Many native systems are asynchronous.
+
+Examples:
+
+```text
+CI workflow
+deployment
+package publication
+cloud provisioning
+```
+
+Execution may therefore produce:
+
+```text
+native operation accepted
+```
+
+before final outcome exists.
+
+The execution lifecycle must support:
+
+```text
+submitted
+running
+completed
+failed
+unknown
+```
+
+without treating submission as success.
+
+---
+
+# Event-driven continuation
+
+An asynchronous execution may continue when an event arrives.
+
+```text
+Deployment requested
+      │
+      ▼
+Native deployment ID
+      │
+      ▼
+Execution waits
+      │
+      ▼
+deployment.completed event
+      │
+      ▼
+observe
+      │
+      ▼
+verify
+```
+
+This allows execution to span time without collapsing everything into one synchronous command.
+
+---
+
+# Execution versus workflow engine
+
+Monad may eventually use workflow-like mechanisms.
+
+But execution semantics are broader than a workflow engine.
+
+A workflow engine might coordinate:
+
+```text
+step A
+step B
+step C
+```
+
+Monad additionally needs to preserve:
+
+```text
+semantic identity
+authority
+policy
+provenance
+evidence
+system state
+native ownership
+lifecycle
+```
+
+Workflow technology may implement part of execution.
+
+It does not define the entire execution model.
+
+---
+
+# Execution versus automation
+
+Automation asks:
+
+> Can this operation be performed without manual intervention?
+
+Execution asks:
+
+> What operation occurred, against which state, under what authority, with what result, and what does that mean for the engineering system?
+
+Monad can therefore govern:
+
+* fully manual work,
+* partially automated work,
+* and fully autonomous work
+
+using the same conceptual foundation.
+
+---
+
+# Execution versus orchestration
+
+Orchestration coordinates multiple operations.
+
+Execution records and governs the actual movement from intent to side effects and resulting state.
+
+For example:
+
+```text
+Orchestrator:
+  run build
+  run tests
+  publish package
+```
+
+Monad still needs to know:
+
+```text
+why
+under whose authority
+against which revision
+with which required evidence
+```
+
+---
+
+# Execution versus verification
+
+Execution asks:
+
+```text
+Did we perform the operation?
+```
+
+Verification asks:
+
+```text
+Did the resulting state satisfy the contract?
+```
+
+For example:
+
+```text
+Deployment:
+  completed
+```
+
+does not imply:
+
+```text
+Release:
+  healthy
+```
+
+Verification must remain separate.
+
+---
+
+# Execution versus reconciliation
+
+Execution initiates native change.
+
+Reconciliation determines how the semantic model should reflect observed reality afterward.
+
+These must remain distinct because native systems may also change without Monad initiating the change.
+
+```text
+Human edits file directly
+      │
+      ▼
+No Monad execution occurred
+      │
+      ▼
+Reconciliation still required
+```
+
+---
+
+# Direct native-system changes
+
+Monad deliberately supports engineering activity outside its own command surface.
+
+For example:
+
+```text
+developer edits source
+      ↓
+Git commit
+      ↓
+Monad observes change
+      ↓
+impact / verification / reconciliation
+```
+
+This is important for compatibility with normal development.
+
+The system should not require every keystroke to pass through Monad.
+
+---
+
+# Detecting unmanaged change
+
+A change made outside Monad may have:
+
+```text
+no prior Monad plan
+no prior authorization record
+```
+
+That does not automatically mean it is invalid.
+
+Monad may instead evaluate the resulting state.
+
+For example:
+
+```text
+External change observed
+      │
+      ▼
+resolve Actor if possible
+      │
+      ▼
+analyze impact
+      │
+      ▼
+evaluate policy
+      │
+      ▼
+verify
+      │
+      ▼
+reconcile
+```
+
+Depending on policy, the system may:
+
+```text
+accept
+warn
+require review
+mark conflict
+reject release
+```
+
+---
+
+# Execution and work packages
+
+A Work Package provides a natural execution boundary.
+
+It may define:
+
+```text
+goal
+scope
+inputs
+outputs
+requirements
+specifications
+authority
+acceptance criteria
+verification
+Definition of Done
+```
+
+Execution can then operate within that bounded engineering context.
+
+Conceptually:
+
+```text
+Work Package
+      │
+      ├──► Scope
+      ├──► Authority
+      ├──► Context
+      ├──► Plan
+      └──► Verification
+```
+
+This makes Work Packages useful units for both humans and agents.
+
+---
+
+# Definition of Ready
+
+A governed execution may require a task to be sufficiently ready before work begins.
+
+Examples:
+
+```text
+target identified
+requirements available
+scope defined
+blocking decisions resolved
+required authority known
+verification path available
+```
+
+The exact Definition of Ready should depend on work type.
+
+The system should not require unnecessary ceremony for trivial work.
+
+---
+
+# Definition of Done
+
+Likewise, completion can be represented explicitly.
+
+A useful Definition of Done may include:
+
+```text
+planned work completed
+required tests pass
+verification evidence recorded
+review complete
+reconciliation complete
+required projections refreshed
+lifecycle state transitioned
+```
+
+This creates a more meaningful completion condition than:
+
+```text
+developer says done
+```
+
+without requiring the same definition for every task.
+
+---
+
+# Execution evidence chain
+
+A completed operation should increasingly support a trace such as:
+
+```text
+Problem
+   │
+   ▼
+Requirement
+   │
+   ▼
+Specification
+   │
+   ▼
+Work Package
+   │
+   ▼
+Plan
+   │
+   ▼
+Authorization
+   │
+   ▼
+Execution
+   │
+   ▼
+Native Change
+   │
+   ▼
+Verification
+   │
+   ▼
+Evidence
+```
+
+This is the operational form of engineering traceability.
+
+---
+
+# Reproducible execution
+
+Some operations should be reproducible.
+
+A reproducible execution record may identify:
+
+```text
+source revision
+dependency state
+toolchain
+configuration
+environment
+command
+inputs
+outputs
+```
+
+For example:
+
+```text
+Execution:
+  build release artifact
+
+Source:
+  commit abc123
+
+Environment:
+  environment-definition v7
+
+Toolchain:
+  toolchain-lock v4
+
+Output:
+  artifact hash 123abc
+```
+
+The exact representation belongs in specification.
+
+The principle is that important outputs should not emerge from unexplained machine state.
+
+---
+
+# Determinism
+
+Reproducibility and determinism are related but different.
+
+A process may be reproducible even if some allowed variation exists.
+
+Where deterministic output is required, verification should test it explicitly.
+
+For example:
+
+```text
+same inputs
+same environment
+      ↓
+same artifact hash
+```
+
+may be a release invariant.
+
+---
+
+# Execution observability
+
+Monad should expose execution health through operational telemetry.
+
+Useful signals may include:
+
+```text
+execution duration
+operation failure rate
+policy denial rate
+verification failure rate
+reconciliation conflicts
+stale-plan frequency
+adapter latency
+retry count
+```
+
+These help improve the system.
+
+They are not automatically permanent engineering artifacts.
+
+---
+
+# Operational telemetry versus evidence
+
+The distinction remains:
+
+```text
+telemetry
+  → helps operate Monad
+
+evidence
+  → supports an engineering claim
+```
+
+A telemetry record may later become evidence when intentionally selected for that purpose.
+
+---
+
+# Failure classification
+
+Execution failures should preserve their meaning.
+
+Useful categories may include:
+
+```text
+ResolutionFailed
+AmbiguousIdentity
+ContextUnavailable
+ImpactUnknown
+PolicyDenied
+ApprovalMissing
+StaleState
+PreconditionFailed
+NativeOperationFailed
+PartialExecution
+VerificationFailed
+ReconciliationConflict
+ProjectionRefreshFailed
+```
+
+This allows humans and agents to react appropriately.
+
+---
+
+# Recoverable versus terminal failure
+
+Some failures are recoverable.
+
+Examples:
+
+```text
+temporary network outage
+stale index
+missing approval
+```
+
+Others may invalidate the plan entirely:
+
+```text
+target Subject deleted
+architecture changed materially
+authority revoked
+```
+
+Execution should communicate whether:
+
+```text
+retry
+repair
+replan
+escalate
+abort
+```
+
+is appropriate.
+
+---
+
+# Agent repair loops
+
+A bounded agent may be allowed to repair certain failures automatically.
+
+For example:
+
+```text
+implementation
+      ↓
+unit tests fail
+      ↓
+diagnostics returned
+      ↓
+agent modifies implementation
+      ↓
+rerun tests
+```
+
+This can continue within a policy-defined budget.
+
+---
+
+# Repair limits
+
+A repair loop should have constraints such as:
+
+```text
+maximum attempts
+allowed scope
+allowed operation types
+time budget
+risk threshold
+escalation condition
+```
+
+An agent should not repeatedly expand scope in pursuit of a passing test suite.
+
+---
+
+# Verification failure does not erase execution
+
+Suppose:
+
+```text
+source changed successfully
+tests failed
+```
+
+The correct state is:
+
+```text
+execution completed
+verification failed
+```
+
+not:
+
+```text
+execution never happened
+```
+
+This distinction is essential for recovery and provenance.
+
+---
+
+# Reconciliation after failure
+
+Failed or partial execution should usually trigger reconciliation.
+
+For example:
+
+```text
+expected:
+  files A, B, C changed
+
+observed:
+  A changed
+  B changed
+  C unchanged
+```
+
+The semantic model must reflect what actually happened before a repair plan is created.
+
+---
+
+# Rollback
+
+Rollback is itself an execution.
+
+It should therefore have:
+
+```text
+intent
+plan
+authority
+side effects
+verification
+provenance
+```
+
+A rollback should not be modeled as:
+
+```text
+pretend the failed execution never occurred
+```
+
+The history remains meaningful.
+
+---
+
+# Release execution
+
+Release is a specialized execution path.
+
+Conceptually:
+
+```text
+Release Candidate
+      │
+      ▼
+Required Verification
+      │
+      ▼
+Release Governance
+      │
+      ▼
+Authorization
+      │
+      ▼
+Native Publication
+      │
+      ├──► Git tag
+      ├──► package registry
+      ├──► container registry
+      └──► deployment
+      │
+      ▼
+Observe
+      │
+      ▼
+Release Verification
+      │
+      ▼
+Release Lifecycle Transition
+```
+
+A release is therefore a governed state change spanning multiple systems.
+
+---
+
+# Migration execution
+
+Migration is another specialized case.
+
+It may require:
+
+```text
+source state
+target schema
+migration plan
+compatibility strategy
+backup
+execution
+verification
+reconciliation
+rollback strategy
+```
+
+A migration should preserve semantic identity and history where possible.
+
+---
+
+# Constitutional execution
+
+Changing the Constitution is the strongest execution boundary.
+
+Conceptually:
+
+```text
+Amendment Proposal
+      │
+      ▼
+Constitutional Review
+      │
+      ▼
+Compatibility / Migration Analysis
+      │
+      ▼
+Constitutional Authority
+      │
+      ▼
+Amendment Execution
+      │
+      ▼
+System Migration
+      │
+      ▼
+Verification
+      │
+      ▼
+New Constitution Version
+```
+
+Ordinary execution authority should not be sufficient.
+
+---
+
+# Execution anti-patterns
+
+Monad should guard against several failure modes.
+
+## Prompt directly to shell
+
+```text
+user intent
+   ↓
+AI
+   ↓
+arbitrary shell
+```
+
+with no explicit scope or authority.
+
+## Plan equals authorization
+
+Generating a plausible plan is treated as permission to execute it.
+
+## Authorization without revision
+
+An old approval is applied against changed system state.
+
+## Exit code equals correctness
+
+A successful command is treated as evidence that the requirement is satisfied.
+
+## Native result equals semantic truth
+
+A native tool response automatically rewrites the model without authority or reconciliation.
+
+## Hidden side effects
+
+Read operations unexpectedly mutate native systems.
+
+## Silent partial failure
+
+A multi-system workflow reports failure without preserving what already changed.
+
+## Infinite agent repair
+
+An agent repeatedly changes more of the system to make verification pass.
+
+## Rollback erases history
+
+Reversal is treated as if the failed operation never happened.
+
+## Stale projections survive success
+
+The authoritative system changes while derived views still appear current.
+
+---
+
+# Execution design principles
+
+A healthy execution model should be:
+
+## Intent-aware
+
+The system understands why the operation exists.
+
+## Identity-aware
+
+Targets resolve to semantic Subjects rather than only strings or paths.
+
+## Context-aware
+
+Actors receive relevant governing information.
+
+## Impact-aware
+
+Known consequences influence planning and governance.
+
+## Governed
+
+Technical capability does not bypass authority.
+
+## Revision-aware
+
+Stale assumptions are detectable.
+
+## Native
+
+Existing tools perform the operations they already implement well.
+
+## Observable
+
+Actual resulting state is inspected where necessary.
+
+## Verifiable
+
+Correctness claims are tied to appropriate evidence.
+
+## Reconciled
+
+Semantic state remains grounded in native reality.
+
+## Recoverable
+
+Partial failure and repair remain explicit.
+
+## Traceable
+
+Important execution history can be reconstructed.
+
+---
+
+# Execution quality criteria
+
+A mature Monad execution should increasingly make it possible to answer:
+
+```text
+What was requested?
+
+Why?
+
+Which Subjects were affected?
+
+What state was the plan based on?
+
+Who performed the work?
+
+What authority did they have?
+
+Which policy applied?
+
+What plan was authorized?
+
+What native operations occurred?
+
+What actually changed?
+
+What verification ran?
+
+What evidence was produced?
+
+Which obligations remain?
+
+How was the model reconciled?
+
+What lifecycle transition occurred?
+```
+
+If these questions cannot be answered for consequential changes, the execution model is incomplete.
+
+---
+
+# Minimum viable execution
+
+The first useful execution kernel does not need every advanced mechanism.
+
+A minimal governed path might be:
+
+```text
+Request
+   ↓
+Resolve target
+   ↓
+Plan
+   ↓
+Scope + policy check
+   ↓
+Execute native operation
+   ↓
+Run required verification
+   ↓
+Record result
+   ↓
+Reconcile
+```
+
+This already establishes several essential distinctions:
+
+```text
+intent ≠ execution
+
+capability ≠ authority
+
+execution ≠ verification
+
+native state ≠ semantic interpretation
+```
+
+More sophisticated governance and provenance can layer on afterward.
+
+---
+
+# Execution maturity
+
+A staged implementation could evolve approximately as follows.
+
+## Stage 1 — Controlled local execution
+
+```text
+bounded operation
+native adapters
+preconditions
+execution result
+```
+
+## Stage 2 — Verification and reconciliation
+
+```text
+verification obligations
+evidence
+native observation
+model reconciliation
+```
+
+## Stage 3 — Governance
+
+```text
+Actors
+capabilities
+policy
+scope
+authorization
+```
+
+## Stage 4 — Planning and impact
+
+```text
+semantic impact analysis
+revisioned plans
+approval
+risk-based execution
+```
+
+## Stage 5 — Autonomous execution
+
+```text
+agent context
+bounded repair loops
+delegated authority
+escalation
+asynchronous execution
+```
+
+## Stage 6 — Distributed execution
+
+```text
+remote execution
+cross-project workflows
+organization policy
+shared governance
+distributed reconciliation
+```
+
+The architecture should allow this progression without requiring the full final system on day one.
+
+---
+
+# An example from beginning to end
+
+Suppose a developer asks:
+
+> Add support for passkeys to the authentication API.
+
+Monad resolves:
+
+```text
+Target:
+  authentication-interface
+
+Governed by:
+  SPEC-AUTH-003
+
+Required outcome:
+  REQ-AUTH-011
+```
+
+Impact analysis discovers:
+
+```text
+Known:
+  auth-service
+  web-client
+  session-service
+  compatibility suite
+  public documentation
+
+Probable:
+  mobile-client
+
+Unknown:
+  third-party API consumers
+```
+
+Planning produces:
+
+```text
+PLAN-AUTH-018
+
+1. update authentication specification
+2. extend credential schema
+3. implement passkey validation
+4. update service interface
+5. update web-client integration
+6. add unit tests
+7. add compatibility tests
+8. regenerate public API docs
+```
+
+Governance evaluates:
+
+```text
+Actor:
+  implementation-agent
+
+Authority:
+  implementation scope
+
+Result:
+  permit-with-obligations
+
+Required:
+  architecture review
+  specification approval
+  compatibility verification
+```
+
+After approval, execution begins against:
+
+```text
+Repository:
+  abc123
+
+Specification:
+  SPEC-AUTH-003@7
+```
+
+Before execution, the repository is checked again.
+
+It still matches.
+
+The agent modifies the authorized files.
+
+Native tools produce:
+
+```text
+Git commit:
+  def456
+```
+
+Verification runs:
+
+```text
+unit:
+  passed
+
+integration:
+  passed
+
+compatibility:
+  passed
+
+security:
+  requires manual review
+```
+
+The operation therefore remains:
+
+```text
+implementation:
+  complete
+
+automated verification:
+  passed
+
+security obligation:
+  outstanding
+```
+
+A security reviewer approves the change.
+
+Evidence is attached.
+
+Reconciliation updates:
+
+```text
+Specification:
+  active revision 8
+
+Implementation:
+  commit def456
+
+Representation bindings:
+  current
+
+Generated API docs:
+  refreshed
+```
+
+The lifecycle then transitions:
+
+```text
+Work Package:
+  verifying → complete
+```
+
+This is the full meaning of governed execution.
+
+Not simply:
+
+```text
+AI changed some files.
+```
+
+---
+
+# Execution and the wider system
+
+Execution sits at the center of several System concerns.
+
+```text
+Concepts
+   │
+   ▼
+define meaning
+
+Architecture
+   │
+   ▼
+defines boundaries
+
+Components
+   │
+   ▼
+own responsibilities
+
+Interfaces
+   │
+   ▼
+connect responsibilities
+
+Governance
+   │
+   ▼
+controls authority
+
+Execution
+   │
+   ▼
+changes reality
+
+Integrations
+   │
+   ▼
+connect native systems
+
+Artifacts
+   │
+   ▼
+preserve contracts and evidence
+```
+
+Execution is where these abstractions are tested against actual engineering work.
+
+---
+
+# Relationship to Governance
+
+[Governance](/docs/system/governance) defines:
+
+```text
+what may happen
+who may do it
+under which conditions
+```
+
+Execution performs the authorized operation.
+
+Governance should not become a second execution system.
+
+Execution should not become a second policy system.
+
+---
+
+# Relationship to Interfaces
+
+[Interfaces](/docs/system/interfaces) defines the contracts through which:
+
+* plans are requested,
+* policy is evaluated,
+* execution is invoked,
+* native operations are performed,
+* verification runs,
+* and results are reported.
+
+Execution composes these contracts into an operational lifecycle.
+
+---
+
+# Relationship to Components
+
+[Components](/docs/system/components) assigns ownership for:
+
+* Context,
+* Impact,
+* Planning,
+* Policy,
+* Execution,
+* Integration,
+* Verification,
+* Provenance,
+* Reconciliation,
+* and Lifecycle.
+
+This page describes how those components collaborate during real work.
+
+---
+
+# Relationship to Integrations
+
+[Integrations](/docs/system/integrations) explains the native-system boundary in detail.
+
+Execution relies on those adapters to act against:
+
+```text
+filesystem
+Git
+GitHub
+build systems
+CI
+databases
+deployment systems
+external services
+```
+
+while preserving native identity and authority.
+
+---
+
+# Relationship to Artifacts
+
+Execution should increasingly produce or consume durable artifacts such as:
+
+```text
+requirements
+specifications
+plans
+policy decisions
+reviews
+execution records
+verification records
+evidence
+release records
+```
+
+Those belong under [Artifacts](/docs/artifacts) when they carry durable engineering value.
+
+---
+
+# The execution rule of thumb
+
+When Monad is about to change something, ask:
+
+> **What exactly are we trying to change?**
+
+Then:
+
+> **What does the current system say about it?**
+
+Then:
+
+> **What else could this affect?**
+
+Then:
+
+> **What plan are we proposing?**
+
+Then:
+
+> **Who is allowed to perform it?**
+
+Then:
+
+> **Against which system state is that authorization valid?**
+
+Then:
+
+> **What actually happened?**
+
+Then:
+
+> **How do we know the result is correct?**
+
+Then:
+
+> **What should the system now believe?**
+
+Those questions define the execution architecture.
+
+---
+
+# The governing principle
+
+Monad execution can be summarized as:
+
+> **Reasoning should become side effects only through an explicit, governed, revision-aware boundary, and every consequential side effect should feed back into observable, verifiable, and reconcilable system state.**
+
+This creates a closed loop:
+
+```text
+understand
+   ↓
+plan
+   ↓
+authorize
+   ↓
+act
+   ↓
+observe
+   ↓
+verify
+   ↓
+reconcile
+   ↓
+understand again
+```
+
+That loop is the operational core of Monad.
+
+---
+
+## Where to go next
+
+Execution acts through native engineering systems.
+
+The next page explains how Monad connects to those systems without replacing them.
+
+<Cards>
+  <Card
+    title="Integrations"
+    href="/docs/system/integrations"
+  >
+    Explore the adapters and native-system boundaries connecting Monad to filesystems, Git, GitHub, build tools, CI, deployment platforms, and external services.
+  </Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+>
+Review how authority, capability, policy, obligations, and approvals constrain execution.
+</Card>
+
+<Card
+title="Interfaces"
+href="/docs/system/interfaces"
+>
+Inspect the contracts connecting planning, execution, verification, reconciliation, and native adapters.
+</Card>
+
+<Card
+title="Artifacts"
+href="/docs/artifacts"
+>
+Inspect the requirements, plans, specifications, verification records, evidence, and other artifacts supporting governed execution.
+</Card>
+</Cards>
+
+---
+
+## Related system views
+
+<Cards>
+  <Card
+    title="Architecture"
+    href="/docs/system/architecture"
+  >
+    Return to the architectural execution boundary and overall system flow.
+  </Card>
+
+<Card
+title="Components"
+href="/docs/system/components"
+>
+Review the components responsible for planning, policy, execution, verification, provenance, and reconciliation.
+</Card>
+
+<Card
+title="Concepts & Principles"
+href="/docs/system/concepts"
+>
+Review the semantic distinctions between Actor, Capability, Authority, Evidence, Observation, Lifecycle, and Context.
+</Card>
+
+<Card
+title="System Overview"
+href="/docs/system"
+>
+Return to the current authoritative overview of Monad.
+</Card>
+</Cards>

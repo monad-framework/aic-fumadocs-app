@@ -1,0 +1,2570 @@
+---
+title: Evidence Requirements
+description: The requirements governing how Monad represents, preserves, relates, evaluates, and uses inspectable evidence to support engineering claims, verification results, decisions, and governed state.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-EVD
+  </p>
+</div>
+
+# Evidence Requirements
+
+Engineering systems make claims constantly.
+
+A build is healthy.
+
+A requirement is satisfied.
+
+A release is safe.
+
+A migration succeeded.
+
+An architecture assumption remains valid.
+
+A security control is operating.
+
+An AI-generated change is correct.
+
+A policy obligation has been fulfilled.
+
+Those statements should not become trusted engineering state merely because someone—or something—asserted them.
+
+Monad should make it possible to ask:
+
+> **What inspectable evidence supports this claim?**
+
+Evidence creates the bridge between assertion and justified confidence.
+
+It allows engineering state to become:
+
+* inspectable,
+* challengeable,
+* reproducible,
+* reviewable,
+* auditable,
+* falsifiable,
+* and governable.
+
+<Callout type="info" title="Evidence supports claims; it does not become truth automatically">
+Evidence can strengthen, weaken, qualify, contradict, or fail to resolve a Claim. The existence of Evidence does not guarantee that the Claim is correct.
+</Callout>
+
+---
+
+# Requirement family scope
+
+The `REQ-EVD-*` family governs Evidence used to support or challenge:
+
+* Requirements,
+* Specifications,
+* Claims,
+* Decisions,
+* architecture assumptions,
+* implementation correctness,
+* verification results,
+* policy obligations,
+* migrations,
+* releases,
+* security properties,
+* operational state,
+* experiments,
+* reviews,
+* AI-generated outputs,
+* reconciliation,
+* and system invariants.
+
+These requirements govern the semantics and handling of Evidence.
+
+They do not require Monad to replace every native system that produces it.
+
+---
+
+# Foundational evidence requirements
+
+## REQ-EVD-001 — Monad MUST represent Evidence as distinct from Claims
+
+A Claim states something believed or asserted.
+
+Evidence provides inspectable support concerning that Claim.
+
+For example:
+
+```text id="mz76xv"
+Claim:
+  The build is reproducible.
+
+Evidence:
+  Two independent builds produced identical artifacts.
+```
+
+Monad MUST NOT collapse these into the same concept.
+
+---
+
+## REQ-EVD-002 — Evidence MUST remain distinct from proof
+
+Evidence can increase confidence without establishing mathematical certainty.
+
+The system SHOULD avoid treating:
+
+```text id="84jrnz"
+has evidence
+```
+
+as equivalent to:
+
+```text id="xik1pd"
+proven universally true
+```
+
+---
+
+## REQ-EVD-003 — Evidence MUST remain distinct from authority
+
+Authoritative Evidence sources may deserve special treatment within scope.
+
+Evidence does not become authoritative merely because it exists.
+
+---
+
+## REQ-EVD-004 — Evidence MUST remain distinct from provenance
+
+Provenance explains:
+
+> Where did this Evidence come from?
+
+Evidence explains:
+
+> What inspectable information bears on this Claim?
+
+Both may be needed.
+
+They remain separate concepts.
+
+---
+
+## REQ-EVD-005 — Evidence MUST remain distinct from approval
+
+A reviewer may approve a release after examining Evidence.
+
+The Evidence itself does not perform the approval.
+
+---
+
+## REQ-EVD-006 — Evidence MUST remain distinct from verification
+
+Verification is the process of evaluating an expectation.
+
+Evidence is the inspectable material used to support the resulting evaluation.
+
+---
+
+# Evidence identity
+
+## REQ-EVD-007 — Consequential Evidence SHOULD have stable identity
+
+Evidence that participates in:
+
+* verification,
+* governance,
+* release decisions,
+* review,
+* traceability,
+* or historical analysis
+
+SHOULD be independently identifiable.
+
+---
+
+## REQ-EVD-008 — Evidence identity MUST NOT depend solely on file location
+
+Moving:
+
+```text id="qifblp"
+reports/test-output.json
+```
+
+to:
+
+```text id="aw3kml"
+artifacts/tests/test-output.json
+```
+
+SHOULD NOT automatically create different semantic Evidence if the underlying Evidence remains the same.
+
+---
+
+## REQ-EVD-009 — Multiple Representations MAY refer to the same Evidence
+
+The same Evidence may appear as:
+
+* native test report,
+* normalized record,
+* summary,
+* dashboard entry,
+* generated Markdown,
+* JSON API result.
+
+Those Representations SHOULD remain distinguishable from the underlying Evidence identity.
+
+---
+
+# Evidence structure
+
+## REQ-EVD-010 — Evidence SHOULD identify its subject
+
+Where meaningful, Monad SHOULD be able to determine what the Evidence concerns.
+
+Examples include:
+
+```text id="s5pj7g"
+Requirement
+Implementation
+Release
+Migration
+Claim
+Component
+Interface
+Policy obligation
+Environment
+Artifact
+```
+
+---
+
+## REQ-EVD-011 — Evidence SHOULD identify its type
+
+Evidence types MAY include:
+
+* test result,
+* build output,
+* static-analysis result,
+* benchmark,
+* experiment result,
+* security scan,
+* verification report,
+* migration report,
+* execution result,
+* release attestation,
+* operational observation,
+* human review finding,
+* incident record,
+* documentary record.
+
+The canonical taxonomy belongs in the domain model or specification.
+
+---
+
+## REQ-EVD-012 — Evidence SHOULD identify its source
+
+Where origin matters, Evidence SHOULD identify:
+
+* native system,
+* file,
+* API,
+* tool,
+* actor,
+* environment,
+* process,
+* or other source.
+
+---
+
+## REQ-EVD-013 — Evidence SHOULD identify the relevant revision or state
+
+Evidence often applies only to a specific:
+
+* commit,
+* artifact,
+* schema version,
+* release,
+* configuration,
+* environment,
+* model version,
+* or system state.
+
+That applicability SHOULD be explicit where consequential.
+
+---
+
+## REQ-EVD-014 — Evidence SHOULD identify when it was produced or observed
+
+Time is essential when the underlying system can change.
+
+---
+
+## REQ-EVD-015 — Evidence SHOULD preserve sufficient provenance for interpretation
+
+Where necessary, Evidence SHOULD identify:
+
+* producer,
+* source,
+* method,
+* tool,
+* tool version,
+* environment,
+* transformation,
+* and revision.
+
+---
+
+# Evidence and Claims
+
+## REQ-EVD-016 — Evidence SHOULD explicitly relate to the Claim it supports or challenges
+
+The existence of Evidence near a Claim in the filesystem MUST NOT be treated as sufficient semantic linkage.
+
+---
+
+## REQ-EVD-017 — Evidence relationships SHOULD be typed
+
+Monad SHOULD be capable of distinguishing relationships such as:
+
+```text id="c61ptz"
+supports
+contradicts
+qualifies
+verifies
+invalidates
+derived-from
+corroborates
+```
+
+Exact relationship names belong in the domain model.
+
+---
+
+## REQ-EVD-018 — One Evidence record MAY support multiple Claims
+
+A successful integration test may support:
+
+* an interface requirement,
+* a behavioral requirement,
+* and a release-readiness Claim.
+
+The relationships SHOULD remain explicit.
+
+---
+
+## REQ-EVD-019 — One Claim MAY depend on multiple Evidence records
+
+A consequential Claim SHOULD NOT be forced into a one-to-one Evidence model.
+
+---
+
+## REQ-EVD-020 — Evidence MUST NOT silently strengthen the Claim beyond what it demonstrates
+
+For example:
+
+```text id="vhknne"
+Evidence:
+  test passed on Linux x86_64
+```
+
+does not automatically justify:
+
+```text id="d69c9w"
+Claim:
+  system works on all supported platforms
+```
+
+---
+
+# Evidence scope
+
+## REQ-EVD-021 — Evidence MUST be interpreted within scope
+
+Relevant scope MAY include:
+
+* Subject,
+* revision,
+* platform,
+* environment,
+* configuration,
+* dataset,
+* dependency versions,
+* input,
+* time,
+* workload,
+* threat model,
+* and operational conditions.
+
+---
+
+## REQ-EVD-022 — Evidence SHOULD expose material scope limitations
+
+For example:
+
+```text id="1974ht"
+verified_on:
+  - linux-x86_64
+
+not_verified_on:
+  - macos-arm64
+  - windows-x86_64
+```
+
+where those differences matter.
+
+---
+
+## REQ-EVD-023 — Evidence from one scope MUST NOT automatically generalize to another
+
+Evidence concerning:
+
+```text id="r7eg15"
+development environment
+```
+
+does not automatically establish behavior in:
+
+```text id="10jg0w"
+production
+```
+
+---
+
+# Evidence validity
+
+## REQ-EVD-024 — Monad SHOULD distinguish Evidence validity from Evidence relevance
+
+Evidence may be perfectly authentic yet irrelevant to a particular Claim.
+
+For example:
+
+```text id="ep1k2y"
+valid:
+  test result genuinely came from CI
+
+irrelevant:
+  test covered an obsolete implementation revision
+```
+
+---
+
+## REQ-EVD-025 — Evidence SHOULD expose conditions that affect validity
+
+These may include:
+
+* failed setup,
+* corrupted input,
+* invalid test fixture,
+* missing dependency,
+* broken instrumentation,
+* incomplete execution,
+* unsupported environment,
+* expired credentials,
+* or known tool defect.
+
+---
+
+## REQ-EVD-026 — Invalid Evidence SHOULD remain historically inspectable where consequential
+
+Invalidation SHOULD NOT require silent deletion.
+
+---
+
+## REQ-EVD-027 — Invalid Evidence MUST NOT continue supporting current Claims as though valid
+
+---
+
+# Evidence freshness
+
+## REQ-EVD-028 — Evidence SHOULD support freshness evaluation
+
+Monad SHOULD be capable of determining whether Evidence may have become stale because the relevant system state changed.
+
+---
+
+## REQ-EVD-029 — Evidence freshness SHOULD be dependency-aware where practical
+
+Evidence about Component A MAY remain valid after an unrelated documentation change.
+
+Evidence about Component A MAY become stale after:
+
+* its source changes,
+* a dependency changes,
+* configuration changes,
+* environment assumptions change,
+* or a governing Specification changes.
+
+---
+
+## REQ-EVD-030 — Historical Evidence MUST remain distinguishable from current Evidence
+
+A historical pass remains useful history.
+
+It does not automatically establish present satisfaction.
+
+---
+
+## REQ-EVD-031 — Stale Evidence SHOULD remain inspectable
+
+Staleness SHOULD normally alter applicability, not erase history.
+
+---
+
+# Evidence revision binding
+
+## REQ-EVD-032 — Evidence SHOULD bind to immutable revisions where available
+
+For example:
+
+```text id="ra6js6"
+source_commit: 81d91ef
+```
+
+is usually stronger historical context than:
+
+```text id="88z2jl"
+branch: main
+```
+
+---
+
+## REQ-EVD-033 — Moving references MAY be preserved alongside their resolved revision
+
+Example:
+
+```text id="zn8yvf"
+requested_ref: main
+resolved_commit: 81d91ef
+```
+
+---
+
+## REQ-EVD-034 — Evidence SHOULD NOT silently rebind to newer revisions
+
+A report produced against revision A MUST NOT become Evidence for revision B merely because a branch name moved.
+
+---
+
+# Direct and indirect Evidence
+
+## REQ-EVD-035 — Monad SHOULD distinguish direct from indirect Evidence where meaningful
+
+Direct Evidence may observe the property of interest more directly.
+
+Indirect Evidence may support the Claim through inference.
+
+Example:
+
+```text id="jijbbg"
+Direct:
+  endpoint returned expected response.
+
+Indirect:
+  implementation contains code that appears capable of returning it.
+```
+
+Both may be useful.
+
+They do not necessarily carry equal weight.
+
+---
+
+## REQ-EVD-036 — Indirect Evidence SHOULD preserve the reasoning or relationship connecting it to the Claim
+
+---
+
+# Primary and derived Evidence
+
+## REQ-EVD-037 — Primary Evidence SHOULD remain distinguishable from derived Evidence
+
+Example:
+
+```text id="gi7j9z"
+Primary:
+  raw test report
+
+Derived:
+  summarized verification dashboard
+```
+
+---
+
+## REQ-EVD-038 — Derived Evidence SHOULD identify its source Evidence
+
+---
+
+## REQ-EVD-039 — Derived Evidence MUST NOT hide material contradictions present in its inputs
+
+---
+
+## REQ-EVD-040 — A summary MUST NOT silently replace retained primary Evidence when primary Evidence is required for inspection
+
+---
+
+# Evidence independence
+
+## REQ-EVD-041 — Monad SHOULD support reasoning about independent Evidence sources
+
+Three independently produced observations may provide stronger corroboration than three copies of the same source.
+
+---
+
+## REQ-EVD-042 — Derived copies MUST NOT be counted as independent corroboration
+
+Example:
+
+```text id="edrfb9"
+original test result
+  ↓
+Markdown summary
+  ↓
+dashboard card
+  ↓
+AI summary
+```
+
+This remains one underlying observation chain.
+
+---
+
+## REQ-EVD-043 — Shared dependencies SHOULD be discoverable where they materially affect independence
+
+Two independent test runners using the same faulty fixture may not provide truly independent Evidence.
+
+---
+
+# Negative Evidence
+
+## REQ-EVD-044 — Evidence MAY weaken or contradict a Claim
+
+Evidence is not restricted to positive support.
+
+---
+
+## REQ-EVD-045 — Contradictory Evidence MUST NOT be discarded merely because other Evidence supports the Claim
+
+---
+
+## REQ-EVD-046 — A failed test MAY be Evidence even when the failure mechanism is not yet understood
+
+The interpretation may remain uncertain.
+
+---
+
+# Absence of Evidence
+
+## REQ-EVD-047 — Absence of Evidence MUST NOT automatically be treated as Evidence of absence
+
+Example:
+
+```text id="bwqyd3"
+No security finding was recorded.
+```
+
+does not necessarily imply:
+
+```text id="577blk"
+No vulnerability exists.
+```
+
+---
+
+## REQ-EVD-048 — Absence MAY be informative when the observation method had a meaningful opportunity to detect the condition
+
+For example:
+
+```text id="aejbx5"
+A complete scan found no matching dependency.
+```
+
+may support absence more strongly than:
+
+```text id="7q47pn"
+Nobody reported seeing the dependency.
+```
+
+---
+
+## REQ-EVD-049 — Evidence records SHOULD preserve enough method context to evaluate whether absence is meaningful
+
+---
+
+# Evidence uncertainty
+
+## REQ-EVD-050 — Evidence SHOULD support uncertain or inconclusive outcomes
+
+Not all Evidence is:
+
+```text id="ej3c19"
+pass
+```
+
+or:
+
+```text id="e6tjel"
+fail
+```
+
+Useful states may include:
+
+```text id="lhkd0j"
+incomplete
+blocked
+inconclusive
+conditional
+disputed
+```
+
+Exact vocabulary belongs in the specification.
+
+---
+
+## REQ-EVD-051 — Inconclusive Evidence MUST NOT be silently treated as positive Evidence
+
+---
+
+## REQ-EVD-052 — Unknown MUST remain distinguishable from false
+
+---
+
+# Evidence strength
+
+## REQ-EVD-053 — Monad SHOULD NOT require a universal numeric Evidence score
+
+A single scalar risks obscuring different dimensions such as:
+
+* directness,
+* validity,
+* relevance,
+* freshness,
+* independence,
+* reproducibility,
+* scope,
+* and source quality.
+
+---
+
+## REQ-EVD-054 — Evidence strength MAY be represented through explicit dimensions where useful
+
+The system MAY model attributes such as:
+
+```text id="ajh8gn"
+directness
+freshness
+scope_match
+reproducibility
+independence
+source_reliability
+```
+
+if those dimensions prove useful.
+
+---
+
+## REQ-EVD-055 — Evidence strength MUST NOT replace engineering judgment where interpretation remains necessary
+
+---
+
+# Evidence reproducibility
+
+## REQ-EVD-056 — Evidence-producing methods SHOULD be reproducible where practical
+
+Monad SHOULD preserve sufficient information to rerun a method where rerunning matters.
+
+---
+
+## REQ-EVD-057 — Deterministic Evidence SHOULD support exact reproduction where practical
+
+---
+
+## REQ-EVD-058 — Non-deterministic Evidence SHOULD preserve enough context for statistical or approximate reproduction
+
+This is particularly relevant to:
+
+* AI evaluation,
+* randomized testing,
+* fuzzing,
+* distributed systems,
+* performance measurements,
+* production telemetry.
+
+---
+
+## REQ-EVD-059 — Reproduction results SHOULD create new Evidence rather than overwriting the original
+
+---
+
+# Evidence integrity
+
+## REQ-EVD-060 — Consequential Evidence SHOULD support integrity checking where appropriate
+
+Possible mechanisms include:
+
+* content digests,
+* immutable artifact storage,
+* signed attestations,
+* native CI retention,
+* repository history.
+
+---
+
+## REQ-EVD-061 — Integrity MUST remain distinct from correctness
+
+A tamper-proof incorrect test result remains incorrect.
+
+---
+
+## REQ-EVD-062 — Evidence alteration SHOULD preserve history where consequential
+
+If Evidence is:
+
+* corrected,
+* redacted,
+* normalized,
+* regenerated,
+* or superseded,
+
+the relationship to the prior form SHOULD remain inspectable.
+
+---
+
+# Evidence provenance
+
+## REQ-EVD-063 — Evidence SHOULD preserve its producer
+
+Where relevant, users SHOULD be able to determine who or what produced it.
+
+---
+
+## REQ-EVD-064 — Evidence SHOULD preserve its method
+
+A result without knowing how it was obtained may be difficult to interpret.
+
+---
+
+## REQ-EVD-065 — Evidence SHOULD preserve relevant tool identity
+
+For example:
+
+```text id="qtbpmy"
+tool: rustc
+version: 1.x
+```
+
+or:
+
+```text id="a8z0hx"
+tool: integration-test-runner
+version: 4.2
+```
+
+where the exact version materially affects the result.
+
+---
+
+## REQ-EVD-066 — AI-generated Evidence summaries SHOULD identify the underlying Evidence
+
+---
+
+# Native Evidence systems
+
+## REQ-EVD-067 — Monad SHOULD preserve native Evidence where native systems already produce useful records
+
+Examples include:
+
+* GitHub Actions reports,
+* JUnit XML,
+* coverage reports,
+* compiler diagnostics,
+* SARIF,
+* benchmark outputs,
+* deployment logs,
+* observability systems,
+* package-manager lockfiles,
+* vulnerability scanner results.
+
+---
+
+## REQ-EVD-068 — Monad SHOULD integrate rather than unnecessarily replace native Evidence producers
+
+---
+
+## REQ-EVD-069 — Normalization SHOULD preserve access to the native record where practical
+
+---
+
+## REQ-EVD-070 — Native Evidence format MUST NOT define Monad semantic identity
+
+---
+
+# Evidence normalization
+
+## REQ-EVD-071 — Monad MAY normalize heterogeneous Evidence into a common read model
+
+Normalization MAY make cross-system reasoning easier.
+
+---
+
+## REQ-EVD-072 — Normalization MUST preserve material source semantics
+
+A native result such as:
+
+```text id="wp32gk"
+skipped
+```
+
+SHOULD NOT become:
+
+```text id="59w39z"
+passed
+```
+
+merely because the normalized model lacks a skipped state.
+
+---
+
+## REQ-EVD-073 — Lossy normalization SHOULD be explicitly identifiable
+
+---
+
+# Evidence bundles
+
+## REQ-EVD-074 — Related Evidence MAY be grouped into Evidence bundles
+
+A bundle may support:
+
+* release readiness,
+* security review,
+* migration acceptance,
+* compliance,
+* feature completion,
+* verification of a Requirement.
+
+---
+
+## REQ-EVD-075 — Evidence bundles SHOULD preserve member identity
+
+Bundling SHOULD NOT flatten individual Evidence into an opaque attachment.
+
+---
+
+## REQ-EVD-076 — Bundle status MUST NOT hide failing or incomplete member Evidence
+
+---
+
+## REQ-EVD-077 — Bundles SHOULD identify the Claim or decision context they support
+
+---
+
+# Evidence and verification
+
+## REQ-EVD-078 — Verification results SHOULD link to the Evidence used in the evaluation
+
+Example:
+
+```text id="h0b5v3"
+Requirement REQ-EXEC-004
+    ↓
+Verification VFY-019
+    ↓
+Evidence
+    ├── integration-test-report
+    └── execution-log
+```
+
+---
+
+## REQ-EVD-079 — A verification pass SHOULD remain traceable to the Evidence that justified the pass
+
+---
+
+## REQ-EVD-080 — Verification failure SHOULD preserve the Evidence supporting failure
+
+---
+
+## REQ-EVD-081 — Missing required Evidence SHOULD result in an explicit incomplete or equivalent state rather than an unjustified pass
+
+---
+
+# Evidence and Requirements
+
+## REQ-EVD-082 — Verifiable Requirements SHOULD identify the Evidence expected to demonstrate satisfaction where practical
+
+This may be expressed through:
+
+* acceptance criteria,
+* verification method,
+* required Evidence type,
+* or verification specification.
+
+---
+
+## REQ-EVD-083 — Evidence SHOULD be traceable to the Requirement it helps satisfy
+
+---
+
+## REQ-EVD-084 — Requirement satisfaction SHOULD NOT be asserted solely because implementation exists
+
+Implementation is not equivalent to Evidence of correctness.
+
+---
+
+# Evidence and Specifications
+
+## REQ-EVD-085 — Conformance Evidence SHOULD identify the relevant Specification revision
+
+---
+
+## REQ-EVD-086 — Evidence SHOULD support clause-level traceability where finer granularity materially improves verification
+
+Not every Specification requires clause-level Evidence.
+
+---
+
+## REQ-EVD-087 — Evidence generated against a superseded Specification SHOULD NOT automatically establish conformance with the replacement
+
+---
+
+# Evidence and Decisions
+
+## REQ-EVD-088 — Consequential Decisions SHOULD reference material Evidence that informed them where available
+
+---
+
+## REQ-EVD-089 — Decision rationale SHOULD distinguish Evidence from interpretation
+
+For example:
+
+```text id="l7vi6s"
+Evidence:
+  index lookup median = 8 ms
+  graph lookup median = 42 ms
+
+Interpretation:
+  graph complexity does not justify the measured benefit for this use case.
+```
+
+---
+
+## REQ-EVD-090 — Decision records SHOULD preserve contradictory Evidence where it materially affected the trade-off
+
+---
+
+# Evidence and experiments
+
+## REQ-EVD-091 — Experiments SHOULD produce inspectable Evidence
+
+The result of an experiment SHOULD NOT exist only as a narrative conclusion.
+
+---
+
+## REQ-EVD-092 — Experiment Evidence SHOULD preserve experimental conditions
+
+This may include:
+
+* fixtures,
+* environment,
+* variables,
+* controls,
+* procedure,
+* instrumentation,
+* and raw results.
+
+---
+
+## REQ-EVD-093 — Experiment conclusions SHOULD remain distinct from experimental Evidence
+
+---
+
+## REQ-EVD-094 — Negative experimental results SHOULD be retained when they materially reduce uncertainty
+
+---
+
+# Evidence and Reviews
+
+## REQ-EVD-095 — Review findings MAY function as Evidence
+
+For example:
+
+```text id="hn6ehf"
+Finding:
+  specification leaves retry semantics undefined.
+```
+
+This may be Evidence that ambiguity exists.
+
+---
+
+## REQ-EVD-096 — A review report SHOULD NOT automatically be treated as Evidence that every reviewed property is correct
+
+---
+
+## REQ-EVD-097 — Review findings SHOULD reference primary Evidence where available
+
+---
+
+# Evidence and policy
+
+## REQ-EVD-098 — Policies MAY require Evidence as an obligation
+
+Example:
+
+```text id="zhm73x"
+Before production release:
+  security verification Evidence MUST exist.
+```
+
+---
+
+## REQ-EVD-099 — Required Evidence SHOULD be evaluated before governed actions where policy demands it
+
+---
+
+## REQ-EVD-100 — Missing required Evidence MUST NOT be silently treated as satisfied governance
+
+---
+
+# Evidence and approval
+
+## REQ-EVD-101 — Approvals SHOULD be able to reference the Evidence reviewed
+
+---
+
+## REQ-EVD-102 — Approval MUST NOT retroactively transform weak Evidence into strong Evidence
+
+Approval records a governance act.
+
+It does not change the underlying observation.
+
+---
+
+## REQ-EVD-103 — Evidence changes MAY invalidate an approval where policy requires continued applicability
+
+---
+
+# Evidence and execution
+
+## REQ-EVD-104 — Consequential execution SHOULD produce Evidence of what occurred
+
+Examples include:
+
+* command result,
+* changed resource,
+* deployment identifier,
+* migration report,
+* state diff,
+* execution log,
+* native transaction reference.
+
+---
+
+## REQ-EVD-105 — Successful execution MUST remain distinct from successful verification
+
+Example:
+
+```text id="b3v18x"
+Execution:
+  migration command exited 0
+
+Verification:
+  target schema contains expected structure
+```
+
+The first does not imply the second.
+
+---
+
+## REQ-EVD-106 — Partial execution SHOULD produce Evidence describing partial state
+
+---
+
+## REQ-EVD-107 — Failed execution SHOULD preserve Evidence useful for diagnosis
+
+---
+
+# Evidence and reconciliation
+
+## REQ-EVD-108 — Reconciliation SHOULD produce Evidence describing observed disagreement
+
+---
+
+## REQ-EVD-109 — Reconciliation Evidence SHOULD preserve both compared states where practical
+
+---
+
+## REQ-EVD-110 — Conflict resolution SHOULD retain Evidence explaining the resolution
+
+---
+
+# Evidence and releases
+
+## REQ-EVD-111 — Releases SHOULD be able to reference Evidence demonstrating release readiness
+
+Potential Evidence includes:
+
+* successful builds,
+* tests,
+* security checks,
+* migration validation,
+* policy evaluation,
+* compatibility verification,
+* artifact integrity records.
+
+---
+
+## REQ-EVD-112 — Release Evidence SHOULD bind to the exact release artifact or revision
+
+---
+
+## REQ-EVD-113 — Historical release Evidence SHOULD remain inspectable after later system changes
+
+---
+
+## REQ-EVD-114 — A later successful verification MUST NOT rewrite the Evidence state that existed when an earlier release was approved
+
+---
+
+# Evidence and observability
+
+## REQ-EVD-115 — Operational observations MAY become Evidence
+
+Examples:
+
+* latency measurement,
+* error rate,
+* service-health observation,
+* resource usage,
+* incident event,
+* audit record.
+
+---
+
+## REQ-EVD-116 — Operational telemetry MUST NOT automatically be treated as Evidence for every related engineering Claim
+
+The linkage must be explicit and scope-aware.
+
+---
+
+## REQ-EVD-117 — Aggregated telemetry SHOULD preserve enough lineage to understand its source where consequential
+
+---
+
+# AI-generated Evidence
+
+## REQ-EVD-118 — AI output MAY serve as Evidence only within an explicit evidentiary role
+
+Example:
+
+An AI system may produce Evidence that:
+
+```text id="61ibd6"
+model X classified this artifact as risky.
+```
+
+That does not automatically establish:
+
+```text id="i6catq"
+the artifact is actually unsafe.
+```
+
+---
+
+## REQ-EVD-119 — AI-generated analysis SHOULD preserve relevant model provenance
+
+Where consequential, this MAY include:
+
+* model,
+* provider,
+* configuration,
+* prompt,
+* retrieval context,
+* tool results,
+* and generation time.
+
+---
+
+## REQ-EVD-120 — AI-generated summaries SHOULD remain derived Evidence
+
+The underlying primary Evidence SHOULD remain available where necessary.
+
+---
+
+## REQ-EVD-121 — AI evaluation SHOULD NOT be treated as deterministic verification unless the verification contract explicitly allows it
+
+---
+
+## REQ-EVD-122 — AI Evidence SHOULD be independently verified where consequence warrants it
+
+---
+
+# Human Evidence
+
+## REQ-EVD-123 — Human observations MAY serve as Evidence
+
+Examples include:
+
+* review findings,
+* usability observations,
+* incident testimony,
+* manual verification,
+* expert analysis.
+
+---
+
+## REQ-EVD-124 — Human Evidence SHOULD preserve reviewer or observer identity where material
+
+---
+
+## REQ-EVD-125 — Human judgment SHOULD remain distinguishable from direct observation
+
+Example:
+
+```text id="7dmhvu"
+Observation:
+  deployment took 18 minutes.
+
+Judgment:
+  deployment time is operationally unacceptable.
+```
+
+---
+
+## REQ-EVD-126 — Human authority MUST NOT automatically imply evidentiary correctness
+
+---
+
+# Documentary Evidence
+
+## REQ-EVD-127 — Existing documents MAY serve as Evidence when their content bears directly on a Claim
+
+Examples include:
+
+* contracts,
+* standards,
+* external specifications,
+* prior ADRs,
+* incident reports,
+* audit records.
+
+---
+
+## REQ-EVD-128 — Documentary Evidence SHOULD preserve source revision where relevant
+
+---
+
+## REQ-EVD-129 — Citation alone MUST NOT establish applicability
+
+A cited standard may be outdated, superseded, or outside scope.
+
+---
+
+# External Evidence
+
+## REQ-EVD-130 — External Evidence SHOULD preserve its external origin
+
+---
+
+## REQ-EVD-131 — External Evidence SHOULD remain inspectable or reproducibly retrievable where practical
+
+---
+
+## REQ-EVD-132 — External Evidence dependency SHOULD be explicit when local inspection is unavailable
+
+---
+
+## REQ-EVD-133 — External disappearance SHOULD NOT silently erase the fact that historical engineering decisions relied on that Evidence
+
+---
+
+# Evidence retention
+
+## REQ-EVD-134 — Evidence retention SHOULD reflect engineering consequence
+
+High-value Evidence may need longer retention than transient diagnostics.
+
+---
+
+## REQ-EVD-135 — Release-critical Evidence SHOULD remain available for the retention period required by policy
+
+---
+
+## REQ-EVD-136 — Temporary Evidence MAY expire when its continued retention provides insufficient value
+
+---
+
+## REQ-EVD-137 — Evidence deletion SHOULD preserve required historical traceability where policy demands it
+
+---
+
+# Evidence security
+
+## REQ-EVD-138 — Evidence capture MUST avoid unnecessary secret retention
+
+Evidence systems SHOULD prevent accidental persistence of:
+
+* tokens,
+* credentials,
+* keys,
+* sensitive environment variables,
+* private data.
+
+---
+
+## REQ-EVD-139 — Sensitive Evidence SHOULD support access control
+
+---
+
+## REQ-EVD-140 — Evidence redaction SHOULD be explicit
+
+A redacted Representation SHOULD NOT masquerade as the complete Evidence record.
+
+---
+
+## REQ-EVD-141 — Redaction SHOULD preserve enough metadata to explain why content is unavailable where appropriate
+
+---
+
+# Evidence portability
+
+## REQ-EVD-142 — Core engineering Evidence SHOULD remain inspectable without mandatory dependence on one remote SaaS provider where practical
+
+---
+
+## REQ-EVD-143 — Provider-native Evidence MAY remain provider-specific
+
+Monad does not need to erase native identity.
+
+It should preserve enough semantic context around it.
+
+---
+
+## REQ-EVD-144 — Evidence references SHOULD degrade intelligibly when remote sources are unavailable
+
+The system SHOULD distinguish:
+
+```text id="1v72dk"
+Evidence missing
+```
+
+from:
+
+```text id="cwo2ie"
+Evidence exists but remote source is currently unavailable
+```
+
+---
+
+# Local-first Evidence
+
+## REQ-EVD-145 — Critical Evidence SHOULD be locally inspectable where practical
+
+---
+
+## REQ-EVD-146 — Locally materialized Evidence SHOULD preserve lineage to its native source
+
+---
+
+## REQ-EVD-147 — Offline operation SHOULD NOT silently fabricate Evidence that normally requires remote observation
+
+---
+
+# Evidence indexing
+
+## REQ-EVD-148 — Monad SHOULD support locating Evidence by relevant engineering relationships
+
+Useful queries include:
+
+* What Evidence supports this Requirement?
+* What Evidence contradicts this Claim?
+* Which Evidence is stale?
+* Which Evidence applies to this revision?
+* Which release used this Evidence?
+* Which Evidence came from this verification run?
+* Which Claims depend on this Evidence?
+* Which Evidence is derived from this source?
+* Which required Evidence is missing?
+* Which Evidence was produced by AI?
+* Which Evidence is external-only?
+* Which Evidence depends on the same underlying source?
+* Which Evidence has become invalid?
+
+---
+
+## REQ-EVD-149 — Evidence querying SHOULD support upstream and downstream traversal
+
+Example:
+
+```text id="oj7s5f"
+Requirement
+  ↓
+Verification
+  ↓
+Evidence
+```
+
+and:
+
+```text id="tu46o2"
+Evidence
+  ↓
+supports
+Claims
+  ↓
+informs
+Decisions
+```
+
+---
+
+# Evidence gaps
+
+## REQ-EVD-150 — Monad SHOULD represent required but missing Evidence explicitly
+
+A gap is itself useful engineering state.
+
+---
+
+## REQ-EVD-151 — Missing Evidence SHOULD NOT be hidden by aggregate status
+
+Example:
+
+```text id="oujgoh"
+Release readiness:
+  14 checks passed
+  1 required Evidence item missing
+```
+
+should not become:
+
+```text id="ccvvln"
+Release readiness:
+  green
+```
+
+without policy explicitly allowing that interpretation.
+
+---
+
+## REQ-EVD-152 — Evidence gaps SHOULD be traceable to the obligation requiring them
+
+---
+
+# Evidence obligations
+
+## REQ-EVD-153 — Requirements, Specifications, Policies, or gates MAY create Evidence obligations
+
+Example:
+
+```text id="lu4t7m"
+Requirement:
+  migration preserves all persisted records.
+
+Evidence obligation:
+  before/after record reconciliation report.
+```
+
+---
+
+## REQ-EVD-154 — Evidence obligations SHOULD specify acceptable Evidence classes where needed
+
+---
+
+## REQ-EVD-155 — Evidence obligations MAY permit multiple valid verification methods
+
+---
+
+## REQ-EVD-156 — Waiving an Evidence obligation MUST remain distinguishable from satisfying it
+
+---
+
+# Evidence contradiction
+
+## REQ-EVD-157 — Contradictory Evidence SHOULD remain simultaneously inspectable
+
+---
+
+## REQ-EVD-158 — Monad SHOULD NOT resolve contradictory Evidence merely by selecting the newest record
+
+Recency may matter.
+
+It is not universally decisive.
+
+---
+
+## REQ-EVD-159 — Evidence conflicts SHOULD support investigation and disposition
+
+Possible outcomes may include:
+
+```text id="hmqjlb"
+source invalid
+scope differs
+revision differs
+method flawed
+system nondeterministic
+claim too broad
+evidence genuinely conflicts
+```
+
+---
+
+## REQ-EVD-160 — Conflict resolution SHOULD preserve the original contradictory Evidence
+
+---
+
+# Evidence correction
+
+## REQ-EVD-161 — Incorrect Evidence metadata SHOULD be correctable without erasing relevant history
+
+---
+
+## REQ-EVD-162 — Corrected Evidence SHOULD identify what changed
+
+---
+
+## REQ-EVD-163 — Corrections SHOULD trigger reevaluation of dependent Claims where material
+
+---
+
+# Evidence invalidation
+
+## REQ-EVD-164 — Monad SHOULD support explicit Evidence invalidation
+
+Evidence MAY become invalid because:
+
+* tool defect discovered,
+* fixture was wrong,
+* environment corrupted,
+* source data incorrect,
+* observation method invalid,
+* artifact tampered with.
+
+---
+
+## REQ-EVD-165 — Invalidation SHOULD propagate to dependent verification or assurance state where appropriate
+
+---
+
+## REQ-EVD-166 — Invalidated Evidence SHOULD remain historically inspectable
+
+---
+
+# Evidence supersession
+
+## REQ-EVD-167 — New Evidence MAY supersede older Evidence without deleting it
+
+---
+
+## REQ-EVD-168 — Supersession SHOULD explain the relationship between old and new Evidence
+
+Examples:
+
+```text id="a1k2se"
+newer revision
+better method
+corrected fixture
+broader scope
+replacement observation
+```
+
+---
+
+# Evidence aggregation
+
+## REQ-EVD-169 — Aggregate assurance state SHOULD remain traceable to constituent Evidence
+
+---
+
+## REQ-EVD-170 — Aggregation MUST NOT hide uncertainty, contradiction, or missing mandatory Evidence
+
+---
+
+## REQ-EVD-171 — Aggregate status SHOULD identify its evaluation rule where consequential
+
+For example:
+
+```text id="6wvlhv"
+release-ready =
+  all mandatory verification obligations passed
+  AND no blocking security findings
+  AND required Evidence bundle complete
+```
+
+---
+
+# Evidence quality
+
+## REQ-EVD-172 — Evidence quality SHOULD be evaluated relative to the Claim being made
+
+A unit test may be excellent Evidence for a small function contract.
+
+It may be weak Evidence for system-wide reliability.
+
+---
+
+## REQ-EVD-173 — Evidence quality SHOULD consider method limitations
+
+---
+
+## REQ-EVD-174 — Evidence SHOULD be no broader than the method that produced it
+
+---
+
+# Evidence economy
+
+## REQ-EVD-175 — Evidence capture SHOULD provide material engineering value
+
+Monad SHOULD NOT collect Evidence merely because collection is technically possible.
+
+---
+
+## REQ-EVD-176 — Evidence requirements SHOULD be proportional to consequence and uncertainty
+
+A typo correction should not require the same assurance burden as:
+
+* production schema migration,
+* authentication change,
+* release signing,
+* destructive operation.
+
+---
+
+## REQ-EVD-177 — Automated Evidence capture SHOULD be preferred for repeatable mechanical checks where practical
+
+---
+
+## REQ-EVD-178 — Human attention SHOULD focus on Evidence requiring interpretation, judgment, or challenge
+
+---
+
+# Evidence and complexity
+
+## REQ-EVD-179 — Monad's own complexity SHOULD require Evidence
+
+If Monad introduces:
+
+* semantic graph infrastructure,
+* additional metadata,
+* governance layers,
+* provenance capture,
+* execution mediation,
+* or reconciliation machinery,
+
+those mechanisms SHOULD justify their engineering cost through observable benefit.
+
+---
+
+## REQ-EVD-180 — Architectural assumptions SHOULD be testable against Evidence
+
+Examples include:
+
+* semantic identity improves traceability,
+* richer models improve AI context,
+* governance prevents meaningful failures,
+* provenance improves reproducibility,
+* graph structure enables valuable queries.
+
+---
+
+## REQ-EVD-181 — Evidence contradicting foundational Monad assumptions MUST remain admissible
+
+The system MUST NOT be designed so that only supporting Evidence is representable.
+
+---
+
+## REQ-EVD-182 — Simpler alternatives SHOULD remain valid hypotheses until Evidence justifies greater complexity
+
+---
+
+# Evidence and falsifiability
+
+## REQ-EVD-183 — Claims about system value SHOULD be capable of being weakened by Evidence where logically possible
+
+---
+
+## REQ-EVD-184 — Monad SHOULD preserve Evidence that challenges accepted architecture
+
+---
+
+## REQ-EVD-185 — Architectural commitment MUST NOT turn contradictory Evidence into invalid Evidence by definition
+
+---
+
+# Minimal Evidence model
+
+A conceptual minimal Evidence record might resemble:
+
+```yaml id="a11k1f"
+id: EVD-0042
+type: integration-test
+subject: REQ-EXEC-008
+revision: 81d91ef
+result: pass
+source:
+  system: github-actions
+  run: 1837472
+produced_at: 2026-08-28T18:14:31Z
+```
+
+This is illustrative only.
+
+The final schema may differ.
+
+---
+
+# Rich Evidence example
+
+A more detailed record might conceptually contain:
+
+```yaml id="uhd5o7"
+id: EVD-0042
+type: integration-test
+
+subject:
+  type: requirement
+  id: REQ-EXEC-008
+
+claim:
+  id: CLAIM-091
+
+verification:
+  id: VFY-013
+
+scope:
+  source_revision: 81d91ef
+  platform: linux-x86_64
+  runtime: bun-1.x
+
+method:
+  tool: integration-runner
+  version: 0.6.0
+
+result:
+  status: pass
+
+source:
+  native_system: github-actions
+  workflow_run: 1837472
+
+produced_at: 2026-08-28T18:14:31Z
+```
+
+The value is not the YAML.
+
+The value is the explicit engineering relationship.
+
+---
+
+# Evidence chain example
+
+```text id="g733vx"
+Requirement
+  │
+  ├── refined-by ─────→ Specification
+  │
+  └── verified-by ────→ Verification
+                           │
+                           ├── uses ─────→ Test Method
+                           │
+                           └── produces ─→ Evidence
+                                             │
+                                             ├── supports ─→ Claim
+                                             └── generated-from ─→ Native Result
+```
+
+This allows the system to distinguish:
+
+* what was required,
+* what was tested,
+* what actually happened,
+* and what conclusion was drawn.
+
+---
+
+# Release Evidence example
+
+A release Evidence bundle might include:
+
+```text id="4pzo8n"
+Release R-17
+  │
+  ├── build Evidence
+  ├── unit-test Evidence
+  ├── integration-test Evidence
+  ├── security Evidence
+  ├── migration Evidence
+  ├── policy-evaluation Evidence
+  ├── artifact-integrity Evidence
+  └── approval references
+```
+
+The bundle does not make every constituent result positive.
+
+Its purpose is to make the assurance record inspectable.
+
+---
+
+# Contradictory Evidence example
+
+Suppose:
+
+```text id="xogzik"
+EVD-100
+benchmark
+median latency = 12 ms
+
+EVD-101
+benchmark
+median latency = 47 ms
+```
+
+Monad SHOULD NOT simply select:
+
+```text id="9lemg9"
+12 ms because it is newer
+```
+
+or:
+
+```text id="qpdqsh"
+47 ms because it looks safer
+```
+
+It should preserve enough context to discover:
+
+```text id="amzqjo"
+EVD-100:
+  Linux
+  local database
+  warm cache
+
+EVD-101:
+  macOS
+  remote database
+  cold cache
+```
+
+The apparent contradiction may actually be a scope difference.
+
+---
+
+# Stale Evidence example
+
+```text id="oqe5uy"
+REQ-ID-001
+  ↓
+VFY-010
+  ↓
+EVD-044
+  ↓ applies-to
+commit A
+```
+
+Then Component Identity changes in:
+
+```text id="5jk0yp"
+commit B
+```
+
+Monad should be capable of identifying that `EVD-044` may no longer establish current satisfaction.
+
+The Evidence remains historically valid for commit A.
+
+---
+
+# Evidence anti-patterns
+
+## Test passed, therefore Requirement satisfied
+
+Only valid if the test actually verifies that Requirement within appropriate scope.
+
+---
+
+## CI is green, therefore release is correct
+
+Green CI is aggregate execution state.
+
+It may not cover every release obligation.
+
+---
+
+## Evidence exists, therefore Claim is true
+
+Evidence can be:
+
+* irrelevant,
+* stale,
+* invalid,
+* incomplete,
+* contradictory,
+* incorrectly interpreted.
+
+---
+
+## More Evidence is always better
+
+Duplicated or low-quality Evidence can create noise without increasing confidence.
+
+---
+
+## Logs equal Evidence
+
+Logs may become Evidence when used to support a Claim.
+
+Most logs should remain operational records until that role exists.
+
+---
+
+## Latest Evidence wins
+
+Recency matters only within semantic and temporal context.
+
+---
+
+## Human says so
+
+Human testimony may be Evidence.
+
+It remains subject to scope, expertise, memory, bias, and interpretation.
+
+---
+
+## AI says so
+
+AI output may be useful Evidence about what the AI concluded.
+
+It is not automatically Evidence that the conclusion is correct.
+
+---
+
+## Native tool says pass
+
+Tool output must be interpreted according to:
+
+* what the tool actually checked,
+* its configuration,
+* its scope,
+* and its reliability.
+
+---
+
+## Screenshot as universal proof
+
+Screenshots can demonstrate visible state.
+
+They may provide weak Evidence for deeper system properties.
+
+---
+
+## Dashboard as primary source
+
+Dashboards are usually derived projections.
+
+Primary Evidence should remain traceable.
+
+---
+
+## Evidence without revision
+
+Mutable software makes unbound Evidence difficult to interpret historically.
+
+---
+
+## Evidence without method
+
+A number without knowing how it was produced may be nearly meaningless.
+
+---
+
+## Evidence without negative cases
+
+Only storing successful results creates distorted engineering history.
+
+---
+
+## Delete failed Evidence after fixing the problem
+
+Historical failure Evidence can explain why later changes were necessary.
+
+---
+
+## One confidence score
+
+Collapsing complex Evidence quality into one number can create false precision.
+
+---
+
+## Store everything forever
+
+Evidence retention should be deliberate.
+
+Unlimited retention creates:
+
+* cost,
+* privacy risk,
+* security risk,
+* operational burden,
+* noise.
+
+---
+
+# Progressive formalization
+
+Evidence support can mature gradually.
+
+## Stage 1 — Native artifacts
+
+Preserve links to:
+
+* CI runs,
+* reports,
+* tests,
+* benchmarks,
+* scanner output.
+
+---
+
+## Stage 2 — Stable Evidence identity
+
+Important Evidence receives durable identity.
+
+---
+
+## Stage 3 — Claim linkage
+
+Evidence explicitly supports or contradicts Claims.
+
+---
+
+## Stage 4 — Requirement and verification linkage
+
+Evidence becomes part of an explicit assurance chain.
+
+---
+
+## Stage 5 — Freshness and revision awareness
+
+The system knows when Evidence may no longer apply.
+
+---
+
+## Stage 6 — Evidence obligations
+
+Requirements and Policies can demand specific Evidence before state transitions or execution.
+
+---
+
+## Stage 7 — Cross-system assurance
+
+Evidence from multiple native systems can support integrated reasoning.
+
+---
+
+## Stage 8 — Analytical assurance
+
+Monad can identify:
+
+* missing Evidence,
+* stale Evidence,
+* contradictory Evidence,
+* duplicated origins,
+* weak Evidence chains,
+* overbroad Claims.
+
+---
+
+# Minimal useful Evidence system
+
+A first implementation does not require a universal assurance platform.
+
+A useful minimum might support:
+
+```text id="j827rp"
+Evidence ID
+Evidence type
+Subject
+result
+source
+revision
+produced time
+```
+
+plus relationships such as:
+
+```text id="nm3m51"
+supports
+contradicts
+produced-by
+derived-from
+verified-by
+```
+
+Additional structure should be introduced only when it solves real engineering problems.
+
+---
+
+# Evidence review checklist
+
+For consequential Evidence, ask:
+
+1. What Claim does this Evidence bear on?
+2. What Requirement or Specification does that Claim derive from?
+3. What exactly was observed?
+4. What method produced the observation?
+5. Who or what produced it?
+6. Which tool was used?
+7. Which tool version?
+8. Which revision was tested?
+9. Which environment?
+10. Which configuration?
+11. Which input data?
+12. When was it produced?
+13. When was the underlying state observed?
+14. Is the Evidence direct or indirect?
+15. Is it primary or derived?
+16. Is its provenance inspectable?
+17. Is the source still available?
+18. Is the Evidence valid?
+19. Is it relevant?
+20. Is it fresh?
+21. Does its scope match the Claim?
+22. Does it generalize beyond the observed environment?
+23. Is the method reproducible?
+24. Is the result deterministic?
+25. Are negative results preserved?
+26. Is contradictory Evidence present?
+27. Is this Evidence independent from corroborating Evidence?
+28. Does it share common upstream sources?
+29. Was any normalization lossy?
+30. Is the raw result retained where needed?
+31. Does an AI-generated summary stand between us and the primary Evidence?
+32. Could the Evidence have become stale?
+33. Does a newer revision invalidate applicability?
+34. Has the Evidence itself been invalidated?
+35. Does a Policy require this Evidence?
+36. Is this Evidence required for approval?
+37. Is missing Evidence visible?
+38. Does an exception merely waive the obligation?
+39. Is sensitive information protected?
+40. Is retention appropriate?
+41. Could the Evidence be independently inspected?
+42. Could the method be rerun?
+43. Does the Claim overstate what the Evidence demonstrates?
+44. What Evidence would falsify the Claim?
+45. Are we preserving contradictory results?
+46. Are we collecting Evidence because it helps or merely because we can?
+
+---
+
+# Relationship to Claims
+
+A Claim says:
+
+> **This is believed to be true.**
+
+Evidence says:
+
+> **Here is inspectable information that bears on whether it is true.**
+
+This distinction is foundational.
+
+---
+
+# Relationship to provenance
+
+Provenance answers:
+
+> **Where did this Evidence come from?**
+
+Without provenance, Evidence can be difficult to evaluate.
+
+Without Evidence, provenance merely tells us where an assertion originated.
+
+---
+
+# Relationship to verification
+
+Verification asks:
+
+> **Does the observed system satisfy the explicit expectation?**
+
+Evidence provides the observations used to answer that question.
+
+A useful relationship is:
+
+```text id="xh65x1"
+Expectation
+    ↓
+Verification Method
+    ↓
+Execution / Inspection
+    ↓
+Evidence
+    ↓
+Verification Result
+```
+
+---
+
+# Relationship to Requirements
+
+Requirements define obligations.
+
+Evidence helps establish whether those obligations have been satisfied.
+
+A Requirement without a plausible Evidence path may not be sufficiently verifiable.
+
+---
+
+# Relationship to decisions
+
+Decisions should be informed by Evidence where the question is empirical.
+
+The decision record preserves the interpretation and trade-off.
+
+The Evidence preserves the observations that informed it.
+
+---
+
+# Relationship to releases
+
+A Release can represent a consequential assertion:
+
+> **This version is suitable for distribution or deployment.**
+
+That assertion should be supported by inspectable Evidence appropriate to the release's risk.
+
+---
+
+# Relationship to AI systems
+
+AI systems create a particular Evidence challenge.
+
+AI can:
+
+* summarize Evidence,
+* classify Evidence,
+* locate Evidence,
+* compare Evidence,
+* identify contradictions,
+* propose interpretations,
+* generate candidate findings.
+
+But an AI-generated interpretation SHOULD remain distinguishable from the primary Evidence being interpreted.
+
+Where an AI says:
+
+```text id="uy0v7w"
+All requirements appear satisfied.
+```
+
+Monad should still be capable of asking:
+
+```text id="eiy03f"
+Which Requirements?
+
+Which verification results?
+
+Which Evidence?
+
+Which revisions?
+
+Which assumptions?
+
+Which sources?
+
+Which results were incomplete?
+
+Which contradictory Evidence existed?
+```
+
+The quality of AI reasoning improves when these relationships are explicit.
+
+---
+
+# Evidence and the engineering argument
+
+Monad's Artifact system can be understood as an inspectable engineering argument:
+
+```text id="5u0v0y"
+Problem
+  ↓
+Goal
+  ↓
+Requirement
+  ↓
+Decision
+  ↓
+Specification
+  ↓
+Implementation
+  ↓
+Verification
+  ↓
+Evidence
+  ↓
+Release
+```
+
+Evidence does not sit merely at the end.
+
+It can challenge any part of that chain.
+
+Evidence may reveal that:
+
+* the Problem was misunderstood,
+* the Requirement is unnecessary,
+* the Decision was based on a false assumption,
+* the Specification is incomplete,
+* the implementation does not conform,
+* the verification method is inadequate,
+* or the release should not proceed.
+
+A mature engineering system permits Evidence to revise understanding rather than merely certify preexisting conclusions.
+
+---
+
+# Definition of Ready
+
+An Evidence-producing activity is ready when:
+
+* the target Claim or expectation is identifiable,
+* relevant scope is known,
+* the producing method is sufficiently defined,
+* required inputs are available,
+* the relevant revision is known where necessary,
+* the environment is sufficiently specified,
+* required provenance can be captured,
+* expected result semantics are known,
+* and applicable security or retention constraints are understood.
+
+---
+
+# Definition of Done
+
+A consequential Evidence record is complete enough when:
+
+* it has durable identity where required,
+* its Subject is identifiable,
+* its relevant Claim or expectation is identifiable where applicable,
+* its source is known,
+* its producer is known where material,
+* its method is known,
+* its relevant revision is recorded,
+* its relevant scope is recorded,
+* its result is explicit,
+* its provenance is sufficient for interpretation,
+* raw or native Evidence remains accessible where required,
+* derived forms identify their source,
+* uncertainty is preserved,
+* contradictions are not hidden,
+* invalidation or staleness can be represented,
+* sensitive content is handled appropriately,
+* and downstream relationships can be traced.
+
+---
+
+# Core invariants
+
+The Evidence system SHOULD preserve these distinctions:
+
+```text id="29oet0"
+Evidence ≠ Claim
+
+Evidence ≠ Proof
+
+Evidence ≠ Authority
+
+Evidence ≠ Approval
+
+Evidence ≠ Verification
+
+Evidence ≠ Provenance
+
+Existence ≠ Validity
+
+Validity ≠ Relevance
+
+Historical validity ≠ Current applicability
+
+Integrity ≠ Correctness
+
+Source identity ≠ Truth
+
+More Evidence ≠ More confidence automatically
+
+AI analysis ≠ Primary Evidence
+
+Successful execution ≠ Successful verification
+
+Missing Evidence ≠ Evidence of absence
+
+Waived Evidence ≠ Satisfied Evidence obligation
+
+Derived Evidence ≠ Independent Evidence
+
+Unknown ≠ false
+```
+
+These distinctions prevent assurance mechanisms from collapsing into ceremony.
+
+---
+
+# Governing principle
+
+Monad should make it possible to ask:
+
+> What Claim are we making?
+
+> What Evidence supports it?
+
+> What Evidence contradicts it?
+
+> Where did that Evidence come from?
+
+> What exactly was observed?
+
+> Under what conditions?
+
+> Against which revision?
+
+> Using which method?
+
+> Is the Evidence still valid?
+
+> Is it still relevant?
+
+> Is it still fresh?
+
+> Is it independent?
+
+> Can it be reproduced?
+
+> Is the Claim broader than the Evidence?
+
+> Is any required Evidence missing?
+
+> What would falsify the Claim?
+
+> Would we change our engineering decision if contradictory Evidence appeared?
+
+The objective is not to attach artifacts to engineering conclusions after the fact.
+
+It is to make justified engineering confidence inspectable.
+
+> **Engineering Claims should be as strong as the Evidence supporting them—and no stronger.**
+
+---
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/verification" title="Verification Requirements">
+    Define how expectations are evaluated against observed system state.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/authority" title="Authority Requirements">
+    Define who may legitimately establish, approve, or change governed engineering state.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/provenance" title="Provenance Requirements">
+    Define how the origin and derivation of Evidence and other engineering records remain inspectable.
+  </Card>
+
+  <Card href="/docs/artifacts/evidence" title="Evidence">
+    Read the authoritative Artifact-level explanation of Evidence in Monad.
+  </Card>
+</Cards>

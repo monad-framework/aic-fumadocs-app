@@ -1,0 +1,13 @@
+{
+  "title": "Decisions",
+  "description": "Architectural Decisions",
+  "pages": [
+    "index",
+    "adr-0001-semantic-identifier-strategy",
+    "adr-0002-semantic-model-persistence-strategy",
+    "adr-0003-canonical-artifact-and-representation-model",
+    "adr-0004-authority-and-source-of-truth-model",
+    "adr-0005-claim-evidence-provenance-and-verification-model",
+    "adr-catalog"
+  ]
+}

@@ -1,0 +1,1100 @@
+---
+title: "Project"
+description: Understand how the Monad engineering program is organized, how work moves from questions to releases, and how to follow the project as it evolves.
+canonical: "/docs/project/index.mdx"
+---
+
+<div className="not-prose mb-10 mt-2">
+<p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    The engineering program
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Monad is not being developed as a sequence of disconnected features. It is being treated as a long-lived engineering program in which questions, requirements, decisions, specifications, implementation, evidence, and releases remain connected.
+  </p>
+</div>
+
+## The project behind the system
+
+There are two things called Monad that are easy to conflate.
+
+There is **Monad the system**:
+
+the software, architecture, concepts, interfaces, policies, and capabilities that ultimately emerge.
+
+And there is **Monad the project**:
+
+the engineering program through which that system is discovered, specified, built, tested, governed, and evolved.
+
+This section is about the second.
+
+If [About Monad](/docs/about) explains **why the project exists**, and [System](/docs/system) explains **what the system currently is**, Project explains:
+
+> **How are we getting from one to the other?**
+
+---
+
+## A project designed to preserve its own reasoning
+
+Most software projects leave behind a recognizable trail:
+
+```text
+issues
+commits
+pull requests
+source code
+releases
+```
+
+That trail is useful.
+
+But it often fails to preserve the complete engineering relationship between:
+
+```text
+problem
+   ↓
+goal
+   ↓
+requirement
+   ↓
+decision
+   ↓
+specification
+   ↓
+implementation
+   ↓
+verification
+   ↓
+release
+```
+
+Monad deliberately treats those relationships as part of the engineering record.
+
+The objective is not bureaucratic completeness.
+
+The objective is **traceable engineering intent**.
+
+Someone examining the project later should be able to answer questions such as:
+
+* Why does this capability exist?
+* Which problem motivated it?
+* Which requirement demands it?
+* Which architectural decision shaped it?
+* Which specification defines its expected behavior?
+* Which implementation satisfies that specification?
+* Which evidence demonstrates that it works?
+* Which release introduced it?
+* What changed afterward?
+* What remains uncertain?
+
+Those questions matter to human engineers today.
+
+They become even more important when AI systems participate directly in engineering work.
+
+---
+
+## The project lifecycle
+
+Monad follows an explicit but iterative engineering lifecycle.
+
+At its simplest:
+
+```text
+discover
+   ↓
+define
+   ↓
+design
+   ↓
+specify
+   ↓
+build
+   ↓
+verify
+   ↓
+release
+   ↓
+observe
+   ↓
+learn
+   ↺
+```
+
+This is not intended to be a rigid waterfall.
+
+Work can move backward.
+
+Experiments can invalidate requirements.
+
+Implementation can expose flaws in architecture.
+
+Verification can reveal that the specification itself is incomplete.
+
+New evidence can reopen supposedly settled questions.
+
+The important property is not that work always moves forward.
+
+It is that important transitions remain **visible and explainable**.
+
+---
+
+## 01 — Discover the problem
+
+Before building software, determine what problem actually deserves to be solved.
+
+This includes:
+
+* observations,
+* problem statements,
+* user and system needs,
+* first-principles analysis,
+* assumptions,
+* competing explanations,
+* constraints,
+* hypotheses,
+* falsification conditions,
+* and unresolved questions.
+
+The goal is to avoid solving an implementation-shaped version of a problem before understanding the underlying problem itself.
+
+For Monad, this phase includes questions about:
+
+* fragmented engineering knowledge,
+* semantic identity,
+* authority,
+* provenance,
+* engineering context,
+* AI participation,
+* system legibility,
+* governance,
+* reproducibility,
+* and software evolution.
+
+The output is not code.
+
+The output is a clearer understanding of what deserves to become code.
+
+---
+
+## 02 — Define the domain
+
+Once the problem is understood well enough to investigate, the next task is identifying the things that exist within it.
+
+This is where language begins to matter.
+
+Terms such as:
+
+* Subject,
+* Representation,
+* Claim,
+* Authority,
+* Evidence,
+* Provenance,
+* Policy,
+* Capability,
+* Artifact,
+* Decision,
+* Transition,
+* and Context
+
+cannot remain vague if they eventually become architectural concepts.
+
+Domain work attempts to establish:
+
+* stable terminology,
+* conceptual boundaries,
+* relationships,
+* invariants,
+* unresolved ambiguities,
+* and competing models.
+
+The purpose is to discover the system's conceptual structure before prematurely encoding it into implementation details.
+
+---
+
+## 03 — Define the product
+
+Understanding the domain does not automatically tell us what to build.
+
+Product definition translates discovered problems into capabilities.
+
+Questions include:
+
+* Who needs the capability?
+* What outcome should it enable?
+* What must the system do?
+* What must it deliberately not do?
+* Which capabilities are foundational?
+* Which can wait?
+* What is the smallest useful system?
+* What would make the project uninteresting?
+* What evidence would demonstrate genuine value?
+
+This stage creates the bridge between the problem space and the engineering system.
+
+---
+
+## 04 — Establish requirements
+
+Requirements make desired outcomes testable.
+
+A useful requirement should eventually connect:
+
+```text
+need
+  ↓
+requirement
+  ↓
+acceptance condition
+  ↓
+implementation
+  ↓
+evidence
+```
+
+Requirements may address:
+
+* behavior,
+* architecture,
+* performance,
+* security,
+* portability,
+* reproducibility,
+* governance,
+* interoperability,
+* observability,
+* lifecycle,
+* failure behavior,
+* and operational constraints.
+
+Requirements establish what the system must accomplish without unnecessarily prescribing how it must be implemented.
+
+---
+
+## 05 — Design the architecture
+
+Architecture determines how responsibilities are divided across the system.
+
+This includes questions of:
+
+* component boundaries,
+* authority,
+* persistence,
+* interfaces,
+* execution,
+* synchronization,
+* semantic representation,
+* policy,
+* lifecycle,
+* AI integration,
+* external systems,
+* local and remote operation,
+* and failure boundaries.
+
+Important architectural choices should not disappear into implementation.
+
+Where appropriate, they become explicit decisions supported by rationale and evidence.
+
+Those records belong in [Artifacts](/docs/artifacts).
+
+---
+
+## 06 — Specify behavior
+
+Architecture defines structure.
+
+Specifications define contracts.
+
+A specification should reduce the ambiguity between:
+
+> We know approximately what this should do.
+
+and:
+
+> Two independent implementers could build compatible versions of this behavior.
+
+Depending on the capability, a specification may define:
+
+* command behavior,
+* schemas,
+* APIs,
+* protocols,
+* state transitions,
+* validation,
+* failure semantics,
+* policy behavior,
+* data formats,
+* compatibility requirements,
+* and acceptance tests.
+
+Specifications are especially important when AI participates in implementation.
+
+An agent should not have to infer critical product behavior from vague prose scattered across the repository.
+
+---
+
+## 07 — Implement incrementally
+
+Implementation turns contracts into working software.
+
+Monad favors incremental construction over attempting to build the entire envisioned system at once.
+
+A useful implementation increment should be:
+
+* scoped,
+* inspectable,
+* testable,
+* traceable to intent,
+* small enough to reason about,
+* and valuable enough to produce evidence.
+
+Implementation should also be allowed to challenge earlier thinking.
+
+If the code reveals that the architecture is wrong, the architecture should change.
+
+If the specification is ambiguous, the specification should improve.
+
+If the requirement is unnecessary, the requirement should be reconsidered.
+
+The documents exist to guide reality.
+
+Reality does not exist to protect the documents.
+
+---
+
+## 08 — Verify with evidence
+
+Completion is not the same as correctness.
+
+Verification asks whether the implementation actually satisfies what was intended.
+
+Evidence can include:
+
+* automated tests,
+* acceptance tests,
+* architecture checks,
+* reproducibility tests,
+* experiments,
+* benchmarks,
+* security reviews,
+* integration tests,
+* failure testing,
+* manual inspection,
+* and operational observations.
+
+The important distinction is:
+
+```text
+claim
+```
+
+is not the same thing as:
+
+```text
+evidence supporting the claim
+```
+
+Monad attempts to preserve both.
+
+---
+
+## 09 — Release deliberately
+
+A release represents more than a Git tag.
+
+It marks a meaningful project state.
+
+A release should make it possible to determine:
+
+* what changed,
+* which capabilities are included,
+* which specifications they satisfy,
+* which known limitations remain,
+* what evidence supports the release,
+* and what compatibility expectations now exist.
+
+Release is therefore another engineering transition rather than merely a packaging action.
+
+---
+
+## 10 — Observe and evolve
+
+Software begins producing new evidence once people use it.
+
+That evidence returns to the beginning of the lifecycle.
+
+```text
+release
+   ↓
+observe
+   ↓
+discover
+   ↓
+reconsider
+   ↓
+change
+   ↓
+verify
+   ↓
+release
+```
+
+A mature Monad project is therefore not expected to reach a final frozen architecture.
+
+It should become better at **controlled evolution**.
+
+---
+
+## Work is organized at several scales
+
+Not every engineering activity belongs at the same level.
+
+Monad uses multiple levels of planning and execution so that strategic intent can remain connected to concrete work.
+
+A conceptual hierarchy looks like this:
+
+```text
+Project
+  │
+  ├── Domains
+  │
+  ├── Milestones
+  │
+  ├── Epics
+  │
+  ├── Features
+  │
+  ├── Work Packages
+  │
+  └── Tasks
+```
+
+Each level answers a different question.
+
+---
+
+## Domains
+
+A domain represents a durable area of engineering responsibility.
+
+Domains should survive individual milestones and implementation cycles.
+
+Examples may include concerns such as:
+
+* semantic modeling,
+* execution,
+* governance,
+* policy,
+* provenance,
+* developer experience,
+* AI integration,
+* verification,
+* release,
+* and repository infrastructure.
+
+Domains help answer:
+
+> **Which part of the system does this work belong to?**
+
+They are organizational boundaries, not arbitrary folders.
+
+---
+
+## Milestones
+
+Milestones describe meaningful program outcomes.
+
+A milestone should represent something more substantial than a convenient batch of issues.
+
+It should answer:
+
+> **What new state should the project reach?**
+
+A milestone may establish:
+
+* a foundational architecture,
+* an implementable specification set,
+* a working vertical slice,
+* a verification capability,
+* a release candidate,
+* or another meaningful project transition.
+
+---
+
+## Epics
+
+Epics represent significant capabilities or coherent bodies of work.
+
+They connect program-level outcomes to concrete product or engineering capabilities.
+
+An epic should generally be large enough to matter but coherent enough that its purpose can be stated clearly.
+
+It answers:
+
+> **What significant capability are we establishing?**
+
+---
+
+## Features
+
+Features decompose epics into independently understandable behavior.
+
+They describe capabilities that a human, tool, subsystem, or agent can meaningfully use or observe.
+
+Features help bridge architecture and execution.
+
+---
+
+## Work Packages
+
+Work Packages are bounded units of engineering delivery.
+
+A good work package should have:
+
+* explicit scope,
+* known inputs,
+* expected outputs,
+* acceptance criteria,
+* relevant specifications,
+* dependencies,
+* authority,
+* and a clear Definition of Done.
+
+A Work Package should be small enough to execute coherently but large enough to produce a meaningful result.
+
+---
+
+## Tasks
+
+Tasks are concrete actions required to complete a Work Package.
+
+They may include:
+
+* implementation,
+* testing,
+* investigation,
+* migration,
+* documentation,
+* review,
+* validation,
+* experimentation,
+* or infrastructure work.
+
+Tasks are where planning becomes execution.
+
+---
+
+## From idea to evidence
+
+The hierarchy alone is not the important part.
+
+The important part is the chain of reasoning that connects it.
+
+A well-formed slice of the project might eventually look like:
+
+```text
+Problem
+   │
+   ▼
+Goal
+   │
+   ▼
+Requirement
+   │
+   ▼
+Epic
+   │
+   ▼
+Feature
+   │
+   ▼
+Specification
+   │
+   ▼
+Work Package
+   │
+   ▼
+Implementation
+   │
+   ▼
+Verification
+   │
+   ▼
+Evidence
+   │
+   ▼
+Release
+```
+
+Not every piece of work requires every possible artifact.
+
+The goal is not maximum paperwork.
+
+The goal is enough structure to answer:
+
+> **Why does this implementation exist, and how do we know it is correct?**
+
+---
+
+## Decisions have a lifecycle too
+
+Architectural and engineering decisions should not appear from nowhere.
+
+A healthy decision process often resembles:
+
+```text
+question
+   ↓
+alternatives
+   ↓
+analysis
+   ↓
+evidence
+   ↓
+decision
+   ↓
+consequences
+   ↓
+observation
+```
+
+Some decisions eventually become ADRs.
+
+Others may remain localized decisions.
+
+Some may be superseded.
+
+Some may be reversed when new evidence appears.
+
+A decision record is therefore not proof that a subject is permanently settled.
+
+It is evidence that:
+
+> Given what we knew at this point, this was the deliberate direction and this was why.
+
+That distinction is important to the project history.
+
+---
+
+## Project truth changes over time
+
+Different parts of Monad may exist at different maturity levels.
+
+A concept may be:
+
+| State           | Meaning                                                          |
+| --------------- | ---------------------------------------------------------------- |
+| **Question**    | The project does not yet know the answer.                        |
+| **Hypothesis**  | A possible answer is being investigated.                         |
+| **Proposed**    | A concrete direction has been suggested.                         |
+| **Decided**     | The project has deliberately selected a direction.               |
+| **Specified**   | The decision has been translated into an implementable contract. |
+| **Implemented** | Working software exists.                                         |
+| **Verified**    | Evidence supports the implementation's correctness.              |
+| **Released**    | The capability is part of a supported project state.             |
+| **Superseded**  | A later understanding has replaced it.                           |
+
+This is one reason the site separates [Building Monad](/docs/building-monad), [System](/docs/system), and [Artifacts](/docs/artifacts).
+
+A historical statement may be completely accurate about what the project believed at one point without being authoritative today.
+
+---
+
+## The project is designed for correction
+
+A project attempting something new will be wrong repeatedly.
+
+That is expected.
+
+The important question is whether the project can correct itself without losing its history.
+
+Monad should be able to say:
+
+> We believed this.
+
+Then:
+
+> This evidence challenged that belief.
+
+Then:
+
+> We changed the model.
+
+Then:
+
+> These artifacts and implementations were affected.
+
+Then:
+
+> This is the new authoritative state.
+
+That is a healthier engineering system than one that quietly rewrites its documentation until the final architecture appears inevitable.
+
+---
+
+## Dogfooding
+
+Monad is intentionally one of the first systems on which Monad's own ideas are tested.
+
+That means the project itself provides test cases for:
+
+* engineering knowledge,
+* semantic relationships,
+* provenance,
+* authority,
+* lifecycle,
+* governance,
+* AI-assisted work,
+* traceability,
+* evidence,
+* and system evolution.
+
+This creates an important feedback loop:
+
+```text
+Monad principles
+      ↓
+govern Monad development
+      ↓
+development exposes weaknesses
+      ↓
+weaknesses challenge principles
+      ↓
+principles evolve
+```
+
+Self-application alone is not enough to prove that the system generalizes.
+
+But failure to improve Monad's own development would be meaningful evidence against the approach.
+
+---
+
+## Native engineering systems remain part of the project
+
+Monad does not assume that engineering should occur inside one proprietary environment.
+
+The project works alongside existing systems such as:
+
+* Git,
+* GitHub,
+* source files,
+* compilers,
+* package managers,
+* build tools,
+* CI/CD systems,
+* databases,
+* deployment systems,
+* observability platforms,
+* and external documentation.
+
+The objective is not to pretend those systems do not exist.
+
+The objective is to preserve more of the meaning connecting them.
+
+---
+
+## Human and AI engineering
+
+AI is treated as an engineering participant rather than merely a code generator.
+
+That creates several distinct concerns.
+
+An AI system may need to:
+
+* inspect the current system state,
+* understand requirements,
+* locate authoritative information,
+* determine dependencies,
+* propose changes,
+* execute bounded work,
+* produce evidence,
+* explain its reasoning at the artifact level,
+* and request authority when its permitted scope is insufficient.
+
+The project therefore distinguishes **capability** from **authority**.
+
+An agent being technically capable of modifying something does not imply that it should be permitted to modify it.
+
+That distinction becomes increasingly important as engineering agents become more capable.
+
+---
+
+## Authority matters
+
+Different kinds of work require different levels of authority.
+
+A task may be safe to automate completely.
+
+Another may require review.
+
+Another may require an explicit architectural decision.
+
+Another may be prohibited because it violates a system invariant or policy.
+
+Monad therefore treats governance as part of engineering architecture rather than solely as organizational procedure.
+
+Ideally, the system should make it possible to answer:
+
+```text
+Who may perform this operation?
+Why are they allowed to perform it?
+Under what constraints?
+What evidence must they produce?
+Who must approve the result?
+What happens if the operation fails?
+```
+
+These questions apply to both humans and machines.
+
+---
+
+## Evidence over ceremony
+
+The engineering process should remain rigorous without becoming performative.
+
+Artifacts exist because they preserve useful knowledge.
+
+Reviews exist because independent scrutiny improves outcomes.
+
+Specifications exist because ambiguity is expensive.
+
+Tests exist because claims need evidence.
+
+Governance exists because capability without appropriate authority creates risk.
+
+If a process step cannot explain what engineering value it provides, it should be challenged.
+
+The objective is not process compliance.
+
+The objective is **trustworthy engineering**.
+
+---
+
+## The public project record
+
+Monad exposes different perspectives on the work.
+
+<Cards>
+  <Card
+    title="Building Monad"
+    href="/docs/building-monad"
+  >
+    Follow the chronological narrative: questions, experiments, discoveries, failures, decisions, and progress.
+  </Card>
+
+<Card
+title="System"
+href="/docs/system"
+
+>
+
+Read the current authoritative explanation of Monad's concepts and architecture.
+
+  </Card>
+
+<Card
+title="Artifacts"
+href="/docs/artifacts"
+
+>
+
+Inspect requirements, specifications, decisions, experiments, evidence, reviews, and verification records.
+
+  </Card>
+
+<Card
+title="About Monad"
+href="/docs/about"
+
+>
+
+Understand the project's purpose, boundaries, principles, and long-term direction.
+
+  </Card>
+</Cards>
+
+---
+
+## How to inspect the project
+
+There are several useful ways to approach Monad depending on what you want to know.
+
+### I want to know why this project exists
+
+Start with [About Monad](/docs/about).
+
+### I want to see how the ideas evolved
+
+Go to [Building Monad](/docs/building-monad).
+
+### I want the current technical explanation
+
+Go to [System](/docs/system).
+
+### I want the underlying engineering records
+
+Go to [Artifacts](/docs/artifacts).
+
+### I want to inspect the implementation itself
+
+Use the source repositories.
+
+<div className="not-prose mt-6">
+  <a
+    href="https://github.com/monad-framework"
+    target="_blank"
+    rel="noreferrer noopener"
+    className="inline-flex items-center rounded-lg border border-fd-border px-4 py-2 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
+  >
+    View Monad on GitHub →
+  </a>
+</div>
+
+---
+
+## The project is intentionally unfinished
+
+Monad should never require readers to pretend that uncertainty does not exist.
+
+At any given moment there will be:
+
+* unresolved questions,
+* competing hypotheses,
+* provisional architecture,
+* incomplete specifications,
+* experimental implementations,
+* known deficiencies,
+* and ideas awaiting evidence.
+
+That is not a documentation defect.
+
+It is an accurate representation of an active engineering project.
+
+The important distinction is knowing **which things are uncertain and which things are authoritative**.
+
+---
+
+## What success looks like
+
+The project succeeds only if Monad produces practical engineering value.
+
+Success is not merely:
+
+* creating an elegant conceptual model,
+* building a large graph,
+* producing extensive documentation,
+* adding AI features,
+* or automating more tasks.
+
+The project must eventually demonstrate that engineers and engineering systems can use Monad to do things materially better.
+
+That might mean:
+
+* recovering context faster,
+* understanding unfamiliar systems more accurately,
+* preserving engineering intent across time,
+* reducing undocumented assumptions,
+* identifying change impact more reliably,
+* improving AI engineering performance,
+* enforcing architectural constraints,
+* producing stronger provenance,
+* making automated changes safer,
+* improving reproducibility,
+* or reducing the cost of maintaining complex systems.
+
+Those outcomes must ultimately be demonstrated, not merely asserted.
+
+---
+
+## The project can fail
+
+A serious engineering program needs meaningful falsification conditions.
+
+Monad should be reconsidered if evidence shows that:
+
+* simpler systems deliver equivalent value,
+* richer semantic structures impose excessive maintenance cost,
+* explicit metadata cannot remain current,
+* automated inference is consistently sufficient,
+* governance creates more friction than safety,
+* the model fails to generalize outside Monad itself,
+* or the proposed architecture does not materially improve engineering outcomes.
+
+Failure of a hypothesis is not failure of the engineering process.
+
+Discovering that a complicated solution is unnecessary would itself be useful knowledge.
+
+---
+
+## The governing principle
+
+The project can be summarized by one rule:
+
+> **Preserve enough meaning that important engineering decisions, states, and changes can be understood rather than reconstructed from fragments.**
+
+Everything else should justify itself against that objective.
+
+The graphs.
+
+The schemas.
+
+The artifacts.
+
+The workflows.
+
+The automation.
+
+The AI integrations.
+
+The governance.
+
+Even Monad itself.
+
+If something does not contribute meaningful engineering value, it should be reconsidered.
+
+---
+
+## Continue exploring
+
+The Project section explains how the work is organized.
+
+From here, choose the layer you want to inspect.
+
+<Cards>
+  <Card
+    title="Follow the build"
+    href="/docs/building-monad"
+  >
+    See the project evolve through its public engineering narrative.
+  </Card>
+
+<Card
+title="Explore the system"
+href="/docs/system"
+
+>
+
+Understand the architecture and concepts that currently define Monad.
+
+  </Card>
+
+<Card
+title="Inspect the artifacts"
+href="/docs/artifacts"
+
+>
+
+Examine the records connecting intent, decisions, specifications, implementation, and evidence.
+
+  </Card>
+
+<Card
+title="About Monad"
+href="/docs/about"
+
+>
+
+Return to the project's purpose, principles, boundaries, and long-term direction.
+
+  </Card>
+</Cards>

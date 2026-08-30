@@ -1,0 +1,3156 @@
+---
+title: Verification Requirements
+description: The requirements governing how Monad evaluates explicit engineering expectations against observed system state, records verification results, preserves supporting evidence, and distinguishes verified state from execution, approval, review, and assumption.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-VFY
+  </p>
+</div>
+
+# Verification Requirements
+
+Engineering systems routinely claim that something is correct.
+
+A Requirement is satisfied.
+
+An interface conforms to its Specification.
+
+A migration preserved the required state.
+
+A policy behaved correctly.
+
+A release is ready.
+
+A generated artifact matches its source.
+
+An implementation preserves an invariant.
+
+A deployment succeeded.
+
+An AI-produced change is acceptable.
+
+But correctness cannot be established merely by:
+
+* implementation existing,
+* execution succeeding,
+* a build being green,
+* a reviewer approving,
+* an agent expressing confidence,
+* or a dashboard showing a favorable status.
+
+Monad should make the verification relationship explicit:
+
+```text id="3l2jyq"
+Expectation
+    ↓
+Verification Method
+    ↓
+Execution / Inspection
+    ↓
+Observation
+    ↓
+Evidence
+    ↓
+Verification Result
+```
+
+Verification exists to answer:
+
+> **Did the observed system satisfy the explicit expectation within the scope actually examined?**
+
+<Callout type="info" title="Verification is scoped">
+A passed verification result establishes satisfaction only for the expectation, revision, environment, inputs, assumptions, and conditions actually evaluated. It does not establish universal correctness.
+</Callout>
+
+---
+
+# Requirement family scope
+
+The `REQ-VFY-*` family governs verification of:
+
+* Requirements,
+* Specifications,
+* invariants,
+* implementations,
+* interfaces,
+* schemas,
+* policies,
+* migrations,
+* integrations,
+* reconciliation,
+* releases,
+* generated artifacts,
+* projections,
+* runtime behavior,
+* security properties,
+* compatibility commitments,
+* performance commitments,
+* AI-generated outputs,
+* and other explicit engineering Claims.
+
+These requirements govern the semantics and lifecycle of verification.
+
+They do not prescribe one testing framework, CI provider, programming language, or execution environment.
+
+---
+
+# Foundational verification requirements
+
+## REQ-VFY-001 — Monad MUST distinguish verification from implementation
+
+Implementation answers:
+
+> What was built?
+
+Verification answers:
+
+> Does what was built satisfy the explicit expectation?
+
+The existence of implementation MUST NOT automatically imply verification.
+
+---
+
+## REQ-VFY-002 — Monad MUST distinguish verification from execution
+
+Successful execution establishes that an operation completed according to some execution semantics.
+
+It does not necessarily establish that the resulting state is correct.
+
+For example:
+
+```text id="pq7u38"
+Execution:
+  database migration exited with status 0
+
+Verification:
+  all expected records remain present
+  schema matches required structure
+  application reads migrated records correctly
+```
+
+These are different Claims.
+
+---
+
+## REQ-VFY-003 — Monad MUST distinguish verification from Evidence
+
+Verification evaluates an expectation.
+
+Evidence is the inspectable information used to support that evaluation.
+
+---
+
+## REQ-VFY-004 — Monad MUST distinguish verification from approval
+
+A state may be:
+
+```text id="akd3vf"
+verified but not approved
+```
+
+or:
+
+```text id="pze8dg"
+approved despite incomplete verification under an explicit exception
+```
+
+Those states MUST remain distinguishable.
+
+---
+
+## REQ-VFY-005 — Monad MUST distinguish verification from review
+
+Review is structured examination.
+
+Verification evaluates an explicit expectation against defined criteria.
+
+A review MAY function as a verification method when that relationship is explicit.
+
+---
+
+## REQ-VFY-006 — Monad MUST distinguish verification from confidence
+
+A human or AI actor may be highly confident that something is correct.
+
+Confidence is not itself a verification result.
+
+---
+
+## REQ-VFY-007 — Verification MUST evaluate an identifiable expectation
+
+A verification activity SHOULD answer something more precise than:
+
+```text id="77sfsc"
+Does this look okay?
+```
+
+The expectation MAY originate from:
+
+* Requirement,
+* Specification,
+* invariant,
+* policy,
+* interface contract,
+* migration plan,
+* release criterion,
+* acceptance criterion,
+* architecture constraint,
+* or another explicit Claim.
+
+---
+
+# Verification identity
+
+## REQ-VFY-008 — Consequential verification activities SHOULD have stable identity
+
+Verification that participates in:
+
+* Requirement satisfaction,
+* release readiness,
+* governance,
+* auditability,
+* migration acceptance,
+* architecture conformance,
+* or historical assurance
+
+SHOULD be independently identifiable.
+
+---
+
+## REQ-VFY-009 — Verification identity SHOULD remain distinct from verification runs
+
+One verification definition may execute multiple times.
+
+Conceptually:
+
+```text id="yefqff"
+Verification Method
+  ├── Run 1
+  ├── Run 2
+  ├── Run 3
+  └── Run 4
+```
+
+The method and individual executions SHOULD remain distinguishable.
+
+---
+
+## REQ-VFY-010 — Verification identity MUST NOT depend solely on file location
+
+Moving a verification definition SHOULD NOT automatically create a new semantic Verification if its engineering identity remains unchanged.
+
+---
+
+## REQ-VFY-011 — Verification results SHOULD identify the verification method that produced them
+
+---
+
+# Verification expectations
+
+## REQ-VFY-012 — Verification expectations SHOULD be explicit before consequential evaluation
+
+Where practical, the expected condition SHOULD be known before observing the result.
+
+This reduces post hoc reinterpretation.
+
+---
+
+## REQ-VFY-013 — Verification expectations SHOULD be implementation-independent where the underlying Requirement is implementation-independent
+
+For example:
+
+```text id="13xksh"
+Requirement:
+  semantic identity survives representation rename
+```
+
+should not become:
+
+```text id="64o6bc"
+Verification:
+  internal function renameSubject() returns true
+```
+
+unless that internal function is itself the contractual behavior.
+
+---
+
+## REQ-VFY-014 — Verification expectations SHOULD identify success criteria
+
+A method SHOULD make it possible to determine what constitutes:
+
+* pass,
+* fail,
+* incomplete,
+* blocked,
+* inconclusive,
+* or another defined outcome.
+
+---
+
+## REQ-VFY-015 — Verification expectations SHOULD identify material failure conditions
+
+---
+
+## REQ-VFY-016 — Verification expectations SHOULD expose assumptions that materially affect interpretation
+
+---
+
+# Requirement verifiability
+
+## REQ-VFY-017 — Accepted Requirements SHOULD be verifiable where the Requirement represents observable behavior or state
+
+A Requirement that cannot plausibly be verified SHOULD be challenged for ambiguity or incorrect abstraction.
+
+---
+
+## REQ-VFY-018 — Verification strategy SHOULD be considered during Requirement definition
+
+Verification SHOULD NOT be deferred until after implementation if doing so would expose that the Requirement is not measurable or testable.
+
+---
+
+## REQ-VFY-019 — Requirements MAY define acceptance criteria separately from the verification mechanism
+
+For example:
+
+```text id="l5r43j"
+Requirement:
+  identity survives representation rename
+
+Acceptance criterion:
+  rename does not produce a new Subject identity
+
+Verification method:
+  integration test
+```
+
+---
+
+## REQ-VFY-020 — A Requirement MUST NOT be marked satisfied solely because implementation work is complete
+
+---
+
+# Specification conformance
+
+## REQ-VFY-021 — Specifications SHOULD define verifiable normative behavior
+
+Normative clauses SHOULD be expressible as conditions that can be inspected, tested, reviewed, reasoned about, or otherwise evaluated.
+
+---
+
+## REQ-VFY-022 — Verification SHOULD identify the Specification revision being evaluated
+
+---
+
+## REQ-VFY-023 — Conformance with one Specification revision MUST NOT automatically imply conformance with a later revision
+
+---
+
+## REQ-VFY-024 — Clause-level verification SHOULD be supported where Specification complexity warrants it
+
+---
+
+## REQ-VFY-025 — Verification SHOULD identify unverified normative clauses where completeness matters
+
+A report stating:
+
+```text id="80n1z5"
+92 of 100 normative clauses verified
+```
+
+is preferable to:
+
+```text id="ad9nvr"
+Specification verified
+```
+
+when eight clauses were never evaluated.
+
+---
+
+# Verification scope
+
+## REQ-VFY-026 — Every consequential verification result SHOULD have identifiable scope
+
+Relevant scope MAY include:
+
+* Subject,
+* Requirement,
+* Specification,
+* revision,
+* implementation,
+* platform,
+* operating system,
+* runtime,
+* environment,
+* configuration,
+* dataset,
+* dependency set,
+* input,
+* actor,
+* external service,
+* policy version,
+* model version,
+* time,
+* workload,
+* risk class.
+
+---
+
+## REQ-VFY-027 — Verification results MUST NOT silently generalize beyond their evaluated scope
+
+Example:
+
+```text id="d4h8j8"
+Verified:
+  Linux x86_64
+
+Not established:
+  macOS arm64
+  Windows x86_64
+```
+
+---
+
+## REQ-VFY-028 — Verification SHOULD expose exclusions
+
+If a verification intentionally excludes:
+
+* platforms,
+* cases,
+* datasets,
+* interfaces,
+* components,
+* failure modes,
+* or environments,
+
+those exclusions SHOULD be discoverable.
+
+---
+
+## REQ-VFY-029 — Sampling MUST remain distinguishable from exhaustive verification
+
+---
+
+## REQ-VFY-030 — Partial coverage MUST NOT masquerade as complete verification
+
+---
+
+# Verification revision binding
+
+## REQ-VFY-031 — Verification results SHOULD bind to the exact revision evaluated where practical
+
+Examples include:
+
+* commit,
+* content digest,
+* release artifact,
+* schema version,
+* container image,
+* package version,
+* configuration revision,
+* model version.
+
+---
+
+## REQ-VFY-032 — Moving references SHOULD resolve to immutable revisions when possible
+
+Example:
+
+```text id="dc4j8c"
+requested_ref: main
+resolved_commit: 81d91ef
+```
+
+---
+
+## REQ-VFY-033 — A verification pass against revision A MUST NOT automatically establish revision B as verified
+
+---
+
+## REQ-VFY-034 — Verification state SHOULD become stale or uncertain when relevant dependencies change
+
+---
+
+# Verification methods
+
+## REQ-VFY-035 — Monad SHOULD support multiple verification methods
+
+Methods MAY include:
+
+* unit testing,
+* integration testing,
+* end-to-end testing,
+* contract testing,
+* property-based testing,
+* invariant checking,
+* static analysis,
+* schema validation,
+* model checking,
+* architecture conformance,
+* policy evaluation,
+* manual inspection,
+* expert review,
+* security testing,
+* penetration testing,
+* benchmark comparison,
+* migration rehearsal,
+* reconciliation,
+* runtime observation,
+* formal proof,
+* simulation,
+* reproducibility checks,
+* generated fixture comparison.
+
+---
+
+## REQ-VFY-036 — Verification method SHOULD be appropriate to the expectation
+
+A method that cannot meaningfully observe the relevant property SHOULD NOT be treated as sufficient verification.
+
+---
+
+## REQ-VFY-037 — Multiple methods MAY verify the same expectation
+
+This can provide stronger assurance when methods fail differently.
+
+---
+
+## REQ-VFY-038 — Equivalent methods MAY satisfy the same verification obligation when explicitly permitted
+
+---
+
+## REQ-VFY-039 — Verification method choice SHOULD be proportional to consequence and uncertainty
+
+---
+
+# Automated verification
+
+## REQ-VFY-040 — Repeatable mechanical verification SHOULD be automated where practical
+
+Examples include:
+
+* schema validation,
+* compiler checks,
+* unit tests,
+* deterministic contract tests,
+* dependency checks,
+* invariant checks.
+
+---
+
+## REQ-VFY-041 — Automated verification SHOULD produce inspectable Evidence
+
+---
+
+## REQ-VFY-042 — Automated verification SHOULD expose tool and environment provenance where material
+
+---
+
+## REQ-VFY-043 — Automated verification failures SHOULD preserve enough context for diagnosis
+
+---
+
+## REQ-VFY-044 — Automation MUST NOT imply completeness
+
+A fully automated suite can still fail to verify important properties.
+
+---
+
+# Manual verification
+
+## REQ-VFY-045 — Manual verification MAY be used where human judgment is necessary
+
+Examples include:
+
+* architecture quality,
+* usability,
+* visual correctness,
+* conceptual coherence,
+* ambiguous migration outcomes,
+* security reasoning,
+* operational readiness.
+
+---
+
+## REQ-VFY-046 — Manual verification SHOULD identify the evaluator
+
+---
+
+## REQ-VFY-047 — Manual verification SHOULD preserve the criteria used
+
+---
+
+## REQ-VFY-048 — Manual verification SHOULD produce inspectable findings or Evidence where consequential
+
+---
+
+## REQ-VFY-049 — Human judgment MUST NOT automatically imply authority to approve
+
+The same person MAY perform both roles.
+
+The roles remain conceptually separate.
+
+---
+
+# Hybrid verification
+
+## REQ-VFY-050 — Verification MAY combine automated and human methods
+
+Example:
+
+```text id="69o42z"
+Automated:
+  all schema migrations preserve row count
+
+Human:
+  migrated semantic meaning remains correct
+```
+
+---
+
+## REQ-VFY-051 — Hybrid verification SHOULD preserve which conclusions came from which method
+
+---
+
+# Verification result semantics
+
+## REQ-VFY-052 — Verification results MUST support more than binary success where reality requires it
+
+A conceptual vocabulary MAY include:
+
+```text id="7aorh5"
+pass
+fail
+incomplete
+blocked
+inconclusive
+conditional
+superseded
+```
+
+The final vocabulary belongs in the relevant Specification.
+
+---
+
+## REQ-VFY-053 — Incomplete MUST remain distinct from pass
+
+---
+
+## REQ-VFY-054 — Blocked MUST remain distinct from fail
+
+For example:
+
+```text id="5rb4yi"
+blocked:
+  required external service unavailable
+```
+
+does not necessarily mean:
+
+```text id="uvscmg"
+requirement violated
+```
+
+---
+
+## REQ-VFY-055 — Inconclusive MUST remain distinct from pass and fail
+
+---
+
+## REQ-VFY-056 — Conditional passes SHOULD expose their conditions
+
+---
+
+## REQ-VFY-057 — Verification outcomes MUST preserve uncertainty where uncertainty exists
+
+---
+
+# Verification evidence
+
+## REQ-VFY-058 — Consequential verification results SHOULD link to supporting Evidence
+
+---
+
+## REQ-VFY-059 — A passed result SHOULD identify the Evidence that justified the pass
+
+---
+
+## REQ-VFY-060 — A failed result SHOULD identify the Evidence that justified the failure
+
+---
+
+## REQ-VFY-061 — Missing required Evidence SHOULD prevent an unconditional pass
+
+---
+
+## REQ-VFY-062 — Evidence SHOULD remain inspectable independently of aggregate verification status where practical
+
+---
+
+## REQ-VFY-063 — Verification SHOULD preserve contradictory Evidence
+
+---
+
+# Verification provenance
+
+## REQ-VFY-064 — Verification SHOULD preserve who or what performed the evaluation
+
+---
+
+## REQ-VFY-065 — Verification SHOULD preserve relevant tool identity and version
+
+---
+
+## REQ-VFY-066 — Verification SHOULD preserve relevant environment information
+
+---
+
+## REQ-VFY-067 — Verification SHOULD preserve relevant input or fixture identity
+
+---
+
+## REQ-VFY-068 — Verification SHOULD preserve when evaluation occurred
+
+---
+
+## REQ-VFY-069 — Verification SHOULD preserve relevant configuration
+
+---
+
+# Verification freshness
+
+## REQ-VFY-070 — Verification state SHOULD support freshness evaluation
+
+A pass may become stale after relevant changes.
+
+---
+
+## REQ-VFY-071 — Freshness SHOULD depend on meaningful change rather than elapsed time alone where practical
+
+A verification may remain current for months if nothing relevant changes.
+
+Another may become stale seconds later because a dependency changes.
+
+---
+
+## REQ-VFY-072 — Monad SHOULD support dependency-aware verification invalidation where reliable dependency information exists
+
+---
+
+## REQ-VFY-073 — Historical verification results MUST remain inspectable after becoming stale
+
+---
+
+## REQ-VFY-074 — A stale pass MUST NOT silently appear as a current pass
+
+---
+
+# Selective verification
+
+## REQ-VFY-075 — Monad MAY support selective verification based on impact analysis
+
+For example:
+
+```text id="d4pqk1"
+changed:
+  parser
+
+affected:
+  parser tests
+  schema validation
+  serialization compatibility
+
+unaffected:
+  website typography tests
+```
+
+---
+
+## REQ-VFY-076 — Selective verification MUST depend on trustworthy impact information
+
+---
+
+## REQ-VFY-077 — Uncertain impact SHOULD bias toward broader verification where consequence warrants it
+
+---
+
+## REQ-VFY-078 — Selective verification decisions SHOULD be inspectable
+
+A skipped verification SHOULD be explainable.
+
+---
+
+# Reverification
+
+## REQ-VFY-079 — Relevant changes SHOULD trigger reverification where prior assurance may no longer apply
+
+---
+
+## REQ-VFY-080 — Reverification SHOULD create a new result rather than rewriting historical results
+
+---
+
+## REQ-VFY-081 — Monad SHOULD support identifying what triggered reverification
+
+Examples:
+
+* implementation change,
+* dependency update,
+* Specification revision,
+* policy change,
+* environment change,
+* discovered defect,
+* Evidence invalidation.
+
+---
+
+# Verification and execution
+
+## REQ-VFY-082 — Post-execution verification SHOULD be supported for state-changing operations
+
+---
+
+## REQ-VFY-083 — A successful operation followed by failed verification SHOULD result in explicit changed-but-unverified state
+
+Example:
+
+```text id="vlhavz"
+execution: success
+verification: fail
+state: changed-but-unverified
+```
+
+The system MUST NOT collapse this into ordinary success.
+
+---
+
+## REQ-VFY-084 — Partial execution SHOULD permit partial verification
+
+---
+
+## REQ-VFY-085 — Rollback or compensation SHOULD itself be verifiable
+
+---
+
+## REQ-VFY-086 — Verification SHOULD distinguish intended postconditions from observed postconditions
+
+---
+
+# Verification and reconciliation
+
+## REQ-VFY-087 — Reconciliation MUST remain distinct from verification
+
+Reconciliation answers:
+
+> Do two representations or systems agree?
+
+Verification answers:
+
+> Does the relevant state satisfy the explicit expectation?
+
+Two systems may agree and both be wrong.
+
+---
+
+## REQ-VFY-088 — Reconciliation MAY serve as a verification method when agreement itself is the expected property
+
+---
+
+## REQ-VFY-089 — Reconciliation results SHOULD preserve the compared states
+
+---
+
+## REQ-VFY-090 — Reconciliation success MUST NOT automatically establish semantic correctness
+
+---
+
+# Verification and Requirements
+
+## REQ-VFY-091 — Requirements SHOULD be traceable to verification methods
+
+---
+
+## REQ-VFY-092 — Verification results SHOULD be traceable back to Requirements where applicable
+
+---
+
+## REQ-VFY-093 — Requirement satisfaction SHOULD expose unresolved or unverified acceptance criteria
+
+---
+
+## REQ-VFY-094 — A Requirement MAY require multiple independent verification methods
+
+---
+
+## REQ-VFY-095 — Requirement satisfaction status SHOULD be derived from explicit verification semantics rather than arbitrary UI convention
+
+---
+
+# Verification and Specifications
+
+## REQ-VFY-096 — Specifications SHOULD define observable invariants and contracts where possible
+
+---
+
+## REQ-VFY-097 — Verification SHOULD evaluate normative behavior rather than explanatory prose unless the prose itself is authoritative
+
+---
+
+## REQ-VFY-098 — Specification ambiguity discovered during verification SHOULD become an explicit engineering finding
+
+Verification MUST NOT silently invent missing contract semantics.
+
+---
+
+# Verification and schemas
+
+## REQ-VFY-099 — Schema validation MUST remain distinct from semantic verification
+
+A document can be structurally valid while semantically wrong.
+
+---
+
+## REQ-VFY-100 — Schema conformance MAY satisfy structural verification obligations
+
+---
+
+## REQ-VFY-101 — Additional domain validation SHOULD be supported when structural validation is insufficient
+
+---
+
+# Verification and models
+
+## REQ-VFY-102 — Model invariants SHOULD be verifiable where practical
+
+Examples include:
+
+```text id="58ibv1"
+A Representation refers to one Subject identity.
+
+An accepted authority binding has a defined scope.
+
+A superseded record does not become current merely because it is newer on disk.
+```
+
+---
+
+## REQ-VFY-103 — Verification SHOULD be capable of detecting model violations even when native representations remain syntactically valid
+
+---
+
+# Verification and policy
+
+## REQ-VFY-104 — Policy behavior SHOULD be verifiable independently from policy presence
+
+The existence of a policy document does not establish that enforcement works.
+
+---
+
+## REQ-VFY-105 — Policies MAY create verification obligations
+
+Example:
+
+```text id="l6bg2b"
+Before production release:
+  security controls MUST be verified.
+```
+
+---
+
+## REQ-VFY-106 — Policy verification SHOULD bind to the policy revision evaluated
+
+---
+
+## REQ-VFY-107 — Enforcement mechanisms SHOULD be verified against both permit and deny cases where relevant
+
+---
+
+# Verification and authority
+
+## REQ-VFY-108 — Verification capability MUST remain distinct from authority
+
+An actor may be capable of running verification without having authority to:
+
+* accept the result,
+* approve release,
+* waive failure,
+* change policy,
+* or alter the Requirement.
+
+---
+
+## REQ-VFY-109 — Verification results SHOULD NOT depend solely on actor authority
+
+An authoritative actor can still be wrong.
+
+---
+
+## REQ-VFY-110 — Authority MAY determine which verification methods are acceptable within a governed scope
+
+---
+
+# Verification and approval
+
+## REQ-VFY-111 — Approval SHOULD reference verification state where policy requires it
+
+---
+
+## REQ-VFY-112 — Approval MUST NOT rewrite failed verification into passed verification
+
+---
+
+## REQ-VFY-113 — Approving despite failed or incomplete verification SHOULD require an explicit exception where governance permits it
+
+---
+
+## REQ-VFY-114 — Exceptions SHOULD preserve the underlying verification result
+
+Example:
+
+```text id="n7dv31"
+verification: fail
+exception: accepted-risk
+approval: granted
+```
+
+NOT:
+
+```text id="jrnzcs"
+verification: pass
+```
+
+---
+
+# Verification and review
+
+## REQ-VFY-115 — Review findings MAY trigger verification
+
+Example:
+
+```text id="ovtwj8"
+Review finding:
+  retry behavior may duplicate writes
+
+Verification:
+  failure-injection test verifies retry idempotency
+```
+
+---
+
+## REQ-VFY-116 — A review MAY satisfy a verification obligation when explicit review criteria map to the expectation
+
+---
+
+## REQ-VFY-117 — Review completion MUST NOT automatically imply verification completion
+
+---
+
+# Verification and decisions
+
+## REQ-VFY-118 — Decisions MAY establish new verification obligations
+
+For example:
+
+```text id="9rl7mx"
+Decision:
+  preserve local-first operation
+
+Verification obligation:
+  core inspection remains available with remote services unavailable
+```
+
+---
+
+## REQ-VFY-119 — Verification results MAY challenge accepted Decisions
+
+If implementation repeatedly cannot satisfy the Decision's consequences, the Decision itself may need reconsideration.
+
+---
+
+# Verification and experiments
+
+## REQ-VFY-120 — Verification MUST remain distinct from experiment
+
+An experiment asks:
+
+> Is this proposition supported under investigation?
+
+Verification asks:
+
+> Does the system satisfy an established expectation?
+
+---
+
+## REQ-VFY-121 — Experimental methods MAY later become verification methods after the expectation becomes established
+
+---
+
+## REQ-VFY-122 — Experimental uncertainty SHOULD NOT be rewritten as verification certainty
+
+---
+
+# Verification and releases
+
+## REQ-VFY-123 — Release readiness SHOULD be based on explicit verification obligations
+
+---
+
+## REQ-VFY-124 — Release verification SHOULD bind to the exact release artifact or revision
+
+---
+
+## REQ-VFY-125 — Release verification SHOULD expose incomplete obligations
+
+---
+
+## REQ-VFY-126 — Release verification SHOULD preserve the state known at release time
+
+Later results MUST NOT rewrite historical release assurance.
+
+---
+
+## REQ-VFY-127 — Release gates MAY require a complete Evidence bundle
+
+---
+
+## REQ-VFY-128 — A release exception SHOULD remain distinguishable from a verified release condition
+
+---
+
+# Migration verification
+
+## REQ-VFY-129 — State migrations SHOULD define post-migration verification
+
+Successful migration execution alone is insufficient.
+
+---
+
+## REQ-VFY-130 — Migration verification SHOULD evaluate preservation obligations where applicable
+
+Examples include:
+
+* record count,
+* identity preservation,
+* referential integrity,
+* semantic equivalence,
+* ordering,
+* permissions,
+* compatibility.
+
+---
+
+## REQ-VFY-131 — Migration verification SHOULD evaluate rollback or recovery assumptions where consequence warrants it
+
+---
+
+## REQ-VFY-132 — Migration verification SHOULD preserve before-and-after Evidence
+
+---
+
+# Compatibility verification
+
+## REQ-VFY-133 — Compatibility Claims SHOULD define the dimensions of compatibility
+
+Examples include:
+
+* wire format,
+* schema,
+* CLI,
+* API,
+* plugin,
+* storage,
+* configuration,
+* behavior,
+* platform.
+
+---
+
+## REQ-VFY-134 — Compatibility verification SHOULD test both expected compatibility and expected incompatibility where relevant
+
+---
+
+## REQ-VFY-135 — Version range Claims SHOULD be verified across meaningful boundary versions
+
+---
+
+# Interface verification
+
+## REQ-VFY-136 — Interface verification SHOULD evaluate contractual behavior
+
+This MAY include:
+
+* valid inputs,
+* invalid inputs,
+* outputs,
+* errors,
+* side effects,
+* ordering,
+* retries,
+* idempotency,
+* timeouts,
+* authorization,
+* compatibility.
+
+---
+
+## REQ-VFY-137 — Interface verification SHOULD include negative cases where failure semantics are contractual
+
+---
+
+## REQ-VFY-138 — Happy-path verification alone SHOULD NOT establish full interface conformance when error semantics matter
+
+---
+
+# Invariant verification
+
+## REQ-VFY-139 — Critical invariants SHOULD have explicit verification mechanisms where practical
+
+---
+
+## REQ-VFY-140 — Invariant verification SHOULD include attempts to violate the invariant where feasible
+
+Example:
+
+```text id="3yn90e"
+Invariant:
+  semantic Subject identity survives file rename
+
+Verification:
+  rename file
+  move directory
+  regenerate projection
+  verify Subject identity unchanged
+```
+
+---
+
+## REQ-VFY-141 — An invariant SHOULD NOT be treated as verified merely because no known violation has been observed
+
+---
+
+# Negative verification
+
+## REQ-VFY-142 — Negative Requirements SHOULD have explicit verification strategies
+
+Examples:
+
+```text id="fo2zcr"
+The system MUST NOT silently broaden authority.
+
+The system MUST NOT treat unknown as false.
+
+The system MUST NOT regenerate semantic identity from path alone.
+```
+
+---
+
+## REQ-VFY-143 — Verification SHOULD attempt prohibited behavior where safe and practical
+
+---
+
+## REQ-VFY-144 — Failure to observe prohibited behavior under weak testing MUST NOT establish universal absence
+
+---
+
+# Security verification
+
+## REQ-VFY-145 — Security requirements SHOULD be verified using methods appropriate to the threat model
+
+---
+
+## REQ-VFY-146 — Security verification SHOULD distinguish control presence from control effectiveness
+
+---
+
+## REQ-VFY-147 — Security verification SHOULD include negative or adversarial cases where appropriate
+
+---
+
+## REQ-VFY-148 — Sensitive verification Evidence SHOULD support restricted access
+
+---
+
+## REQ-VFY-149 — Security verification SHOULD preserve discovered vulnerabilities without exposing sensitive details beyond appropriate scope
+
+---
+
+# Performance verification
+
+## REQ-VFY-150 — Performance Claims SHOULD define measurable conditions
+
+Example:
+
+```text id="epcf5m"
+Under workload W,
+95th percentile query latency
+MUST remain below 100 ms.
+```
+
+---
+
+## REQ-VFY-151 — Performance verification SHOULD preserve workload and environment context
+
+---
+
+## REQ-VFY-152 — Benchmark results from materially different environments MUST NOT be treated as directly equivalent without qualification
+
+---
+
+## REQ-VFY-153 — Performance verification SHOULD support repeated measurements where variance matters
+
+---
+
+# Reliability verification
+
+## REQ-VFY-154 — Reliability requirements SHOULD define observable failure expectations
+
+---
+
+## REQ-VFY-155 — Reliability verification SHOULD include failure injection where consequence warrants it
+
+Examples include:
+
+* network loss,
+* timeout,
+* partial write,
+* process interruption,
+* dependency failure,
+* stale state,
+* conflicting update.
+
+---
+
+## REQ-VFY-156 — Recovery behavior SHOULD be verified independently from failure detection
+
+---
+
+# Reproducibility verification
+
+## REQ-VFY-157 — Reproducibility Claims SHOULD define what must reproduce
+
+Possibilities include:
+
+* source build,
+* generated artifacts,
+* dependency resolution,
+* schema generation,
+* environment,
+* test results,
+* release artifacts.
+
+---
+
+## REQ-VFY-158 — Reproducibility verification SHOULD preserve environmental differences
+
+---
+
+## REQ-VFY-159 — Reproduction SHOULD create new Evidence linked to the original Claim
+
+---
+
+# Generated artifact verification
+
+## REQ-VFY-160 — Generated artifacts SHOULD be verifiable against their authoritative source
+
+---
+
+## REQ-VFY-161 — Generated output MUST NOT automatically become authoritative because generation succeeded
+
+---
+
+## REQ-VFY-162 — Generated artifacts SHOULD expose stale-generation state where source changes invalidate them
+
+---
+
+## REQ-VFY-163 — Round-trip verification SHOULD be used where bidirectional transformation semantics require it
+
+---
+
+# Projection verification
+
+## REQ-VFY-164 — Derived projections SHOULD be verifiable against canonical source state
+
+---
+
+## REQ-VFY-165 — Projection correctness SHOULD distinguish:
+
+```text id="vsnkzu"
+fresh
+stale
+incorrect
+incomplete
+unavailable
+```
+
+where those distinctions matter.
+
+---
+
+## REQ-VFY-166 — A stale projection MUST NOT silently appear current
+
+---
+
+# Integration verification
+
+## REQ-VFY-167 — Integrations SHOULD verify native capability behavior at the boundary Monad depends on
+
+---
+
+## REQ-VFY-168 — Integration verification SHOULD include provider-specific failure semantics where material
+
+---
+
+## REQ-VFY-169 — Native permission success MUST NOT be treated as verification of Monad authority
+
+---
+
+## REQ-VFY-170 — Integration verification SHOULD distinguish native state from normalized Monad interpretation
+
+---
+
+# Local-first verification
+
+## REQ-VFY-171 — Local-first Claims SHOULD be directly verifiable
+
+Examples include:
+
+* core inspection without network,
+* local artifact access,
+* local semantic query,
+* local verification history,
+* predictable behavior when remote providers are unavailable.
+
+---
+
+## REQ-VFY-172 — Local verification SHOULD NOT silently depend on remote state unless explicitly declared
+
+---
+
+## REQ-VFY-173 — Remote unavailability SHOULD be distinguishable from verification failure when the method depends on a remote service
+
+---
+
+# Offline verification
+
+## REQ-VFY-174 — Verification methods SHOULD declare external dependencies
+
+---
+
+## REQ-VFY-175 — Offline-capable methods SHOULD remain runnable without unrelated remote infrastructure
+
+---
+
+## REQ-VFY-176 — Offline execution MUST NOT fabricate remote verification results
+
+---
+
+# AI-generated implementation verification
+
+## REQ-VFY-177 — AI-generated implementation MUST be subject to the same verification obligations as human-generated implementation
+
+---
+
+## REQ-VFY-178 — AI origin MUST NOT reduce required verification merely because generation was automated
+
+---
+
+## REQ-VFY-179 — AI-generated changes SHOULD be verified against authoritative Requirements and Specifications rather than only the prompt that produced them
+
+---
+
+## REQ-VFY-180 — AI-generated code SHOULD NOT self-certify solely through the same generation process
+
+---
+
+# AI-assisted verification
+
+## REQ-VFY-181 — AI MAY assist verification
+
+AI may help:
+
+* inspect diffs,
+* compare implementation against Specification,
+* identify missing cases,
+* classify Evidence,
+* propose tests,
+* analyze failures,
+* detect suspicious inconsistencies.
+
+---
+
+## REQ-VFY-182 — AI-assisted verification SHOULD preserve relevant model provenance where consequential
+
+---
+
+## REQ-VFY-183 — AI output SHOULD be treated as probabilistic unless the verified property and method establish otherwise
+
+---
+
+## REQ-VFY-184 — AI judgment MUST NOT be silently represented as deterministic pass/fail where it is not deterministic
+
+---
+
+## REQ-VFY-185 — AI verification SHOULD cite or link to primary Evidence when making consequential conclusions
+
+---
+
+## REQ-VFY-186 — AI SHOULD NOT silently invent missing verification criteria
+
+---
+
+# AI-as-verifier requirements
+
+## REQ-VFY-187 — AI MAY serve as a verification method only where the contract explicitly permits probabilistic evaluation
+
+---
+
+## REQ-VFY-188 — AI-as-verifier SHOULD have defined evaluation criteria
+
+---
+
+## REQ-VFY-189 — AI-as-verifier SHOULD be independently calibrated where consequence warrants it
+
+---
+
+## REQ-VFY-190 — AI-as-verifier SHOULD preserve model, configuration, and relevant context
+
+---
+
+## REQ-VFY-191 — AI-as-verifier SHOULD NOT have implicit authority to approve the state it verifies
+
+---
+
+## REQ-VFY-192 — AI verification SHOULD be supplemented by deterministic or human verification for high-consequence properties where practical
+
+---
+
+# Human verification
+
+## REQ-VFY-193 — Human verification SHOULD identify the verifier
+
+---
+
+## REQ-VFY-194 — Human verification SHOULD identify the criteria evaluated
+
+---
+
+## REQ-VFY-195 — Human verification SHOULD preserve findings where material
+
+---
+
+## REQ-VFY-196 — Human verifier expertise SHOULD be considered where specialized judgment is required
+
+---
+
+## REQ-VFY-197 — Human verification MUST remain subject to challenge and Evidence
+
+Human judgment is valuable.
+
+It is not infallible.
+
+---
+
+# Independent verification
+
+## REQ-VFY-198 — Independent verification MAY be required for high-risk changes
+
+---
+
+## REQ-VFY-199 — Independence SHOULD consider shared failure modes, not merely different actor names
+
+Two reviewers using the same flawed assumption may not provide meaningful independence.
+
+---
+
+## REQ-VFY-200 — Independent verification SHOULD preserve separate results before reconciliation where practical
+
+---
+
+# Verification disagreement
+
+## REQ-VFY-201 — Conflicting verification results SHOULD remain inspectable
+
+Example:
+
+```text id="x985kf"
+VFY-A: pass
+
+VFY-B: fail
+```
+
+Monad SHOULD NOT silently reduce this to one status.
+
+---
+
+## REQ-VFY-202 — Verification disagreement SHOULD trigger investigation where consequence warrants it
+
+---
+
+## REQ-VFY-203 — Conflict resolution SHOULD preserve the original results
+
+---
+
+## REQ-VFY-204 — Reviewer authority MUST NOT automatically determine factual verification correctness
+
+Authority may determine governed disposition.
+
+It does not change what was observed.
+
+---
+
+# Verification invalidation
+
+## REQ-VFY-205 — Verification results SHOULD support explicit invalidation
+
+A verification may become invalid because:
+
+* test fixture was incorrect,
+* tool defect discovered,
+* environment corrupted,
+* Evidence falsified,
+* criteria were wrong,
+* evaluation was performed against wrong revision.
+
+---
+
+## REQ-VFY-206 — Invalidated verification SHOULD NOT continue establishing current satisfaction
+
+---
+
+## REQ-VFY-207 — Invalidated verification SHOULD remain historically inspectable
+
+---
+
+## REQ-VFY-208 — Invalidation SHOULD propagate to dependent assurance state where applicable
+
+---
+
+# Verification correction
+
+## REQ-VFY-209 — Incorrect verification metadata SHOULD be correctable
+
+---
+
+## REQ-VFY-210 — Corrections SHOULD preserve meaningful history
+
+---
+
+## REQ-VFY-211 — Corrected verification SHOULD identify what changed where consequential
+
+---
+
+# Verification reproducibility
+
+## REQ-VFY-212 — Verification methods SHOULD be reproducible where practical
+
+---
+
+## REQ-VFY-213 — Verification reproduction SHOULD preserve relevant environment and tool information
+
+---
+
+## REQ-VFY-214 — Deterministic methods SHOULD produce equivalent outcomes under equivalent conditions
+
+---
+
+## REQ-VFY-215 — Repeated failure to reproduce a verification result SHOULD reduce confidence in that result
+
+---
+
+# Probabilistic verification
+
+## REQ-VFY-216 — Probabilistic verification SHOULD expose uncertainty
+
+Examples include:
+
+* statistical testing,
+* fuzzing,
+* performance analysis,
+* anomaly detection,
+* AI evaluation.
+
+---
+
+## REQ-VFY-217 — Probabilistic verification SHOULD define sample size or evaluation conditions where meaningful
+
+---
+
+## REQ-VFY-218 — Probabilistic success MUST NOT masquerade as universal proof
+
+---
+
+## REQ-VFY-219 — Repeated runs MAY increase confidence without converting probabilistic evidence into certainty
+
+---
+
+# Verification of verification
+
+## REQ-VFY-220 — Critical verification mechanisms SHOULD themselves be verified
+
+This may include:
+
+* test harnesses,
+* fixtures,
+* validators,
+* policy evaluators,
+* migration checkers,
+* architecture rules,
+* evidence collectors.
+
+---
+
+## REQ-VFY-221 — Verification tooling SHOULD include known-positive and known-negative fixtures where practical
+
+---
+
+## REQ-VFY-222 — Mutation testing MAY be used to evaluate whether tests detect meaningful defects
+
+---
+
+## REQ-VFY-223 — A test suite that never fails under intentional violations SHOULD be treated as suspect
+
+---
+
+# False positives and false negatives
+
+## REQ-VFY-224 — Verification design SHOULD consider false-positive risk
+
+A false positive says:
+
+```text id="g9yauc"
+pass
+```
+
+when the expectation is actually violated.
+
+---
+
+## REQ-VFY-225 — Verification design SHOULD consider false-negative risk
+
+A false negative says:
+
+```text id="hv067e"
+fail
+```
+
+when the expectation is actually satisfied.
+
+---
+
+## REQ-VFY-226 — Consequential verification methods SHOULD prefer known failure characteristics over unexplained confidence
+
+---
+
+# Flaky verification
+
+## REQ-VFY-227 — Flaky verification SHOULD be represented explicitly
+
+Repeatedly rerunning until a pass appears MUST NOT silently produce trusted verification.
+
+---
+
+## REQ-VFY-228 — Flaky results SHOULD preserve the sequence of outcomes where relevant
+
+Example:
+
+```text id="1p5nxp"
+fail
+fail
+pass
+fail
+pass
+```
+
+is materially different from:
+
+```text id="xylnem"
+pass
+```
+
+---
+
+## REQ-VFY-229 — Quarantining flaky verification SHOULD remain distinguishable from satisfying its obligation
+
+---
+
+## REQ-VFY-230 — Repeated flakiness SHOULD create an engineering issue or equivalent visible obligation where policy requires it
+
+---
+
+# Retrying verification
+
+## REQ-VFY-231 — Retry semantics SHOULD be explicit
+
+---
+
+## REQ-VFY-232 — Retries SHOULD NOT erase prior failed runs
+
+---
+
+## REQ-VFY-233 — Verification retry policy SHOULD distinguish environmental failure from expectation failure
+
+---
+
+# Side-effecting verification
+
+## REQ-VFY-234 — Verification methods that mutate state SHOULD declare side effects
+
+---
+
+## REQ-VFY-235 — Destructive verification SHOULD require appropriate governance
+
+---
+
+## REQ-VFY-236 — Side-effecting verification SHOULD define cleanup, rollback, or containment behavior where necessary
+
+---
+
+## REQ-VFY-237 — Verification side effects SHOULD NOT contaminate subsequent verification unnoticed
+
+---
+
+# Environment verification
+
+## REQ-VFY-238 — Verification environments SHOULD be identifiable where environment affects behavior
+
+---
+
+## REQ-VFY-239 — Environment drift SHOULD be detectable where it can invalidate results
+
+---
+
+## REQ-VFY-240 — Production verification SHOULD distinguish observational checks from destructive tests
+
+---
+
+# Verification planning
+
+## REQ-VFY-241 — Consequential work SHOULD identify verification strategy before implementation is considered complete
+
+---
+
+## REQ-VFY-242 — Work Packages SHOULD be able to declare required verification
+
+---
+
+## REQ-VFY-243 — Definition of Done SHOULD include required verification obligations
+
+---
+
+## REQ-VFY-244 — Planning SHOULD distinguish:
+
+```text id="5wd7oj"
+verification required
+verification optional
+verification not applicable
+verification deferred by explicit decision
+```
+
+---
+
+# Verification obligations
+
+## REQ-VFY-245 — Requirements, Specifications, Policies, Decisions, and release gates MAY create verification obligations
+
+---
+
+## REQ-VFY-246 — Verification obligations SHOULD identify the target expectation
+
+---
+
+## REQ-VFY-247 — Verification obligations SHOULD identify acceptable methods where constrained
+
+---
+
+## REQ-VFY-248 — Unsatisfied required verification SHOULD remain visible
+
+---
+
+## REQ-VFY-249 — Waiving a verification obligation MUST remain distinct from satisfying it
+
+---
+
+# Verification waivers
+
+## REQ-VFY-250 — Verification waivers SHOULD require explicit scope
+
+---
+
+## REQ-VFY-251 — Verification waivers SHOULD record rationale
+
+---
+
+## REQ-VFY-252 — Verification waivers SHOULD record authority
+
+---
+
+## REQ-VFY-253 — Verification waivers SHOULD expire or be bounded where appropriate
+
+---
+
+## REQ-VFY-254 — A waived verification MUST NOT appear as passed
+
+---
+
+# Verification gates
+
+## REQ-VFY-255 — Lifecycle gates MAY depend on verification state
+
+Examples include:
+
+```text id="qfzh68"
+merge
+release
+deployment
+migration
+policy activation
+schema promotion
+```
+
+---
+
+## REQ-VFY-256 — Gate evaluation SHOULD identify which verification obligations were considered
+
+---
+
+## REQ-VFY-257 — Gate state SHOULD expose blocked or missing verification
+
+---
+
+## REQ-VFY-258 — Gate override SHOULD remain explicit and governed
+
+---
+
+# Verification indexing
+
+## REQ-VFY-259 — Monad SHOULD support locating verification by engineering relationship
+
+Useful queries include:
+
+* Which Requirements are verified?
+* Which Requirements are unverified?
+* Which verification results are stale?
+* Which verification methods failed?
+* What verifies this Specification clause?
+* What Evidence supports this pass?
+* Which releases depended on this verification?
+* Which verification became invalid after this dependency changed?
+* Which verification obligations were waived?
+* Which AI-generated changes lack independent verification?
+* Which methods are flaky?
+* Which verifications disagree?
+* Which verification runs cannot be reproduced?
+* Which passes depend on invalidated Evidence?
+
+---
+
+## REQ-VFY-260 — Verification queries SHOULD support traversal from expectation to Evidence and back
+
+Example:
+
+```text id="atf3yk"
+Requirement
+   ↓
+Verification
+   ↓
+Evidence
+```
+
+and:
+
+```text id="5v47b8"
+Evidence
+   ↓
+Verification Result
+   ↓
+Requirement
+```
+
+---
+
+# Verification coverage
+
+## REQ-VFY-261 — Monad SHOULD support reasoning about verification coverage
+
+Coverage MAY concern:
+
+* Requirements,
+* Specification clauses,
+* invariants,
+* interfaces,
+* platforms,
+* failure modes,
+* policies,
+* releases.
+
+---
+
+## REQ-VFY-262 — Coverage MUST NOT be reduced to code coverage alone
+
+Code coverage measures execution.
+
+It does not establish Requirement coverage.
+
+---
+
+## REQ-VFY-263 — Coverage metrics SHOULD expose the dimension being measured
+
+For example:
+
+```text id="cxbvlw"
+Requirement verification coverage: 92%
+
+branch coverage: 84%
+```
+
+These are different measures.
+
+---
+
+## REQ-VFY-264 — High coverage MUST NOT automatically imply high assurance
+
+---
+
+# Verification quality
+
+## REQ-VFY-265 — Verification quality SHOULD be evaluated by ability to detect meaningful violations
+
+---
+
+## REQ-VFY-266 — Number of tests MUST NOT be treated as a standalone quality metric
+
+---
+
+## REQ-VFY-267 — Verification quality SHOULD consider:
+
+* relevance,
+* scope,
+* independence,
+* failure sensitivity,
+* reproducibility,
+* freshness,
+* coverage,
+* Evidence quality,
+* environmental realism,
+* adversarial depth where needed.
+
+---
+
+# Verification economy
+
+## REQ-VFY-268 — Verification effort SHOULD be proportional to engineering consequence
+
+---
+
+## REQ-VFY-269 — Monad SHOULD avoid verification ceremony that adds cost without materially increasing assurance
+
+---
+
+## REQ-VFY-270 — Mechanical checks SHOULD be automated where economical
+
+---
+
+## REQ-VFY-271 — Human verification attention SHOULD focus on semantic, architectural, operational, or risk-heavy concerns
+
+---
+
+## REQ-VFY-272 — Expensive verification SHOULD justify its continued cost through observed value
+
+---
+
+# Continuous verification
+
+## REQ-VFY-273 — Monad MAY support continuous verification as relevant state changes
+
+---
+
+## REQ-VFY-274 — Continuous verification SHOULD remain event- or impact-aware where practical
+
+---
+
+## REQ-VFY-275 — Continuous verification MUST preserve historical results
+
+---
+
+## REQ-VFY-276 — Repeated verification SHOULD NOT create unusable Evidence noise
+
+Retention and aggregation MAY be applied deliberately.
+
+---
+
+# Historical verification
+
+## REQ-VFY-277 — Monad SHOULD preserve what was known to be verified at a historical point
+
+This is important for:
+
+* releases,
+* incidents,
+* audits,
+* architectural decisions,
+* migrations,
+* postmortems.
+
+---
+
+## REQ-VFY-278 — Historical verification MUST remain separate from current verification state
+
+---
+
+## REQ-VFY-279 — Corrections MAY alter our present interpretation of historical verification without rewriting the historical record
+
+---
+
+# Verification and time
+
+## REQ-VFY-280 — Monad SHOULD distinguish relevant verification times where needed
+
+These may include:
+
+* method execution time,
+* Evidence observation time,
+* result recording time,
+* validity period,
+* supersession time.
+
+---
+
+## REQ-VFY-281 — Verification recorded later MUST NOT automatically be treated as knowledge available earlier
+
+---
+
+# Verification portability
+
+## REQ-VFY-282 — Core verification history SHOULD remain inspectable without mandatory dependence on one provider where practical
+
+---
+
+## REQ-VFY-283 — Provider-native verification MAY remain provider-specific
+
+---
+
+## REQ-VFY-284 — Monad SHOULD preserve enough normalized context to interpret provider-native results
+
+---
+
+# Verification security
+
+## REQ-VFY-285 — Verification processes MUST avoid unnecessary secret exposure
+
+---
+
+## REQ-VFY-286 — Verification Evidence containing sensitive data SHOULD support appropriate access control
+
+---
+
+## REQ-VFY-287 — Verification tooling SHOULD execute with the minimum privileges necessary where practical
+
+---
+
+## REQ-VFY-288 — Verification capability SHOULD NOT imply unrestricted mutation capability
+
+---
+
+# Verification of Monad itself
+
+## REQ-VFY-289 — Monad's foundational Claims SHOULD themselves be verifiable
+
+Examples include:
+
+* semantic identity survives representation change,
+* authority remains scoped,
+* provenance remains inspectable,
+* local-first operation remains useful offline,
+* reconciliation detects divergence,
+* generated projections remain traceable,
+* AI actions remain governed,
+* historical truth remains distinguishable from current truth.
+
+---
+
+## REQ-VFY-290 — Monad SHOULD verify that its semantic model provides value beyond simpler alternatives
+
+---
+
+## REQ-VFY-291 — Monad SHOULD permit Evidence that falsifies its own architectural assumptions
+
+---
+
+## REQ-VFY-292 — The verification system SHOULD NOT be designed so that Monad can only confirm itself
+
+---
+
+# Minimal verification model
+
+A minimal conceptual Verification record might resemble:
+
+```yaml id="gmfjd8"
+id: VFY-0021
+target: REQ-ID-001
+method: identity-rename-integration-test
+revision: 81d91ef
+result: pass
+evidence:
+  - EVD-0042
+```
+
+This is illustrative only.
+
+The final schema may differ.
+
+---
+
+# Rich verification example
+
+```yaml id="o0jt8k"
+id: VFY-0021
+
+target:
+  type: requirement
+  id: REQ-ID-001
+
+expectation:
+  semantic_subject_identity_survives_representation_rename
+
+method:
+  id: VFY-METHOD-ID-004
+  type: integration-test
+
+scope:
+  source_revision: 81d91ef
+  platform: linux-x86_64
+  runtime: bun-1.x
+
+result:
+  status: pass
+
+evidence:
+  - EVD-0042
+  - EVD-0043
+
+performed_by:
+  actor: github-actions
+
+performed_at: 2026-08-28T18:14:31Z
+```
+
+The important thing is not YAML.
+
+The important thing is that the engineering relationship becomes explicit.
+
+---
+
+# Verification chain example
+
+```text id="8itzmj"
+Requirement
+  │
+  ├── refined-by ──────→ Specification
+  │
+  └── verified-by ─────→ Verification Method
+                             │
+                             ├── executed-as ─→ Verification Run
+                             │                    │
+                             │                    └── produces ─→ Evidence
+                             │
+                             └── results-in ───→ Verification Result
+```
+
+This allows Monad to answer:
+
+* What was expected?
+* How was it evaluated?
+* Against which revision?
+* What Evidence was produced?
+* What was the outcome?
+* Is that outcome still current?
+
+---
+
+# Successful execution with failed verification
+
+Consider:
+
+```text id="vzsmrc"
+Operation:
+  deploy version 1.8.0
+
+Execution:
+  success
+
+Postcondition verification:
+  service health check failed
+
+Observed state:
+  deployment changed production
+  expected service health not established
+```
+
+Monad should represent this as something like:
+
+```text id="fimhur"
+execution: success
+verification: fail
+system-state: changed
+assurance-state: unverified
+```
+
+not:
+
+```text id="qhl8er"
+deployment: success
+```
+
+This distinction is operationally critical.
+
+---
+
+# Partial verification example
+
+Suppose a cross-platform Requirement targets:
+
+```text id="9laijq"
+Linux
+macOS
+Windows
+```
+
+Verification produces:
+
+```text id="0g2fo4"
+Linux: pass
+macOS: pass
+Windows: blocked
+```
+
+The Requirement SHOULD NOT become:
+
+```text id="d044t7"
+verified
+```
+
+without qualification.
+
+A more accurate state is:
+
+```text id="m9jj1n"
+verification:
+  partial
+
+verified:
+  - Linux
+  - macOS
+
+not_verified:
+  - Windows
+
+reason:
+  Windows runner unavailable
+```
+
+---
+
+# Verification stale-state example
+
+```text id="nw4247"
+REQ-INT-005
+  ↓
+VFY-017
+  ↓
+pass
+  ↓ applies-to
+commit A
+```
+
+Then:
+
+```text id="ke9bbc"
+interface implementation changed in commit B
+```
+
+Monad should be capable of marking the earlier result as:
+
+```text id="1ffvvr"
+historically passed
+current applicability uncertain
+```
+
+rather than silently continuing to show:
+
+```text id="gu25hp"
+verified
+```
+
+---
+
+# Verification disagreement example
+
+```text id="wdp9tk"
+Verification A:
+  static architecture rule
+  result: pass
+
+Verification B:
+  human architecture review
+  result: fail
+
+Finding:
+  implementation technically respects dependency boundary
+  but introduces semantic coupling through shared persistence
+```
+
+Monad should preserve both results.
+
+The disagreement contains useful engineering information.
+
+---
+
+# AI verification example
+
+Suppose an AI reviewer reports:
+
+```text id="elhirz"
+The implementation appears compliant with SPEC-014.
+```
+
+That SHOULD be interpreted as:
+
+```text id="4sl6li"
+AI evaluation:
+  candidate conclusion = compliant
+```
+
+not automatically:
+
+```text id="7me7nq"
+SPEC-014 verified
+```
+
+Unless the governed verification contract explicitly defines that AI evaluation as an accepted method for the relevant property.
+
+For consequential Claims, Monad should still ask:
+
+* Which clauses were examined?
+* What context was provided?
+* Which implementation revision?
+* Which model?
+* Which Evidence?
+* Were any clauses skipped?
+* Which conclusions were uncertain?
+* Was independent verification required?
+
+---
+
+# Verification anti-patterns
+
+## Build passed
+
+A build proves only what the build process actually evaluates.
+
+---
+
+## Tests passed
+
+Tests establish only the properties those tests meaningfully exercise.
+
+---
+
+## Reviewer approved
+
+Approval is governance.
+
+It is not automatically verification.
+
+---
+
+## CI is green
+
+Green CI may aggregate:
+
+* incomplete coverage,
+* skipped tests,
+* stale results,
+* irrelevant checks.
+
+---
+
+## Zero failures means correct
+
+A verification method may simply be incapable of detecting the defect.
+
+---
+
+## Rerun until green
+
+This destroys information about flakiness.
+
+---
+
+## All code paths executed
+
+Coverage is not semantic correctness.
+
+---
+
+## No issue reported
+
+Absence of observed failure is not proof of correctness.
+
+---
+
+## Latest result wins
+
+The latest result may:
+
+* apply to a different revision,
+* use a weaker method,
+* cover narrower scope,
+* be invalid.
+
+---
+
+## One verifier says pass
+
+Verifier identity alone does not establish correctness.
+
+---
+
+## AI says it looks good
+
+Probabilistic judgment is not automatically deterministic verification.
+
+---
+
+## Migration returned zero
+
+Execution success does not establish state correctness.
+
+---
+
+## Both systems agree
+
+Reconciliation agreement does not establish that either system is correct.
+
+---
+
+## Generated output exists
+
+Generation success does not establish projection correctness.
+
+---
+
+## Security scanner found nothing
+
+This verifies only what that scanner could detect under its configuration.
+
+---
+
+## Manual review completed
+
+Completion of review does not guarantee an explicit expectation was verified.
+
+---
+
+## Waived
+
+A waiver means the obligation was bypassed under authority.
+
+It does not mean the obligation was satisfied.
+
+---
+
+# Progressive formalization
+
+Verification can mature incrementally.
+
+## Stage 1 — Native checks
+
+Use existing:
+
+* tests,
+* builds,
+* linters,
+* scanners,
+* CI.
+
+---
+
+## Stage 2 — Stable verification identity
+
+Consequential verification methods and results become durable records.
+
+---
+
+## Stage 3 — Requirement traceability
+
+Verification explicitly links to Requirements and Specifications.
+
+---
+
+## Stage 4 — Evidence traceability
+
+Every consequential result links to supporting Evidence.
+
+---
+
+## Stage 5 — Scope and revision awareness
+
+Verification records identify exact revisions, environments, and relevant scope.
+
+---
+
+## Stage 6 — Freshness
+
+The system recognizes when prior verification may no longer apply.
+
+---
+
+## Stage 7 — Verification obligations
+
+Policies and lifecycle gates can require specific verification.
+
+---
+
+## Stage 8 — Impact-aware reverification
+
+Relevant changes automatically identify verification likely to need rerunning.
+
+---
+
+## Stage 9 — Continuous assurance
+
+Verification state participates continuously in engineering understanding.
+
+---
+
+# Minimal useful verification system
+
+A useful first implementation may need only:
+
+```text id="96gqbg"
+Verification ID
+Target
+Expectation
+Method
+Revision
+Result
+Evidence references
+```
+
+plus relationships such as:
+
+```text id="al788x"
+verifies
+produces-evidence
+applies-to
+supersedes
+invalidates
+```
+
+Further complexity should be earned by observed engineering need.
+
+---
+
+# Verification review checklist
+
+For a consequential verification, ask:
+
+1. What exact expectation is being evaluated?
+2. Where did that expectation originate?
+3. Is the Requirement clear enough to verify?
+4. Which Specification revision applies?
+5. What method is being used?
+6. Can that method actually observe the property?
+7. What constitutes pass?
+8. What constitutes fail?
+9. What constitutes incomplete?
+10. What constitutes blocked?
+11. What constitutes inconclusive?
+12. Which Subject is being verified?
+13. Which implementation revision?
+14. Which platform?
+15. Which environment?
+16. Which configuration?
+17. Which dependency versions?
+18. Which inputs?
+19. Which fixtures?
+20. Which data?
+21. Which tool?
+22. Which tool version?
+23. Who or what performed the verification?
+24. When did it run?
+25. What Evidence was produced?
+26. Is the Evidence inspectable?
+27. Is the Evidence valid?
+28. Is the Evidence relevant?
+29. Does the Evidence scope match the Claim?
+30. Were any cases excluded?
+31. Was sampling used?
+32. Is coverage complete?
+33. Are negative cases tested?
+34. Are failure semantics tested?
+35. Are partial-failure cases tested?
+36. Is the test deterministic?
+37. If not, how is uncertainty represented?
+38. Can the result be reproduced?
+39. Could the verifier itself be wrong?
+40. Has the verifier been tested?
+41. Are known-negative fixtures available?
+42. Is the verification flaky?
+43. Were retries required?
+44. Are failed retries preserved?
+45. Did the verification mutate state?
+46. Were side effects controlled?
+47. Does a pass apply only to this revision?
+48. What changes would make the pass stale?
+49. Is impact-aware reverification trustworthy?
+50. Is prior Evidence still valid?
+51. Does contradictory Evidence exist?
+52. Do independent methods agree?
+53. Is human judgment involved?
+54. Is AI judgment involved?
+55. What model or reviewer produced that judgment?
+56. Does the verifier have authority, or only capability?
+57. Is approval separate from verification?
+58. Was any failed verification waived?
+59. Is the waiver explicit?
+60. Does a release depend on this result?
+61. Is current status distinguishable from historical status?
+62. Are skipped verification obligations visible?
+63. Does a green aggregate hide incomplete checks?
+64. Is the method proportionate to the consequence?
+65. Could a cheaper method provide equivalent assurance?
+66. Could this method produce false positives?
+67. Could it produce false negatives?
+68. What deliberate defect would cause it to fail?
+69. Has that failure behavior been demonstrated?
+70. What Evidence would falsify the current verification conclusion?
+
+---
+
+# Relationship to Evidence
+
+Verification asks:
+
+> **Does the system satisfy the expectation?**
+
+Evidence answers:
+
+> **What observations support the verification result?**
+
+The two form a chain:
+
+```text id="8o53fb"
+Expectation
+    ↓
+Verification
+    ↓
+Evidence
+    ↓
+Result
+```
+
+A result without Evidence may be difficult to trust.
+
+Evidence without an expectation may be difficult to interpret.
+
+---
+
+# Relationship to Requirements
+
+Requirements define what must be true.
+
+Verification determines whether those required conditions have been demonstrated.
+
+A Requirement should not merely have:
+
+```text id="rxuuwx"
+implementation: complete
+```
+
+It should be capable of reaching:
+
+```text id="9g0ohp"
+verification: pass
+```
+
+within a known scope.
+
+---
+
+# Relationship to Specifications
+
+Specifications define precise normative behavior.
+
+Verification evaluates whether implementation conforms to that behavior.
+
+The Specification is the contract.
+
+Verification is the evaluation.
+
+Evidence is the observable support.
+
+---
+
+# Relationship to review
+
+Review provides structured engineering challenge.
+
+Verification provides explicit evaluation against an expectation.
+
+Sometimes a review itself is an appropriate method.
+
+Sometimes it is not.
+
+The relationship should be explicit rather than assumed.
+
+---
+
+# Relationship to approval
+
+Approval is an exercise of governance Authority.
+
+Verification is an engineering assurance activity.
+
+A release manager may approve a release after examining verification results.
+
+That approval does not cause those verification results to become true.
+
+---
+
+# Relationship to execution
+
+Execution changes or interrogates real systems.
+
+Verification evaluates whether the resulting or observed state satisfies expectations.
+
+The operating loop therefore looks like:
+
+```text id="r4jzti"
+Intent
+  ↓
+Plan
+  ↓
+Governance
+  ↓
+Execution
+  ↓
+Observation
+  ↓
+Verification
+  ↓
+Evidence
+  ↓
+Reconciliation
+  ↓
+Lifecycle Update
+```
+
+Execution is not the end of the reasoning chain.
+
+It creates new reality that must often be verified.
+
+---
+
+# Relationship to reconciliation
+
+Reconciliation answers:
+
+> Do the relevant states agree?
+
+Verification asks:
+
+> Does the relevant state satisfy the required condition?
+
+These may overlap.
+
+They are not equivalent.
+
+---
+
+# Relationship to releases
+
+A release is a consequential assertion about a specific artifact or revision.
+
+Release readiness therefore should depend on explicit verification obligations rather than generalized confidence.
+
+A release should be able to answer:
+
+* Which Requirements mattered?
+* Which verifications applied?
+* Which passed?
+* Which failed?
+* Which were incomplete?
+* Which were waived?
+* What Evidence supported them?
+* Which exact artifact was evaluated?
+
+---
+
+# Relationship to AI systems
+
+AI increases the importance of verification rather than reducing it.
+
+An AI system can produce implementation faster than humans can manually inspect every detail.
+
+That changes the economics of assurance.
+
+It does not change the fundamental requirement:
+
+> Generated work must still satisfy explicit engineering expectations.
+
+AI can help generate:
+
+* tests,
+* invariants,
+* fixtures,
+* verification plans,
+* review findings,
+* impact analysis,
+* candidate Evidence interpretations.
+
+But AI should not be able to collapse:
+
+```text id="iqk9j2"
+I generated it.
+```
+
+into:
+
+```text id="m6s983"
+Therefore it is correct.
+```
+
+The same principle applies to humans.
+
+---
+
+# Verification and the engineering argument
+
+Monad's engineering record can be understood as:
+
+```text id="xdrsjv"
+Problem
+  ↓
+Goal
+  ↓
+Requirement
+  ↓
+Decision
+  ↓
+Specification
+  ↓
+Implementation
+  ↓
+Verification
+  ↓
+Evidence
+  ↓
+Release
+```
+
+Verification is the point where intended engineering reality confronts observed engineering reality.
+
+It asks whether the thing actually built satisfies the thing that was actually required.
+
+That makes verification one of the primary mechanisms by which Monad prevents:
+
+* assumptions from masquerading as facts,
+* implementation from masquerading as correctness,
+* automation from masquerading as assurance,
+* approval from masquerading as Evidence,
+* and confidence from masquerading as demonstrated truth.
+
+---
+
+# Definition of Ready
+
+A verification activity is ready when:
+
+* the target Subject is identifiable,
+* the expectation is explicit,
+* the relevant Requirement or Specification is known,
+* the relevant revision is known where required,
+* scope is sufficiently defined,
+* success criteria are sufficiently defined,
+* failure criteria are sufficiently defined,
+* the verification method is appropriate,
+* required inputs and fixtures are available,
+* required environment is available,
+* Evidence capture is possible,
+* known exclusions are explicit,
+* required authority for side-effecting verification is available,
+* and any dependencies or assumptions are understood.
+
+---
+
+# Definition of Done
+
+A consequential verification activity is complete enough when:
+
+* the target expectation was evaluated,
+* the applicable revision is recorded,
+* the scope is recorded,
+* the method is identifiable,
+* relevant tool and environment provenance is preserved,
+* the result is explicit,
+* uncertainty is preserved,
+* incomplete or blocked states are not hidden,
+* relevant Evidence is linked,
+* contradictory Evidence is retained,
+* exclusions are visible,
+* retries or flakiness are represented,
+* any invalidation condition is known,
+* any waiver is separate from pass state,
+* any required follow-up is visible,
+* and downstream assurance state can be traced back to the verification.
+
+---
+
+# Core invariants
+
+The verification system SHOULD preserve these distinctions:
+
+```text id="6z9oyv"
+Verification ≠ Evidence
+
+Verification ≠ Approval
+
+Verification ≠ Review
+
+Verification ≠ Execution
+
+Verification ≠ Confidence
+
+Execution success ≠ Verification success
+
+Implementation complete ≠ Requirement satisfied
+
+Reconciliation success ≠ Correctness
+
+Schema-valid ≠ Semantically correct
+
+Generated ≠ Verified
+
+Passed once ≠ Universally correct
+
+Historical pass ≠ Current pass
+
+Stale pass ≠ Current pass
+
+Incomplete ≠ Pass
+
+Blocked ≠ Fail
+
+Inconclusive ≠ Pass
+
+Waived ≠ Pass
+
+Reviewer authority ≠ Verification correctness
+
+AI opinion ≠ Deterministic verification
+
+Native tool pass ≠ Broader Claim automatically
+
+Coverage ≠ Correctness
+
+More tests ≠ More assurance automatically
+
+No observed failure ≠ Proof of absence
+
+Verification result ≠ Universal truth
+```
+
+These distinctions are not pedantic.
+
+They prevent the assurance system from producing false certainty.
+
+---
+
+# Governing principle
+
+Monad should make it possible to ask:
+
+> What exactly was expected?
+
+> Where was that expectation defined?
+
+> What method evaluated it?
+
+> Against which revision?
+
+> Under what conditions?
+
+> What was actually observed?
+
+> What Evidence supports the result?
+
+> What was not evaluated?
+
+> Was any part blocked?
+
+> Was anything waived?
+
+> Was the result probabilistic?
+
+> Did execution succeed independently of verification?
+
+> Has relevant state changed since verification?
+
+> Is the result still fresh?
+
+> Can the method detect the failure it claims to detect?
+
+> Can the result be reproduced?
+
+> Does contradictory Evidence exist?
+
+> Is approval being confused with correctness?
+
+> Is an AI judgment being treated as stronger than it is?
+
+> What change would force reverification?
+
+> What Evidence would falsify this result?
+
+Verification should therefore be understood as a disciplined relationship between:
+
+```text id="92wm46"
+explicit expectation
++
+defined method
++
+observed state
++
+inspectable Evidence
++
+scoped result
+```
+
+not as a green icon.
+
+> **An engineering state should be considered verified only when an explicit expectation has been evaluated against appropriate, inspectable Evidence within a known scope.**
+
+---
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/reconciliation" title="Reconciliation Requirements">
+    Define how Monad detects and reasons about divergence between semantic state and native engineering systems.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/evidence" title="Evidence Requirements">
+    Define the inspectable observations and records that support verification results.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/execution" title="Execution Requirements">
+    Define how governed intent becomes observable change in native systems.
+  </Card>
+
+  <Card href="/docs/artifacts/verification" title="Verification">
+    Read the authoritative Artifact-level explanation of Verification in Monad.
+  </Card>
+</Cards>

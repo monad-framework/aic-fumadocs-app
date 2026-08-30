@@ -1,0 +1,1369 @@
+---
+title: Requirements README
+description: Requirements README.md
+---
+
+`docs/requirements/README.md` should define the **requirements system itself** before we begin writing individual requirement sets.
+
+# Requirements
+
+> This directory defines what the system **must do**, **must be**, **must preserve**, and **must not violate** in order for the project to satisfy its accepted project definition.
+>
+> Requirements are derived from `project.md`.
+>
+> They should describe externally meaningful behavior, qualities, constraints, interfaces, data obligations, security properties, and acceptance conditions without prematurely deciding how the system will be implemented.
+>
+> In general:
+>
+> * `idea.md` captures possibilities;
+> * `project.md` captures accepted project intent;
+> * `requirements/` defines what must be true of the resulting system;
+> * `architecture.md` determines how the system will satisfy those requirements;
+> * `workspace.md` determines how engineering work will be physically organized.
+
+---
+
+# 1. Purpose
+
+The purpose of this directory is to establish a disciplined requirements layer between project definition and technical architecture.
+
+Without this layer, architecture tends to absorb hidden product assumptions.
+
+That creates a common failure mode:
+
+```text
+Idea
+  ↓
+Architecture
+```
+
+where architectural decisions accidentally become requirements simply because they were chosen early.
+
+The intended flow is:
+
+```text
+idea.md
+   ↓
+project.md
+   ↓
+requirements/
+   ↓
+architecture.md
+   ↓
+workspace.md
+   ↓
+planning/
+   ↓
+implementation
+```
+
+Requirements should answer:
+
+> **What must be true?**
+
+Architecture should answer:
+
+> **How will we make it true?**
+
+---
+
+# 2. Requirements Authority
+
+Requirements are authoritative statements about expected system behavior or properties.
+
+Once a requirement is accepted, architecture and implementation should conform to it unless the requirement itself is deliberately changed.
+
+This means the normal authority relationship is:
+
+```text
+Project Definition
+       │
+       ▼
+Requirements
+       │
+       ▼
+Architecture
+       │
+       ▼
+Implementation
+```
+
+Architecture should not silently override a requirement.
+
+Implementation should not silently reinterpret one.
+
+When a conflict is discovered, the conflict should be made explicit and resolved at the appropriate layer.
+
+---
+
+# 3. What Is a Requirement?
+
+A requirement is a statement describing something the system must satisfy.
+
+A useful requirement is:
+
+* necessary;
+* clear;
+* testable or otherwise verifiable;
+* sufficiently specific;
+* traceable to a project need;
+* implementation-independent where practical;
+* bounded enough to reason about;
+* understandable without relying on hidden context.
+
+Example:
+
+> The system shall allow a user to inspect all dependencies of a selected project component.
+
+This describes required behavior.
+
+By contrast:
+
+> The system shall use Neo4j to store dependency relationships.
+
+is usually an architectural decision rather than a requirement.
+
+The true requirement may instead be:
+
+> The system shall persist dependency relationships in a form that supports traversal queries.
+
+The storage technology can then be selected during architecture.
+
+---
+
+# 4. Requirement Categories
+
+The requirements set should eventually cover several distinct categories.
+
+Recommended initial structure:
+
+```text
+requirements/
+├── README.md
+├── functional.md
+├── quality-attributes.md
+├── constraints.md
+├── interfaces.md
+├── data.md
+├── security.md
+└── acceptance.md
+```
+
+Additional files may be introduced when the project justifies them.
+
+Examples include:
+
+```text
+requirements/
+├── privacy.md
+├── compliance.md
+├── observability.md
+├── accessibility.md
+├── interoperability.md
+├── deployment.md
+├── migration.md
+├── compatibility.md
+└── lifecycle.md
+```
+
+Do not create categories merely because they are listed here.
+
+Create them when the project actually has requirements in that domain.
+
+---
+
+# 5. Functional Requirements
+
+Functional requirements describe behavior the system must provide.
+
+They answer:
+
+> **What must the system be able to do?**
+
+Examples:
+
+* create an entity;
+* inspect project state;
+* validate an artifact;
+* execute a workflow;
+* detect drift;
+* export data;
+* reconcile state;
+* authenticate a user;
+* resolve a dependency;
+* produce a report.
+
+Example requirement:
+
+> **FR-001 — Inspect component dependencies**
+>
+> The system shall allow a user to retrieve the direct dependencies of a selected component.
+
+Functional requirements belong in:
+
+```text
+functional.md
+```
+
+---
+
+# 6. Quality Attributes
+
+Quality attributes describe how well the system must behave.
+
+They commonly include:
+
+* reliability;
+* performance;
+* scalability;
+* maintainability;
+* usability;
+* availability;
+* portability;
+* interoperability;
+* auditability;
+* determinism;
+* recoverability;
+* testability;
+* extensibility;
+* resilience.
+
+Example:
+
+> **QA-001 — Deterministic analysis**
+>
+> Given identical project state and identical configuration, the system shall produce semantically equivalent analysis results.
+
+Quality attributes belong in:
+
+```text
+quality-attributes.md
+```
+
+---
+
+# 7. Constraints
+
+Constraints restrict the solution space.
+
+They answer:
+
+> **What conditions must any acceptable solution respect?**
+
+Examples might include:
+
+* mandatory standards;
+* supported operating systems;
+* legal obligations;
+* mandatory file formats;
+* required interoperability;
+* licensing limitations;
+* offline operation;
+* deployment restrictions;
+* data residency;
+* hardware limits.
+
+Example:
+
+> **CON-001 — Git-compatible artifacts**
+>
+> Authoritative project artifacts shall be representable in forms compatible with ordinary Git version-control workflows.
+
+Constraints belong in:
+
+```text
+constraints.md
+```
+
+A constraint should not be invented simply to preserve a preferred implementation choice.
+
+---
+
+# 8. Interface Requirements
+
+Interface requirements define how the system must interact with humans, software, devices, or external systems.
+
+Interfaces may include:
+
+* command-line interfaces;
+* APIs;
+* files;
+* events;
+* protocols;
+* user interfaces;
+* plugin interfaces;
+* external services;
+* automation agents.
+
+Example:
+
+> **INT-001 — Machine-readable command output**
+>
+> Commands intended for automation shall provide a machine-readable output mode.
+
+Interface requirements belong in:
+
+```text
+interfaces.md
+```
+
+Detailed API schemas should generally be defined later in specifications.
+
+---
+
+# 9. Data Requirements
+
+Data requirements describe information the system must represent, preserve, validate, transform, or expose.
+
+Examples include:
+
+* identity;
+* required fields;
+* provenance;
+* history;
+* relationships;
+* retention;
+* consistency;
+* versioning;
+* serialization;
+* migration.
+
+Example:
+
+> **DATA-001 — Stable entity identity**
+>
+> Persisted project entities shall retain stable identity across ordinary edits that do not semantically replace the entity.
+
+Data requirements belong in:
+
+```text
+data.md
+```
+
+Detailed data structures and schemas normally belong in later domain-model or specification layers.
+
+---
+
+# 10. Security Requirements
+
+Security requirements describe properties necessary to protect the system, its users, and its data.
+
+They may address:
+
+* authentication;
+* authorization;
+* privilege boundaries;
+* secrets;
+* integrity;
+* confidentiality;
+* audit trails;
+* supply-chain integrity;
+* sandboxing;
+* unsafe operations;
+* provenance;
+* tamper resistance.
+
+Example:
+
+> **SEC-001 — Authorization enforcement**
+>
+> Operations that modify governed project state shall verify that the requesting actor possesses sufficient authority before the modification is applied.
+
+Security requirements belong in:
+
+```text
+security.md
+```
+
+---
+
+# 11. Acceptance Requirements
+
+Acceptance requirements define how we determine whether required outcomes have actually been achieved.
+
+They connect requirements with observable evidence.
+
+Examples include:
+
+* acceptance tests;
+* conformance checks;
+* measurable thresholds;
+* demonstrations;
+* reproducibility criteria;
+* interoperability tests.
+
+Example:
+
+> **ACC-001 — Dependency inspection acceptance**
+>
+> Given a project containing three known dependency relationships, querying a selected component shall return the expected direct dependency set.
+
+Acceptance requirements belong in:
+
+```text
+acceptance.md
+```
+
+---
+
+# 12. Requirement Identification
+
+Every authoritative requirement should have a stable identifier.
+
+Recommended prefixes:
+
+```text
+FR-###     Functional requirement
+QA-###     Quality attribute
+CON-###    Constraint
+INT-###    Interface requirement
+DATA-###   Data requirement
+SEC-###    Security requirement
+ACC-###    Acceptance requirement
+```
+
+Examples:
+
+```text
+FR-001
+FR-002
+
+QA-001
+
+DATA-001
+
+SEC-001
+```
+
+Identifiers should remain stable once assigned.
+
+If a requirement is removed, its identifier should normally not be reused for an unrelated requirement.
+
+---
+
+# 13. Requirement Format
+
+A recommended requirement entry is:
+
+```markdown
+## FR-001 — Short descriptive title
+
+**Status:** Draft
+
+**Statement**
+
+The system shall ...
+
+**Rationale**
+
+Explain why this requirement exists.
+
+**Source**
+
+Identify the project goal, capability, user need, constraint, or decision that produced this requirement.
+
+**Verification**
+
+Describe how compliance can be demonstrated.
+
+**Dependencies**
+
+- None.
+
+**Notes**
+
+Optional clarification that does not change the normative statement.
+```
+
+Not every requirement needs extensive prose, but the **Statement** must remain unambiguous.
+
+---
+
+# 14. Normative Language
+
+Use normative language deliberately.
+
+Recommended meanings:
+
+| Term           | Meaning                                      |
+| -------------- | -------------------------------------------- |
+| **shall**      | mandatory requirement                        |
+| **shall not**  | prohibited behavior                          |
+| **should**     | recommended but not mandatory                |
+| **should not** | discouraged but permitted with justification |
+| **may**        | explicitly permitted                         |
+| **can**        | descriptive capability, not normative        |
+
+Prefer:
+
+> The system **shall** preserve entity identifiers.
+
+instead of:
+
+> The system should probably keep identifiers stable.
+
+Avoid vague words such as:
+
+* appropriate;
+* sufficient;
+* easy;
+* fast;
+* user-friendly;
+* scalable;
+* secure;
+* robust;
+* seamless;
+* intuitive.
+
+Unless they are accompanied by measurable or verifiable meaning.
+
+---
+
+# 15. Atomicity
+
+A requirement should ideally express one independently meaningful obligation.
+
+Avoid:
+
+> The system shall parse files, validate them, store them, generate reports, and automatically repair errors.
+
+This contains several independent requirements.
+
+Prefer:
+
+```text
+FR-001 Parse supported artifacts.
+FR-002 Validate parsed artifacts.
+FR-003 Persist validated project state.
+FR-004 Produce validation reports.
+FR-005 Support explicitly authorized repair operations.
+```
+
+Atomic requirements are easier to:
+
+* understand;
+* trace;
+* test;
+* change;
+* implement;
+* review.
+
+---
+
+# 16. Implementation Independence
+
+Requirements should avoid selecting technologies unless the technology itself is genuinely required.
+
+Avoid:
+
+> The service shall be written in Rust.
+
+Prefer:
+
+> The service shall start within the established performance threshold and operate on all supported target platforms.
+
+Then architecture can determine whether Rust, Go, Java, or another implementation is appropriate.
+
+However, implementation-specific requirements are legitimate when a true project constraint requires them.
+
+Example:
+
+> The project shall integrate with the existing PostgreSQL deployment.
+
+The distinction is:
+
+```text
+Preference
+    ≠
+Requirement
+
+Architectural choice
+    ≠
+Requirement
+
+Mandatory external constraint
+    =
+Potential requirement
+```
+
+---
+
+# 17. Requirement Sources
+
+Every important requirement should have an identifiable source.
+
+Potential sources include:
+
+* project purpose;
+* project scope;
+* target outcome;
+* user need;
+* project principle;
+* project invariant;
+* legal requirement;
+* external standard;
+* operational need;
+* security threat;
+* compatibility requirement;
+* architectural discovery;
+* production incident;
+* acceptance feedback.
+
+Example:
+
+```text
+Project Capability CAP-03
+        │
+        ├── FR-014
+        ├── FR-015
+        └── QA-007
+```
+
+Traceability prevents requirements from becoming disconnected from actual project value.
+
+---
+
+# 18. Requirement Derivation
+
+Requirements should normally be derived from higher-level project concepts.
+
+Example:
+
+```text
+Project goal:
+Reduce context reconstruction for developers.
+
+        ↓
+
+Project capability:
+Expose meaningful project relationships.
+
+        ↓
+
+Functional requirement:
+FR-021 — Query related project entities.
+
+        ↓
+
+Interface requirement:
+INT-008 — Provide machine-readable query output.
+
+        ↓
+
+Quality attribute:
+QA-011 — Query results shall be deterministic.
+
+        ↓
+
+Acceptance requirement:
+ACC-019 — Verify relationship query against known fixture.
+```
+
+This creates an explainable chain from project purpose to implementation verification.
+
+---
+
+# 19. Requirement Traceability
+
+Eventually, the project should be able to trace:
+
+```text
+Idea
+  ↓
+Project Goal
+  ↓
+Capability
+  ↓
+Requirement
+  ↓
+Architecture Decision
+  ↓
+Specification
+  ↓
+Implementation
+  ↓
+Test
+  ↓
+Evidence
+```
+
+For example:
+
+```text
+CAP-004
+   ↓
+FR-012
+   ↓
+ADR-0007
+   ↓
+SPEC-003
+   ↓
+src/query/
+   ↓
+TEST-014
+```
+
+Not every small implementation detail needs complete traceability.
+
+Important project behavior should.
+
+---
+
+# 20. Requirement States
+
+Recommended requirement lifecycle:
+
+```text
+Draft
+  ↓
+Proposed
+  ↓
+Accepted
+  ↓
+Implemented
+  ↓
+Verified
+```
+
+Additional states may include:
+
+```text
+Rejected
+Deprecated
+Superseded
+Blocked
+Deferred
+```
+
+Suggested meanings:
+
+### Draft
+
+Still being formulated.
+
+### Proposed
+
+Ready for deliberate review.
+
+### Accepted
+
+Part of the authoritative requirements baseline.
+
+### Implemented
+
+Implementation believed to satisfy the requirement.
+
+### Verified
+
+Independent evidence demonstrates satisfaction.
+
+### Superseded
+
+Replaced by another requirement or revised model.
+
+---
+
+# 21. Requirement Changes
+
+Requirements are expected to evolve.
+
+However, once accepted, meaningful changes should be explicit.
+
+A requirement change may involve:
+
+* adding a requirement;
+* removing a requirement;
+* changing its normative behavior;
+* tightening a threshold;
+* relaxing a threshold;
+* changing scope;
+* splitting a requirement;
+* merging requirements;
+* superseding a requirement.
+
+The repository history should preserve these changes.
+
+Do not silently rewrite accepted requirements in ways that materially alter system obligations.
+
+---
+
+# 22. Requirement Conflicts
+
+Requirements may conflict.
+
+Examples:
+
+```text
+Maximum security
+        vs
+Maximum usability
+
+Minimal latency
+        vs
+Strong durability
+
+Full offline support
+        vs
+Mandatory centralized authorization
+
+Unlimited extensibility
+        vs
+Strict deterministic behavior
+```
+
+When requirements conflict:
+
+1. identify the conflict explicitly;
+2. determine whether both requirements are truly necessary;
+3. examine project priorities and constraints;
+4. revise the requirements if necessary;
+5. document any architectural trade-off separately.
+
+Architecture should not hide unresolved requirement contradictions.
+
+---
+
+# 23. Requirements Versus Architecture
+
+A useful test is:
+
+> Could more than one substantially different architecture satisfy this statement?
+
+If yes, the statement is likely a requirement.
+
+Example:
+
+> The system shall support offline inspection of project state.
+
+Many architectures could satisfy this.
+
+By contrast:
+
+> Project state shall be stored in SQLite.
+
+That is probably architecture unless SQLite itself is mandatory.
+
+---
+
+# 24. Requirements Versus Specifications
+
+Requirements state **what must be true**.
+
+Specifications define behavior precisely enough to implement.
+
+Example:
+
+Requirement:
+
+> The system shall expose project state through a machine-readable command interface.
+
+Later specification:
+
+```text
+command:
+  project inspect
+
+arguments:
+  --format json
+
+exit codes:
+  0 success
+  2 invalid project
+  3 malformed state
+```
+
+The requirement belongs here.
+
+The command contract belongs in a later specification.
+
+---
+
+# 25. Requirements Versus Planning
+
+Requirements are not work items.
+
+Avoid using requirements as substitutes for:
+
+```text
+Epics
+Features
+Milestones
+Work Packages
+Tasks
+Sprints
+Issues
+```
+
+Example:
+
+```text
+Requirement:
+FR-017 — System shall detect invalid dependency references.
+
+Work package:
+WP-0034 — Implement dependency-reference validation.
+```
+
+One requirement may produce multiple work items.
+
+One work item may satisfy multiple requirements.
+
+---
+
+# 26. Requirements Versus Tests
+
+Tests are evidence that requirements are satisfied.
+
+They are not interchangeable.
+
+Example:
+
+```text
+FR-005
+System shall reject malformed identifiers.
+
+      ↓
+
+TEST-021
+Reject identifier missing namespace.
+
+TEST-022
+Reject identifier containing forbidden characters.
+
+TEST-023
+Accept valid canonical identifier.
+```
+
+A requirement defines the obligation.
+
+Tests demonstrate conformance.
+
+---
+
+# 27. Requirements Discovery
+
+Requirements should be discovered systematically rather than invented opportunistically during implementation.
+
+Useful discovery inputs include:
+
+### Project analysis
+
+Review:
+
+* purpose;
+* problem;
+* scope;
+* users;
+* capabilities;
+* principles;
+* constraints;
+* success criteria.
+
+### User analysis
+
+Ask:
+
+* what does the user need to accomplish?
+* what failure would be unacceptable?
+* what information do they require?
+* what workflows exist?
+
+### Domain analysis
+
+Ask:
+
+* what entities exist?
+* what relationships exist?
+* what rules must always hold?
+* what lifecycle states exist?
+
+### Risk analysis
+
+Ask:
+
+* how could the system fail?
+* what must never happen?
+* what damage could occur?
+* what safeguards are necessary?
+
+### Operational analysis
+
+Ask:
+
+* how will the system be deployed?
+* monitored?
+* upgraded?
+* recovered?
+* maintained?
+
+### External analysis
+
+Consider:
+
+* standards;
+* protocols;
+* legal obligations;
+* external integrations;
+* compatibility requirements.
+
+---
+
+# 28. Requirement Quality Checklist
+
+Before accepting a requirement, ask:
+
+* Is it necessary?
+* Is it understandable?
+* Is it atomic?
+* Is it unambiguous?
+* Is it verifiable?
+* Is its source known?
+* Is it consistent with project scope?
+* Does it conflict with another requirement?
+* Is it prematurely prescribing implementation?
+* Can its satisfaction eventually be demonstrated?
+
+A requirement that fails these checks should usually remain Draft.
+
+---
+
+# 29. Avoiding Over-Specification
+
+Requirements should be sufficiently precise without freezing implementation unnecessarily.
+
+Too vague:
+
+> The system shall be fast.
+
+Too specific:
+
+> The system shall complete the operation in 17.25 ms using four Rust threads.
+
+Potentially appropriate:
+
+> For a project containing up to 10,000 entities, an interactive dependency query shall complete within 200 ms at the 95th percentile on the reference development environment.
+
+The correct level depends on what actually matters to the project.
+
+---
+
+# 30. Avoiding Requirements Explosion
+
+Do not attempt to enumerate every conceivable system behavior immediately.
+
+Start from:
+
+```text
+Project Purpose
+      ↓
+Target Outcome
+      ↓
+Core Capabilities
+      ↓
+Critical Requirements
+```
+
+Then refine.
+
+A useful progression is:
+
+```text
+Level 0 — Project Definition
+
+Level 1 — Capability Requirements
+
+Level 2 — System Requirements
+
+Level 3 — Detailed Specifications
+
+Level 4 — Implementation Contracts
+```
+
+Do not begin at Level 4.
+
+---
+
+# 31. Negative Requirements
+
+Requirements should sometimes describe behavior that must **not** occur.
+
+Examples:
+
+> The system shall not modify user source files during read-only inspection.
+
+> Secrets shall not be written to diagnostic logs.
+
+> Unauthorized actors shall not be permitted to mutate governed state.
+
+Negative requirements are particularly important for:
+
+* safety;
+* security;
+* data integrity;
+* governance;
+* destructive operations.
+
+---
+
+# 32. Invariants
+
+Some requirements represent truths that must always hold.
+
+Examples:
+
+> Every persisted entity shall have exactly one stable identifier.
+
+> Every governed mutation shall have identifiable provenance.
+
+> Dependency relationships shall not reference nonexistent authoritative entities.
+
+These may later become:
+
+* domain invariants;
+* schema constraints;
+* validation rules;
+* database constraints;
+* policy rules;
+* property tests.
+
+---
+
+# 33. Derived Requirements
+
+Sometimes architecture or implementation reveals a requirement that was not initially visible.
+
+That is legitimate.
+
+Example:
+
+An architectural design may reveal that safe recovery requires durable transaction identifiers.
+
+The requirement should then be added to the requirements layer rather than remaining hidden inside implementation.
+
+The flow can therefore include feedback:
+
+```text
+Requirements
+     ↓
+Architecture
+     ↓
+Implementation
+     │
+     └──────────────┐
+                    ↓
+             Newly discovered
+              requirement
+                    │
+                    └──> Requirements
+```
+
+Lower layers may reveal requirements.
+
+They should not silently redefine them.
+
+---
+
+# 34. Requirement Baselines
+
+Early in a project, requirements may change frequently.
+
+Eventually, it becomes useful to establish a baseline.
+
+A baseline means:
+
+> This set of accepted requirements represents the authoritative obligations for a particular delivery boundary.
+
+For example:
+
+```text
+MVP Requirements Baseline
+v1.0
+```
+
+Later changes can then be evaluated explicitly against that baseline.
+
+This becomes especially useful for:
+
+* release planning;
+* compatibility;
+* compliance;
+* acceptance;
+* regression analysis.
+
+---
+
+# 35. Recommended Initial Requirement Set
+
+Once the project definition is sufficiently populated, begin with the smallest set of high-value requirements.
+
+Recommended order:
+
+```text
+1. Core functional requirements
+2. Critical constraints
+3. Critical quality attributes
+4. Data/integrity requirements
+5. Security requirements
+6. Interface requirements
+7. Acceptance requirements
+```
+
+Do not attempt complete exhaustive coverage before architecture work begins.
+
+The objective is:
+
+> **Enough requirements to make architecture deliberate rather than speculative.**
+
+---
+
+# 36. Proposed Directory Evolution
+
+The initial directory may evolve toward:
+
+```text
+docs/
+├── idea.md
+├── project.md
+│
+├── requirements/
+│   ├── README.md
+│   ├── functional.md
+│   ├── quality-attributes.md
+│   ├── constraints.md
+│   ├── interfaces.md
+│   ├── data.md
+│   ├── security.md
+│   └── acceptance.md
+│
+├── domain/
+│   └── ...
+│
+├── architecture/
+│   ├── README.md
+│   └── decisions/
+│
+├── specifications/
+│   └── ...
+│
+├── workspace.md
+│
+└── planning/
+    └── ...
+```
+
+This is a possible mature structure, not a requirement to create everything immediately.
+
+---
+
+# 37. Completion Criteria for the Requirements Phase
+
+The requirements layer is sufficiently mature to begin serious architecture work when:
+
+* the major functional obligations are understood;
+* critical quality attributes are known;
+* important constraints are explicit;
+* major data obligations are known;
+* critical security properties are identified;
+* major external interfaces are recognized;
+* contradictions have been surfaced;
+* important requirements are traceable to project needs;
+* the initial delivery boundary has acceptance conditions;
+* enough uncertainty has been reduced to make architectural decisions responsibly.
+
+This does **not** mean every requirement must be known.
+
+Architecture and implementation will reveal additional requirements.
+
+---
+
+# 38. Requirements Lifecycle
+
+The full conceptual lifecycle is:
+
+```text
+Observation / Need
+        │
+        ▼
+idea.md
+        │
+        ▼
+project.md
+        │
+        ▼
+Requirement Candidate
+        │
+        ▼
+Draft Requirement
+        │
+        ▼
+Review
+        │
+        ▼
+Accepted Requirement
+        │
+        ▼
+Architecture
+        │
+        ▼
+Specification
+        │
+        ▼
+Implementation
+        │
+        ▼
+Verification
+        │
+        ▼
+Evidence
+```
+
+---
+
+# 39. Core Rule
+
+The most important rule for this directory is:
+
+> **Requirements describe obligations, not implementation preferences.**
+
+Whenever a requirement begins to describe technologies, internal modules, repository layout, libraries, databases, frameworks, deployment topology, or coding patterns, ask:
+
+> Is this truly required by the project, or have we accidentally started designing the architecture?
+
+If it is design, move it downstream.
+
+---
+
+# 40. Template Instruction
+
+When adapting this requirements system for a real project:
+
+1. derive requirements from accepted project intent;
+2. assign stable identifiers;
+3. keep requirements atomic where practical;
+4. use normative language deliberately;
+5. record rationale and source;
+6. define how each important requirement can be verified;
+7. distinguish requirements from architecture;
+8. preserve unresolved requirements rather than inventing certainty;
+9. revise requirements explicitly when discoveries demand it;
+10. maintain traceability from project purpose through verification.
+
+The objective is not to produce the largest possible requirements document.
+
+The objective is to create a **clear, authoritative, testable contract describing what the system must accomplish before deciding exactly how it will be built**.
+```
+
+Save that as:
+
+```bash
+docs/requirements/README.md
+```
+
+Then commit it:
+
+```bash
+git add docs/requirements/README.md
+git commit -m "docs: establish requirements framework"
+```
+
+We are still **not** creating `functional.md` yet. There is one layer we should decide on first because it influences both requirements and architecture: the **domain model**—the nouns, identities, relationships, rules, lifecycles, and invariants of the thing being built.

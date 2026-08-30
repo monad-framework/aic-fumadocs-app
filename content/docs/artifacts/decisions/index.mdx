@@ -1,0 +1,2980 @@
+---
+title: Architecture Decisions
+description: The durable record of consequential engineering decisions in Monad, their context, alternatives, rationale, consequences, status, and relationship to requirements, specifications, implementation, and evidence.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Decisions and rationale
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Architecture decisions preserve why consequential engineering choices were made, what alternatives were considered, which constraints shaped them, and when those choices later change.
+  </p>
+</div>
+
+## What this section contains
+
+Software repositories preserve implementation well.
+
+They preserve reasoning much less reliably.
+
+A commit can show:
+
+```text
+what changed
+```
+
+A diff can show:
+
+```text
+how it changed
+```
+
+An issue may show:
+
+```text
+some of the discussion
+```
+
+But none of those necessarily preserve:
+
+```text
+why this direction became authoritative
+instead of the alternatives
+```
+
+That is the purpose of an Architecture Decision Record.
+
+---
+
+# What is an architecture decision?
+
+An **Architecture Decision** is a durable record of a consequential engineering choice whose rationale is valuable enough to preserve.
+
+It normally answers:
+
+```text
+What problem required a decision?
+
+What constraints applied?
+
+What alternatives were considered?
+
+What was decided?
+
+Why was that option selected?
+
+What consequences follow?
+
+What would cause the decision to be revisited?
+```
+
+The emphasis is not merely on recording the selected option.
+
+The important artifact is the reasoning around the choice.
+
+---
+
+# Why decisions need durable records
+
+Engineering decisions are frequently reconstructed from fragments:
+
+* source code,
+* old pull requests,
+* chat discussions,
+* issue comments,
+* commit history,
+* design documents,
+* memory,
+* and assumptions.
+
+That reconstruction is expensive.
+
+Worse, it is often wrong.
+
+A later engineer may observe:
+
+```text
+The system uses an embedded database.
+```
+
+and infer:
+
+```text
+The architecture requires this database.
+```
+
+when the original reasoning may actually have been:
+
+```text
+We need a replaceable local read model.
+This database was simply the best current implementation.
+```
+
+Without the decision record, implementation can quietly become mythology.
+
+---
+
+# Decisions preserve intent
+
+A useful decision record distinguishes:
+
+```text
+Requirement
+  what must be satisfied
+
+Decision
+  which direction we chose
+
+Specification
+  exactly how the chosen system must behave
+
+Implementation
+  how that specification currently exists in software
+```
+
+Conceptually:
+
+```text
+Requirement
+     │
+     ▼
+Alternatives
+     │
+     ▼
+Decision
+     │
+     ▼
+Architecture / Specification
+     │
+     ▼
+Implementation
+```
+
+Each layer has a different authority.
+
+---
+
+# Decision authority
+
+An accepted Decision is authoritative for the engineering direction it declares within its Scope.
+
+That does **not** mean the decision is eternally correct.
+
+It means:
+
+> **This is the currently accepted direction until it is explicitly amended or superseded.**
+
+This distinction matters.
+
+Otherwise teams often operate under an invisible combination of:
+
+```text
+latest implementation
++
+institutional memory
++
+whoever speaks most confidently
+```
+
+Explicit Decision state is safer.
+
+---
+
+# Decisions are not eternal truth
+
+Architecture changes.
+
+Constraints change.
+
+Evidence changes.
+
+Technology changes.
+
+Product requirements change.
+
+A previously correct decision can become incorrect.
+
+Therefore Monad treats decisions as versioned engineering knowledge rather than immutable doctrine.
+
+Conceptually:
+
+```text
+Decision A
+   │
+   │ superseded-by
+   ▼
+Decision B
+```
+
+Decision A remains historically meaningful.
+
+Decision B becomes current.
+
+History is preserved without allowing old decisions to masquerade as present authority.
+
+---
+
+# Decision identity
+
+A consequential Decision should have stable identity.
+
+For example:
+
+```text
+ADR-001
+```
+
+or:
+
+```text
+ADR-ARCH-004
+```
+
+The exact identifier format belongs in formal specification.
+
+What matters is that other Artifacts can refer durably to the Decision.
+
+For example:
+
+```text
+REQ-LOCAL-002
+      │
+      │ addressed-by
+      ▼
+ADR-017
+      │
+      │ implemented-through
+      ▼
+SPEC-STORAGE-004
+```
+
+Stable identity makes the rationale graph navigable.
+
+---
+
+# Architecture Decision Records
+
+The common artifact form is the **Architecture Decision Record**, or ADR.
+
+An ADR is intentionally small compared with a full architecture document.
+
+Its responsibility is usually one consequential choice.
+
+For example:
+
+```text
+ADR-001
+Separate Semantic Identity from Native Identity
+```
+
+```text
+ADR-002
+Treat the Filesystem as a Native Authority,
+Not a Universal Generated Projection
+```
+
+```text
+ADR-003
+Separate Constitution from the System Graph
+```
+
+```text
+ADR-004
+Use a Replaceable Local Read Model
+```
+
+An ADR should not attempt to explain the entire system.
+
+That belongs in [System](/docs/system) and detailed [Specifications](/docs/artifacts/specifications).
+
+---
+
+# What deserves an ADR?
+
+A decision probably deserves a durable record when one or more of these are true:
+
+* reasonable alternatives existed,
+* the choice materially shapes later architecture,
+* reversing it would be expensive,
+* future engineers are likely to ask why,
+* the decision establishes an important system boundary,
+* it resolves a meaningful tradeoff,
+* it affects compatibility,
+* it affects authority or governance,
+* it constrains multiple components,
+* it carries operational or security consequences,
+* it is based on evidence that may need future reassessment,
+* or misunderstanding the decision could produce architectural drift.
+
+Not every code choice deserves an ADR.
+
+---
+
+# What usually does not deserve an ADR?
+
+Examples might include:
+
+```text
+rename a local variable
+```
+
+```text
+choose between equivalent helper functions
+```
+
+```text
+move a private function within a module
+```
+
+```text
+adjust formatting
+```
+
+```text
+apply an obvious bug fix with no architectural consequence
+```
+
+Architecture records should preserve consequential reasoning.
+
+They should not become a diary of every implementation action.
+
+---
+
+# Decision structure
+
+The canonical ADR schema belongs in [Schemas](/docs/artifacts/schemas), but a useful record generally contains:
+
+```text
+Identity
+Title
+Status
+Context
+Decision
+Alternatives
+Rationale
+Consequences
+Relationships
+Evidence
+Revisit conditions
+```
+
+Additional fields may be warranted depending on criticality.
+
+---
+
+# Title
+
+A Decision title should identify the chosen direction clearly.
+
+Prefer:
+
+```text
+Separate Constitution from System Graph
+```
+
+over:
+
+```text
+Architecture Discussion
+```
+
+Prefer:
+
+```text
+Use Git as Native Source-History Authority
+```
+
+over:
+
+```text
+Git Decision
+```
+
+A title should help a reader understand the subject before opening the record.
+
+---
+
+# Context
+
+The Context explains why a decision became necessary.
+
+It should capture:
+
+* the problem,
+* relevant Requirements,
+* current constraints,
+* assumptions,
+* forces,
+* known risks,
+* and environmental conditions.
+
+For example:
+
+```text
+Monad needs rules governing authority, valid
+semantic structures, capability boundaries,
+and amendment procedures.
+
+If those governing rules are stored as ordinary
+mutable graph state, the system could potentially
+rewrite the rules governing its own evolution
+through ordinary graph mutation.
+```
+
+That is the decision context.
+
+---
+
+# Decision statement
+
+The Decision should be concise and normative.
+
+For example:
+
+> **The System Constitution will be modeled separately from the evolving System Graph. The Constitution constrains which graph states and transitions are valid.**
+
+This is much stronger than:
+
+```text
+We talked about maybe separating them.
+```
+
+An accepted ADR should make the selected direction unmistakable.
+
+---
+
+# Alternatives
+
+A meaningful Decision usually had alternatives.
+
+Those alternatives should be preserved.
+
+For example:
+
+```text
+Option A
+Store governance rules inside the graph.
+
+Option B
+Maintain a separate Constitution.
+
+Option C
+Hard-code governance entirely inside engines.
+```
+
+Preserving alternatives matters because future engineers need to know whether an option was:
+
+```text
+never considered
+```
+
+or:
+
+```text
+considered and deliberately rejected
+```
+
+Those are very different historical facts.
+
+---
+
+# Rationale
+
+The Rationale explains why the chosen alternative won.
+
+Useful rationale may involve:
+
+```text
+requirement satisfaction
+simplicity
+local-first behavior
+portability
+operational safety
+maintainability
+reversibility
+performance
+security
+compatibility
+evidence
+```
+
+The rationale should make tradeoffs explicit.
+
+For example:
+
+```text
+Separating the Constitution reduces the risk
+that ordinary graph mutation can redefine
+the rules governing graph validity.
+
+It also makes constitutional amendments
+independently inspectable and governable.
+
+The cost is an additional architectural layer
+and explicit Constitution/Graph synchronization
+semantics.
+```
+
+Good decisions acknowledge costs.
+
+---
+
+# Consequences
+
+Every consequential Decision creates consequences.
+
+They may be:
+
+```text
+positive
+negative
+neutral
+deferred
+uncertain
+```
+
+For example:
+
+```text
+Positive:
+  constitutional rules become independently governable.
+
+Negative:
+  the system must define how Constitution versions
+  relate to graph versions.
+
+Operational:
+  engines must validate relevant operations against
+  the applicable Constitution.
+
+Future:
+  migration semantics will be required when
+  constitutional rules change.
+```
+
+A Decision record that lists only benefits is usually incomplete.
+
+---
+
+# Tradeoffs
+
+Architecture is largely the management of tradeoffs.
+
+A useful ADR should therefore expose what the project intentionally gave up.
+
+For example:
+
+```text
+We choose durable semantic identity.
+
+We accept:
+  an explicit identity layer,
+  binding maintenance,
+  and ambiguity-resolution complexity.
+
+We reject:
+  using path identity despite its implementation simplicity.
+```
+
+Tradeoffs make the engineering argument inspectable.
+
+---
+
+# Assumptions
+
+Some Decisions depend on assumptions.
+
+For example:
+
+```text
+Assumption:
+Most projects continue using Git as their
+primary source-history system.
+```
+
+If that assumption later becomes false, the Decision may need reconsideration.
+
+Therefore significant assumptions should not remain hidden inside prose where practical.
+
+---
+
+# Revisit conditions
+
+A strong ADR may identify what would cause it to be reconsidered.
+
+For example:
+
+```text
+Revisit if:
+
+- maintaining semantic identity independently
+  creates unacceptable capture cost;
+
+- evidence shows rename/move continuity does not
+  materially improve engineering workflows;
+
+- a simpler native-identity strategy satisfies
+  the same requirements.
+```
+
+This makes decisions falsifiable rather than ideological.
+
+---
+
+# Evidence
+
+Some Decisions are based on evidence.
+
+Examples include:
+
+```text
+prototype results
+benchmark data
+failure analysis
+usability testing
+migration experiments
+operational incidents
+external constraints
+```
+
+Where evidence materially affected the choice, the Decision should reference it.
+
+Conceptually:
+
+```text
+Experiment
+    │
+    │ produced
+    ▼
+Evidence
+    │
+    │ supports
+    ▼
+Decision
+```
+
+See [Experiments](/docs/artifacts/experiments) and [Evidence](/docs/artifacts/evidence).
+
+---
+
+# Decision status
+
+Decision status changes how the record should be interpreted.
+
+A conceptual lifecycle might include:
+
+```text
+draft
+   ↓
+proposed
+   ↓
+accepted
+   ↓
+active
+   ↓
+superseded
+   ↓
+historical
+```
+
+Other states may eventually be useful.
+
+The exact lifecycle belongs in formal specification.
+
+---
+
+# Draft decisions
+
+A draft ADR is still being formed.
+
+It may contain:
+
+* incomplete context,
+* missing alternatives,
+* unresolved evidence,
+* or preliminary reasoning.
+
+Drafts should not accidentally be interpreted as architectural authority.
+
+---
+
+# Proposed decisions
+
+A proposed Decision has enough form to evaluate but has not yet been accepted.
+
+This distinction is important for humans and AI agents.
+
+```text
+Proposed ADR
+```
+
+means:
+
+```text
+candidate direction
+```
+
+not:
+
+```text
+current architecture
+```
+
+---
+
+# Accepted decisions
+
+An accepted Decision has passed the applicable decision authority.
+
+It becomes part of the current engineering direction.
+
+Other work can legitimately depend on it.
+
+---
+
+# Active decisions
+
+An active Decision currently governs relevant architecture.
+
+In many workflows, `accepted` and `active` may be equivalent.
+
+Monad may eventually distinguish them if a Decision can be accepted before its effective date or implementation boundary.
+
+---
+
+# Superseded decisions
+
+A Decision is superseded when another accepted Decision replaces it.
+
+For example:
+
+```text
+ADR-004
+Use SQLite Read Model
+     │
+     │ superseded-by
+     ▼
+ADR-031
+Use Provider-Neutral Embedded Read Model Interface
+```
+
+The earlier Decision remains available for historical reconstruction.
+
+---
+
+# Historical decisions
+
+A historical Decision may describe architecture that governed earlier releases but no longer governs the current system.
+
+This is not useless information.
+
+It explains why older implementation and artifacts look the way they do.
+
+---
+
+# Rejected proposals
+
+Sometimes a proposed Decision is rejected.
+
+That can be valuable history.
+
+A rejected proposal may explain:
+
+```text
+why a seemingly obvious alternative was not chosen
+```
+
+However, not every discarded idea deserves permanent ADR identity.
+
+Retention should depend on future explanatory value.
+
+---
+
+# Decision amendment
+
+A minor clarification may be an amendment.
+
+For example:
+
+```text
+fix incorrect link
+clarify wording
+correct terminology
+```
+
+without changing the actual chosen architecture.
+
+A material change to the Decision may require:
+
+```text
+new ADR
++
+supersession relationship
+```
+
+rather than silently rewriting history.
+
+---
+
+# Semantic change versus editorial change
+
+Monad should distinguish:
+
+```text
+record changed
+```
+
+from:
+
+```text
+decision changed
+```
+
+Git can show both as file modifications.
+
+The engineering model should preserve the semantic difference.
+
+This principle appears throughout Monad:
+
+> **File history is useful, but file modification is not itself semantic change.**
+
+---
+
+# Decisions and Requirements
+
+Requirements establish obligations.
+
+Decisions choose approaches for satisfying those obligations.
+
+For example:
+
+```text
+REQ-LOCAL-002
+Core local inspection remains available offline.
+         │
+         ▼
+ADR-STORAGE-001
+Maintain a local read model.
+```
+
+One Decision may address several Requirements.
+
+One Requirement may require several Decisions.
+
+---
+
+# Decisions should not rewrite Requirements
+
+Suppose a Requirement states:
+
+```text
+Core semantic inspection MUST work offline.
+```
+
+An ADR cannot legitimately say:
+
+```text
+We chose a hosted-only architecture,
+therefore offline behavior is no longer required.
+```
+
+That would be a Requirement change.
+
+The correct process is:
+
+```text
+Requirement review
+      │
+      ▼
+Requirement amended or retained
+      │
+      ▼
+Architecture decision
+```
+
+Decisions operate under Requirements.
+
+They do not silently erase them.
+
+---
+
+# Decisions and principles
+
+Principles influence many decisions.
+
+For example:
+
+```text
+Principle:
+Native engineering systems remain first-class.
+```
+
+may influence:
+
+```text
+ADR:
+Use Git's commit graph rather than reimplementing
+source-history semantics inside Monad.
+```
+
+The Principle explains recurring direction.
+
+The ADR records the specific consequential choice.
+
+---
+
+# Decisions and the Constitution
+
+Some Decisions may establish or amend foundational rules that later become constitutional.
+
+For example:
+
+```text
+ADR:
+Capability and Authority are distinct.
+```
+
+may result in:
+
+```text
+Constitutional Invariant:
+Possessing technical Capability MUST NOT
+implicitly grant governed Authority.
+```
+
+Not every ADR belongs in the Constitution.
+
+Only system-defining governance rules should cross that boundary.
+
+---
+
+# Decisions and architecture
+
+The architecture documentation should represent current accepted structure.
+
+ADRs preserve how that structure came to be.
+
+For example:
+
+```text
+System Architecture:
+  Constitution constrains Graph.
+
+ADR-003:
+  Why Constitution was separated from Graph.
+```
+
+The architecture page should not require readers to reconstruct the current design by reading hundreds of ADRs.
+
+Likewise, architecture documentation should not erase the reasoning history preserved by ADRs.
+
+---
+
+# Decisions and Specifications
+
+A Decision chooses a direction.
+
+A Specification defines its exact contract.
+
+For example:
+
+```text
+ADR:
+Use durable semantic identity independent of path.
+```
+
+may lead to:
+
+```text
+SPEC-ID-001
+Subject identifier format
+
+SPEC-ID-002
+Representation binding behavior
+
+SPEC-ID-003
+Identity resolution
+
+SPEC-ID-004
+Split and merge semantics
+```
+
+The ADR should remain at the architecture-choice level.
+
+---
+
+# Decisions and implementation
+
+Implementation realizes Decisions indirectly through architecture and specification.
+
+Conceptually:
+
+```text
+Decision
+   │
+   ▼
+Specification
+   │
+   ▼
+Implementation
+```
+
+Implementation can diverge.
+
+That does not retroactively change the Decision.
+
+It may instead indicate:
+
+```text
+implementation defect
+architecture drift
+incomplete migration
+new unrecorded decision
+```
+
+Those cases should be distinguishable.
+
+---
+
+# Decisions and verification
+
+Some Decisions introduce architectural properties that can be verified.
+
+For example:
+
+```text
+ADR:
+The query path remains side-effect free.
+```
+
+may eventually be supported by:
+
+```text
+architecture test
+dependency rule
+conformance test
+```
+
+Not all ADRs are directly executable requirements.
+
+But consequential architectural commitments should be verifiable where practical.
+
+---
+
+# Decisions and Evidence
+
+Evidence may support:
+
+```text
+why the decision was originally selected
+```
+
+or:
+
+```text
+whether its expected consequences actually occurred
+```
+
+Those are different uses.
+
+For example:
+
+```text
+Experiment E-004
+showed embedded read-model lookup
+was sufficiently fast.
+
+ADR-011
+used that evidence to select the design.
+```
+
+Later:
+
+```text
+Operational Evidence E-083
+shows scaling limits are now exceeded.
+```
+
+That newer Evidence may trigger a new Decision.
+
+---
+
+# Decisions and experiments
+
+An unresolved architecture question may require an Experiment.
+
+```text
+Question
+   │
+   ▼
+Alternatives
+   │
+   ▼
+Experiment
+   │
+   ▼
+Evidence
+   │
+   ▼
+Decision
+```
+
+This is preferable to prematurely deciding based on taste where empirical testing is feasible.
+
+---
+
+# Decisions and open questions
+
+An ADR should not pretend unresolved issues are settled.
+
+A Decision may explicitly record:
+
+```text
+Decided:
+  semantic identity is distinct from native identity.
+
+Still open:
+  exact identifier encoding.
+
+Still open:
+  cross-project namespace strategy.
+
+Still open:
+  merge identity representation.
+```
+
+This prevents a broad architectural decision from accidentally claiming more certainty than exists.
+
+---
+
+# Decisions and hypotheses
+
+Sometimes the project must choose a direction before sufficient evidence exists.
+
+That should be represented honestly.
+
+For example:
+
+```text
+Decision:
+  Begin with an embedded relational read model.
+
+Confidence:
+  provisional
+
+Assumption:
+  expected project scale fits local embedded storage.
+
+Revisit:
+  after representative corpus benchmark.
+```
+
+The Decision can still govern implementation while remaining explicitly revisable.
+
+---
+
+# Decision confidence
+
+Monad may eventually represent confidence separately from Decision status.
+
+For example:
+
+```text
+status:
+  accepted
+
+confidence:
+  moderate
+```
+
+This can be useful when the project must commit operationally despite incomplete knowledge.
+
+Authority and certainty are not the same thing.
+
+---
+
+# Decision scope
+
+Every ADR should identify the scope it governs.
+
+For example:
+
+```text
+Scope:
+  canonical semantic storage
+```
+
+is different from:
+
+```text
+Scope:
+  all storage used anywhere in Monad
+```
+
+Without scope, architecture decisions tend to expand beyond their original intent.
+
+---
+
+# Decision applicability
+
+Some Decisions may apply only to:
+
+```text
+M0
+```
+
+or:
+
+```text
+local single-project operation
+```
+
+or:
+
+```text
+public release path
+```
+
+A later environment may require different decisions.
+
+Applicability should be explicit where relevant.
+
+---
+
+# Decision criticality
+
+Not all decisions deserve the same governance.
+
+A change involving:
+
+```text
+button spacing
+```
+
+does not deserve the same review process as:
+
+```text
+authority evaluation semantics
+```
+
+Decision criticality may influence:
+
+* required reviewers,
+* evidence expectations,
+* approval authority,
+* test requirements,
+* migration planning,
+* and release impact analysis.
+
+Governance should be proportional to consequence.
+
+---
+
+# Reversibility
+
+A useful architecture review question is:
+
+> **How reversible is this decision?**
+
+Some decisions are easy to replace.
+
+Others create deep lock-in.
+
+Conceptually:
+
+```text
+Type 1:
+difficult or expensive to reverse
+
+Type 2:
+relatively easy to reverse
+```
+
+Highly irreversible decisions deserve more evidence and scrutiny.
+
+---
+
+# Cost of reversal
+
+Reversal cost might involve:
+
+```text
+data migration
+schema migration
+public compatibility
+client breakage
+repository conversion
+operational downtime
+rewriting integrations
+retraining users
+changing authority assumptions
+```
+
+This is relevant decision context.
+
+---
+
+# Decision dependencies
+
+A Decision may depend on another Decision.
+
+For example:
+
+```text
+ADR-021
+Use scoped authorization objects
+     │
+     │ depends-on
+     ▼
+ADR-007
+Separate Capability from Authority
+```
+
+These dependencies help reveal architectural layering.
+
+They also improve impact analysis.
+
+---
+
+# Decision conflicts
+
+Two active Decisions should not silently contradict each other.
+
+For example:
+
+```text
+ADR-A:
+All canonical state is filesystem-authored.
+
+ADR-B:
+Database records may be canonical for identity bindings.
+```
+
+This may be:
+
+```text
+a real contradiction
+```
+
+or:
+
+```text
+a scope distinction
+```
+
+The system should make such conflicts discoverable.
+
+---
+
+# Decision supersession
+
+Supersession should identify the replacement explicitly.
+
+Prefer:
+
+```text
+ADR-008
+
+Status:
+  superseded
+
+Superseded by:
+  ADR-024
+```
+
+over:
+
+```text
+old
+```
+
+This preserves a navigable historical chain.
+
+---
+
+# Decision chains
+
+Architecture may evolve through several generations.
+
+```text
+ADR-004
+     │
+     ▼
+ADR-017
+     │
+     ▼
+ADR-032
+```
+
+A reader should be able to determine:
+
+```text
+which one is current
+why each changed
+which releases used each decision
+```
+
+This is richer than Git history alone.
+
+---
+
+# Native decision records
+
+A Decision may have several Representations.
+
+For example:
+
+```text
+Decision Subject
+      │
+      ├── represented-by ──► ADR Markdown
+      ├── represented-by ──► GitHub issue
+      └── represented-by ──► generated docs page
+```
+
+The ADR document may be canonical.
+
+The GitHub issue may coordinate discussion.
+
+The website may be a Projection.
+
+Monad should not confuse these representations with the Decision itself.
+
+---
+
+# Decision provenance
+
+A Decision should retain enough Provenance to reconstruct important context.
+
+Potential provenance includes:
+
+```text
+author
+proposer
+reviewers
+decision authority
+date proposed
+date accepted
+source discussion
+supporting experiments
+source requirements
+superseded decision
+```
+
+Not all Decisions require every field.
+
+Again, formalization should earn its cost.
+
+---
+
+# Decision ownership
+
+Every important Decision should have identifiable authority.
+
+That may be:
+
+```text
+project owner
+architecture authority
+domain owner
+security reviewer
+release authority
+governance body
+```
+
+This becomes increasingly important when AI agents can propose architectural changes.
+
+---
+
+# AI and decision making
+
+AI can assist with:
+
+* identifying alternatives,
+* analyzing tradeoffs,
+* searching prior Decisions,
+* finding conflicts,
+* generating candidate ADRs,
+* tracing Requirements,
+* identifying likely consequences,
+* and detecting architecture drift.
+
+But AI generation does not itself make a Decision authoritative.
+
+Conceptually:
+
+```text
+AI proposes
+    │
+    ▼
+Candidate ADR
+    │
+    ▼
+Authorized review
+    │
+    ▼
+Accepted Decision
+```
+
+Capability does not imply decision authority.
+
+---
+
+# AI should receive decision context
+
+An AI agent modifying a governed system should ideally know relevant active Decisions.
+
+For example, an agent asked to redesign storage should receive:
+
+```text
+ADR-004
+local-first requirement
+
+ADR-009
+canonical formats must remain portable
+
+ADR-021
+native systems remain first-class
+```
+
+Without this context, the agent may produce locally plausible changes that violate architecture.
+
+---
+
+# Architecture drift
+
+Architecture drift occurs when implementation begins embodying an unrecorded direction inconsistent with accepted architecture.
+
+For example:
+
+```text
+Accepted ADR:
+Filesystem and database use hybrid authority.
+
+Implementation drift:
+New subsystem assumes all filesystem files
+are generated projections.
+```
+
+Monad should eventually make this class of mismatch easier to detect.
+
+---
+
+# Unrecorded decisions
+
+Not every architectural change will initially have an ADR.
+
+Implementation may reveal that a meaningful Decision occurred implicitly.
+
+The correct response may be to create:
+
+```text
+retrospective Decision record
+```
+
+if preserving the rationale still provides value.
+
+The record should honestly indicate that it was documented after the fact.
+
+---
+
+# Retrospective ADRs
+
+A retrospective ADR may be necessary when:
+
+* an existing architecture lacks rationale,
+* migration requires understanding the current state,
+* a previously implicit boundary becomes consequential,
+* or historical decisions must be reconstructed.
+
+The record should distinguish:
+
+```text
+known contemporaneous rationale
+```
+
+from:
+
+```text
+later reconstruction
+```
+
+Provenance matters.
+
+---
+
+# Decision review questions
+
+A decision review should ask:
+
+1. What problem actually requires a Decision?
+2. Which Requirements constrain it?
+3. What happens if no Decision is made?
+4. What alternatives exist?
+5. Are we prematurely reducing the design space?
+6. Which option is simplest?
+7. Which option is most reversible?
+8. Which option preserves native capabilities?
+9. Which option creates new authority assumptions?
+10. Which assumptions lack evidence?
+11. Could an Experiment resolve uncertainty?
+12. What are the negative consequences?
+13. What downstream interfaces will this constrain?
+14. How expensive is migration away later?
+15. What evidence would make us reverse the Decision?
+16. Does the chosen option solve the underlying problem or merely a symptom?
+
+These questions are more valuable than ceremonial approval.
+
+---
+
+# Decision quality
+
+A strong Decision should be:
+
+## Contextual
+
+The reader understands why the choice was necessary.
+
+## Explicit
+
+The chosen direction is unmistakable.
+
+## Comparative
+
+Meaningful alternatives are visible.
+
+## Reasoned
+
+The rationale follows from constraints and evidence.
+
+## Honest
+
+Negative consequences are included.
+
+## Scoped
+
+Its authority does not expand accidentally.
+
+## Traceable
+
+Related Requirements, Evidence, and Specifications are connected.
+
+## Revisable
+
+Future evidence can supersede it explicitly.
+
+---
+
+# Weak ADR patterns
+
+Several patterns reduce the value of decision records.
+
+## Decision without context
+
+```text
+Use PostgreSQL.
+```
+
+Why?
+
+For which subsystem?
+
+What requirement does it satisfy?
+
+What alternatives were rejected?
+
+---
+
+## Context without decision
+
+Three pages of discussion end without clearly stating the selected direction.
+
+---
+
+## Benefit-only rationale
+
+The ADR lists everything good about the chosen architecture and nothing it costs.
+
+---
+
+## Fake alternatives
+
+```text
+Option A:
+sensible architecture
+
+Option B:
+obviously terrible architecture
+```
+
+This does not represent genuine reasoning.
+
+---
+
+## Implementation transcript
+
+The ADR documents implementation steps instead of the architectural choice.
+
+---
+
+## Eternal wording
+
+The Decision is written as if future evidence could never invalidate it.
+
+---
+
+## No supersession
+
+A new direction is adopted while the old ADR still appears active.
+
+---
+
+# ADR inflation
+
+A project can destroy the usefulness of ADRs by recording too many trivial decisions.
+
+If every small implementation choice receives an ADR:
+
+```text
+signal → noise
+```
+
+The important architectural record becomes difficult to navigate.
+
+The goal is not maximum ADR count.
+
+The goal is preservation of consequential reasoning.
+
+---
+
+# ADR scarcity
+
+The opposite failure is also common.
+
+Only the largest architecture decisions are recorded, leaving important boundary choices implicit.
+
+Useful ADR coverage usually includes decisions around:
+
+* identity,
+* authority,
+* storage ownership,
+* canonical representation,
+* integration boundaries,
+* governance,
+* execution,
+* compatibility,
+* portability,
+* security,
+* and major dependency choices.
+
+---
+
+# Decision clusters
+
+Related Decisions may form a cluster.
+
+For example:
+
+```text
+Identity
+├── ADR-ID-001 Semantic Identity Is Distinct
+├── ADR-ID-002 Native IDs Are Preserved
+├── ADR-ID-003 Identity Bindings Are Explicit
+└── ADR-ID-004 Split/Merge History Is Retained
+```
+
+Grouping improves human navigation.
+
+The semantic relationships should remain explicit regardless of folder structure.
+
+---
+
+# Suggested corpus organization
+
+A future physical structure might resemble:
+
+```text
+decisions/
+├── index.mdx
+├── meta.json
+├── foundation/
+├── identity/
+├── authority/
+├── governance/
+├── storage/
+├── execution/
+├── integrations/
+├── security/
+└── developer-experience/
+```
+
+The actual taxonomy should emerge from the corpus.
+
+Do not create empty categories merely because the structure looks complete.
+
+---
+
+# Decision index
+
+A generated index might eventually show:
+
+| ID      | Decision                                | Status     | Domain     | Supersedes |
+| ------- | --------------------------------------- | ---------- | ---------- | ---------- |
+| ADR-001 | Separate Semantic and Native Identity   | Active     | Identity   | —          |
+| ADR-002 | Separate Constitution from System Graph | Active     | Governance | —          |
+| ADR-003 | Use Hybrid Filesystem Authority         | Active     | Authority  | —          |
+| ADR-004 | Use Embedded Local Read Model           | Superseded | Storage    | —          |
+| ADR-019 | Use Replaceable Read Model Interface    | Active     | Storage    | ADR-004    |
+
+The rows are illustrative.
+
+Eventually this view should be generated from authoritative records rather than manually duplicated.
+
+---
+
+# Foundational Monad decisions
+
+Several foundational architectural directions already shape the current Monad model.
+
+These include:
+
+```text
+Semantic Identity is distinct from Native Identity.
+```
+
+```text
+Subject is distinct from Representation.
+```
+
+```text
+The Constitution is distinct from the System Graph.
+```
+
+```text
+Capability is distinct from Authority.
+```
+
+```text
+Claim is distinct from Evidence.
+```
+
+```text
+The filesystem participates in hybrid authority
+rather than universally acting as generated output.
+```
+
+```text
+Native engineering systems remain first-class.
+```
+
+```text
+Monad is local-first but may integrate with remote systems.
+```
+
+```text
+AI Actors participate inside the governance model
+rather than bypassing it.
+```
+
+These directions should ultimately have explicit, traceable decision records where they do not already.
+
+---
+
+# Example ADR — Constitution separation
+
+```text
+ADR-003
+Separate Constitution from System Graph
+
+Status:
+  accepted
+
+Context:
+  Monad needs mutable system state and separately
+  governed rules constraining valid state and evolution.
+
+Decision:
+  Represent the Constitution independently from
+  the evolving System Graph.
+
+Rationale:
+  Ordinary graph mutation must not automatically
+  rewrite the rules that govern graph validity.
+
+Consequences:
+  + constitutional amendments become explicit
+  + governance boundaries become clearer
+  - Constitution/Graph compatibility must be defined
+  - version transitions require migration semantics
+```
+
+This is illustrative rather than the final canonical ADR.
+
+---
+
+# Example ADR — hybrid filesystem authority
+
+```text
+ADR-007
+Use Hybrid Filesystem Authority
+
+Status:
+  accepted
+
+Context:
+  Some systems treat the filesystem entirely as
+  generated output from a central model.
+
+  Monad must integrate with ordinary developer
+  workflows and native source tools.
+
+Decision:
+  Files may be authoritative, generated, derived,
+  synchronized, or externally authoritative depending
+  on the specific Subject and Representation.
+
+Rationale:
+  Universal generated-filesystem architecture would
+  replace rather than integrate with established
+  engineering workflows.
+
+Consequences:
+  + developers can edit ordinary source normally
+  + native tools remain first-class
+  + incremental adoption becomes possible
+  - authority must be represented explicitly
+  - reconciliation becomes necessary
+```
+
+---
+
+# Example ADR — native tools
+
+```text
+ADR-011
+Prefer Native Engineering Systems Over Reimplementation
+
+Status:
+  accepted
+
+Decision:
+  Monad will integrate with established native
+  engineering systems when their semantics remain
+  useful rather than reproducing those systems
+  inside Monad without sufficient justification.
+
+Examples:
+  Git remains responsible for source history.
+  Package managers remain responsible for package
+  resolution.
+  Test frameworks remain responsible for executing
+  their native tests.
+
+Rationale:
+  Monad's primary value should come from connecting
+  engineering meaning rather than duplicating mature
+  infrastructure.
+
+Revisit:
+  when a native system cannot satisfy a required
+  semantic, governance, portability, or reproducibility
+  property.
+```
+
+---
+
+# Example ADR — AI authority
+
+```text
+ADR-018
+AI Actors Do Not Receive Implicit Elevated Authority
+
+Status:
+  accepted
+
+Context:
+  AI systems may be technically capable of modifying
+  source, infrastructure, releases, and project records.
+
+Decision:
+  AI Actors participate in the same explicit authority
+  model as other Actors.
+
+  Model capability or tool access MUST NOT automatically
+  imply permission to perform governed actions.
+
+Consequences:
+  + AI autonomy can grow without bypassing governance
+  + actions remain attributable
+  + human and automated Actors share one model
+  - workflows require explicit authorization semantics
+```
+
+---
+
+# Decision traceability
+
+A mature Decision graph should make paths like this visible:
+
+```text
+Problem
+   │
+   ▼
+REQ-ID-001
+   │
+   ▼
+ADR-ID-001
+   │
+   ▼
+SPEC-ID-002
+   │
+   ▼
+Identity Resolver
+   │
+   ▼
+Verification
+   │
+   ▼
+Evidence
+```
+
+This is much more useful than a disconnected folder of ADR files.
+
+---
+
+# Decision impact analysis
+
+Before changing a consequential Decision, the system should eventually help identify:
+
+```text
+Which Requirements depend on it?
+
+Which Specifications implement it?
+
+Which components embody it?
+
+Which tests assume it?
+
+Which policies depend on it?
+
+Which documentation describes it?
+
+Which releases were produced under it?
+
+Which other Decisions depend on it?
+```
+
+Conceptually:
+
+```text
+Decision Change
+      │
+      ▼
+Impact Analysis
+      │
+      ├──► Requirements
+      ├──► Decisions
+      ├──► Specifications
+      ├──► Components
+      ├──► Tests
+      ├──► Evidence
+      └──► Releases
+```
+
+---
+
+# Decision history and releases
+
+A release should be interpretable relative to the architecture decisions active at that time.
+
+For example:
+
+```text
+Release 0.1
+  governed by:
+    ADR-001@1
+    ADR-003@2
+    ADR-007@1
+```
+
+while:
+
+```text
+Release 0.5
+  governed by:
+    ADR-001@2
+    ADR-014@1
+    ADR-007@1
+```
+
+This makes historical architecture reconstructable.
+
+---
+
+# Decision chronology is not enough
+
+Knowing when decisions happened is useful.
+
+But chronology alone does not explain structure.
+
+For example:
+
+```text
+ADR-012 written after ADR-009
+```
+
+does not mean:
+
+```text
+ADR-012 depends on ADR-009
+```
+
+Monad should distinguish relationships such as:
+
+```text
+depends-on
+supersedes
+refines
+constrains
+conflicts-with
+derived-from
+```
+
+rather than relying entirely on timestamps.
+
+---
+
+# Causality matters
+
+Decision records are particularly valuable when they preserve causal reasoning.
+
+For example:
+
+```text
+Evidence E-014
+      │
+      │ changed assumption
+      ▼
+ADR-022
+      │
+      │ superseded
+      ▼
+ADR-009
+```
+
+This is different from merely knowing those artifacts were created in that order.
+
+---
+
+# Decision review and governance
+
+The amount of governance should depend on the Decision.
+
+A low-risk implementation architecture may require lightweight review.
+
+A Decision changing:
+
+```text
+identity semantics
+authority boundaries
+public compatibility
+security model
+canonical data model
+constitutional rules
+```
+
+should receive stronger scrutiny.
+
+One workflow should not impose maximum ceremony everywhere.
+
+---
+
+# Decision authority hierarchy
+
+Some decisions may belong to different authorities.
+
+For example:
+
+```text
+Local implementation Decision
+        │
+        ▼
+Component authority
+
+Cross-system architecture Decision
+        │
+        ▼
+Architecture authority
+
+Constitutional Decision
+        │
+        ▼
+Project governance authority
+```
+
+The precise governance model belongs under [System Governance](/docs/system/governance).
+
+---
+
+# Decision evidence threshold
+
+Critical decisions may require stronger evidence.
+
+A possible future policy might differentiate:
+
+```text
+low reversibility + low consequence
+  → lightweight rationale
+
+high reversibility + moderate consequence
+  → architecture review
+
+low reversibility + high consequence
+  → alternatives + experiment + formal approval
+```
+
+This is a governance question, not a universal ADR template requirement.
+
+---
+
+# Decisions should remain inspectable
+
+A reader should be able to determine quickly:
+
+```text
+Is this Decision current?
+
+What does it govern?
+
+Why was it made?
+
+What did it replace?
+
+What depends on it?
+
+What could invalidate it?
+```
+
+If those answers require reading ten unrelated documents, the Decision record is not doing enough work.
+
+---
+
+# Decision search
+
+A useful future system should answer queries such as:
+
+```text
+Show active identity decisions.
+
+Why does Monad use hybrid filesystem authority?
+
+Which Decision established the Constitution boundary?
+
+Which Decisions affect the execution engine?
+
+Which accepted Decisions have no linked Requirements?
+
+Which Decisions have been superseded?
+
+Which current Decisions were based on provisional assumptions?
+
+Which Decisions depend on ADR-007?
+
+What changed architecturally between releases 0.3 and 0.4?
+
+Which Decisions are affected if Git stops being authoritative
+for source-history identity?
+```
+
+These are examples of why typed relationships matter.
+
+---
+
+# Decision consistency
+
+A mature engineering system should help detect cases where:
+
+```text
+System documentation says one thing
+
+Active ADR says another
+
+Specification says something else
+
+Implementation behaves differently
+```
+
+Those differences should not be flattened.
+
+They represent different kinds of possible inconsistency.
+
+For example:
+
+```text
+outdated documentation
+superseded ADR not marked
+stale specification
+implementation drift
+```
+
+The system should help distinguish them.
+
+---
+
+# Decisions and current truth
+
+[System](/docs/system) remains the authoritative explanation of current Monad architecture.
+
+That means a new reader should generally learn:
+
+```text
+what Monad is
+```
+
+from System.
+
+They should come here when they need:
+
+```text
+why it became that way
+```
+
+This separation is deliberate.
+
+---
+
+# Decisions and historical truth
+
+[Building Monad](/docs/building-monad) may contain the narrative surrounding a Decision:
+
+* discussions,
+* failed approaches,
+* experimental context,
+* changing beliefs,
+* and chronology.
+
+The ADR preserves the durable engineering conclusion.
+
+The narrative preserves the journey.
+
+Neither replaces the other.
+
+---
+
+# Decisions and project process
+
+[Project](/docs/project) explains how decisions fit into Monad's engineering process.
+
+This section contains the actual Decision artifacts and indexes.
+
+Conceptually:
+
+```text
+Project
+  explains how decisions are made.
+
+Artifacts / Decisions
+  preserves what was decided.
+
+System
+  reflects the resulting current architecture.
+
+Building Monad
+  tells the historical story.
+```
+
+---
+
+# Decisions as knowledge compression
+
+A good ADR compresses a large amount of engineering context into a small durable record.
+
+Instead of future engineers reconstructing:
+
+```text
+17 issues
+42 comments
+3 prototypes
+2 abandoned branches
+6 chat discussions
+```
+
+they can begin with:
+
+```text
+ADR-014
+```
+
+and then follow provenance outward when deeper investigation is necessary.
+
+This is one of the highest-value forms of engineering documentation.
+
+---
+
+# But compression must preserve uncertainty
+
+A Decision should not rewrite history into false certainty.
+
+If the project was uncertain, say so.
+
+If evidence was weak, say so.
+
+If the Decision was provisional, say so.
+
+If alternatives were poorly understood, say so.
+
+Good records preserve the actual epistemic state rather than creating a polished fiction after the fact.
+
+---
+
+# Decisions can be wrong
+
+Monad should actively preserve the possibility that an accepted Decision is wrong.
+
+A robust architecture culture asks:
+
+> **What evidence would make us reverse this?**
+
+For example:
+
+```text
+Decision:
+Maintain a semantic graph.
+
+Potential falsification:
+If simpler indexing and retrieval provides
+nearly all desired engineering value at dramatically
+lower complexity, the graph architecture should
+be reconsidered.
+```
+
+This protects the project from defending architecture merely because effort has already been invested.
+
+---
+
+# The graph itself is subject to decision
+
+Monad should not assume that its current semantic-model direction is automatically justified forever.
+
+Questions remain legitimate:
+
+```text
+Is a graph actually necessary?
+
+Can simpler indexing recover enough meaning?
+
+Does semantic maintenance cost exceed its value?
+
+Which relationships genuinely need first-class representation?
+
+Where is ordinary documentation sufficient?
+```
+
+Architecture Decision Records provide the place to make those choices explicit rather than embedding them as unquestioned assumptions.
+
+---
+
+# Decision debt
+
+A project accumulates **decision debt** when consequential architecture exists without preserved rationale.
+
+Symptoms include:
+
+* nobody knows why a subsystem works this way,
+* code comments contain conflicting explanations,
+* old assumptions survive invisibly,
+* migrations are feared because intent is unclear,
+* AI agents reproduce obsolete architecture,
+* and engineers repeatedly revisit already-resolved questions.
+
+Not every missing ADR must be reconstructed.
+
+But high-value rationale should be recovered where its absence creates real risk.
+
+---
+
+# Decision archaeology
+
+When a missing historical Decision matters, engineers may need to reconstruct it from:
+
+```text
+commits
+pull requests
+issues
+documents
+tests
+release history
+conversations
+```
+
+That reconstruction should preserve its provenance.
+
+For example:
+
+```text
+Rationale reconstructed in 2026
+from PR #42 and commits a1b2c3..d4e5f6.
+```
+
+Do not present reconstruction as contemporaneous certainty.
+
+---
+
+# Decision hygiene
+
+A useful decision corpus needs modest ongoing maintenance.
+
+That includes:
+
+```text
+mark superseded decisions
+repair broken relationships
+identify stale status
+link new specifications
+preserve migration context
+```
+
+It should not require continuous prose rewriting.
+
+The point is durable reasoning, not documentation churn.
+
+---
+
+# Decision dashboards
+
+Derived views may eventually summarize:
+
+```text
+active Decisions
+proposed Decisions
+superseded Decisions
+unresolved conflicts
+Decisions without Requirements
+Decisions without specifications
+high-criticality Decisions
+provisional Decisions due for review
+```
+
+These are operational projections over the engineering record.
+
+They should not become separate sources of truth.
+
+---
+
+# Decision templates
+
+A practical ADR template may eventually resemble:
+
+```text
+# ADR-XXX: Decision Title
+
+Status:
+Date:
+Scope:
+Decision Authority:
+
+## Context
+
+## Requirements / Constraints
+
+## Decision
+
+## Alternatives
+
+## Rationale
+
+## Consequences
+
+## Evidence
+
+## Relationships
+
+## Revisit Conditions
+```
+
+Not every ADR should be forced to fill every field mechanically.
+
+The template exists to improve reasoning.
+
+The reasoning does not exist to satisfy the template.
+
+---
+
+# Minimal ADR
+
+For smaller but still consequential decisions, this may be sufficient:
+
+```text
+Title
+Status
+Context
+Decision
+Consequences
+```
+
+Additional structure should be added when it creates value.
+
+---
+
+# High-criticality ADR
+
+A foundational Decision may require much more:
+
+```text
+Identity
+Scope
+Authority
+Context
+Requirements
+Assumptions
+Alternatives
+Evaluation criteria
+Evidence
+Decision
+Rationale
+Positive consequences
+Negative consequences
+Risks
+Migration
+Verification
+Revisit conditions
+Relationships
+```
+
+Again, governance should be proportional.
+
+---
+
+# Decision anti-pattern: architecture by preference
+
+Statements such as:
+
+```text
+I like technology X.
+```
+
+can influence experimentation.
+
+They are not sufficient architectural rationale by themselves.
+
+A Decision should connect choices to actual engineering forces.
+
+---
+
+# Decision anti-pattern: popularity as proof
+
+A technology being common may reduce adoption risk.
+
+It does not automatically prove suitability.
+
+Likewise, an unusual approach is not automatically innovative.
+
+Decisions should be justified against Monad's actual Requirements.
+
+---
+
+# Decision anti-pattern: premature category commitment
+
+Monad's eventual category remains deliberately open.
+
+It may resemble:
+
+```text
+developer tool
+engineering platform
+semantic control plane
+knowledge system
+engineering operating system
+```
+
+The project should not force architecture to satisfy a marketing category selected too early.
+
+Architecture should emerge from the underlying problem.
+
+---
+
+# Decision anti-pattern: solving symptoms
+
+An ADR should challenge whether the proposed design addresses the real problem.
+
+For example:
+
+```text
+Problem observed:
+engineers cannot find important information.
+
+Possible Decision:
+build semantic graph.
+```
+
+But first ask:
+
+```text
+Is fragmented semantic context the root problem?
+
+Would better indexing solve enough?
+
+Is missing authority the larger problem?
+
+Is information unavailable or merely undiscoverable?
+```
+
+Good ADRs preserve this reasoning.
+
+---
+
+# Decision anti-pattern: second reality
+
+Monad must avoid creating a semantic model that diverges from the systems engineers actually use.
+
+Therefore important Decisions should repeatedly consider:
+
+```text
+How does this remain reconciled with native state?
+```
+
+An elegant model disconnected from engineering reality is not success.
+
+---
+
+# Decision anti-pattern: replacing everything
+
+The existence of Monad should not imply every native tool must move inside Monad.
+
+Architecture decisions should prefer integration when integration preserves the required semantics.
+
+Replacement must earn its complexity.
+
+---
+
+# Decision anti-pattern: irreversible centralization
+
+A convenience implementation should not casually become an architecture requiring all engineering meaning to live inside one hosted service.
+
+Portability and local ownership are explicit forces in Monad's design.
+
+---
+
+# Decision anti-pattern: governance theater
+
+A formal ADR approval process does not automatically create good governance.
+
+Governance should ensure:
+
+```text
+appropriate authority
+good reasoning
+necessary evidence
+clear consequences
+traceability
+```
+
+not merely signatures.
+
+---
+
+# Decision anti-pattern: AI consensus
+
+Several AI models agreeing on an architecture is not equivalent to engineering evidence.
+
+AI can widen the alternative set and critique reasoning.
+
+Authority and evidence must remain explicit.
+
+---
+
+# Current maturity
+
+Monad's Decision corpus is expected to evolve substantially while foundational architecture is still being established.
+
+Current work should therefore distinguish among:
+
+```text
+established architectural commitments
+accepted but provisional choices
+implementation-level decisions
+open architecture questions
+untested hypotheses
+```
+
+That distinction is more useful than pretending every design question has already been closed.
+
+<Callout type="info" title="A decision record is not proof">
+
+An ADR demonstrates that a choice was made and preserves why.
+
+It does not prove that the choice was correct.
+
+Correctness must continue to be tested against requirements, evidence, implementation experience, and changing constraints.
+
+</Callout>
+
+---
+
+# Relationship to Requirements
+
+[Requirements](/docs/artifacts/requirements) define the obligations architecture must satisfy.
+
+Architecture Decisions record the consequential choices made under those obligations.
+
+```text
+Requirement
+     │
+     ▼
+Decision
+```
+
+---
+
+# Relationship to Specifications
+
+[Specifications](/docs/artifacts/specifications) translate accepted architecture into precise implementable contracts.
+
+```text
+Decision
+     │
+     ▼
+Specification
+```
+
+---
+
+# Relationship to Models
+
+[Models](/docs/artifacts/models) formalize structures that may emerge from architectural decisions.
+
+```text
+Decision
+     │
+     ▼
+Domain / System Model
+```
+
+---
+
+# Relationship to Experiments
+
+[Experiments](/docs/artifacts/experiments) reduce uncertainty where architecture can be tested before commitment.
+
+```text
+Question
+   ↓
+Experiment
+   ↓
+Evidence
+   ↓
+Decision
+```
+
+---
+
+# Relationship to Evidence
+
+[Evidence](/docs/artifacts/evidence) supports the claims and assumptions used in decision-making.
+
+Evidence can also later challenge an active Decision.
+
+---
+
+# Relationship to Reviews
+
+[Reviews](/docs/artifacts/reviews) preserve structured evaluation of consequential architecture and implementation.
+
+A major ADR may be accepted only after an appropriate architecture review.
+
+---
+
+# Relationship to Traceability
+
+[Traceability](/docs/artifacts/traceability) connects Decisions to:
+
+* Requirements,
+* Models,
+* Specifications,
+* Components,
+* Verification,
+* Evidence,
+* and Releases.
+
+The Decision record is one node in a wider engineering argument.
+
+---
+
+# The governing principle
+
+The purpose of Architecture Decision Records is not to maximize documentation.
+
+It is to preserve enough reasoning that future engineers do not have to rediscover the same architectural context from scattered fragments.
+
+> **When a consequential engineering choice constrains the future, preserve not only what was chosen, but enough context to understand why it was chosen, what it cost, what it replaced, and what evidence would justify changing it.**
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Specifications"
+    href="/docs/artifacts/specifications"
+  >
+    See how accepted architecture becomes precise, implementable contracts.
+  </Card>
+
+<Card
+title="Experiments"
+href="/docs/artifacts/experiments"
+>
+Inspect investigations used to reduce uncertainty before consequential decisions.
+</Card>
+
+<Card
+title="Evidence"
+href="/docs/artifacts/evidence"
+>
+Examine the records that support or challenge engineering decisions.
+</Card>
+
+<Card
+title="Traceability"
+href="/docs/artifacts/traceability"
+>
+Follow decisions through requirements, specifications, implementation, verification, evidence, and releases.
+</Card>
+</Cards>
+
+---
+
+## Related artifact views
+
+<Cards>
+  <Card
+    title="Requirements"
+    href="/docs/artifacts/requirements"
+  >
+    Review the obligations and constraints that architecture decisions must satisfy.
+  </Card>
+
+<Card
+title="Models"
+href="/docs/artifacts/models"
+>
+Explore the semantic and structural models shaped by accepted decisions.
+</Card>
+
+<Card
+title="Reviews"
+href="/docs/artifacts/reviews"
+>
+Inspect formal evaluations of consequential engineering work.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

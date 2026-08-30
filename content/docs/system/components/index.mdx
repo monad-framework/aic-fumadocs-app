@@ -1,0 +1,2900 @@
+---
+title: Components
+description: The major logical components of Monad, their responsibilities, boundaries, dependencies, and relationship to the system architecture.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    System components
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Monad is composed from a small core of semantic, governance, execution, verification, projection, and integration components. These are logical responsibility boundaries first; they do not require one process, service, package, or deployment unit per component.
+  </p>
+</div>
+
+## What this page defines
+
+[Architecture](/docs/system/architecture) describes the major responsibilities and boundaries of Monad.
+
+This page goes one level deeper.
+
+It answers:
+
+> **What concrete logical components realize those architectural responsibilities, what does each component own, and how should those components collaborate without duplicating authority or meaning?**
+
+The distinction matters.
+
+Architecture may say:
+
+```text
+Monad requires identity resolution.
+```
+
+The component model says:
+
+```text
+Identity Component
+  owns semantic identity resolution,
+  binding state,
+  and identity transitions.
+```
+
+Architecture may say:
+
+```text
+Side effects cross an explicit execution boundary.
+```
+
+The component model says:
+
+```text
+Execution Component
+  owns authorized operation execution,
+  native tool invocation,
+  execution state,
+  and execution provenance.
+```
+
+This page therefore sits between:
+
+```text
+Architecture
+     ↓
+Components
+     ↓
+Interfaces
+     ↓
+Specifications
+     ↓
+Implementation
+```
+
+---
+
+# Logical components, not deployment units
+
+The word **component** is used deliberately.
+
+A component is a cohesive unit of responsibility with:
+
+* a clear purpose,
+* explicit ownership,
+* defined inputs and outputs,
+* known dependencies,
+* controlled side effects,
+* and boundaries that can be tested independently.
+
+It does **not** necessarily mean:
+
+```text
+microservice
+```
+
+or:
+
+```text
+process
+```
+
+or:
+
+```text
+package
+```
+
+or:
+
+```text
+repository
+```
+
+An early Monad implementation may place many components inside one executable.
+
+For example:
+
+```text
+monad
+├── semantic model
+├── identity
+├── query
+├── policy
+├── impact
+├── context
+├── execution
+├── verification
+└── integrations
+```
+
+Later, some responsibilities may deserve stronger runtime separation.
+
+The component model should remain useful across both forms.
+
+> **Strong logical boundaries should precede distributed deployment boundaries.**
+
+---
+
+# Component map
+
+At a high level, the current component model looks like this:
+
+```text
+┌───────────────────────────────────────────────────────────────┐
+│                     Constitution Component                    │
+│                                                               │
+│ foundational rules · invariants · extension rules             │
+└───────────────────────────────┬───────────────────────────────┘
+                                │ constrains
+                                ▼
+┌───────────────────────────────────────────────────────────────┐
+│                   Semantic Model Component                    │
+│                                                               │
+│ Subjects · Representations · Claims · Relationships           │
+│ Authority · Provenance · Evidence · Lifecycle · Bindings      │
+└───────────────────────────────┬───────────────────────────────┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          │                     │                     │
+          ▼                     ▼                     ▼
+┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+│ Identity        │   │ Persistence     │   │ Read Model      │
+│ Component       │   │ Component       │   │ Component       │
+└─────────────────┘   └─────────────────┘   └────────┬────────┘
+                                                    │
+                 ┌──────────────────────────────────┼─────────────────────┐
+                 │                 │                │                     │
+                 ▼                 ▼                ▼                     ▼
+          ┌────────────┐   ┌────────────┐   ┌────────────┐       ┌────────────┐
+          │ Query      │   │ Policy     │   │ Impact     │       │ Context    │
+          │ Component  │   │ Component  │   │ Component  │       │ Component  │
+          └────────────┘   └────────────┘   └────────────┘       └────────────┘
+                 │                 │                │                     │
+                 └─────────────────┴───────────┬────┴─────────────────────┘
+                                              ▼
+                                      ┌───────────────┐
+                                      │ Planning      │
+                                      │ Component     │
+                                      └───────┬───────┘
+                                              │
+                                              ▼
+                                      ┌───────────────┐
+                                      │ Execution     │
+                                      │ Component     │
+                                      └───────┬───────┘
+                                              │
+                                              ▼
+                                   ┌─────────────────────┐
+                                   │ Integration Layer   │
+                                   │ + Native Adapters   │
+                                   └──────────┬──────────┘
+                                              │
+                                              ▼
+                                   Native Engineering Systems
+                                              │
+                                              ▼
+        ┌────────────────────┬────────────────┼─────────────────────┐
+        │                    │                │                     │
+        ▼                    ▼                ▼                     ▼
+┌───────────────┐   ┌────────────────┐ ┌───────────────┐   ┌───────────────┐
+│ Reconciliation│   │ Verification   │ │ Provenance    │   │ Lifecycle /   │
+│ Component     │   │ Component      │ │ Component     │   │ Release       │
+└───────┬───────┘   └────────┬───────┘ └───────────────┘   └───────────────┘
+        │                    │
+        └────────────────────┴──────────────► semantic state
+```
+
+Several supporting components cut across this flow:
+
+```text
+Projection Component
+Event / Change Component
+Extension Component
+AI Capability Component
+Interface Layer
+Observability Component
+```
+
+---
+
+# Component classes
+
+The components fall naturally into several groups.
+
+## Foundation
+
+```text
+Constitution
+Semantic Model
+Persistence
+Identity
+```
+
+These establish the meaning and durable state on which the rest of Monad depends.
+
+## Interpretation
+
+```text
+Read Model
+Query
+Impact
+Context
+```
+
+These interpret system state without directly changing native engineering reality.
+
+## Governance
+
+```text
+Policy
+Lifecycle
+Planning
+```
+
+These determine what changes are meaningful, valid, and permitted.
+
+## Action
+
+```text
+Execution
+Integration
+```
+
+These cross the boundary from reasoning into native-system side effects.
+
+## Assurance
+
+```text
+Verification
+Provenance
+Reconciliation
+Release
+```
+
+These establish what happened, whether it was correct, and how semantic state should change afterward.
+
+## Derived views and extension
+
+```text
+Projection
+Event / Change
+AI Capability
+Extension
+Interface
+Observability
+```
+
+These expose, extend, distribute, or observe the system without becoming alternate semantic authorities.
+
+---
+
+# 01 — Constitution Component
+
+The **Constitution Component** owns the highest-order rules of a Monad system.
+
+Its responsibility is to expose and validate the small set of foundational rules that constrain all lower-level components.
+
+It may own:
+
+* core semantic primitives,
+* constitutional invariants,
+* core relationship constraints,
+* extension rules,
+* authority hierarchy,
+* protected concepts,
+* constitutional versioning,
+* and amendment rules.
+
+It should answer questions such as:
+
+```text
+Is this semantic type permitted?
+
+May this extension introduce this relationship?
+
+Is this attempted transition constitutionally valid?
+
+Which amendment rules govern a proposed constitutional change?
+```
+
+---
+
+## It must not own
+
+The Constitution Component should not become the home for:
+
+* ordinary project configuration,
+* every policy,
+* workflow-specific authorization,
+* repository settings,
+* implementation preferences,
+* or arbitrary validation rules.
+
+Those belong elsewhere.
+
+The constitutional layer should remain intentionally small.
+
+---
+
+## Key dependency rule
+
+Every component may depend on constitutional rules.
+
+The Constitution Component should depend on as little of the rest of the system as possible.
+
+Conceptually:
+
+```text
+many components
+     │
+     ▼
+Constitution
+
+Constitution
+     │
+     └── minimal downward dependencies
+```
+
+This minimizes circular governance.
+
+---
+
+# 02 — Semantic Model Component
+
+The **Semantic Model Component** owns the canonical semantic vocabulary and structural interpretation used throughout Monad.
+
+It provides the shared model for:
+
+* Subjects,
+* Representations,
+* Native References,
+* Claims,
+* Relationships,
+* Authority,
+* Provenance,
+* Evidence,
+* Actors,
+* Capabilities,
+* Policies,
+* Lifecycle state,
+* and semantic bindings.
+
+This component answers:
+
+> **What kinds of things can Monad talk about, and how are they represented consistently across the system?**
+
+---
+
+## Responsibilities
+
+The Semantic Model Component should provide:
+
+* canonical domain types,
+* semantic validation,
+* relationship semantics,
+* basic invariants,
+* normalized internal representations,
+* shared value objects,
+* and boundaries between semantic entities.
+
+For example:
+
+```text
+SubjectId
+RepresentationId
+Claim
+AuthorityScope
+NativeReference
+Relationship
+LifecycleState
+```
+
+may eventually be represented as concrete domain types.
+
+The exact implementation is secondary to consistency.
+
+---
+
+## It must not own
+
+The Semantic Model Component should not decide:
+
+* whether an actor is permitted to execute an action,
+* how a file is read,
+* how GitHub is called,
+* how search indexes are stored,
+* how AI prompts are generated,
+* or how release verification is performed.
+
+Those are component responsibilities layered above the semantic core.
+
+---
+
+# 03 — Persistence Component
+
+The **Persistence Component** stores durable Monad-owned state.
+
+It provides a persistence boundary behind which storage technology can evolve without redefining the conceptual model.
+
+Its responsibilities include:
+
+* canonical record persistence,
+* transactions where supported,
+* history preservation,
+* schema migration,
+* record versioning,
+* durable identifiers,
+* consistency checks,
+* storage recovery,
+* and local-first state management.
+
+---
+
+## Persistence interfaces
+
+Other components should ideally interact with abstractions such as:
+
+```text
+SubjectRepository
+ClaimRepository
+RelationshipRepository
+PolicyRepository
+EvidenceRepository
+```
+
+rather than embedding storage assumptions everywhere.
+
+The actual persistence implementation might initially be:
+
+```text
+files
+embedded database
+```
+
+and later include:
+
+```text
+remote synchronization
+shared storage
+```
+
+without requiring the rest of the system to redefine semantic meaning.
+
+---
+
+## It must not own semantics
+
+Persistence should enforce structural constraints.
+
+It should not become the place where business meaning lives.
+
+Bad:
+
+```text
+SQL trigger defines what "superseded" means.
+```
+
+Better:
+
+```text
+Lifecycle Component defines transition semantics.
+Persistence stores the resulting transition safely.
+```
+
+---
+
+# 04 — Identity Component
+
+The **Identity Component** owns semantic identity resolution and continuity.
+
+It determines when representations correspond to the same underlying Subject and preserves identity across change.
+
+It may manage:
+
+* Subject identifiers,
+* identity bindings,
+* representation bindings,
+* aliases,
+* native identifier associations,
+* split transitions,
+* merge transitions,
+* identity conflicts,
+* inferred identity candidates,
+* confirmation state,
+* and identity history.
+
+---
+
+## Identity questions
+
+The component should eventually be able to answer:
+
+```text
+What Subject does this file represent?
+
+Did this Subject move?
+
+Are these two representations the same Subject?
+
+Is this apparent deletion actually a rename?
+
+Did one Subject split into two?
+
+Were two Subjects merged?
+
+What evidence supports this identity binding?
+```
+
+---
+
+## Identity resolution lifecycle
+
+An identity relationship may itself have state:
+
+```text
+observed
+   ↓
+inferred
+   ↓
+proposed
+   ↓
+confirmed
+```
+
+The Identity Component must preserve that distinction.
+
+AI inference should not silently create authoritative identity.
+
+---
+
+## It must not own file discovery
+
+The filesystem adapter may discover:
+
+```text
+path changed
+```
+
+The Identity Component interprets whether that means:
+
+```text
+same Subject moved
+```
+
+or:
+
+```text
+old Subject disappeared
+new Subject appeared
+```
+
+That separation matters.
+
+---
+
+# 05 — Read Model Component
+
+The **Read Model Component** builds optimized, disposable views of semantic state.
+
+Canonical data prioritizes integrity.
+
+Read models prioritize efficient access.
+
+Potential read models include:
+
+* graph traversal index,
+* dependency index,
+* semantic search index,
+* text search index,
+* provenance index,
+* authority index,
+* artifact index,
+* lifecycle index,
+* and context retrieval index.
+
+---
+
+## Rebuildability
+
+Where practical:
+
+```text
+delete read model
+       ↓
+rebuild from authoritative sources
+```
+
+should be safe.
+
+A read model should therefore avoid becoming an undocumented second source of truth.
+
+---
+
+## Freshness
+
+Every significant read model should be able to establish something like:
+
+```text
+source revision
+index revision
+build timestamp
+builder version
+```
+
+so consumers can understand whether it is current.
+
+---
+
+# 06 — Query Component
+
+The **Query Component** exposes semantic inspection.
+
+It allows humans, tools, and agents to ask structured questions about the engineering system.
+
+Examples:
+
+```text
+show Subject A
+
+what represents Subject A?
+
+what depends on Subject A?
+
+which specification governs Subject A?
+
+why does Subject A exist?
+
+which claim currently governs property P?
+
+what evidence supports Claim C?
+```
+
+---
+
+## Query responsibility
+
+The Query Component should:
+
+* interpret query intent,
+* resolve identifiers,
+* traverse read models,
+* apply authority semantics,
+* surface provenance,
+* preserve uncertainty,
+* and return explainable results.
+
+It should not merely return graph rows.
+
+A good response should increasingly be able to explain:
+
+```text
+answer
+source
+authority
+provenance
+freshness
+uncertainty
+```
+
+---
+
+## Query is side-effect free
+
+The component should maintain a strong boundary:
+
+```text
+query
+  ≠
+command
+```
+
+Inspection should not mutate engineering state.
+
+This makes queries safer for:
+
+* humans,
+* automation,
+* IDEs,
+* agents,
+* documentation,
+* and exploratory tooling.
+
+---
+
+# 07 — Policy Component
+
+The **Policy Component** determines whether an attempted operation is permitted and what obligations accompany permission.
+
+Inputs may include:
+
+```text
+Actor
+Capability
+Operation
+Target
+Scope
+Lifecycle State
+Authority
+Applicable Policies
+Risk
+Required Evidence
+```
+
+Outputs may include:
+
+```text
+permit
+deny
+permit with obligations
+require approval
+require verification
+require escalation
+```
+
+---
+
+## Example
+
+```text
+Actor:
+  implementation-agent
+
+Operation:
+  modify public interface
+
+Target:
+  auth-api
+
+Policy result:
+  allowed only with:
+    - approved specification change
+    - architecture review
+    - compatibility verification
+```
+
+The Policy Component should produce explainable decisions.
+
+---
+
+## It must not execute
+
+Policy answers:
+
+```text
+may this happen?
+```
+
+Execution answers:
+
+```text
+perform the allowed operation
+```
+
+Those responsibilities remain separate.
+
+---
+
+# 08 — Impact Component
+
+The **Impact Component** calculates known and inferred consequences of change.
+
+Given:
+
+```text
+change to Subject A
+```
+
+it may inspect:
+
+* dependencies,
+* implementations,
+* specifications,
+* requirements,
+* policies,
+* tests,
+* generated artifacts,
+* consumers,
+* and release boundaries.
+
+It can then produce:
+
+```text
+known impact
+probable impact
+uncertain impact
+unresolved impact
+```
+
+---
+
+## Impact is not omniscience
+
+The component must not imply:
+
+```text
+not in graph == unaffected
+```
+
+Missing relationships may indicate incomplete knowledge.
+
+A useful result might say:
+
+```text
+Known affected Subjects: 8
+
+Probable affected Subjects: 3
+
+Unknown external consumers may exist.
+```
+
+Explicit incompleteness is better than false certainty.
+
+---
+
+# 09 — Context Component
+
+The **Context Component** assembles purpose-specific engineering context.
+
+It is particularly important for AI-assisted engineering, but should remain useful without AI.
+
+Given:
+
+```text
+task
+actor
+target
+scope
+```
+
+it may collect:
+
+* requirements,
+* governing specifications,
+* current implementation,
+* dependencies,
+* decisions,
+* relevant history,
+* policy,
+* tests,
+* evidence,
+* authority information,
+* and known risks.
+
+---
+
+## Context construction
+
+Conceptually:
+
+```text
+Task
+ +
+Target Subjects
+ +
+Actor
+ +
+Scope
+ +
+Policy
+      │
+      ▼
+Context Component
+      │
+      ▼
+Context Projection
+```
+
+The output should be traceable.
+
+For every included item, the system should increasingly be able to explain:
+
+```text
+why was this included?
+where did it come from?
+is it current?
+is it authoritative?
+```
+
+---
+
+## Context is not search results
+
+Search may be one input.
+
+Context construction adds:
+
+* authority,
+* semantic relationships,
+* task relevance,
+* scope,
+* lifecycle,
+* provenance,
+* and policy.
+
+This is one of Monad's major conceptual differences from simply feeding more files to an AI model.
+
+---
+
+# 10 — Planning Component
+
+The **Planning Component** converts desired outcomes into bounded proposed work.
+
+Inputs may include:
+
+* task intent,
+* affected Subjects,
+* requirements,
+* specifications,
+* impact analysis,
+* applicable policy,
+* component capabilities,
+* and current system state.
+
+Outputs may include:
+
+```text
+proposed operations
+operation ordering
+affected scope
+required tools
+required approvals
+verification obligations
+expected outputs
+```
+
+---
+
+## Planning creates proposals
+
+Planning should not silently authorize itself.
+
+The lifecycle is:
+
+```text
+intent
+  ↓
+plan
+  ↓
+evaluate
+  ↓
+authorize
+  ↓
+execute
+```
+
+A plan is an inspectable proposal.
+
+It may be:
+
+* accepted,
+* modified,
+* rejected,
+* narrowed,
+* or escalated.
+
+---
+
+# 11 — Execution Component
+
+The **Execution Component** owns governed side effects.
+
+It receives authorized operations and coordinates their execution against native engineering systems.
+
+It may:
+
+* invoke tools,
+* edit files,
+* execute commands,
+* call APIs,
+* trigger builds,
+* run tests,
+* update external systems,
+* create artifacts,
+* and record execution state.
+
+---
+
+## Execution state
+
+An operation may move through states such as:
+
+```text
+planned
+authorized
+started
+completed
+failed
+partially-completed
+compensated
+```
+
+The exact state machine belongs in specification.
+
+The component must at least distinguish intended operations from actual outcomes.
+
+---
+
+## Preconditions
+
+Before executing, it may verify:
+
+```text
+expected source revision
+current target state
+actor authority
+required tools
+environment
+credentials
+policy obligations
+```
+
+If the system state changed after planning, execution may refuse to proceed.
+
+---
+
+## Side-effect boundary
+
+The Execution Component is one of Monad's most important trust boundaries.
+
+```text
+semantic reasoning
+      │
+      ▼
+authorized operation
+      │
+      ▼
+EXECUTION COMPONENT
+      │
+      ▼
+native side effect
+```
+
+No other high-level component should casually bypass this boundary for governed mutations.
+
+---
+
+# 12 — Integration Component
+
+The **Integration Component** provides the boundary between Monad and native systems.
+
+It coordinates integration adapters and presents normalized operations to higher-level components.
+
+Native systems might include:
+
+* filesystem,
+* Git,
+* GitHub,
+* package managers,
+* compilers,
+* build tools,
+* CI/CD,
+* databases,
+* deployment platforms,
+* observability systems,
+* documentation systems,
+* and external APIs.
+
+---
+
+## Integration versus adapter
+
+The Integration Component owns the architectural integration boundary.
+
+An adapter implements one native system.
+
+For example:
+
+```text
+Integration Component
+  │
+  ├── Filesystem Adapter
+  ├── Git Adapter
+  ├── GitHub Adapter
+  ├── Build Adapter
+  └── CI Adapter
+```
+
+---
+
+## Adapter responsibilities
+
+Adapters may:
+
+* discover native objects,
+* read state,
+* resolve Native References,
+* observe changes,
+* perform permitted writes,
+* invoke native operations,
+* normalize events,
+* and return native provenance.
+
+They should not redefine core semantic concepts.
+
+---
+
+# 13 — Reconciliation Component
+
+The **Reconciliation Component** compares Monad's semantic state with native engineering reality and handles divergence.
+
+Examples:
+
+```text
+Monad:
+file should exist at path A
+
+Filesystem:
+path A does not exist
+```
+
+```text
+Monad:
+Representation R maps to GitHub issue #42
+
+GitHub:
+issue #42 was transferred
+```
+
+```text
+Specification:
+interface returns type A
+
+Observed implementation:
+interface returns type B
+```
+
+---
+
+## Reconciliation outcomes
+
+A discrepancy may result in:
+
+```text
+automatic update
+identity proposal
+stale-state marker
+conflict
+warning
+review request
+lifecycle transition
+unresolved observation
+```
+
+The component should not assume that every native difference is an error.
+
+Native systems are legitimate authorities within their scopes.
+
+---
+
+## Continuous grounding
+
+Reconciliation protects Monad against becoming:
+
+```text
+a beautiful model
+of a system that no longer exists
+```
+
+It is therefore central to trustworthiness.
+
+---
+
+# 14 — Verification Component
+
+The **Verification Component** determines whether implementation and system state satisfy governing contracts.
+
+It may evaluate:
+
+* requirements,
+* specifications,
+* acceptance criteria,
+* architectural invariants,
+* policies,
+* tests,
+* reproducibility conditions,
+* compatibility conditions,
+* and release gates.
+
+---
+
+## Verification outputs
+
+The component should produce more than:
+
+```text
+true / false
+```
+
+Useful outcomes include:
+
+```text
+passed
+failed
+incomplete
+blocked
+not-applicable
+requires-review
+```
+
+along with:
+
+```text
+evidence
+conditions
+scope
+system revision
+method
+```
+
+---
+
+## Verification should be explainable
+
+A useful verification record might say:
+
+```text
+Requirement:
+  REQ-AUTH-004
+
+Verification:
+  acceptance test suite auth-api
+
+Result:
+  passed
+
+Repository revision:
+  abc123
+
+Environment:
+  test-env-v3
+
+Evidence:
+  EVID-8821
+```
+
+This connects correctness claims to concrete conditions.
+
+---
+
+# 15 — Provenance Component
+
+The **Provenance Component** records how meaningful engineering information and outcomes came to exist.
+
+It may attach provenance to:
+
+* claims,
+* artifacts,
+* representations,
+* generated content,
+* execution results,
+* evidence,
+* projections,
+* model changes,
+* and native observations.
+
+---
+
+## Provenance dimensions
+
+Depending on significance, provenance may include:
+
+```text
+actor
+producer
+tool
+model
+input
+source
+derivation
+environment
+timestamp
+repository revision
+requested origin
+resolved origin
+execution location
+```
+
+Not every operation requires every field.
+
+The system should capture enough information to reconstruct meaningful origins without turning provenance into unbounded telemetry.
+
+---
+
+# 16 — Lifecycle Component
+
+The **Lifecycle Component** owns valid state transitions for entities whose state carries semantic consequences.
+
+Examples:
+
+```text
+Specification
+draft → proposed → accepted → active → superseded
+```
+
+```text
+Work Package
+planned → authorized → executing → verifying → complete
+```
+
+```text
+Hypothesis
+proposed → investigating → supported / weakened / rejected
+```
+
+---
+
+## Responsibilities
+
+The component may:
+
+* define available transitions,
+* validate requested transitions,
+* identify required authority,
+* identify required evidence,
+* execute semantic state changes,
+* preserve transition history,
+* and reject invalid transitions.
+
+Lifecycle behavior should not be reduced to arbitrary mutable status strings.
+
+---
+
+# 17 — Release Component
+
+The **Release Component** coordinates a governed transition into a supported released state.
+
+It may own:
+
+* release candidate assembly,
+* version coordination,
+* release criteria,
+* required verification,
+* compatibility assessment,
+* migration requirements,
+* release evidence,
+* release provenance,
+* publication state,
+* and release lifecycle.
+
+---
+
+## Release flow
+
+Conceptually:
+
+```text
+candidate
+   ↓
+required checks
+   ↓
+verification
+   ↓
+evidence
+   ↓
+governance gate
+   ↓
+release
+   ↓
+publication
+```
+
+The Release Component may delegate actual native actions such as Git tagging or publishing packages through the Execution and Integration components.
+
+---
+
+# 18 — Projection Component
+
+The **Projection Component** creates derived views from authoritative state.
+
+Examples include:
+
+* documentation,
+* artifact indexes,
+* dependency visualizations,
+* AI context packages,
+* dashboards,
+* release summaries,
+* project-management views,
+* generated manifests,
+* and compatibility reports.
+
+---
+
+## Projection definition
+
+A projection should ideally be defined by:
+
+```text
+source scope
+selection rules
+transformation
+output format
+target
+freshness rules
+```
+
+For example:
+
+```text
+source:
+  active requirements
+
+projection:
+  public requirements index
+
+target:
+  documentation site
+```
+
+---
+
+## Derived means replaceable
+
+When possible:
+
+```text
+delete projection
+     ↓
+regenerate projection
+```
+
+should be a valid recovery strategy.
+
+This prevents generated output from becoming silent competing authority.
+
+---
+
+# 19 — Event & Change Component
+
+The **Event & Change Component** normalizes meaningful changes occurring across Monad and native systems.
+
+Events may originate from:
+
+* filesystem watchers,
+* Git operations,
+* GitHub webhooks,
+* CI runs,
+* executions,
+* policy changes,
+* lifecycle transitions,
+* projections,
+* migrations,
+* and external systems.
+
+---
+
+## Change normalization
+
+Native systems produce different event formats.
+
+The component may normalize them into a common form:
+
+```text
+source
+event type
+target
+timestamp
+native revision
+actor
+payload reference
+```
+
+This enables other components to react consistently.
+
+---
+
+## Not every event is durable
+
+Most low-level events should not automatically become permanent engineering artifacts.
+
+For example:
+
+```text
+file watcher emitted three transient changes
+```
+
+may be operational noise.
+
+But:
+
+```text
+public interface changed
+```
+
+may have durable engineering significance.
+
+The component should preserve this distinction.
+
+---
+
+# 20 — AI Capability Component
+
+The **AI Capability Component** provides a provider-neutral boundary between Monad and AI systems.
+
+Its responsibility is not to define engineering authority.
+
+It provides AI capabilities that other components may invoke under policy.
+
+Potential capabilities include:
+
+* text generation,
+* structured output,
+* tool use,
+* embeddings,
+* reranking,
+* classification,
+* semantic inference,
+* summarization,
+* code reasoning,
+* and multimodal interpretation.
+
+---
+
+## Provider neutrality
+
+The component should expose capabilities rather than hard-coded vendor assumptions.
+
+Conceptually:
+
+```text
+Monad Capability Request
+        │
+        ▼
+AI Capability Component
+        │
+        ├──► Provider A
+        ├──► Provider B
+        └──► Local Model
+```
+
+Provider selection may depend on:
+
+* required capability,
+* privacy,
+* latency,
+* cost,
+* context size,
+* availability,
+* and policy.
+
+---
+
+## AI does not own authority
+
+An AI component may produce:
+
+```text
+candidate relationship
+proposed plan
+draft specification
+classification
+summary
+```
+
+but the fact that AI produced it does not make it authoritative.
+
+The same semantic lifecycle applies:
+
+```text
+generated
+   ↓
+proposed
+   ↓
+validated / reviewed
+   ↓
+accepted
+```
+
+where required.
+
+---
+
+# 21 — Extension Component
+
+The **Extension Component** governs extensibility.
+
+Monad cannot know every future engineering domain.
+
+Extensions may add:
+
+* Subject types,
+* relationship types,
+* validators,
+* policies,
+* projections,
+* adapters,
+* AI capability providers,
+* lifecycle definitions,
+* interface providers,
+* and domain-specific logic.
+
+---
+
+## Extension declarations
+
+An extension should ideally declare:
+
+```text
+identity
+version
+capabilities
+required permissions
+schema contributions
+relationship contributions
+dependencies
+compatibility
+```
+
+This allows the system to inspect what an extension may do before loading or executing it.
+
+---
+
+## Extensions remain governed
+
+An extension must not be able to silently:
+
+```text
+redefine Subject semantics
+bypass policy
+mutate constitutional rules
+claim arbitrary authority
+execute unrestricted native commands
+```
+
+Extensibility exists inside the system's governance boundary.
+
+---
+
+# 22 — Interface Component
+
+The **Interface Component** exposes Monad capabilities to humans, tools, agents, and external systems.
+
+Possible interfaces include:
+
+* CLI,
+* programmatic library API,
+* local daemon,
+* HTTP API,
+* event stream,
+* MCP-compatible tools,
+* plugin APIs,
+* and structured file interfaces.
+
+---
+
+## Shared application layer
+
+Interfaces should not each independently implement semantic behavior.
+
+Bad:
+
+```text
+CLI has one identity algorithm
+HTTP API has another
+agent interface has a third
+```
+
+Preferred:
+
+```text
+CLI ───────┐
+HTTP ──────┼──► shared application capability
+Agent ─────┤
+Library ───┘
+```
+
+The interface adapts transport and interaction style.
+
+The underlying component owns the behavior.
+
+---
+
+# 23 — CLI Component
+
+The **CLI Component** is the primary local human and automation interface.
+
+Potential command families include:
+
+```text
+inspect
+query
+trace
+impact
+validate
+plan
+execute
+verify
+sync
+reconcile
+release
+```
+
+The CLI should remain thin enough that these capabilities are reusable elsewhere.
+
+Conceptually:
+
+```text
+CLI parser
+    ↓
+application request
+    ↓
+component
+    ↓
+result
+    ↓
+human / JSON rendering
+```
+
+---
+
+## Human and machine output
+
+CLI commands may support both:
+
+```text
+human-readable output
+```
+
+and:
+
+```text
+structured machine-readable output
+```
+
+without changing the underlying semantics.
+
+This is important for automation and agent interoperability.
+
+---
+
+# 24 — Observability Component
+
+The **Observability Component** exposes the operational behavior of Monad itself.
+
+It may collect:
+
+* logs,
+* traces,
+* metrics,
+* policy evaluations,
+* engine latency,
+* adapter failures,
+* reconciliation activity,
+* execution outcomes,
+* projection rebuilds,
+* index freshness,
+* and migration state.
+
+---
+
+## Operational telemetry versus engineering evidence
+
+Observability data is not automatically durable engineering evidence.
+
+Conceptually:
+
+```text
+telemetry
+  │
+  │ selected when meaningful
+  ▼
+evidence
+```
+
+The system should avoid promoting every runtime signal into the permanent semantic record.
+
+---
+
+# Component dependency direction
+
+A healthy component model should have a mostly directional dependency structure.
+
+At a simplified level:
+
+```text
+Interfaces
+     │
+     ▼
+Application Components
+     │
+     ├── Query
+     ├── Planning
+     ├── Policy
+     ├── Impact
+     ├── Context
+     ├── Execution
+     └── Verification
+     │
+     ▼
+Domain Components
+     │
+     ├── Semantic Model
+     ├── Identity
+     ├── Lifecycle
+     └── Constitution
+     │
+     ▼
+Infrastructure Boundaries
+     │
+     ├── Persistence
+     ├── Read Models
+     ├── Integration Adapters
+     ├── AI Providers
+     └── Observability
+```
+
+This is not a rigid framework dependency diagram.
+
+It expresses an important principle:
+
+> **Infrastructure should implement interfaces required by domain and application capabilities; domain semantics should not become dependent on one infrastructure technology.**
+
+---
+
+# Command flow across components
+
+A change request may cross components like this:
+
+```text
+CLI / API / Agent
+       │
+       ▼
+Interface Component
+       │
+       ▼
+Query + Identity
+       │
+       ▼
+Impact
+       │
+       ▼
+Planning
+       │
+       ▼
+Policy
+       │
+       ▼
+Execution
+       │
+       ▼
+Integration Adapter
+       │
+       ▼
+Native System
+       │
+       ▼
+Verification
+       │
+       ▼
+Provenance
+       │
+       ▼
+Reconciliation
+       │
+       ▼
+Semantic Model / Read Model
+```
+
+Each component owns one kind of decision.
+
+This makes failures easier to explain.
+
+For example:
+
+```text
+identity resolution failed
+```
+
+is different from:
+
+```text
+policy denied operation
+```
+
+which is different from:
+
+```text
+native tool failed
+```
+
+which is different from:
+
+```text
+verification failed
+```
+
+These should remain distinguishable.
+
+---
+
+# Query flow across components
+
+A read-only request is simpler:
+
+```text
+Interface
+   │
+   ▼
+Query Component
+   │
+   ├──► Identity
+   ├──► Read Model
+   ├──► Authority information
+   └──► Provenance
+   │
+   ▼
+Result
+```
+
+No execution boundary should be crossed.
+
+---
+
+# A concrete example
+
+Suppose an engineer asks:
+
+> What would be affected if I change the authentication interface?
+
+The component interaction may look like:
+
+```text
+CLI
+ │
+ ▼
+Query Component
+ │
+ ▼
+Identity Component
+ │
+ └── resolves "authentication interface"
+ │
+ ▼
+Impact Component
+ │
+ ├── queries graph/read model
+ │
+ ├── finds dependent components
+ │
+ ├── finds governing specifications
+ │
+ ├── finds verification obligations
+ │
+ └── detects uncertain external consumers
+ │
+ ▼
+Query Component
+ │
+ ▼
+CLI
+```
+
+Possible result:
+
+```text
+Known impact
+  - auth-service
+  - web-client
+  - session middleware
+  - SPEC-AUTH-003
+  - TEST-AUTH-009
+
+Probable impact
+  - documentation projection
+  - deployment compatibility check
+
+Uncertain
+  - external consumers not represented in the current graph
+```
+
+No component needs to pretend the graph is omniscient.
+
+---
+
+# A governed execution example
+
+Now suppose the engineer asks Monad to make the change.
+
+```text
+Requested Change
+      │
+      ▼
+Planning Component
+      │
+      ├── operations
+      ├── affected Subjects
+      ├── required tests
+      └── required approvals
+      │
+      ▼
+Policy Component
+      │
+      ├── actor has modify capability
+      ├── public API change requires review
+      └── compatibility verification required
+      │
+      ▼
+Authorized Plan
+      │
+      ▼
+Context Component
+      │
+      ▼
+Human / AI implementation
+      │
+      ▼
+Execution Component
+      │
+      ▼
+Filesystem + Git adapters
+      │
+      ▼
+Native changes
+      │
+      ▼
+Verification Component
+      │
+      ▼
+Evidence + Provenance
+      │
+      ▼
+Reconciliation Component
+      │
+      ▼
+updated semantic state
+```
+
+The process remains one engineering operation.
+
+The components make its responsibilities explicit.
+
+---
+
+# Component ownership rules
+
+To avoid architectural drift, every important concern should have a clear owner.
+
+| Concern                            | Primary component |
+| ---------------------------------- | ----------------- |
+| Fundamental system rules           | Constitution      |
+| Semantic domain model              | Semantic Model    |
+| Durable Monad-owned state          | Persistence       |
+| Semantic identity                  | Identity          |
+| Optimized derived state            | Read Model        |
+| Read-only semantic inspection      | Query             |
+| Permission evaluation              | Policy            |
+| Change consequence analysis        | Impact            |
+| Task-specific information assembly | Context           |
+| Proposed work construction         | Planning          |
+| Native-system side effects         | Execution         |
+| Native-system interaction          | Integration       |
+| Model/native divergence            | Reconciliation    |
+| Contract satisfaction              | Verification      |
+| Origin and derivation              | Provenance        |
+| State transitions                  | Lifecycle         |
+| Supported release transition       | Release           |
+| Derived representations            | Projection        |
+| Normalized change signals          | Event & Change    |
+| AI provider capabilities           | AI Capability     |
+| Controlled extensibility           | Extension         |
+| User/tool access surfaces          | Interface         |
+| Local command interface            | CLI               |
+| Monad runtime telemetry            | Observability     |
+
+This table should remain relatively stable even if implementation packaging changes.
+
+---
+
+# Cross-cutting concerns
+
+Some concerns affect nearly every component.
+
+## Authority
+
+Components consuming system information need to understand whether that information is:
+
+```text
+authoritative
+derived
+observed
+inferred
+historical
+```
+
+Authority should not be reimplemented independently by every component.
+
+---
+
+## Provenance
+
+Meaningful outputs should remain traceable to relevant sources.
+
+---
+
+## Time
+
+Components must preserve temporal semantics where current and historical truth differ.
+
+---
+
+## Uncertainty
+
+Components should propagate uncertainty rather than convert incomplete information into certainty for convenience.
+
+---
+
+## Versioning
+
+Component contracts and persisted data may evolve independently.
+
+---
+
+## Security
+
+Capability, credentials, trust boundaries, and execution must remain explicit.
+
+---
+
+## Observability
+
+Important component behavior should be diagnosable without automatically becoming canonical engineering state.
+
+---
+
+# Component boundaries and authority
+
+One of the most important design rules is:
+
+> **A component should not gain authority merely because it owns an implementation responsibility.**
+
+For example:
+
+```text
+Projection Component
+```
+
+owns generation of documentation.
+
+It does not thereby become authoritative for the facts represented in that documentation.
+
+Likewise:
+
+```text
+Query Component
+```
+
+may answer a question.
+
+It does not invent authority.
+
+It interprets existing authority.
+
+And:
+
+```text
+Execution Component
+```
+
+may technically perform a modification.
+
+It does not decide that the modification is permitted.
+
+The Policy Component and applicable authority rules govern that decision.
+
+---
+
+# Component boundaries and data ownership
+
+Each component should minimize private duplicated truth.
+
+For example:
+
+Identity should not maintain one secret copy of Subjects while Query maintains another.
+
+Instead:
+
+```text
+shared canonical model
+      ↓
+component-specific interpretation
+```
+
+Where local caches exist, they should be identifiable as caches or read models.
+
+---
+
+# Component boundaries and errors
+
+Errors should preserve the component boundary that produced them.
+
+Useful categories include:
+
+```text
+IdentityError
+PolicyDenied
+StaleStateError
+NativeOperationError
+VerificationFailed
+ReconciliationConflict
+InvalidLifecycleTransition
+UnsupportedSchemaVersion
+```
+
+A top-level interface may render them consistently.
+
+It should not erase their meaning into:
+
+```text
+something went wrong
+```
+
+Explainable failure is part of system inspectability.
+
+---
+
+# Component contracts
+
+The next layer beneath this page is the component interface model.
+
+Each component should eventually expose explicit contracts describing:
+
+```text
+operations
+inputs
+outputs
+errors
+side effects
+authority requirements
+idempotency
+consistency
+versioning
+```
+
+For example:
+
+```text
+Policy Component
+
+evaluate(request)
+  → PolicyDecision
+```
+
+or:
+
+```text
+Identity Component
+
+resolve(native_reference)
+  → IdentityResolution
+```
+
+or:
+
+```text
+Impact Component
+
+analyze(change)
+  → ImpactResult
+```
+
+Those exact contracts belong in [Interfaces](/docs/system/interfaces) and the corresponding specifications under Artifacts.
+
+---
+
+# Component maturity
+
+Not every component needs to exist at full sophistication in the first implementation.
+
+A sensible progression might be:
+
+```text
+Foundation
+  Semantic Model
+  Persistence
+  Identity
+
+Inspection
+  Read Model
+  Query
+
+Governed change
+  Policy
+  Impact
+  Planning
+  Execution
+
+Assurance
+  Verification
+  Provenance
+  Reconciliation
+
+Expansion
+  Projection
+  Release
+  AI capabilities
+  Extensions
+  remote services
+```
+
+The architectural boundaries can exist before every component becomes separately visible in code.
+
+---
+
+# Minimum useful kernel
+
+The smallest genuinely useful Monad kernel likely requires fewer components than the full system.
+
+Conceptually:
+
+```text
+Semantic Model
+      +
+Persistence
+      +
+Identity
+      +
+Read Model
+      +
+Query
+      +
+Native Integration
+      +
+Reconciliation
+```
+
+This would establish the first major capability:
+
+> **Build and inspect a durable semantic model of an existing engineering system while remaining grounded in native reality.**
+
+Governed automated change can then layer on:
+
+```text
+Policy
+Impact
+Context
+Planning
+Execution
+Verification
+Provenance
+```
+
+This staged architecture reduces the risk of attempting the entire system simultaneously.
+
+---
+
+# Components that should remain deliberately small
+
+Several components should resist growth.
+
+## Constitution
+
+If it becomes large, too much ordinary policy has been promoted into foundational governance.
+
+## Semantic Model core
+
+If every domain concept becomes a universal primitive, extension boundaries have failed.
+
+## CLI
+
+If business logic accumulates here, interface and application concerns have collapsed.
+
+## Adapters
+
+If adapters begin deciding semantic identity or authority, integration has begun redefining the model.
+
+## Projection
+
+If projections acquire independent truth, derived and canonical state have collapsed.
+
+Small boundaries are easier to reason about and govern.
+
+---
+
+# Components versus architecture
+
+The difference can be summarized as:
+
+```text
+Architecture
+  What responsibilities must exist?
+
+Components
+  What logical units own those responsibilities?
+```
+
+For example:
+
+```text
+Architecture:
+Native divergence must be detected.
+
+Component:
+Reconciliation Component owns divergence detection
+and resolution workflows.
+```
+
+---
+
+# Components versus interfaces
+
+Components define ownership.
+
+Interfaces define communication.
+
+For example:
+
+```text
+Component:
+Policy Component
+
+Interface:
+evaluate_policy(request) → decision
+```
+
+The [Interfaces](/docs/system/interfaces) section should define those contracts without duplicating the component explanations here.
+
+---
+
+# Components versus implementation
+
+This page should not claim:
+
+```text
+Identity Component == packages/identity
+```
+
+unless that packaging is intentionally architectural and stable.
+
+An implementation may initially use:
+
+```text
+packages/core/src/identity/
+```
+
+and later move to:
+
+```text
+services/identity/
+```
+
+without changing the conceptual component.
+
+This is why the authoritative System documentation should describe stable logical responsibilities rather than incidental repository layout.
+
+---
+
+# Components versus artifacts
+
+This page says:
+
+```text
+Monad has a Policy Component.
+```
+
+Artifacts should eventually establish:
+
+```text
+why it exists
+what requirements it satisfies
+which decisions shaped it
+what its exact specification is
+how it is verified
+```
+
+Conceptually:
+
+```text
+System Component
+       │
+       ▼
+Requirement
+       │
+       ▼
+ADR
+       │
+       ▼
+Specification
+       │
+       ▼
+Implementation
+       │
+       ▼
+Verification
+```
+
+---
+
+# Component quality criteria
+
+A strong Monad component should satisfy several properties.
+
+## Cohesive
+
+It owns one related set of responsibilities.
+
+## Explainable
+
+Its purpose can be stated without describing implementation details.
+
+## Testable
+
+Its behavior can be evaluated independently.
+
+## Replaceable
+
+Infrastructure dependencies can evolve without redefining system meaning.
+
+## Governable
+
+Its side effects and authority requirements are visible.
+
+## Observable
+
+Failures and important operations can be diagnosed.
+
+## Composable
+
+It collaborates through explicit interfaces rather than hidden shared state.
+
+## Minimal
+
+It should not accumulate responsibilities merely because they are convenient to place there.
+
+---
+
+# Common component failure modes
+
+## God core
+
+Everything depends on one enormous `core` package with unclear ownership.
+
+Result:
+
+```text
+semantic model
+policy
+execution
+integration
+everything
+```
+
+becomes inseparable.
+
+---
+
+## Adapter intelligence
+
+Native adapters begin deciding:
+
+* identity,
+* authority,
+* lifecycle,
+* or policy.
+
+Each integration then creates its own version of Monad.
+
+---
+
+## Query mutation
+
+Inspection APIs begin triggering hidden synchronization or side effects.
+
+Users can no longer reason safely about read operations.
+
+---
+
+## Policy embedded in execution
+
+Execution code contains scattered permission checks.
+
+Governance becomes impossible to inspect consistently.
+
+---
+
+## Derived state becomes canonical
+
+Search indexes, dashboards, or generated docs become the only surviving copy of important truth.
+
+---
+
+## AI becomes a privileged component
+
+AI-generated conclusions bypass the same authority and lifecycle rules used elsewhere.
+
+---
+
+## Component-per-service
+
+Every logical component becomes a network service prematurely.
+
+Operational complexity grows much faster than engineering value.
+
+Monad should actively resist these failure modes.
+
+---
+
+# Suggested implementation layering
+
+Without making implementation topology authoritative, a practical initial code organization could follow something like:
+
+```text
+core/
+├── constitution
+├── model
+├── identity
+├── lifecycle
+└── policy
+
+application/
+├── query
+├── impact
+├── context
+├── planning
+├── execution
+├── verification
+├── reconciliation
+└── release
+
+infrastructure/
+├── persistence
+├── read-model
+├── projections
+├── ai
+├── observability
+└── integrations/
+    ├── filesystem
+    ├── git
+    ├── github
+    └── ...
+
+interfaces/
+├── cli
+├── api
+├── agent
+└── plugins
+```
+
+This is an illustrative dependency shape, not a mandated repository tree.
+
+The implementation specification may choose another layout while preserving the same component responsibilities.
+
+---
+
+# Component relationships at a glance
+
+| Component      | Primarily reads                    | Primarily writes                            |
+| -------------- | ---------------------------------- | ------------------------------------------- |
+| Constitution   | constitutional state               | constitutional state                        |
+| Semantic Model | canonical semantic data            | canonical semantic data                     |
+| Persistence    | storage                            | storage                                     |
+| Identity       | representations, native refs       | identity bindings                           |
+| Read Model     | canonical state                    | derived indexes                             |
+| Query          | read models, authority, provenance | none                                        |
+| Policy         | actor, operation, state, policy    | decisions/evaluation records where required |
+| Impact         | graph/read models                  | impact result                               |
+| Context        | semantic state, policy, history    | context projection                          |
+| Planning       | desired outcome, impact, policy    | proposed plan                               |
+| Execution      | authorized plan                    | native systems + execution record           |
+| Integration    | native systems                     | native systems where allowed                |
+| Reconciliation | semantic + native state            | corrections/proposals/conflicts             |
+| Verification   | contracts + implementation         | verification evidence                       |
+| Provenance     | operations + sources               | provenance records                          |
+| Lifecycle      | current state + transition rules   | lifecycle transitions                       |
+| Release        | verified candidate                 | release state                               |
+| Projection     | authoritative state                | derived output                              |
+| Event & Change | system/native events               | normalized change records                   |
+| AI Capability  | capability request                 | generated/inferred output                   |
+| Extension      | extension manifests                | registered capabilities                     |
+| Interface      | component APIs                     | user-facing result / request                |
+| Observability  | component runtime activity         | telemetry                                   |
+
+The exact storage locations may evolve.
+
+The ownership semantics should remain clear.
+
+---
+
+# A closed component loop
+
+The complete component system forms a feedback loop:
+
+```text
+Native Reality
+     │
+     ▼
+Integration
+     │
+     ▼
+Observation / Change
+     │
+     ▼
+Reconciliation
+     │
+     ▼
+Semantic Model
+     │
+     ├──► Query
+     ├──► Impact
+     ├──► Context
+     └──► Planning
+              │
+              ▼
+            Policy
+              │
+              ▼
+           Execution
+              │
+              ▼
+         Native Reality
+              │
+              ▼
+         Verification
+              │
+              ▼
+     Evidence + Provenance
+              │
+              ▼
+         Semantic Model
+```
+
+Monad is therefore neither only a knowledge system nor only an automation system.
+
+Its components create a loop between:
+
+```text
+understanding
+governance
+action
+observation
+verification
+learning
+```
+
+---
+
+# The component rule of thumb
+
+When deciding whether a new component should exist, ask:
+
+> **Does this responsibility have meaning, state, policy, lifecycle, failure behavior, or evolution sufficiently distinct from existing components that giving it explicit ownership improves the system?**
+
+If not, it may simply be a function inside an existing component.
+
+Monad should not create components merely to make architecture diagrams larger.
+
+---
+
+# Current component model
+
+The authoritative logical component set is therefore:
+
+```text
+FOUNDATION
+  Constitution
+  Semantic Model
+  Persistence
+  Identity
+
+INTERPRETATION
+  Read Model
+  Query
+  Impact
+  Context
+
+GOVERNANCE
+  Policy
+  Planning
+  Lifecycle
+
+ACTION
+  Execution
+  Integration
+
+ASSURANCE
+  Verification
+  Provenance
+  Reconciliation
+  Release
+
+DERIVED / EXTENSION
+  Projection
+  Event & Change
+  AI Capability
+  Extension
+  Interface
+  CLI
+  Observability
+```
+
+Not every component must begin as an independently packaged implementation.
+
+Every responsibility should, however, have a clear conceptual home.
+
+---
+
+## Where to go next
+
+The next question is how these components communicate.
+
+<Cards>
+  <Card
+    title="Interfaces"
+    href="/docs/system/interfaces"
+  >
+    Explore the contracts connecting components, native systems, humans, tools, extensions, and agents.
+  </Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+>
+Go deeper into authority, policy evaluation, capability boundaries, lifecycle gates, and protected change.
+</Card>
+
+<Card
+title="Execution"
+href="/docs/system/execution"
+>
+Follow how Planning, Policy, Context, Execution, Verification, Provenance, and Reconciliation cooperate during real engineering work.
+</Card>
+
+<Card
+title="Integrations"
+href="/docs/system/integrations"
+>
+Examine the adapter boundary through which Monad remains connected to files, Git, GitHub, CI, deployment systems, and other native environments.
+</Card>
+</Cards>
+
+---
+
+## Related system views
+
+<Cards>
+  <Card
+    title="Architecture"
+    href="/docs/system/architecture"
+  >
+    Return to the higher-level architectural boundaries that produce this component model.
+  </Card>
+
+<Card
+title="Concepts & Principles"
+href="/docs/system/concepts"
+>
+Review the semantic vocabulary these components are responsible for preserving.
+</Card>
+
+<Card
+title="Artifacts"
+href="/docs/artifacts"
+>
+Inspect the requirements, ADRs, specifications, schemas, and verification evidence behind concrete component behavior.
+</Card>
+
+<Card
+title="System Overview"
+href="/docs/system"
+>
+Return to the authoritative overview of Monad as a whole.
+</Card>
+</Cards>

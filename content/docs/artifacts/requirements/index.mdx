@@ -1,0 +1,3280 @@
+---
+title: Requirements
+description: The durable statements of what Monad must accomplish, preserve, constrain, or demonstrate, and the traceability connecting those requirements to specifications, implementation, verification, and evidence.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Required outcomes and constraints
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Requirements turn project intent into explicit obligations. They define what Monad must accomplish or preserve without prematurely collapsing those obligations into one particular implementation.
+  </p>
+</div>
+
+## What this section contains
+
+Requirements are one of the primary bridges between:
+
+```text
+why the project exists
+```
+
+and:
+
+```text
+how we know the resulting system is correct
+```
+
+A requirement should make it possible to trace:
+
+```text
+Problem
+   │
+   ▼
+Goal
+   │
+   ▼
+Requirement
+   │
+   ▼
+Specification
+   │
+   ▼
+Implementation
+   │
+   ▼
+Verification
+   │
+   ▼
+Evidence
+```
+
+This section contains the durable requirements that define what Monad is expected to:
+
+* do,
+* preserve,
+* prevent,
+* expose,
+* constrain,
+* tolerate,
+* integrate with,
+* and demonstrate.
+
+Requirements should describe obligations.
+
+They should not become disguised implementation instructions unless a specific implementation constraint is itself genuinely required.
+
+---
+
+# What is a requirement?
+
+A **Requirement** is a durable statement describing a condition the system must satisfy.
+
+A requirement may describe:
+
+```text
+required behavior
+required capability
+required invariant
+required constraint
+required quality
+required compatibility
+required failure behavior
+required evidence
+```
+
+For example:
+
+```text
+The system must preserve semantic identity
+across representation relocation when identity
+continuity remains valid.
+```
+
+That is a requirement.
+
+By contrast:
+
+```text
+Store Subject IDs in PostgreSQL UUID columns.
+```
+
+is usually an implementation decision unless PostgreSQL or that representation is itself an externally imposed constraint.
+
+The distinction matters.
+
+---
+
+# Requirements describe obligations, not wishes
+
+A requirement should mean:
+
+> **If Monad does not satisfy this condition, the relevant system or capability is incomplete, incorrect, or outside its declared contract.**
+
+This is stronger than:
+
+```text
+it would be nice if...
+```
+
+Preferences, ideas, future possibilities, and hypotheses should not be promoted into requirements merely because they appear desirable.
+
+Requirements constrain engineering.
+
+They therefore need deliberate authority.
+
+---
+
+# Why requirements matter
+
+Without explicit requirements, engineering tends to drift toward:
+
+```text
+what the current implementation happens to do
+```
+
+rather than:
+
+```text
+what the system is actually obligated to do
+```
+
+That creates several problems.
+
+Implementation decisions become accidental product definitions.
+
+Tests verify existing behavior rather than required behavior.
+
+Architecture optimizes for inferred goals.
+
+AI agents reconstruct intent from code and prose.
+
+Refactoring risks silently removing important properties.
+
+Release decisions become difficult to justify.
+
+Requirements provide a stable point of reference.
+
+---
+
+# Requirement authority
+
+An accepted Requirement is authoritative for the outcome or constraint it defines within its declared Scope.
+
+For example:
+
+```text
+Requirement
+  authoritative for required outcome
+
+Specification
+  authoritative for exact expected behavior
+
+Implementation
+  authoritative for what currently exists
+
+Verification Evidence
+  supports whether the requirement is satisfied
+```
+
+These roles must remain distinct.
+
+Implementation does not silently rewrite a requirement merely because the code differs.
+
+Likewise, a requirement does not prove that implementation actually satisfies it.
+
+---
+
+# Requirements are Subjects
+
+In Monad's semantic model, a Requirement should be capable of existing as a stable Subject.
+
+That allows a requirement to survive changes in:
+
+* filename,
+* repository path,
+* document layout,
+* generated documentation,
+* issue-tracker representation,
+* project-management representation,
+* and storage technology.
+
+Conceptually:
+
+```text
+Requirement Subject
+      │
+      ├── represented-by ──► canonical artifact
+      ├── represented-by ──► documentation page
+      └── represented-by ──► coordination item
+```
+
+The Requirement is the semantic entity.
+
+The pages and records through which it appears are Representations.
+
+---
+
+# Requirement identity
+
+A meaningful Requirement should have durable identity.
+
+A simple conceptual identifier might resemble:
+
+```text
+REQ-ID-001
+```
+
+or:
+
+```text
+REQ-GOV-004
+```
+
+The exact identifier scheme belongs in formal specification.
+
+The important property is that engineers and tools can refer to the same Requirement consistently across:
+
+* specifications,
+* ADRs,
+* code,
+* tests,
+* reviews,
+* evidence,
+* releases,
+* and historical change.
+
+---
+
+# Requirement structure
+
+The precise schema belongs under [Schemas](/docs/artifacts/schemas), but a useful Requirement generally needs enough information to answer several questions.
+
+```text
+Identity
+  What requirement is this?
+
+Statement
+  What must be true?
+
+Rationale
+  Why does it exist?
+
+Scope
+  Where does it apply?
+
+Source
+  What need, problem, goal, policy, or constraint produced it?
+
+Status
+  Is it proposed, accepted, active, superseded, or otherwise qualified?
+
+Verification
+  How could satisfaction be demonstrated?
+
+Relationships
+  What does it constrain, depend on, refine, or derive from?
+```
+
+Not every Requirement needs maximum metadata.
+
+The representation should remain proportional to its significance.
+
+---
+
+# Requirement statement
+
+The core Requirement statement should be:
+
+* specific,
+* necessary,
+* understandable,
+* testable where practical,
+* implementation-neutral where practical,
+* and scoped.
+
+Prefer:
+
+```text
+The system must reject execution when
+the authorization's target revision no longer
+matches the current target state.
+```
+
+over:
+
+```text
+The system should handle stale state correctly.
+```
+
+The second sentence expresses intent.
+
+The first establishes a much clearer obligation.
+
+---
+
+# Normative language
+
+Requirements should use normative language deliberately.
+
+Common terms include:
+
+```text
+MUST
+MUST NOT
+SHOULD
+SHOULD NOT
+MAY
+```
+
+Where these terms are used formally, the project should define their normative meaning consistently.
+
+At a conceptual level:
+
+## MUST
+
+The condition is required for conformance.
+
+## MUST NOT
+
+The prohibited condition would violate conformance.
+
+## SHOULD
+
+The condition is strongly recommended, but legitimate exceptions may exist.
+
+## SHOULD NOT
+
+The behavior is generally prohibited unless a justified exception exists.
+
+## MAY
+
+The capability or behavior is optional.
+
+Requirements should avoid casual use of these words if their strength is ambiguous.
+
+---
+
+# Requirement rationale
+
+The statement describes what must happen.
+
+The rationale explains why.
+
+For example:
+
+```text
+Requirement:
+  A Subject's semantic identity must remain
+  independent of filesystem location.
+
+Rationale:
+  Repository paths routinely change through
+  refactoring, moves, regeneration, and migration.
+  Using path as semantic identity would incorrectly
+  represent continuity as deletion and recreation.
+```
+
+The rationale is not merely explanatory decoration.
+
+It helps future engineers determine whether the Requirement still addresses a real problem.
+
+---
+
+# Requirement source
+
+A Requirement should ideally be traceable to the source that caused it to exist.
+
+Possible sources include:
+
+```text
+Problem
+Goal
+Use Case
+Domain Invariant
+Risk
+Policy
+External Constraint
+Experiment
+Decision
+Observed Failure
+Compatibility Commitment
+```
+
+Conceptually:
+
+```text
+Problem
+   │
+   │ motivates
+   ▼
+Requirement
+```
+
+This relationship helps prevent requirements from becoming detached commandments whose purpose nobody remembers.
+
+---
+
+# Requirement scope
+
+Requirements need boundaries.
+
+For example:
+
+```text
+The system must operate offline.
+```
+
+is ambiguous.
+
+Does that mean:
+
+```text
+every Monad capability?
+```
+
+or:
+
+```text
+core local inspection?
+```
+
+or:
+
+```text
+all GitHub operations?
+```
+
+A better requirement might state:
+
+```text
+Core local inspection and semantic query capabilities
+must remain usable when remote integrations are unavailable.
+```
+
+Scope makes verification possible.
+
+---
+
+# Requirement types
+
+Requirements can be organized into several broad classes.
+
+The taxonomy should help navigation and analysis.
+
+It should not become a bureaucratic end in itself.
+
+---
+
+# Functional requirements
+
+Functional requirements describe behavior or capabilities the system must provide.
+
+Examples:
+
+```text
+The system must resolve a known Subject
+from an active Representation binding.
+```
+
+```text
+The system must support querying typed
+relationships between Subjects.
+```
+
+```text
+The system must detect when a derived
+Projection is stale relative to its source revision.
+```
+
+These requirements answer:
+
+> **What must Monad be able to do?**
+
+---
+
+# Semantic requirements
+
+Semantic requirements define meaning that must remain consistent across the system.
+
+Examples:
+
+```text
+Semantic identity must remain distinct
+from Native Identity.
+```
+
+```text
+A Representation must not be treated as
+identical to the Subject it represents.
+```
+
+```text
+Inference must remain distinguishable from
+confirmed authoritative state.
+```
+
+These requirements are especially important because violating them may leave the software technically functioning while corrupting the system's meaning.
+
+---
+
+# Identity requirements
+
+Identity requirements govern continuity and resolution.
+
+Examples may include:
+
+```text
+Confirmed Subject identity must survive
+representation relocation when semantic continuity remains valid.
+```
+
+```text
+The system must preserve historical identity
+across Subject split and merge transitions.
+```
+
+```text
+Ambiguous identity resolution must remain
+representable without forcing automatic confirmation.
+```
+
+Identity is foundational enough that many later capabilities depend on these requirements.
+
+---
+
+# Authority requirements
+
+Authority requirements define how the system determines which information governs.
+
+Examples:
+
+```text
+The system must allow authority to be scoped
+to a defined Subject, Claim, property, operation,
+or other supported boundary.
+```
+
+```text
+The existence of a Claim must not by itself
+make that Claim authoritative.
+```
+
+```text
+Native systems must be able to retain authority
+over state they legitimately own.
+```
+
+These requirements prevent the semantic model from flattening all information into one undifferentiated truth store.
+
+---
+
+# Provenance requirements
+
+Provenance requirements define what origins must remain reconstructable.
+
+Examples:
+
+```text
+A materially significant generated Artifact
+must retain enough provenance to identify
+its source inputs and producing process.
+```
+
+```text
+A governed execution must preserve the Actor
+and authorized Plan responsible for the resulting change.
+```
+
+The amount of provenance required should remain proportional to reconstruction value.
+
+---
+
+# Evidence requirements
+
+Evidence requirements govern how important Claims are supported.
+
+Examples:
+
+```text
+Verification results must reference the state
+and conditions against which verification occurred.
+```
+
+```text
+Release claims requiring verification must be
+supported by inspectable evidence.
+```
+
+```text
+Evidence must remain distinguishable from
+the Claim that it supports.
+```
+
+---
+
+# Governance requirements
+
+Governance requirements define legitimate action.
+
+Examples:
+
+```text
+Technical Capability must not by itself grant
+authority to perform a governed Operation.
+```
+
+```text
+Execution must be rejected when required
+authorization is absent or no longer valid.
+```
+
+```text
+Constitutional changes must require authority
+stronger than ordinary implementation changes.
+```
+
+These requirements define the safety model for increasingly autonomous engineering.
+
+---
+
+# Execution requirements
+
+Execution requirements govern the transition from intent into native change.
+
+Examples:
+
+```text
+Side-effecting governed operations must cross
+an explicit execution boundary.
+```
+
+```text
+Execution must revalidate material preconditions
+before applying a revision-sensitive Plan.
+```
+
+```text
+Partial execution must remain distinguishable
+from complete success and complete failure.
+```
+
+---
+
+# Reconciliation requirements
+
+Reconciliation requirements keep Monad grounded in reality.
+
+Examples:
+
+```text
+The system must be capable of detecting
+divergence between modeled state and observed native state.
+```
+
+```text
+Reconciliation must not universally assume
+that either Monad state or native state wins.
+```
+
+```text
+Observed divergence must be interpretable
+according to applicable Authority.
+```
+
+---
+
+# Integration requirements
+
+Integration requirements define how Monad relates to existing tools.
+
+Examples:
+
+```text
+Monad must preserve native identifiers where
+those identifiers remain meaningful within their native system.
+```
+
+```text
+Adapters must not independently establish
+semantic authority merely because they expose native Capability.
+```
+
+```text
+Core semantic behavior must not depend on
+one specific source-hosting provider.
+```
+
+---
+
+# Portability requirements
+
+Portability requirements reduce unnecessary dependence on one implementation environment.
+
+Examples:
+
+```text
+Canonical engineering meaning must not exist
+only inside one proprietary hosted service.
+```
+
+```text
+Persisted canonical formats must be documented
+well enough to support migration.
+```
+
+```text
+Provider-specific integrations must remain
+separable from provider-neutral system semantics.
+```
+
+---
+
+# Local-first requirements
+
+Local-first requirements define what must remain available under degraded or disconnected conditions.
+
+Examples:
+
+```text
+Core local semantic inspection must remain
+available without a remote coordination service.
+```
+
+```text
+Unavailable remote integrations must be
+represented explicitly rather than causing local
+state to appear nonexistent.
+```
+
+Local-first should describe concrete supported capability, not become a vague branding term.
+
+---
+
+# Reproducibility requirements
+
+Reproducibility requirements define what must be reconstructable.
+
+Examples:
+
+```text
+A release build must record enough input,
+toolchain, and environment state to support
+the declared reproducibility policy.
+```
+
+```text
+Verification evidence must identify the
+relevant source revision.
+```
+
+Not every engineering action must be perfectly reproducible.
+
+Requirements should identify where reproducibility materially matters.
+
+---
+
+# Security requirements
+
+Security requirements define safety properties independent of one security implementation.
+
+Examples:
+
+```text
+Raw credentials must not be exposed to Actors
+that only require a narrower delegated Capability.
+```
+
+```text
+Untrusted native content must not be allowed
+to redefine execution authority.
+```
+
+```text
+Privileged Operations must preserve Actor attribution.
+```
+
+Security requirements may be refined by more detailed security policies and specifications.
+
+---
+
+# Reliability requirements
+
+Reliability requirements describe expected behavior under failure or degraded conditions.
+
+Examples:
+
+```text
+A timeout from an asynchronous native system
+must not automatically be interpreted as native failure.
+```
+
+```text
+The system must preserve known partial side effects
+when distributed execution fails.
+```
+
+```text
+A corrupted derived index must be recoverable
+without destroying canonical semantic state.
+```
+
+---
+
+# Performance requirements
+
+Performance requirements define measurable limits where latency, throughput, resource use, or scale materially affects usefulness.
+
+Examples might eventually include:
+
+```text
+A local Subject lookup over a defined reference corpus
+must complete within an accepted latency threshold.
+```
+
+Performance requirements should not use arbitrary numbers merely to appear rigorous.
+
+Targets should be supported by real use cases and measurements.
+
+---
+
+# Scalability requirements
+
+Scalability requirements define behavior as project size or complexity grows.
+
+Potential concerns include:
+
+```text
+number of Subjects
+number of Relationships
+repository count
+project count
+Artifact count
+concurrent Actors
+native integrations
+query depth
+event volume
+```
+
+Again, scale targets should be tied to credible operating scenarios.
+
+---
+
+# Compatibility requirements
+
+Compatibility requirements describe what existing consumers may rely upon.
+
+They may govern:
+
+```text
+CLI behavior
+schemas
+APIs
+plugin contracts
+serialization
+artifact formats
+native integrations
+release behavior
+```
+
+For example:
+
+```text
+A compatible schema evolution must preserve
+the meaning of previously valid canonical records.
+```
+
+Compatibility requirements should connect directly to release policy and verification.
+
+---
+
+# Observability requirements
+
+Observability requirements define what Monad itself must make inspectable operationally.
+
+Examples:
+
+```text
+Policy denials must expose a stable diagnostic
+category and human-readable explanation.
+```
+
+```text
+Native integration failure must remain distinguishable
+from confirmed absence of the native resource.
+```
+
+Observability supports diagnosis.
+
+It should not be confused with permanent Evidence.
+
+---
+
+# Usability requirements
+
+A semantically rigorous system can still fail if it is too costly to use.
+
+Usability requirements may therefore address:
+
+```text
+capture friction
+discoverability
+human readability
+command ergonomics
+diagnostic quality
+progressive formalization
+```
+
+For example:
+
+```text
+The system must permit useful Artifact capture
+without requiring maximum formalization at creation time.
+```
+
+This is an important protection against metadata bureaucracy.
+
+---
+
+# AI interaction requirements
+
+AI-specific requirements should describe engineering properties, not model-brand assumptions.
+
+Examples:
+
+```text
+AI-generated inference must retain provenance
+sufficient to identify that it was inferred.
+```
+
+```text
+AI Actors must operate under the same
+Capability and Authority distinctions as other Actors.
+```
+
+```text
+Task context supplied to an AI Actor must preserve
+the authority and freshness distinctions needed
+to interpret included information safely.
+```
+
+The system should remain useful even where AI is absent.
+
+---
+
+# Human interaction requirements
+
+Humans remain part of the architecture.
+
+Requirements may therefore state:
+
+```text
+A human reviewer must be able to inspect why
+a governed Operation requires approval.
+```
+
+```text
+Significant policy decisions must be explainable
+without requiring access to internal implementation details.
+```
+
+The human interface is part of trustworthy governance.
+
+---
+
+# Negative requirements
+
+Some of the most important requirements describe what the system must **not** do.
+
+Examples:
+
+```text
+The system must not silently promote an
+inferred identity binding to confirmed authority
+when applicable policy requires review.
+```
+
+```text
+A Query must not produce governed side effects.
+```
+
+```text
+A generated Projection must not automatically
+become authoritative merely because it exists.
+```
+
+Negative requirements are valuable because many architectural failures come from unintended behavior rather than missing capabilities.
+
+---
+
+# Invariant requirements
+
+Some requirements establish properties that should remain true across broad classes of system state.
+
+Examples:
+
+```text
+Identity is not location.
+```
+
+```text
+Capability does not imply Authority.
+```
+
+```text
+Claim is not Evidence.
+```
+
+```text
+Native identity is not Semantic Identity.
+```
+
+These may later become formal Invariants in the Constitution or domain specifications.
+
+The Requirement establishes that the system must preserve them.
+
+---
+
+# Failure requirements
+
+Requirements should often define behavior when things go wrong.
+
+For example:
+
+```text
+When identity resolution is ambiguous,
+the system must return an explicit ambiguous
+result rather than choosing a candidate silently.
+```
+
+```text
+When an Execution partially succeeds,
+the system must preserve completed side effects
+and expose the remaining unresolved state.
+```
+
+Failure behavior is part of the product.
+
+It should not be left entirely to implementation accident.
+
+---
+
+# Requirements and uncertainty
+
+The project may not know every Requirement immediately.
+
+That is expected.
+
+Requirements can emerge from:
+
+* discovery,
+* architecture,
+* implementation,
+* experiments,
+* verification failures,
+* operational experience,
+* and external constraints.
+
+The important distinction is between:
+
+```text
+we do not know yet
+```
+
+and:
+
+```text
+the system has no requirement here
+```
+
+Unknown requirements should remain open questions until sufficient understanding exists.
+
+---
+
+# Proposed requirements
+
+A proposed Requirement is not yet authoritative.
+
+Conceptually:
+
+```text
+Question
+   ↓
+Need identified
+   ↓
+Proposed Requirement
+   ↓
+Review
+   ↓
+Accepted Requirement
+```
+
+This preserves the difference between:
+
+```text
+someone suggested this should be required
+```
+
+and:
+
+```text
+the project has accepted this obligation
+```
+
+---
+
+# Requirement lifecycle
+
+A conceptual Requirement lifecycle might include:
+
+```text
+draft
+   ↓
+proposed
+   ↓
+accepted
+   ↓
+active
+   ↓
+superseded
+   ↓
+historical
+```
+
+Other states may eventually be needed.
+
+The exact lifecycle belongs in specification.
+
+The important property is that lifecycle state affects interpretation.
+
+---
+
+# Supersession
+
+Requirements can change.
+
+A new Requirement may replace an older one.
+
+For example:
+
+```text
+REQ-IDENTITY-001
+      │
+      │ superseded-by
+      ▼
+REQ-IDENTITY-007
+```
+
+The old Requirement should generally remain available historically.
+
+Deleting it would erase part of the engineering rationale and release history.
+
+---
+
+# Requirement revision versus new Requirement
+
+Not every textual edit should create a new semantic Requirement.
+
+A correction such as:
+
+```text
+typo fix
+```
+
+may preserve identity.
+
+A material change from:
+
+```text
+MUST operate offline
+```
+
+to:
+
+```text
+MAY depend on remote service
+```
+
+may represent a major revision or superseding Requirement.
+
+The distinction should be governed by semantic change, not merely file modification.
+
+---
+
+# Requirement decomposition
+
+A broad Requirement may need decomposition.
+
+For example:
+
+```text
+REQ-GOV-001
+The system must govern automated engineering actions.
+```
+
+may be too broad to verify directly.
+
+It may refine into:
+
+```text
+REQ-GOV-002
+Actors must have explicit identity.
+
+REQ-GOV-003
+Capabilities must remain distinct from Authority.
+
+REQ-GOV-004
+Governed side effects require Authorization.
+
+REQ-GOV-005
+Authorization must be scope-bound.
+
+REQ-GOV-006
+Authorization must become stale when
+specified material state changes.
+```
+
+Decomposition should make verification clearer without producing redundant administrative noise.
+
+---
+
+# Requirement relationships
+
+Requirements may relate to each other in several ways.
+
+Possible relationships include:
+
+```text
+refines
+depends-on
+conflicts-with
+supersedes
+constrains
+derived-from
+motivated-by
+verified-by
+specified-by
+implemented-by
+```
+
+For example:
+
+```text
+REQ-EXEC-004
+  depends-on
+REQ-ID-002
+```
+
+because governed execution may require reliable target identity.
+
+These relationships help reveal architecture implicit in the Requirement set.
+
+---
+
+# Requirement hierarchy
+
+A useful hierarchy may look like:
+
+```text
+Problem
+   ↓
+Goal
+   ↓
+Capability Requirement
+   ↓
+System Requirement
+   ↓
+Detailed Requirement
+```
+
+But hierarchy should be used carefully.
+
+Real engineering relationships are often graph-shaped.
+
+One Requirement may support multiple goals.
+
+One detailed Requirement may constrain several capabilities.
+
+Monad should not force every relationship into one rigid parent-child tree.
+
+---
+
+# Requirements versus goals
+
+A Goal states a desired outcome.
+
+A Requirement establishes an obligation.
+
+For example:
+
+```text
+Goal:
+  Make automated engineering safer.
+```
+
+is different from:
+
+```text
+Requirement:
+  A side-effecting automated Operation must not
+  execute without applicable Authorization.
+```
+
+The Goal motivates.
+
+The Requirement constrains.
+
+---
+
+# Requirements versus principles
+
+A Principle guides design.
+
+A Requirement defines conformance.
+
+For example:
+
+```text
+Principle:
+  Prefer native integration over replacement.
+```
+
+may influence architecture broadly.
+
+A Requirement might say:
+
+```text
+Git commit history must remain represented using
+Git's native commit identifiers.
+```
+
+The principle shapes decisions.
+
+The requirement establishes a testable obligation.
+
+---
+
+# Requirements versus decisions
+
+A Requirement says:
+
+```text
+what must be satisfied
+```
+
+A Decision says:
+
+```text
+which direction was chosen to satisfy constraints
+```
+
+For example:
+
+```text
+Requirement:
+  local inspection must work without remote service
+```
+
+may lead to a decision:
+
+```text
+Decision:
+  maintain a local embedded read model
+```
+
+The decision can change if another architecture satisfies the Requirement better.
+
+---
+
+# Requirements versus architecture
+
+Architecture assigns responsibilities capable of satisfying Requirements.
+
+For example:
+
+```text
+Requirement:
+  native divergence must be detectable
+```
+
+may produce:
+
+```text
+Architecture:
+  Reconciliation Component owns divergence detection
+```
+
+The Requirement should not unnecessarily dictate the architecture before alternatives are evaluated.
+
+---
+
+# Requirements versus specifications
+
+This is one of the most important boundaries.
+
+A Requirement says:
+
+> **What condition must the system satisfy?**
+
+A Specification says:
+
+> **Exactly how must the relevant system behavior or contract work?**
+
+For example:
+
+```text
+Requirement:
+  Stale authorization must not permit execution.
+```
+
+A Specification may define:
+
+```text
+which revision fields authorization binds to
+how staleness is evaluated
+which errors are returned
+when reevaluation occurs
+```
+
+Requirements should stop before implementation-contract detail unless that detail itself is required.
+
+---
+
+# Requirements versus implementation
+
+Implementation is evidence of an attempt to satisfy Requirements.
+
+It is not itself the Requirement.
+
+If code currently behaves differently from an active Requirement, the system may be:
+
+```text
+nonconforming
+```
+
+rather than:
+
+```text
+the Requirement must have changed
+```
+
+This protects intent from accidental implementation drift.
+
+---
+
+# Requirements versus tests
+
+A test is a Verification Method.
+
+It is not the Requirement itself.
+
+For example:
+
+```text
+Requirement:
+  unauthorized Actors must not publish releases
+```
+
+may be verified by several tests.
+
+Changing the tests does not necessarily change the Requirement.
+
+The separation allows verification methods to improve over time.
+
+---
+
+# Requirements versus acceptance criteria
+
+Acceptance criteria are concrete conditions for determining whether a Requirement or work item is satisfied.
+
+For example:
+
+```text
+Requirement:
+  stale execution plans must be rejected.
+```
+
+Possible acceptance criteria:
+
+```text
+Given Plan P authorized against revision A,
+when the target revision becomes B,
+attempting to execute P returns StaleState
+and produces no governed native mutation.
+```
+
+Acceptance criteria help translate a Requirement into executable verification.
+
+---
+
+# Verification method
+
+Every important Requirement should eventually have a plausible verification method.
+
+Potential methods include:
+
+```text
+automated test
+static analysis
+schema validation
+architecture conformance check
+manual review
+benchmark
+experiment
+runtime observation
+reproducibility exercise
+formal reasoning
+```
+
+Some Requirements may require several methods.
+
+---
+
+# A requirement that cannot be verified
+
+A Requirement that cannot even theoretically be evaluated deserves scrutiny.
+
+For example:
+
+```text
+Monad must be easy to use.
+```
+
+is too vague by itself.
+
+A better decomposition might measure:
+
+```text
+setup steps
+capture friction
+error recovery
+task completion
+human usability study
+```
+
+Not everything needs a single numerical test.
+
+But there should be some plausible way to determine whether the obligation is being met.
+
+---
+
+# Evidence of satisfaction
+
+Verification should produce Evidence.
+
+Conceptually:
+
+```text
+Requirement
+      │
+      │ verified-by
+      ▼
+Verification Method
+      │
+      │ produces
+      ▼
+Evidence
+```
+
+For example:
+
+```text
+REQ-EXEC-014
+      │
+      ▼
+TEST-EXEC-031
+      │
+      ▼
+EVID-2026-00482
+```
+
+This creates a stronger claim than:
+
+```text
+we have tests
+```
+
+---
+
+# Requirement satisfaction is contextual
+
+A Requirement may be satisfied for:
+
+```text
+release 1.2
+```
+
+and violated in:
+
+```text
+release 1.3
+```
+
+Evidence therefore needs temporal and revision context.
+
+Requirement satisfaction should not automatically become timeless state.
+
+---
+
+# Requirement status versus satisfaction
+
+These should remain separate.
+
+```text
+Requirement status:
+  active
+```
+
+means:
+
+```text
+this Requirement currently governs
+```
+
+It does not mean:
+
+```text
+the implementation currently satisfies it
+```
+
+A system can have:
+
+```text
+active requirement
++
+failed verification
+```
+
+That is a meaningful and important state.
+
+---
+
+# Requirement coverage
+
+Monad should eventually be able to inspect Requirement coverage.
+
+For example:
+
+```text
+Active Requirements:
+  148
+
+Specified:
+  130
+
+Implemented:
+  112
+
+Verified:
+  98
+
+Verification stale:
+  7
+
+No verification relationship:
+  15
+```
+
+The exact numbers are illustrative.
+
+Coverage is useful because it exposes gaps in the engineering argument.
+
+---
+
+# Coverage is not quality
+
+A project can achieve:
+
+```text
+100% requirement traceability
+```
+
+with terrible Requirements.
+
+Coverage metrics should not become vanity metrics.
+
+A smaller set of precise, necessary Requirements is better than hundreds of redundant ones created merely to populate a dashboard.
+
+---
+
+# Requirement completeness
+
+A Requirement set is complete only relative to a declared scope.
+
+For example:
+
+```text
+M0 Repository Kernel requirements
+```
+
+may be complete for that increment without defining the entire future Monad platform.
+
+This enables incremental engineering.
+
+The project should avoid pretending that the final Requirement corpus is knowable before enough discovery has occurred.
+
+---
+
+# Requirement baselines
+
+At significant points, a Requirement set may be baselined.
+
+A baseline identifies:
+
+```text
+which Requirements governed
+a particular specification,
+milestone,
+release,
+or verification effort
+```
+
+For example:
+
+```text
+M0 Requirement Baseline
+  revision 3
+```
+
+may later be compared with:
+
+```text
+M1 Requirement Baseline
+  revision 1
+```
+
+This supports historical reconstruction.
+
+---
+
+# Requirements and releases
+
+A Release should ideally be able to identify which Requirements it claims to satisfy.
+
+Conceptually:
+
+```text
+Release 0.1
+   │
+   ├── satisfies ──► REQ-ID-001
+   ├── satisfies ──► REQ-QUERY-004
+   └── satisfies ──► REQ-LOCAL-003
+```
+
+with supporting Verification and Evidence.
+
+This creates a more meaningful release definition than:
+
+```text
+whatever happened to be merged
+```
+
+---
+
+# Requirements and work packages
+
+A Work Package should reference the Requirements it is intended to advance or satisfy.
+
+For example:
+
+```text
+WP-IDENTITY-004
+
+Implements:
+  REQ-ID-001
+  REQ-ID-003
+
+Verification:
+  TEST-ID-017
+  TEST-ID-018
+```
+
+This keeps implementation work connected to program intent.
+
+---
+
+# Requirements and AI agents
+
+Explicit Requirements are particularly valuable for AI-assisted implementation.
+
+Without them, an agent may infer required behavior from:
+
+* existing code,
+* nearby tests,
+* documentation,
+* issue descriptions,
+* and naming conventions.
+
+That can work.
+
+But the agent cannot reliably distinguish:
+
+```text
+current implementation accident
+```
+
+from:
+
+```text
+required behavior
+```
+
+unless the system exposes that distinction.
+
+A governed agent should ideally receive Requirements as part of task context.
+
+---
+
+# AI must not invent requirements silently
+
+An agent may discover a missing condition.
+
+It may propose:
+
+```text
+Candidate Requirement
+```
+
+But it should not silently transform a design assumption into an authoritative Requirement.
+
+Conceptually:
+
+```text
+Agent inference
+      ↓
+Proposed Requirement
+      ↓
+Review / Governance
+      ↓
+Accepted Requirement
+```
+
+where the significance warrants it.
+
+---
+
+# Requirements and architecture review
+
+Architecture review should be able to ask:
+
+```text
+Which Requirements does this architecture satisfy?
+
+Which Requirements constrain the design?
+
+Which Requirements remain unresolved?
+
+What new constraints does this architecture introduce?
+```
+
+This prevents architecture from becoming detached from product and system obligations.
+
+---
+
+# Requirements and decision records
+
+ADRs should reference relevant Requirements where practical.
+
+For example:
+
+```text
+ADR-017
+  addresses:
+    REQ-LOCAL-001
+    REQ-PORT-003
+
+  trades off:
+    REQ-PERF-008
+```
+
+This provides useful context for why a decision was made.
+
+See [Architecture Decisions](/docs/artifacts/decisions).
+
+---
+
+# Requirements and specifications
+
+Specifications should identify the Requirements they operationalize.
+
+Conceptually:
+
+```text
+REQ-ID-001
+     │
+     │ specified-by
+     ▼
+SPEC-ID-002
+```
+
+A Specification may satisfy multiple Requirements.
+
+A Requirement may require several Specifications.
+
+The relationship is graph-shaped rather than strictly one-to-one.
+
+---
+
+# Requirements and schemas
+
+Schemas may enforce structural Requirements.
+
+For example:
+
+```text
+Requirement:
+Every durable Artifact must expose a stable identity.
+```
+
+may be supported partly by:
+
+```text
+artifact.schema.json
+```
+
+where an identity field is structurally mandatory.
+
+Schema validation alone may not prove the complete semantic Requirement.
+
+It may provide one part of Verification.
+
+---
+
+# Requirements and policy
+
+Some Requirements become Policies.
+
+For example:
+
+```text
+Requirement:
+Only Actors with release authority may
+publish a stable release.
+```
+
+may be operationalized through:
+
+```text
+Release Policy
+```
+
+The Requirement states the obligation.
+
+The Policy defines the enforceable rule.
+
+---
+
+# Requirements and experiments
+
+Some Requirements should not be accepted until a hypothesis has enough evidence.
+
+For example:
+
+```text
+Every Artifact must have manually authored
+typed relationships.
+```
+
+would impose significant maintenance cost.
+
+Before making that a Requirement, the project may need to test whether the additional structure produces enough value.
+
+This is one reason experiments exist.
+
+Requirements should not freeze untested assumptions prematurely.
+
+---
+
+# Requirement provenance
+
+A Requirement should retain enough Provenance to answer:
+
+```text
+Where did this Requirement come from?
+
+Who proposed it?
+
+What problem motivated it?
+
+Which evidence influenced it?
+
+Which decision accepted it?
+
+Which earlier Requirement did it replace?
+```
+
+This makes future reassessment possible.
+
+---
+
+# Requirements can be wrong
+
+An accepted Requirement can later prove unnecessary, harmful, impossible, or based on a false assumption.
+
+That does not mean requirements are meaningless.
+
+It means engineering knowledge evolves.
+
+The correct response may be:
+
+```text
+new evidence
+      ↓
+Requirement review
+      ↓
+amendment / supersession / retirement
+```
+
+with historical continuity preserved.
+
+---
+
+# Requirement review
+
+A Requirement review may ask:
+
+* Is the need real?
+* Is the statement clear?
+* Is the Scope explicit?
+* Is it necessary?
+* Is it feasible?
+* Is it testable?
+* Does it duplicate another Requirement?
+* Does it contradict another Requirement?
+* Does it accidentally dictate implementation?
+* Is its rationale still valid?
+* What would falsify the need for it?
+
+These are higher-value questions than checking whether a template was filled out correctly.
+
+---
+
+# Requirement conflicts
+
+Requirements may conflict.
+
+For example:
+
+```text
+REQ-A:
+  every operation must run entirely locally
+
+REQ-B:
+  every operation must use centralized organizational policy
+```
+
+These may be incompatible under certain interpretations.
+
+The correct response is not to hide the conflict.
+
+It should be surfaced and resolved through:
+
+```text
+scope clarification
+priority
+design change
+requirement amendment
+tradeoff decision
+```
+
+---
+
+# Requirement priority
+
+Not every Requirement has equal implementation priority.
+
+Priority may reflect:
+
+```text
+foundational dependency
+risk
+user value
+release criticality
+implementation sequencing
+external deadline
+```
+
+But priority should remain distinct from normative strength.
+
+An active Requirement deferred to a later increment is still a Requirement.
+
+It is simply outside the current delivery scope.
+
+---
+
+# Requirement criticality
+
+Some Requirements may be more consequential than others.
+
+Criticality may affect:
+
+* review rigor,
+* Verification depth,
+* Evidence retention,
+* change governance,
+* release gates,
+* and monitoring.
+
+For example:
+
+```text
+security invariant
+```
+
+may deserve stronger evidence than:
+
+```text
+cosmetic CLI formatting behavior
+```
+
+Governance should be proportional to consequence.
+
+---
+
+# Requirement tags and taxonomy
+
+Useful classification might include:
+
+```text
+domain
+capability
+quality attribute
+risk class
+release
+maturity
+criticality
+```
+
+Taxonomy should improve discovery and reasoning.
+
+It should not become an elaborate metadata system that costs more to maintain than the information it helps retrieve.
+
+---
+
+# Requirement quality criteria
+
+A strong Requirement should generally be:
+
+## Necessary
+
+It corresponds to a real need, constraint, risk, or commitment.
+
+## Singular enough
+
+It does not hide many unrelated obligations inside one statement.
+
+## Clear
+
+Reasonable readers can interpret it consistently.
+
+## Scoped
+
+It is possible to determine where it applies.
+
+## Verifiable
+
+There is a plausible method for evaluating satisfaction.
+
+## Traceable
+
+Its origin and downstream realization can be connected.
+
+## Implementation-neutral where appropriate
+
+It leaves design freedom where design freedom is legitimate.
+
+## Stable enough to govern
+
+It does not churn because it was written at the wrong abstraction level.
+
+## Revisable
+
+New evidence can change it through explicit process.
+
+---
+
+# Weak requirement examples
+
+Several patterns should be avoided.
+
+## Vague aspiration
+
+```text
+Monad should be fast.
+```
+
+Better:
+
+Define the specific workflow, operating conditions, and acceptable performance expectation when evidence supports a useful target.
+
+---
+
+## Hidden implementation
+
+```text
+Monad must use Neo4j.
+```
+
+Unless Neo4j itself is externally required, this is probably a design decision rather than a Requirement.
+
+---
+
+## Unbounded universal
+
+```text
+Monad must work offline.
+```
+
+Clarify which capabilities must remain available offline.
+
+---
+
+## Unverifiable adjective
+
+```text
+The system must be intuitive.
+```
+
+Define observable usability outcomes.
+
+---
+
+## Compound obligation
+
+```text
+The system must be secure, fast, portable,
+easy to use, and highly available.
+```
+
+These are distinct concerns and should be decomposed.
+
+---
+
+## Requirement by current implementation
+
+```text
+The system must return this structure
+because the current function returns it.
+```
+
+Implementation behavior is not sufficient rationale.
+
+---
+
+# Requirement anti-patterns
+
+Monad should resist several process failures.
+
+## Requirement inflation
+
+Every idea becomes a Requirement.
+
+## Template compliance
+
+The form looks complete while the actual obligation remains unclear.
+
+## Requirements after the fact
+
+Requirements are written only to justify implementation already selected.
+
+## Implementation leakage
+
+Architecture decisions are disguised as mandatory outcomes.
+
+## Orphan requirements
+
+No known Goal, Problem, capability, or constraint explains why they exist.
+
+## Unverifiable requirements
+
+Nobody can establish whether they are satisfied.
+
+## Dead requirements
+
+Superseded Requirements remain presented as current.
+
+## Test-defined product
+
+Whatever tests currently assert becomes the implicit Requirement set.
+
+## AI-authored authority
+
+An agent generates Requirements and they become authoritative without governance.
+
+---
+
+# Requirement maturity
+
+The Requirement corpus can mature incrementally.
+
+## Stage 1 — Capture
+
+Identify important needs and constraints.
+
+```text
+problem
+goal
+candidate Requirement
+```
+
+## Stage 2 — Normalize
+
+Give important Requirements:
+
+```text
+identity
+statement
+scope
+rationale
+status
+```
+
+## Stage 3 — Trace
+
+Connect Requirements to:
+
+```text
+goals
+decisions
+specifications
+work
+```
+
+## Stage 4 — Verify
+
+Associate:
+
+```text
+verification method
+acceptance criteria
+evidence
+```
+
+## Stage 5 — Govern
+
+Add:
+
+```text
+change authority
+criticality
+release gates
+policy integration
+```
+
+## Stage 6 — Analyze
+
+Support:
+
+```text
+coverage
+impact
+conflict detection
+cross-project traceability
+historical satisfaction
+```
+
+This progression aligns with Monad's principle of progressive formalization.
+
+---
+
+# Minimum useful requirement record
+
+The smallest useful durable Requirement likely needs:
+
+```text
+ID
+Statement
+Rationale
+Status
+Scope
+```
+
+and, where practical:
+
+```text
+Source
+Verification Method
+Relationships
+```
+
+The exact schema should grow only when additional structure earns its maintenance cost.
+
+---
+
+# Example requirement
+
+A conceptual Monad Requirement might look like:
+
+```text
+ID:
+  REQ-ID-001
+
+Title:
+  Semantic identity is independent of representation location
+
+Statement:
+  A Subject's semantic identity MUST remain
+  independent of the filesystem path or other
+  location of any individual Representation.
+
+Rationale:
+  Representations can move, rename, regenerate,
+  migrate, or project into other systems without
+  implying loss of Subject continuity.
+
+Scope:
+  Subject identity resolution
+
+Status:
+  active
+
+Source:
+  identity continuity problem
+
+Specified by:
+  SPEC-ID-002
+
+Verified by:
+  TEST-ID-018
+```
+
+This is illustrative rather than the final canonical schema.
+
+---
+
+# Example negative requirement
+
+```text
+ID:
+  REQ-AUTH-003
+
+Title:
+  Capability does not imply authority
+
+Statement:
+  The system MUST NOT authorize a governed
+  Operation solely because the Actor or Adapter
+  possesses the technical Capability required
+  to perform that Operation.
+
+Rationale:
+  Credentials and tool access represent technical
+  possibility, not legitimate engineering authority.
+
+Scope:
+  governed execution
+
+Specified by:
+  policy evaluation specification
+
+Verified by:
+  authorization conformance tests
+```
+
+Negative Requirements are especially useful for system invariants.
+
+---
+
+# Example failure requirement
+
+```text
+ID:
+  REQ-EXEC-009
+
+Title:
+  Partial execution remains explicit
+
+Statement:
+  When a multi-operation execution produces
+  successful side effects before a later operation
+  fails, the system MUST preserve and report the
+  completed side effects rather than representing
+  the execution as though no change occurred.
+
+Rationale:
+  Distributed native systems do not generally
+  provide one atomic transaction.
+
+Scope:
+  governed execution
+```
+
+This Requirement directly constrains failure semantics.
+
+---
+
+# Example AI requirement
+
+```text
+ID:
+  REQ-AI-006
+
+Title:
+  Inferred information remains distinguishable
+
+Statement:
+  Information inferred by an AI capability MUST
+  remain distinguishable from confirmed authoritative
+  information until the applicable promotion policy
+  has been satisfied.
+
+Rationale:
+  AI inference can be useful without being certain.
+  Silent promotion would corrupt authority semantics.
+
+Scope:
+  AI-assisted semantic inference
+```
+
+This avoids making the Requirement dependent on one AI provider.
+
+---
+
+# Example local-first requirement
+
+```text
+ID:
+  REQ-LOCAL-002
+
+Title:
+  Local inspection survives remote unavailability
+
+Statement:
+  Core local inspection of persisted Monad-owned
+  semantic state MUST remain available when optional
+  remote integrations are unavailable.
+
+Rationale:
+  Remote service availability should not determine
+  whether locally owned engineering meaning remains
+  inspectable.
+
+Scope:
+  local query and inspection
+```
+
+This is far more actionable than simply declaring Monad "local-first."
+
+---
+
+# Requirement traceability
+
+The long-term objective is not a folder full of Requirement documents.
+
+It is the ability to follow the engineering chain.
+
+For example:
+
+```text
+Problem:
+  representation relocation destroys path-derived identity
+        │
+        ▼
+REQ-ID-001
+        │
+        ▼
+ADR-ID-003
+        │
+        ▼
+SPEC-ID-002
+        │
+        ▼
+Identity Component
+        │
+        ▼
+TEST-ID-018
+        │
+        ▼
+EVID-ID-041
+        │
+        ▼
+Release 0.1
+```
+
+That relationship is more valuable than any single file.
+
+---
+
+# Queries the Requirement system should enable
+
+A mature Requirement corpus should make questions like these increasingly answerable:
+
+```text
+Which Requirements are active?
+
+Why does this Requirement exist?
+
+Which Goal does it support?
+
+Which Specification defines its behavior?
+
+Which implementation is intended to satisfy it?
+
+Which tests verify it?
+
+What Evidence currently supports satisfaction?
+
+Which Requirements have no verification?
+
+Which Requirements are affected by this proposed change?
+
+Which release first claimed conformance?
+
+Which Requirements were superseded?
+
+Which Requirements conflict?
+
+Which Requirements depend on this domain invariant?
+
+Which active Requirements have stale Evidence?
+```
+
+These are examples of the practical value of traceability.
+
+---
+
+# Requirement coverage views
+
+Derived views may eventually expose the Requirement corpus by:
+
+```text
+domain
+capability
+status
+release
+criticality
+verification state
+specification coverage
+implementation coverage
+```
+
+These should be Projections.
+
+The underlying Requirements remain canonical engineering records.
+
+---
+
+# Requirements index
+
+As the corpus grows, this section should expose an index that makes important state visible.
+
+A future index might resemble:
+
+| ID           | Requirement                                          | Domain     | Status | Specified | Verified |
+| ------------ | ---------------------------------------------------- | ---------- | ------ | --------- | -------- |
+| REQ-ID-001   | Semantic identity survives representation relocation | Identity   | Active | Yes       | Yes      |
+| REQ-GOV-004  | Capability does not imply authority                  | Governance | Active | Yes       | Partial  |
+| REQ-EXEC-009 | Partial execution remains explicit                   | Execution  | Active | Yes       | Pending  |
+
+Those rows should eventually be generated from authoritative Requirement records rather than maintained manually in multiple locations.
+
+---
+
+# Corpus organization
+
+The physical folder structure can remain useful for human browsing.
+
+A future layout might look like:
+
+```text
+requirements/
+├── index.mdx
+├── meta.json
+├── foundation/
+├── identity/
+├── semantics/
+├── governance/
+├── execution/
+├── integrations/
+├── verification/
+├── portability/
+├── security/
+└── developer-experience/
+```
+
+The exact categories should emerge from the actual Requirement corpus rather than being created prematurely.
+
+The semantic relationships matter more than the folder hierarchy.
+
+---
+
+# Requirements and the Constitution
+
+Some Requirements may eventually justify constitutional Invariants.
+
+For example:
+
+```text
+REQ-GOV-004
+Capability must not imply Authority
+```
+
+may result in a constitutional rule constraining all governed execution.
+
+The relationship should remain explicit:
+
+```text
+Requirement
+   │
+   │ motivates
+   ▼
+Constitutional Invariant
+```
+
+The Constitution should not become a copy of the Requirement corpus.
+
+Only foundational rules deserve constitutional status.
+
+---
+
+# Requirements and change impact
+
+Changing a Requirement can have broad consequences.
+
+A Requirement may govern:
+
+```text
+Specification
+Implementation
+Tests
+Policies
+Documentation
+Release Claims
+```
+
+Therefore:
+
+```text
+Requirement Change
+      │
+      ▼
+Impact Analysis
+      │
+      ├──► Specifications
+      ├──► ADR assumptions
+      ├──► Implementations
+      ├──► Tests
+      ├──► Evidence
+      └──► Releases
+```
+
+Requirement modification should be treated as an engineering change when downstream commitments depend on it.
+
+---
+
+# Requirements and historical truth
+
+A superseded Requirement may remain historically important.
+
+For example:
+
+```text
+Release 0.2
+  satisfied REQ-X@2
+```
+
+while:
+
+```text
+Current System
+  governed by REQ-X@5
+```
+
+Both states can be correct.
+
+Historical traceability should preserve which Requirement governed which system state.
+
+---
+
+# Requirement changes should preserve rationale
+
+If a Requirement changes materially, the project should retain enough history to understand:
+
+```text
+what changed
+why
+which evidence caused the change
+what downstream artifacts were affected
+```
+
+Otherwise Requirements become mutable prose whose history is difficult to reconstruct.
+
+---
+
+# Requirements as part of the engineering argument
+
+The Requirement corpus is not intended to become the product by itself.
+
+Its value comes from connection.
+
+```text
+Problem
+   │
+   ▼
+Requirement
+   │
+   ▼
+Decision
+   │
+   ▼
+Specification
+   │
+   ▼
+Implementation
+   │
+   ▼
+Verification
+   │
+   ▼
+Evidence
+```
+
+A Requirement that never influences design, implementation, verification, or release deserves scrutiny.
+
+---
+
+# Requirements should earn their maintenance cost
+
+Every Requirement introduces obligations.
+
+It may require:
+
+* review,
+* traceability,
+* maintenance,
+* verification,
+* migration,
+* and historical management.
+
+Therefore:
+
+> **A Requirement should exist because preserving the obligation is more valuable than repeatedly reconstructing it.**
+
+This is consistent with the wider Monad artifact doctrine.
+
+---
+
+# Requirements are not paperwork
+
+A healthy Requirement system should make engineering easier to reason about.
+
+It should not require engineers to create documents merely because a process demands them.
+
+The ideal Requirement provides leverage.
+
+It tells:
+
+* architects what must be preserved,
+* implementers what outcome matters,
+* reviewers what to challenge,
+* testers what to verify,
+* release systems what to require,
+* and AI agents which behaviors are not negotiable.
+
+That is engineering value.
+
+---
+
+# Current state of the Requirement corpus
+
+Monad is still under active development.
+
+The Requirement corpus should therefore be expected to contain a mixture of:
+
+```text
+active requirements
+proposed requirements
+requirements awaiting decomposition
+requirements awaiting verification
+superseded requirements
+open requirement questions
+```
+
+The project should represent that maturity honestly.
+
+<Callout type="info" title="Do not invent completeness">
+
+If an architectural behavior has not yet been translated into a formal Requirement, the correct response is to expose that gap.
+
+A missing Requirement is better than a fabricated one created only to make the traceability graph look complete.
+
+</Callout>
+
+---
+
+# Relationship to System
+
+[System](/docs/system) explains the current architecture and semantics.
+
+Requirements explain what obligations that system is intended to satisfy.
+
+For example:
+
+```text
+System:
+  Capability is distinct from Authority.
+
+Requirement:
+  A governed Operation must not be authorized
+  solely from technical Capability.
+
+Specification:
+  Exact policy-evaluation semantics.
+
+Verification:
+  Conformance test.
+
+Evidence:
+  Result from a specific system revision.
+```
+
+System tells the reader what Monad currently is.
+
+Requirements make part of that architecture normative.
+
+---
+
+# Relationship to Architecture Decisions
+
+[Architecture Decisions](/docs/artifacts/decisions) explain why particular design directions were chosen under the Requirement set.
+
+Conceptually:
+
+```text
+Requirement
+      │
+      ▼
+Design alternatives
+      │
+      ▼
+ADR
+```
+
+A Requirement may outlive several architecture decisions.
+
+---
+
+# Relationship to Specifications
+
+[Specifications](/docs/artifacts/specifications) turn Requirements into exact implementable contracts.
+
+Conceptually:
+
+```text
+Requirement
+  "what must be true"
+
+        ↓
+
+Specification
+  "exact behavior required"
+```
+
+This is one of the most important traceability relationships in the project.
+
+---
+
+# Relationship to Models
+
+[Models](/docs/artifacts/models) may formalize concepts required by the Requirement set.
+
+For example:
+
+```text
+Requirement:
+  semantic identity survives representation changes
+
+Model:
+  Subject / Representation / Binding model
+```
+
+Models help make the conceptual structure required for satisfaction explicit.
+
+---
+
+# Relationship to Policies
+
+[Policies](/docs/artifacts/policies) may operationalize governance Requirements.
+
+For example:
+
+```text
+Requirement:
+  public release requires approved verification
+
+Policy:
+  release gate evaluating required Evidence
+```
+
+The Requirement defines the obligation.
+
+The Policy makes the obligation enforceable.
+
+---
+
+# Relationship to Verification
+
+[Verification](/docs/artifacts/verification) defines how Requirement satisfaction is evaluated.
+
+The Requirement should make clear what must hold.
+
+Verification determines whether it actually holds.
+
+---
+
+# Relationship to Evidence
+
+[Evidence](/docs/artifacts/evidence) contains the records supporting claims of Requirement satisfaction.
+
+Conceptually:
+
+```text
+Requirement
+   │
+   ▼
+Verification
+   │
+   ▼
+Evidence
+```
+
+Evidence remains contextual to a particular system state and method.
+
+---
+
+# Relationship to Traceability
+
+[Traceability](/docs/artifacts/traceability) connects Requirements to the rest of the engineering record.
+
+That is where the full chain becomes navigable.
+
+---
+
+# Requirement governance
+
+Creating, accepting, changing, or superseding important Requirements may itself require governance.
+
+The process should be proportional.
+
+A minor clarification may require little ceremony.
+
+A Requirement affecting:
+
+```text
+public compatibility
+security invariant
+constitutional behavior
+data durability
+```
+
+may require significant review.
+
+The Requirement system should support these differences without applying maximum process to everything.
+
+---
+
+# A practical requirement workflow
+
+A useful lifecycle for substantial Requirements may look like:
+
+```text
+Need / Problem
+      │
+      ▼
+Candidate Requirement
+      │
+      ▼
+Clarify Scope
+      │
+      ▼
+Assess Necessity
+      │
+      ▼
+Review
+      │
+      ▼
+Accept
+      │
+      ▼
+Specify
+      │
+      ▼
+Implement
+      │
+      ▼
+Verify
+      │
+      ▼
+Evidence
+      │
+      ▼
+Observe
+      │
+      ▼
+Retain / Refine / Supersede
+```
+
+This is not intended as a mandatory ceremony for every small constraint.
+
+It describes the engineering relationship that important Requirements may follow.
+
+---
+
+# Requirement review checklist
+
+When evaluating a Requirement, ask:
+
+1. What problem or need produced it?
+2. Is it actually required?
+3. What happens if we do not satisfy it?
+4. Is the Scope clear?
+5. Is the statement normative and understandable?
+6. Is it accidentally dictating implementation?
+7. Can satisfaction be evaluated?
+8. What Verification Method is appropriate?
+9. Does it conflict with another Requirement?
+10. Does it duplicate another Requirement?
+11. What downstream architecture might it constrain?
+12. What evidence could invalidate the Requirement itself?
+13. Is the maintenance cost justified?
+14. Should it be active now or merely proposed?
+15. What authority is required to change it?
+
+These questions help distinguish useful engineering Requirements from administrative text.
+
+---
+
+# The requirement rule of thumb
+
+When deciding whether something is a Requirement, ask:
+
+> **What must be true?**
+
+Then:
+
+> **Why must it be true?**
+
+Then:
+
+> **Where does that obligation apply?**
+
+Then:
+
+> **How could we know whether it is satisfied?**
+
+Then:
+
+> **Does this statement leave legitimate implementation choices open?**
+
+Then:
+
+> **What would happen if we removed this Requirement?**
+
+If those questions cannot be answered, the statement may still be a:
+
+```text
+goal
+idea
+hypothesis
+principle
+decision
+preference
+```
+
+rather than a Requirement.
+
+---
+
+# The governing principle
+
+The Requirement system exists to preserve one central relationship:
+
+> **Engineering intent should remain explicit enough that architecture, implementation, verification, and release can be evaluated against what the system was actually required to accomplish rather than against whatever behavior happened to emerge.**
+
+Requirements are therefore neither paperwork nor implementation.
+
+They are the durable obligations that connect:
+
+```text
+need
+```
+
+to:
+
+```text
+evidence
+```
+
+---
+
+## Continue exploring
+
+Requirements establish what Monad must satisfy.
+
+The next useful question is why particular architectural directions were chosen to satisfy those obligations.
+
+<Cards>
+  <Card
+    title="Architecture Decisions"
+    href="/docs/artifacts/decisions"
+  >
+    Inspect the context, alternatives, rationale, consequences, and supersession history behind consequential design choices.
+  </Card>
+
+<Card
+title="Specifications"
+href="/docs/artifacts/specifications"
+>
+See how Requirements become precise, implementable behavioral and technical contracts.
+</Card>
+
+<Card
+title="Verification"
+href="/docs/artifacts/verification"
+>
+Understand how Requirement satisfaction is evaluated.
+</Card>
+
+<Card
+title="Evidence"
+href="/docs/artifacts/evidence"
+>
+Inspect the records supporting claims that Requirements are satisfied.
+</Card>
+</Cards>
+
+---
+
+## Related artifact views
+
+<Cards>
+  <Card
+    title="Models"
+    href="/docs/artifacts/models"
+  >
+    Examine the conceptual and structural models used to formalize Requirement-relevant system meaning.
+  </Card>
+
+<Card
+title="Policies"
+href="/docs/artifacts/policies"
+>
+See how governance Requirements become enforceable system rules.
+</Card>
+
+<Card
+title="Traceability"
+href="/docs/artifacts/traceability"
+>
+Follow Requirements through decisions, specifications, implementation, verification, evidence, and release.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

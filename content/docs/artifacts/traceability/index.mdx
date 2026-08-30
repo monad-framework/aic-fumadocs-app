@@ -1,0 +1,4008 @@
+---
+title: Traceability
+description: How Monad connects problems, requirements, decisions, specifications, implementation, verification, evidence, releases, and system state into an inspectable engineering chain.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Engineering relationships made inspectable
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Traceability is the ability to follow an engineering concern across the artifacts, decisions, work, implementation, verification, evidence, and releases that give it meaning.
+  </p>
+</div>
+
+# What is traceability?
+
+**Traceability** preserves the relationships necessary to answer how one part of the engineering system relates to another.
+
+The central question is:
+
+> **Can we follow an important engineering claim backward to its origin and forward to its consequences without reconstructing the story manually from disconnected tools?**
+
+A useful trace may connect:
+
+```text
+Problem
+   ↓
+Goal
+   ↓
+Requirement
+   ↓
+Decision
+   ↓
+Specification
+   ↓
+Work Package
+   ↓
+Implementation
+   ↓
+Verification
+   ↓
+Evidence
+   ↓
+Release
+   ↓
+Observed System State
+```
+
+The exact chain varies.
+
+The principle does not.
+
+---
+
+# Traceability is not a giant spreadsheet
+
+A traceability matrix can be useful.
+
+But:
+
+```text
+Traceability ≠ Traceability Matrix
+```
+
+The matrix is one projection of deeper relationships.
+
+Monad's concern is the underlying connected engineering record.
+
+That record may later be presented as:
+
+* tables,
+* graphs,
+* dependency trees,
+* timelines,
+* release reports,
+* impact views,
+* audit views,
+* requirement coverage views,
+* machine-readable queries.
+
+The representation may change.
+
+The relationships should remain durable.
+
+---
+
+# Why traceability matters
+
+Modern engineering work is distributed across:
+
+```text
+source files
+
+Git history
+
+pull requests
+
+issues
+
+project boards
+
+requirements
+
+ADRs
+
+specifications
+
+schemas
+
+tests
+
+CI systems
+
+release systems
+
+documentation
+
+chat
+
+AI sessions
+
+operational systems
+```
+
+Each system may preserve one useful fragment.
+
+The problem appears when a consequential question spans several of them.
+
+For example:
+
+> Why does this interface behave this way?
+
+The answer may require:
+
+```text
+Requirement
+→ ADR
+→ Specification
+→ implementation commit
+→ test
+→ release
+```
+
+Without explicit relationships, the engineer has to rediscover that chain.
+
+Traceability attempts to preserve it.
+
+---
+
+# Traceability reduces reconstruction
+
+A large portion of engineering friction is not caused by missing information.
+
+It is caused by missing relationships between information that already exists.
+
+The artifacts may all be present.
+
+But the engineer still has to determine:
+
+```text
+Which requirement led to this?
+
+Which decision selected this architecture?
+
+Which specification defines the behavior?
+
+Which implementation satisfies it?
+
+Which test verifies it?
+
+Which release contains it?
+
+Is the requirement still active?
+
+Has the decision been superseded?
+```
+
+Traceability reduces that reconstruction cost.
+
+---
+
+# Traceability is about meaning
+
+A hyperlink establishes navigation.
+
+It does not automatically establish semantics.
+
+For example:
+
+```text
+ADR-014 → SPEC-008
+```
+
+might mean:
+
+```text
+implements
+```
+
+or:
+
+```text
+motivates
+```
+
+or:
+
+```text
+supersedes
+```
+
+or:
+
+```text
+constrains
+```
+
+or merely:
+
+```text
+mentions
+```
+
+Those relationships are not equivalent.
+
+Useful traceability therefore requires typed meaning.
+
+---
+
+# Typed relationships
+
+Relationships should communicate why two Subjects are connected.
+
+Possible relationship meanings include:
+
+```text
+motivates
+
+requires
+
+satisfies
+
+specifies
+
+implements
+
+verifies
+
+provides-evidence-for
+
+constrains
+
+depends-on
+
+derived-from
+
+supersedes
+
+replaces
+
+affects
+
+produces
+
+reviews
+
+approves
+
+released-in
+```
+
+This list is illustrative.
+
+The canonical relationship vocabulary belongs in the semantic model and schemas.
+
+The important principle is:
+
+> A trace should preserve the meaning of the relationship, not merely the existence of a link.
+
+---
+
+# Traceability is bidirectional
+
+A strong trace works in both directions.
+
+Forward:
+
+```text
+Requirement
+   ↓
+Specification
+   ↓
+Implementation
+   ↓
+Verification
+   ↓
+Release
+```
+
+Backward:
+
+```text
+Release
+   ↑
+Verification
+   ↑
+Implementation
+   ↑
+Specification
+   ↑
+Requirement
+```
+
+This supports two different engineering questions.
+
+Forward traceability asks:
+
+> What became of this requirement?
+
+Backward traceability asks:
+
+> Why does this implementation exist?
+
+Both matter.
+
+---
+
+# Forward traceability
+
+Forward traceability follows intent toward implementation and operation.
+
+For example:
+
+```text
+REQ-021
+   ↓
+SPEC-009
+   ↓
+WP-044
+   ↓
+PR-118
+   ↓
+VER-077
+   ↓
+REL-006
+```
+
+This can answer:
+
+```text
+Was the requirement implemented?
+
+Was it verified?
+
+Which release contains it?
+
+What downstream system parts depend on it?
+```
+
+---
+
+# Backward traceability
+
+Backward traceability follows a concrete system element toward its rationale.
+
+For example:
+
+```text
+src/identity/resolver.ts
+   ↑
+SPEC-ID-004
+   ↑
+ADR-017
+   ↑
+REQ-ID-002
+   ↑
+Goal: stable semantic identity
+```
+
+This can answer:
+
+```text
+Why does this file exist?
+
+Which contract governs it?
+
+Which requirement would be affected if it changed?
+
+Which decision explains the current design?
+```
+
+---
+
+# Horizontal traceability
+
+Not every useful relationship is vertical.
+
+Artifacts at the same conceptual layer may relate to each other.
+
+Examples:
+
+```text
+Requirement
+→ conflicts-with
+→ Requirement
+
+ADR
+→ supersedes
+→ ADR
+
+Specification
+→ depends-on
+→ Specification
+
+Schema
+→ compatible-with
+→ Schema
+```
+
+These are horizontal traces.
+
+---
+
+# Vertical traceability
+
+Vertical traceability connects engineering layers.
+
+For example:
+
+```text
+Requirement
+→ Specification
+→ Implementation
+→ Verification
+→ Evidence
+```
+
+This is often the most recognizable form of traceability.
+
+Monad needs both horizontal and vertical relationships.
+
+---
+
+# Traceability across time
+
+A system evolves.
+
+Traceability must therefore answer not only:
+
+```text
+What is connected?
+```
+
+but sometimes:
+
+```text
+What was connected at this point in time?
+```
+
+For example:
+
+```text
+REQ-012
+   ↓
+SPEC-004 v1
+```
+
+may later become:
+
+```text
+REQ-012
+   ↓
+SPEC-004 v2
+```
+
+while:
+
+```text
+SPEC-004 v1
+```
+
+remains relevant to an older release.
+
+Current truth and historical truth must both remain recoverable.
+
+---
+
+# Traceability and semantic identity
+
+Stable identity is foundational.
+
+If identity changes whenever a file is renamed, traces become fragile.
+
+For example:
+
+```text
+docs/specs/identity.md
+```
+
+may move to:
+
+```text
+docs/system/identity/specification.md
+```
+
+If the Specification Subject remains the same, its relationships should survive the move.
+
+Therefore:
+
+```text
+Semantic Identity ≠ Filesystem Location
+```
+
+Traceability should bind primarily to semantic Subjects, not transient locations.
+
+---
+
+# Traceability and native references
+
+Native systems still matter.
+
+A trace may include references such as:
+
+```text
+Git commit
+
+GitHub issue
+
+GitHub pull request
+
+filesystem path
+
+CI run
+
+package version
+```
+
+These should be preserved as Native References.
+
+For example:
+
+```text
+Work Package WP-0042
+   ↓ implemented-by
+GitHub PR #81
+   ↓ merged-as
+Git commit 8a4f...
+```
+
+Monad should not erase native identity.
+
+It should connect native identity to semantic identity.
+
+---
+
+# Traceability and representation
+
+The same Subject may appear in several Representations.
+
+For example:
+
+```text
+Requirement REQ-014
+```
+
+might appear in:
+
+```text
+requirements/REQ-014.md
+
+project dashboard
+
+release report
+
+generated requirements index
+```
+
+Traceability should connect to the Requirement Subject rather than accidentally treating each Representation as a different requirement.
+
+---
+
+# Traceability and authority
+
+A relationship should not automatically become authoritative merely because it exists.
+
+Consider:
+
+```text
+AI inference:
+SPEC-008 appears to satisfy REQ-014
+```
+
+That may be useful.
+
+But it is not necessarily equivalent to:
+
+```text
+Authoritative engineering relationship:
+SPEC-008 satisfies REQ-014
+```
+
+Monad should distinguish:
+
+```text
+observed
+
+inferred
+
+proposed
+
+confirmed
+
+authoritative
+```
+
+where appropriate.
+
+---
+
+# Traceability and provenance
+
+Every consequential trace relationship may itself need provenance.
+
+For example:
+
+```text
+REQ-014
+   ↓ satisfied-by
+SPEC-008
+```
+
+Useful questions include:
+
+```text
+Who asserted this relationship?
+
+When?
+
+Based on what source?
+
+Was it inferred?
+
+Was it reviewed?
+
+Has it been superseded?
+```
+
+A relationship can be an engineering claim.
+
+Its provenance matters.
+
+---
+
+# Traceability and evidence
+
+Traceability should not merely connect:
+
+```text
+Requirement → Verification
+```
+
+It should make it possible to reach the Evidence produced by that Verification.
+
+For example:
+
+```text
+REQ-014
+   ↓ verified-by
+VER-031
+   ↓ produced
+EV-088
+```
+
+This lets an engineer inspect the basis for the satisfaction claim.
+
+---
+
+# Traceability and verification
+
+A Requirement being connected to a test does not mean it has been verified.
+
+Consider:
+
+```text
+REQ-014
+→ test_identity_move
+```
+
+The test may exist but fail.
+
+The useful chain is:
+
+```text
+REQ-014
+   ↓ verified-by
+Verification Definition
+   ↓ executed-as
+Verification Run
+   ↓ produced
+Evidence
+   ↓ supports
+Requirement Satisfaction Claim
+```
+
+The distinction between method, execution, result, and claim matters.
+
+---
+
+# Traceability and releases
+
+A release provides an important convergence point.
+
+A release should be traceable backward to:
+
+```text
+Requirements
+
+Specifications
+
+implementation
+
+Reviews
+
+Verification
+
+Evidence
+
+Approvals
+```
+
+and forward to:
+
+```text
+deployments
+
+observed environments
+
+incidents
+
+superseding releases
+```
+
+This allows engineers to ask:
+
+> Which exact engineering argument supported this released state?
+
+---
+
+# Traceability and decisions
+
+Architecture Decisions often connect requirements to architecture.
+
+For example:
+
+```text
+REQ-STORAGE-001
+   ↓ motivates
+ADR-021
+   ↓ selects
+SQLite
+   ↓ constrains
+SPEC-PERSISTENCE-004
+```
+
+The Decision explains why a particular design direction exists.
+
+Without the Decision relationship, the architecture may appear arbitrary.
+
+---
+
+# Traceability and specifications
+
+Specifications often form the bridge between requirement and implementation.
+
+Conceptually:
+
+```text
+Requirement:
+The system must preserve semantic identity across representation moves.
+
+Specification:
+Defines identity binding and move semantics.
+
+Implementation:
+Identity resolver and reconciliation engine.
+
+Verification:
+Move scenario confirms identity stability.
+```
+
+Traceability makes this chain inspectable.
+
+---
+
+# Traceability and Work Packages
+
+Work Packages connect durable engineering intent to execution planning.
+
+For example:
+
+```text
+REQ-014
+   ↓ implemented-through
+WP-0031
+```
+
+The Work Package might then connect to:
+
+```text
+tasks
+
+branches
+
+pull requests
+
+commits
+
+Reviews
+```
+
+Work Packages should not become the long-term authority for Requirement meaning.
+
+They are execution coordination artifacts.
+
+---
+
+# Traceability and tasks
+
+Tasks are typically short-lived operational units.
+
+Example:
+
+```text
+WP-0031
+   ├── TASK-1 update resolver
+   ├── TASK-2 add migration
+   └── TASK-3 add acceptance test
+```
+
+Tasks can help reconstruct execution.
+
+But they should not substitute for durable Specifications or Requirements.
+
+---
+
+# Traceability and source code
+
+Code should be traceable where the relationship provides real value.
+
+This does not mean every line of code requires a requirement ID.
+
+That would create enormous maintenance cost.
+
+Useful granularity might include:
+
+```text
+component
+
+module
+
+interface
+
+command
+
+schema
+
+public API
+
+migration
+
+critical function
+```
+
+The right granularity depends on consequence.
+
+---
+
+# Traceability should be proportional
+
+A central Monad principle applies here:
+
+> **Formalization should earn its cost.**
+
+Not every engineering fact deserves a first-class trace edge.
+
+Excessive traceability can produce:
+
+```text
+maintenance burden
+
+stale metadata
+
+false precision
+
+graph noise
+
+low signal-to-noise ratio
+```
+
+Trace what improves understanding, governance, impact analysis, verification, recovery, or automation.
+
+---
+
+# Traceability granularity
+
+Possible trace levels include:
+
+```text
+Project
+
+Domain
+
+Epic
+
+Feature
+
+Requirement
+
+Specification
+
+Component
+
+Interface
+
+Module
+
+Function
+
+Line
+```
+
+The lower the granularity, the greater the maintenance burden.
+
+Most systems should not begin at line-level traceability.
+
+---
+
+# Traceability should survive refactoring
+
+Suppose an implementation moves from:
+
+```text
+src/core/identity.ts
+```
+
+to:
+
+```text
+src/identity/resolver.ts
+```
+
+If the underlying component or behavior remains the same, traceability should not collapse merely because the path changed.
+
+This is another reason semantic Subjects matter.
+
+---
+
+# Traceability should survive repository moves
+
+The same principle applies when code moves:
+
+```text
+monorepo package A
+→ package B
+
+repository A
+→ repository B
+```
+
+Native References may change.
+
+Semantic identity may not.
+
+---
+
+# Traceability through split
+
+Sometimes one Subject becomes several.
+
+For example:
+
+```text
+SPEC-004
+```
+
+may become:
+
+```text
+SPEC-011
+SPEC-012
+SPEC-013
+```
+
+A useful history may preserve:
+
+```text
+SPEC-004
+   ↓ split-into
+SPEC-011
+SPEC-012
+SPEC-013
+```
+
+This avoids pretending the original simply vanished.
+
+---
+
+# Traceability through merge
+
+Likewise:
+
+```text
+REQ-011
+REQ-012
+```
+
+may be consolidated into:
+
+```text
+REQ-021
+```
+
+The historical relationship can preserve:
+
+```text
+REQ-011
+REQ-012
+   ↓ merged-into
+REQ-021
+```
+
+---
+
+# Traceability through supersession
+
+Supersession should be explicit.
+
+For example:
+
+```text
+ADR-008
+   ↓ superseded-by
+ADR-019
+```
+
+This tells the reader:
+
+```text
+ADR-008 remains historically valid
+
+but ADR-019 governs current architecture
+```
+
+Without supersession, old decisions can continue masquerading as current authority.
+
+---
+
+# Traceability through correction
+
+A correction differs from supersession.
+
+For example:
+
+```text
+EV-004
+```
+
+might contain an incorrect observed value.
+
+A correction could preserve:
+
+```text
+original Evidence
+
+corrected Evidence
+
+reason for correction
+
+time of correction
+```
+
+Traceability should connect the correction without erasing the historical record.
+
+---
+
+# Traceability and lifecycle
+
+Lifecycle state changes meaning.
+
+For example:
+
+```text
+Requirement:
+candidate
+```
+
+should not necessarily be interpreted the same as:
+
+```text
+Requirement:
+active
+```
+
+A trace engine should consider lifecycle status when answering current-state queries.
+
+---
+
+# Active versus historical edges
+
+Some relationships are current.
+
+Others are historical.
+
+For example:
+
+```text
+ADR-001 governs Component A
+```
+
+may have been true in 2025.
+
+Today:
+
+```text
+ADR-017 governs Component A
+```
+
+Both relationships may be historically correct.
+
+Only one may be current.
+
+---
+
+# Traceability and valid time
+
+Useful trace relationships may include:
+
+```text
+valid_from
+
+valid_to
+```
+
+or equivalent temporal semantics.
+
+This helps answer:
+
+> What governed this release at the time it was published?
+
+That question cannot always be answered correctly from current links alone.
+
+---
+
+# Traceability and transaction time
+
+There is another time dimension:
+
+```text
+When did Monad learn this relationship?
+```
+
+That may differ from:
+
+```text
+When was the relationship true?
+```
+
+For advanced provenance and historical reconstruction, both may matter.
+
+---
+
+# Traceability and uncertainty
+
+Not all relationships are known with certainty.
+
+A relationship may be:
+
+```text
+confirmed
+
+probable
+
+inferred
+
+possible
+
+unknown
+```
+
+Monad should avoid turning uncertain inference into authoritative fact merely to produce a complete-looking graph.
+
+---
+
+# Missing traceability is information
+
+An absent relationship can be important.
+
+For example:
+
+```text
+Requirement has no Verification
+```
+
+may indicate:
+
+```text
+unverified requirement
+
+missing metadata
+
+incomplete implementation
+
+verification not yet modeled
+```
+
+The system should report the gap.
+
+It should not silently fabricate a connection.
+
+---
+
+# Orphan artifacts
+
+An artifact may have no meaningful incoming or outgoing relationships.
+
+Examples:
+
+```text
+Requirement with no parent goal
+
+Specification with no Requirement or Decision
+
+test with no known behavior claim
+
+ADR that governs nothing
+
+release with no Verification
+```
+
+Some orphans are legitimate.
+
+Others reveal process decay.
+
+Traceability helps distinguish them.
+
+---
+
+# Dangling references
+
+A dangling reference occurs when an artifact points to something that no longer resolves.
+
+For example:
+
+```text
+SPEC-004 → REQ-002
+```
+
+but:
+
+```text
+REQ-002 cannot be found
+```
+
+This should be diagnosable.
+
+---
+
+# Stale trace relationships
+
+A trace can resolve successfully and still be wrong.
+
+For example:
+
+```text
+SPEC-004
+→ implements
+REQ-002
+```
+
+may remain in the graph even after the Specification no longer addresses that Requirement.
+
+This is stale semantic metadata.
+
+It requires reconciliation, Review, or verification—not merely existence checks.
+
+---
+
+# Traceability and freshness
+
+Derived trace views should expose freshness.
+
+For example:
+
+```text
+Requirement coverage view
+
+Last refreshed:
+commit 8b42...
+```
+
+If the repository has advanced beyond that revision, the view may be stale.
+
+Generated projections should not masquerade as current authority.
+
+---
+
+# Traceability and reconciliation
+
+Reconciliation compares expected semantic relationships with native reality.
+
+Example:
+
+```text
+Monad model:
+WP-031 implemented by PR #94
+
+GitHub:
+PR #94 was closed without merge
+```
+
+That discrepancy should be surfaced.
+
+The system should not silently preserve the original assumption.
+
+---
+
+# Traceability and impact analysis
+
+Traceability is foundational to impact analysis.
+
+Suppose:
+
+```text
+Schema S-004 changes.
+```
+
+A trace graph may reveal:
+
+```text
+S-004
+   ↓ consumed-by
+CLI parser
+
+S-004
+   ↓ consumed-by
+Plugin SDK
+
+S-004
+   ↓ persisted-by
+Database migration
+
+S-004
+   ↓ documented-by
+System docs
+```
+
+This allows Monad to ask:
+
+> What might this change affect?
+
+---
+
+# Traceability and planning
+
+Planning can use traceability to determine:
+
+```text
+what work is required
+
+what artifacts need updating
+
+what Reviews are triggered
+
+what Verification is needed
+
+which owners are affected
+```
+
+A plan grounded in explicit relationships is stronger than a plan generated from filename similarity alone.
+
+---
+
+# Traceability and context
+
+AI and human engineers often need bounded context.
+
+A Subject's trace neighborhood may provide:
+
+```text
+applicable Requirements
+
+governing Decisions
+
+Specifications
+
+related Components
+
+recent changes
+
+Verification
+
+known risks
+```
+
+This creates a more useful context package than dumping the entire repository.
+
+---
+
+# Traceability and AI
+
+AI systems can use traces to answer:
+
+```text
+Why does this exist?
+
+What may I change?
+
+What else must change?
+
+What requirements apply?
+
+What must I verify?
+
+What evidence should I produce?
+```
+
+This is one of the strongest reasons to make engineering relationships explicit.
+
+---
+
+# AI should not invent missing traces
+
+An AI may infer:
+
+```text
+this test probably verifies REQ-014
+```
+
+That inference can be useful.
+
+But unless governance allows auto-confirmation, the relationship should remain distinguishable as inferred.
+
+A healthy progression might be:
+
+```text
+Observed
+→ Inferred
+→ Proposed
+→ Reviewed
+→ Confirmed
+```
+
+depending on risk.
+
+---
+
+# Traceability and bounded autonomy
+
+An autonomous Actor could be permitted to operate only when the trace graph shows:
+
+```text
+Requirement understood
+
+Specification available
+
+affected Subjects identified
+
+required Verification known
+
+Authority scope satisfied
+```
+
+Missing traceability could trigger escalation.
+
+This makes uncertainty a governance input.
+
+---
+
+# Traceability and governance
+
+Governance often depends on relationships.
+
+For example:
+
+```text
+Component A
+   ↓ governed-by
+Policy P-014
+```
+
+A proposed operation against Component A can therefore discover the applicable Policy.
+
+Similarly:
+
+```text
+Interface I-004
+   ↓ protected-by
+Approval Rule AR-009
+```
+
+Traceability helps resolve what rules apply.
+
+---
+
+# Traceability and authority
+
+Authority itself may have a trace.
+
+For example:
+
+```text
+Constitution
+   ↓ authorizes
+Policy P-004
+   ↓ delegates
+Role Maintainer
+   ↓ permits
+Operation Merge
+```
+
+This supports explainable authorization.
+
+---
+
+# Traceability and provenance chains
+
+A provenance chain may answer:
+
+```text
+Where did this claim come from?
+```
+
+For example:
+
+```text
+Claim
+   ↓ derived-from
+CI Result
+   ↓ produced-by
+Workflow Run
+   ↓ executed-against
+Commit
+```
+
+This is another form of traceability.
+
+---
+
+# Traceability and causality
+
+Not all relationships indicate causality.
+
+For example:
+
+```text
+Commit A
+```
+
+may precede:
+
+```text
+Incident B
+```
+
+without causing it.
+
+Monad should distinguish:
+
+```text
+caused-by
+
+depends-on
+
+preceded-by
+
+correlated-with
+
+related-to
+```
+
+when such distinctions matter.
+
+A generic edge named:
+
+```text
+related
+```
+
+should not carry more meaning than it actually contains.
+
+---
+
+# Traceability and chronology
+
+Chronology can support investigation.
+
+Example:
+
+```text
+Requirement accepted
+→ Specification revised
+→ code merged
+→ release published
+→ incident observed
+→ rollback performed
+```
+
+But temporal order alone does not establish semantic dependency or causality.
+
+---
+
+# Traceability and rationale
+
+A rationale relationship explains why.
+
+For example:
+
+```text
+ADR-018
+   ↓ justified-by
+Experiment EXP-007
+```
+
+or:
+
+```text
+Requirement REQ-011
+   ↓ motivated-by
+Observed Problem OBS-003
+```
+
+This allows engineers to inspect the evidence behind a decision or obligation.
+
+---
+
+# Traceability and falsification
+
+A design decision may be based on a hypothesis.
+
+Traceability can preserve:
+
+```text
+Hypothesis
+   ↓ tested-by
+Experiment
+   ↓ produced
+Evidence
+   ↓ influenced
+ADR
+```
+
+If later Evidence contradicts the original assumption, the chain makes that evolution visible.
+
+This prevents engineering conclusions from appearing timeless or self-evident.
+
+---
+
+# Traceability and experiments
+
+Experiments should connect to the questions they investigate.
+
+For example:
+
+```text
+Question:
+Can SQLite support the target read-model workload?
+
+   ↓ investigated-by
+
+EXP-004
+
+   ↓ produced
+
+EV-031
+
+   ↓ informed
+
+ADR-019
+```
+
+The experiment earns meaning through the chain.
+
+---
+
+# Traceability and Reviews
+
+A Review may target:
+
+```text
+Specification
+
+Architecture Decision
+
+implementation
+
+release candidate
+
+migration
+```
+
+The Review should connect to the exact revision it evaluated.
+
+Otherwise later edits may incorrectly appear reviewed.
+
+---
+
+# Revision-aware traceability
+
+Revision binding matters whenever artifacts can change.
+
+For example:
+
+```text
+Review RV-019
+   ↓ reviewed
+SPEC-004@revision-7
+```
+
+not merely:
+
+```text
+Review RV-019
+   ↓ reviewed
+SPEC-004
+```
+
+if the Specification later changes materially.
+
+---
+
+# Traceability and approvals
+
+Approval should likewise bind to the relevant revision.
+
+For example:
+
+```text
+Approval A-014
+   ↓ authorizes
+Plan P-008@revision-3
+```
+
+If the plan changes materially:
+
+```text
+revision-4
+```
+
+the previous Approval may no longer apply.
+
+---
+
+# Traceability and release candidates
+
+This becomes particularly important during release:
+
+```text
+RC-004
+   ├── verified-by VER-011
+   ├── reviewed-by RV-008
+   └── approved-by A-004
+```
+
+If the candidate changes:
+
+```text
+RC-005
+```
+
+those relationships must be reevaluated.
+
+---
+
+# Traceability and compatibility
+
+Compatibility commitments should trace to the surfaces they govern.
+
+For example:
+
+```text
+Compatibility Policy
+   ↓ governs
+Plugin Interface v2
+
+Plugin Interface v2
+   ↓ used-by
+Plugin A
+Plugin B
+Plugin C
+```
+
+A proposed breaking change can therefore identify affected consumers.
+
+---
+
+# Traceability and migrations
+
+A migration should connect:
+
+```text
+source schema
+
+target schema
+
+affected stored state
+
+release
+
+Verification
+
+rollback or compensation procedure
+```
+
+This becomes especially useful when investigating upgrade failures.
+
+---
+
+# Traceability and incidents
+
+Traceability can continue beyond release.
+
+For example:
+
+```text
+Release REL-012
+   ↓ deployed-as
+Deployment D-031
+   ↓ associated-with
+Incident INC-009
+   ↓ caused-by
+Defect DEF-021
+   ↓ corrected-by
+PR-144
+   ↓ released-in
+REL-013
+```
+
+This closes the feedback loop from engineering intent to operational reality and back again.
+
+---
+
+# Traceability and learning
+
+Incidents, experiments, user reports, and operational observations may create new Requirements or Decisions.
+
+For example:
+
+```text
+Incident
+   ↓ reveals
+Missing Invariant
+   ↓ motivates
+Requirement
+   ↓ changes
+Specification
+```
+
+Traceability therefore supports organizational memory, not merely compliance.
+
+---
+
+# Traceability and current truth
+
+The current System documentation should reflect current authoritative understanding.
+
+Traceability helps explain where that understanding came from.
+
+For example:
+
+```text
+System statement:
+Subjects preserve semantic identity across Representation moves.
+
+   ↓ supported-by
+
+REQ-ID-002
+ADR-ID-004
+SPEC-ID-007
+VER-ID-019
+EV-ID-021
+```
+
+This turns current explanation into an inspectable engineering claim.
+
+---
+
+# Traceability and history
+
+The Building Monad narrative may describe:
+
+```text
+how an idea emerged
+
+why an assumption changed
+
+what failed
+
+why a direction was abandoned
+```
+
+Traceability can connect narrative history to the actual artifacts produced during that period.
+
+History remains history.
+
+Current authority remains current authority.
+
+---
+
+# Traceability and the three epistemic layers
+
+Monad separates:
+
+```text
+Building Monad
+What happened?
+
+System
+What is true now?
+
+Artifacts
+Why do we believe it?
+```
+
+Traceability connects these layers without collapsing them.
+
+For example:
+
+```text
+Building Monad installment
+   ↓ discusses
+ADR-014
+
+ADR-014
+   ↓ governs
+System architecture
+
+ADR-014
+   ↓ supported-by
+Experiment EXP-004
+```
+
+Each source keeps its own role.
+
+---
+
+# Traceability and external systems
+
+Some relevant Subjects may live outside Monad's repositories.
+
+Examples:
+
+```text
+external API
+
+dependency
+
+regulation
+
+vendor system
+
+upstream protocol
+
+external issue
+```
+
+Monad may reference these without claiming ownership.
+
+Trace relationships should preserve the distinction between:
+
+```text
+managed
+
+integrated
+
+referenced
+```
+
+external reality.
+
+---
+
+# Traceability and dependencies
+
+Dependency relationships may include:
+
+```text
+package dependency
+
+build dependency
+
+runtime dependency
+
+semantic dependency
+
+policy dependency
+
+data dependency
+
+organizational dependency
+```
+
+These should not necessarily share one generic relationship type.
+
+Meaning matters.
+
+---
+
+# Traceability and package managers
+
+Package managers already own dependency resolution.
+
+Monad should integrate with their native data rather than reproducing dependency graphs manually.
+
+It may then connect package dependencies to higher-level Subjects such as:
+
+```text
+Components
+
+Capabilities
+
+Risks
+
+Releases
+```
+
+---
+
+# Traceability and Git
+
+Git provides excellent lineage for source revisions.
+
+Monad should use it.
+
+But:
+
+```text
+Git History ≠ Complete Engineering Traceability
+```
+
+Git does not inherently encode:
+
+```text
+Requirement satisfaction
+
+policy applicability
+
+semantic identity
+
+decision rationale
+
+verification meaning
+
+authority
+```
+
+The systems complement each other.
+
+---
+
+# Traceability and GitHub
+
+GitHub may own:
+
+```text
+issues
+
+pull requests
+
+Reviews
+
+commits
+
+releases
+```
+
+Monad should bind semantic Subjects to those native objects.
+
+For example:
+
+```text
+Feature F-004
+   ↓ coordinated-through
+GitHub Issue #87
+```
+
+The issue remains a GitHub object.
+
+The Feature remains a semantic engineering Subject.
+
+---
+
+# Traceability and documentation
+
+Documentation may describe:
+
+```text
+Requirements
+
+architecture
+
+interfaces
+
+behavior
+```
+
+It should link to authoritative artifacts where useful.
+
+But documentation text should not become the only relationship mechanism.
+
+The semantic trace should survive documentation restructuring.
+
+---
+
+# Traceability as graph traversal
+
+Conceptually, a traceability query is graph traversal.
+
+For example:
+
+```text
+Starting Subject:
+REQ-014
+
+Traverse:
+satisfied-by
+implemented-by
+verified-by
+released-in
+```
+
+Result:
+
+```text
+REQ-014
+   ↓
+SPEC-008
+   ↓
+COMP-004
+   ↓
+VER-031
+   ↓
+REL-009
+```
+
+The graph model makes such queries natural.
+
+---
+
+# Traceability queries
+
+Useful queries may eventually include:
+
+```text
+Show all active Requirements with no Verification.
+
+Show all code Components affected by ADR-017.
+
+Show all releases containing implementation of REQ-014.
+
+Show all Specifications governed by a superseded ADR.
+
+Show all Evidence supporting release REL-009.
+
+Show all current interfaces depending on Schema v3.
+
+Show all Requirements affected by Component A.
+
+Show all inferred relationships awaiting confirmation.
+```
+
+These are examples of the value of explicit relationships.
+
+---
+
+# Coverage queries
+
+Traceability can support coverage analysis.
+
+Examples:
+
+```text
+Requirements with Specification
+
+Requirements with implementation
+
+Requirements with Verification
+
+Requirements verified in latest release
+
+Specifications with tests
+
+Releases with complete Evidence
+```
+
+Coverage is useful when interpreted carefully.
+
+---
+
+# Coverage is not quality
+
+A project can achieve:
+
+```text
+100% requirements linked to tests
+```
+
+and still have poor Requirements or meaningless tests.
+
+Trace coverage measures connectedness.
+
+It does not prove correctness.
+
+---
+
+# Trace completeness
+
+Trace completeness asks whether expected relationships exist.
+
+For example:
+
+```text
+Active Requirement
+
+expected:
+Specification
+Verification
+
+observed:
+Specification
+no Verification
+```
+
+The system can report:
+
+```text
+trace incomplete
+```
+
+without pretending the Requirement is unsatisfied.
+
+---
+
+# Trace correctness
+
+Completeness and correctness differ.
+
+A complete-looking chain may contain an incorrect relationship.
+
+For example:
+
+```text
+REQ-014
+→ VER-031
+```
+
+may exist even though VER-031 tests unrelated behavior.
+
+Therefore trace quality requires more than edge count.
+
+---
+
+# Trace confidence
+
+Some relationships may include confidence or confirmation state.
+
+Example:
+
+```text
+Relationship:
+SPEC-014 implements REQ-021
+
+Source:
+AI inference
+
+Confidence:
+0.82
+
+Authority:
+non-authoritative
+
+Status:
+awaiting Review
+```
+
+Whether numeric confidence is appropriate is itself a modeling decision.
+
+The important point is preserving uncertainty.
+
+---
+
+# Traceability diagnostics
+
+Useful diagnostics may include:
+
+```text
+orphan Subject
+
+dangling reference
+
+superseded artifact still governing current state
+
+active Requirement with no Specification
+
+active Requirement with no Verification
+
+release linked to stale Verification
+
+relationship points to wrong revision
+
+inferred edge used as authoritative
+
+cyclic dependency
+
+native binding no longer resolves
+
+derived trace view stale
+```
+
+Diagnostics convert graph inconsistency into actionable engineering information.
+
+---
+
+# Traceability validation
+
+Validation may operate at several levels.
+
+## Structural validation
+
+Does the relationship use an allowed edge type?
+
+```text
+Requirement
+→ verified-by
+Verification
+```
+
+may be valid.
+
+```text
+Requirement
+→ compiled-by
+Person
+```
+
+may not make semantic sense.
+
+---
+
+## Referential validation
+
+Do both Subjects exist?
+
+---
+
+## Lifecycle validation
+
+Is the relationship allowed given current lifecycle states?
+
+For example, should a retired Specification still govern a newly accepted Requirement?
+
+---
+
+## Authority validation
+
+Who is permitted to establish or modify this relationship?
+
+---
+
+## Temporal validation
+
+Do the relationship's valid times make sense?
+
+---
+
+## Semantic validation
+
+Does the relationship actually represent what the edge type claims?
+
+This may require human or AI-assisted Review.
+
+---
+
+# Traceability indexes
+
+Useful derived indexes may include:
+
+```text
+Requirement Coverage Index
+
+Decision Impact Index
+
+Specification Implementation Index
+
+Verification Coverage Index
+
+Release Evidence Index
+
+Artifact Supersession Index
+
+Native Binding Index
+```
+
+These are projections.
+
+The underlying graph remains the source of relationship semantics.
+
+---
+
+# Traceability visualization
+
+A graph visualization can help.
+
+But unrestricted graph views often become unusable.
+
+A better interface usually begins with a question.
+
+For example:
+
+```text
+Show upstream rationale for Component A.
+```
+
+or:
+
+```text
+Show downstream impact of changing Schema S-004.
+```
+
+Then render only the relevant subgraph.
+
+---
+
+# Avoid the hairball graph
+
+A system with thousands of nodes and every possible relationship can become visually meaningless.
+
+Monad should favor:
+
+```text
+bounded traversal
+
+typed filters
+
+relationship families
+
+scope controls
+
+time filters
+
+authority filters
+
+lifecycle filters
+```
+
+over giant undifferentiated network diagrams.
+
+---
+
+# Traceability views should answer questions
+
+A useful traceability view might answer:
+
+```text
+Why does this exist?
+
+What depends on this?
+
+What governs this?
+
+What verifies this?
+
+What release contains this?
+
+What changed this?
+
+What superseded this?
+
+What evidence supports this?
+```
+
+The interface should begin with engineering questions, not graph novelty.
+
+---
+
+# Local trace view
+
+For a single Subject:
+
+```text
+REQ-014
+```
+
+a local trace view might show:
+
+```text
+Origin
+Goal G-004
+
+Governed by
+Policy P-002
+
+Specified by
+SPEC-008
+
+Implemented by
+Component ID-Resolver
+
+Verified by
+VER-031
+
+Evidence
+EV-088
+
+Released in
+REL-009
+```
+
+This is often more useful than a full graph.
+
+---
+
+# Upstream trace view
+
+An upstream view answers:
+
+> Why is this here?
+
+Example:
+
+```text
+Function
+   ↑
+Component
+   ↑
+Specification
+   ↑
+Decision
+   ↑
+Requirement
+   ↑
+Goal
+```
+
+---
+
+# Downstream trace view
+
+A downstream view answers:
+
+> What would this affect?
+
+Example:
+
+```text
+Schema
+   ↓
+Parser
+   ↓
+CLI
+   ↓
+Plugin SDK
+   ↓
+Consumers
+   ↓
+Releases
+```
+
+---
+
+# Timeline trace view
+
+A temporal trace may show:
+
+```text
+2026-01 Requirement accepted
+
+2026-02 ADR selected architecture
+
+2026-03 Specification approved
+
+2026-04 implementation merged
+
+2026-04 Verification passed
+
+2026-05 release published
+
+2026-07 incident identified limitation
+
+2026-08 new Requirement accepted
+```
+
+This supports historical understanding.
+
+---
+
+# Release trace view
+
+A release-centered view might show:
+
+```text
+REL-009
+
+Requirements
+├── REQ-011
+├── REQ-014
+└── REQ-022
+
+Specifications
+├── SPEC-004
+└── SPEC-008
+
+Verification
+├── VER-031
+└── VER-035
+
+Evidence
+├── EV-088
+└── EV-091
+
+Approval
+└── APP-012
+```
+
+This gives the release an engineering argument.
+
+---
+
+# Requirement trace view
+
+A requirement-centered view could show:
+
+```text
+REQ-014
+   │
+   ├── motivated-by → Problem P-003
+   ├── specified-by → SPEC-008
+   ├── implemented-by → COMP-Identity
+   ├── verified-by → VER-031
+   ├── supported-by → EV-088
+   └── released-in → REL-009
+```
+
+---
+
+# Decision trace view
+
+A decision-centered view could show:
+
+```text
+ADR-019
+
+Motivated by:
+REQ-007
+EXP-004
+
+Constrains:
+SPEC-012
+COMP-Persistence
+
+Supersedes:
+ADR-008
+
+Released in:
+REL-006
+```
+
+---
+
+# Evidence trace view
+
+An evidence-centered view might answer:
+
+```text
+What claim does this evidence support?
+
+Who produced it?
+
+Against what revision?
+
+Using which Verification method?
+
+Which release relied on it?
+```
+
+Evidence without context quickly loses value.
+
+---
+
+# Traceability storage
+
+The canonical trace model might eventually be persisted as:
+
+```text
+graph records
+
+normalized relational tables
+
+document records
+
+hybrid structures
+```
+
+Storage is an implementation decision.
+
+The logical relationship model should remain independent of a specific database technology.
+
+---
+
+# Traceability serialization
+
+A portable record might conceptually resemble:
+
+```yaml
+subject: REQ-014
+
+relationship: verified-by
+
+target: VER-031
+
+status: confirmed
+
+provenance:
+  actor: ...
+  source: ...
+
+validity:
+  from: ...
+  to: ...
+```
+
+This is illustrative.
+
+The canonical schema belongs under [Schemas](/docs/artifacts/schemas).
+
+---
+
+# Traceability events
+
+Relationships may emit events when they change.
+
+Examples:
+
+```text
+relationship.created
+
+relationship.confirmed
+
+relationship.superseded
+
+relationship.removed
+
+binding.broken
+
+trace.invalidated
+```
+
+This can support derived indexes and incremental analysis.
+
+---
+
+# Relationship deletion
+
+Removing a current relationship should not necessarily erase its history.
+
+For consequential relationships, the model may preserve:
+
+```text
+previous relationship
+
+end of validity
+
+reason
+
+Actor
+```
+
+This lets historical queries remain accurate.
+
+---
+
+# Trace invalidation
+
+A change may invalidate downstream trace assumptions.
+
+For example:
+
+```text
+SPEC-008 changes materially
+```
+
+Potentially invalidating:
+
+```text
+Review RV-004
+
+Verification VER-031
+
+Approval APP-008
+```
+
+Monad should eventually detect when prior evidence no longer applies.
+
+---
+
+# Trace invalidation is not deletion
+
+The old Verification remains historically valid for the old revision.
+
+It simply may no longer support the new revision.
+
+This distinction is essential.
+
+---
+
+# Traceability and change propagation
+
+A useful workflow is:
+
+```text
+Subject changes
+   ↓
+Trace traversal
+   ↓
+Potentially affected Subjects
+   ↓
+Impact analysis
+   ↓
+Required action
+```
+
+This turns traceability into an active engineering capability.
+
+---
+
+# Traceability and work generation
+
+Eventually Monad may use trace gaps to propose work.
+
+For example:
+
+```text
+Requirement accepted
+
+No Specification exists
+```
+
+could produce a recommendation:
+
+```text
+Create or associate Specification.
+```
+
+Likewise:
+
+```text
+Specification changed
+
+Verification stale
+```
+
+could produce:
+
+```text
+Re-run or revise Verification.
+```
+
+Recommendations should remain distinct from automatically authorized changes.
+
+---
+
+# Traceability and policy obligations
+
+Policies may require particular traces.
+
+For example:
+
+```text
+All high-criticality Requirements
+must have:
+
+Specification
+Verification
+Evidence
+```
+
+or:
+
+```text
+Every breaking interface change
+must trace to:
+
+approved ADR
+migration plan
+release note
+```
+
+This makes traceability part of governance.
+
+---
+
+# Traceability and Definition of Done
+
+A Work Package Definition of Done might include:
+
+```text
+implementation complete
+
+Verification complete
+
+Evidence recorded
+
+affected Requirements updated
+
+trace relationships established
+```
+
+This prevents the implementation from landing while its engineering context disappears.
+
+---
+
+# Traceability and Definition of Ready
+
+A Work Package may require:
+
+```text
+Requirement identified
+
+Specification available
+
+affected Subjects known
+
+authority understood
+
+Verification intent defined
+```
+
+before execution begins.
+
+Traceability improves readiness.
+
+---
+
+# Traceability and review quality
+
+Reviewers can ask:
+
+```text
+Which Requirement does this change satisfy?
+
+Which Specification governs it?
+
+Which downstream Subjects are affected?
+
+Which Verification covers it?
+
+Is current Evidence still valid?
+```
+
+These questions become much easier when the trace graph is explicit.
+
+---
+
+# Traceability and security
+
+Security-sensitive change may require additional relationships:
+
+```text
+threat
+
+control
+
+Requirement
+
+policy
+
+implementation
+
+Verification
+
+Evidence
+```
+
+This supports both preventive review and incident investigation.
+
+---
+
+# Traceability and compliance
+
+Some projects may need compliance traceability.
+
+Monad should support such use cases without making compliance bureaucracy the default design center.
+
+The same semantic capabilities can help answer:
+
+```text
+Which obligation applies?
+
+Where is it implemented?
+
+How is it verified?
+
+What evidence exists?
+
+Which release includes it?
+```
+
+---
+
+# Traceability and privacy
+
+Trace records may expose sensitive information.
+
+Examples:
+
+```text
+security vulnerabilities
+
+private issue links
+
+human identities
+
+incident details
+
+proprietary dependencies
+```
+
+Access to traceability data should respect the same governance and information-disclosure policies as other system data.
+
+---
+
+# Traceability and secrets
+
+Traceability should point to secret-backed operations without copying secrets into the graph.
+
+For example:
+
+```text
+Deployment uses credential SECRET-REF-004
+```
+
+may be acceptable.
+
+Persisting the secret value itself is not.
+
+---
+
+# Traceability and external evidence
+
+Evidence may live in external systems.
+
+Monad may preserve:
+
+```text
+Native Reference
+
+digest
+
+timestamp
+
+producer
+
+claim supported
+```
+
+without necessarily copying the entire artifact.
+
+The preservation strategy should depend on durability and risk.
+
+---
+
+# Traceability and retention
+
+Some trace relationships may need long retention.
+
+Examples:
+
+```text
+release lineage
+
+security decisions
+
+schema migrations
+
+constitutional amendments
+```
+
+Others may be ephemeral.
+
+Retention should be intentional.
+
+---
+
+# Traceability and progressive formalization
+
+Monad should not require perfect traceability before useful work can begin.
+
+A progression might be:
+
+```text
+Stage 1
+Explicit links in artifact frontmatter
+
+Stage 2
+Stable Subject identifiers
+
+Stage 3
+Typed relationship records
+
+Stage 4
+Automated native-system bindings
+
+Stage 5
+Validation and diagnostics
+
+Stage 6
+Impact and context queries
+
+Stage 7
+Governance-aware traceability
+
+Stage 8
+Revision-aware semantic history
+```
+
+Each layer should earn its operational cost.
+
+---
+
+# Minimum viable traceability
+
+An initial Monad implementation may only need to preserve a small number of high-value relationships:
+
+```text
+Requirement
+→ Specification
+
+Decision
+→ Specification
+
+Specification
+→ Component
+
+Work Package
+→ implementation
+
+Requirement
+→ Verification
+
+Verification
+→ Evidence
+
+Release
+→ source revision
+```
+
+That alone can provide substantial value.
+
+---
+
+# Avoid premature ontology explosion
+
+It is tempting to model dozens of relationship types immediately.
+
+That risks producing a system too complex to use.
+
+A better approach is:
+
+```text
+start with high-value distinctions
+
+observe real engineering queries
+
+add relationship types when ambiguity causes harm
+```
+
+The ontology should emerge under evidence.
+
+---
+
+# Traceability invariants
+
+Several distinctions should remain explicit:
+
+```text
+Subject ≠ Representation
+
+Semantic Identity ≠ Native Reference
+
+Link ≠ Typed Relationship
+
+Relationship ≠ Authority
+
+Inference ≠ Confirmation
+
+Existence ≠ Current Validity
+
+Current Trace ≠ Historical Trace
+
+Chronology ≠ Causality
+
+Test Definition ≠ Verification Result
+
+Verification Result ≠ Evidence Claim
+
+Coverage ≠ Quality
+
+Git History ≠ Engineering Traceability
+
+Generated Projection ≠ Canonical Relationship
+
+Missing Relationship ≠ False Relationship
+
+Superseded ≠ Deleted
+```
+
+---
+
+# Traceability anti-pattern: ID comments everywhere
+
+For example:
+
+```ts
+// REQ-001
+// REQ-002
+// REQ-003
+```
+
+scattered through every function.
+
+This can become noisy, stale, and difficult to maintain.
+
+Use explicit code-level references only where they improve understanding.
+
+---
+
+# Traceability anti-pattern: free-text references only
+
+A document saying:
+
+```text
+See the identity requirement.
+```
+
+may be useful to humans but difficult to validate or query.
+
+Stable identifiers and typed links reduce ambiguity.
+
+---
+
+# Traceability anti-pattern: every link means "related"
+
+A graph where every edge is:
+
+```text
+related-to
+```
+
+contains little usable semantics.
+
+Relationship types should preserve the distinctions engineers actually need.
+
+---
+
+# Traceability anti-pattern: every relationship is authoritative
+
+Automatically discovered relationships may be valuable.
+
+Treating them as confirmed truth creates false confidence.
+
+Preserve provenance and epistemic state.
+
+---
+
+# Traceability anti-pattern: stale generated matrix
+
+A beautiful dashboard based on yesterday's repository state can be more dangerous than no dashboard if it appears authoritative.
+
+Freshness must be visible.
+
+---
+
+# Traceability anti-pattern: current links overwrite history
+
+If:
+
+```text
+ADR-002
+```
+
+is superseded by:
+
+```text
+ADR-010
+```
+
+rewiring every historical release to ADR-010 destroys historical truth.
+
+Old releases should remain connected to the decisions that governed them at the time.
+
+---
+
+# Traceability anti-pattern: issue equals requirement
+
+An issue may coordinate work on a Requirement.
+
+It is not necessarily the Requirement itself.
+
+```text
+Requirement
+→ tracked-by
+→ Issue
+```
+
+preserves the distinction.
+
+---
+
+# Traceability anti-pattern: test equals evidence
+
+A test definition describes a method.
+
+The result of running it against a specific revision produces Evidence.
+
+Those are different Subjects.
+
+---
+
+# Traceability anti-pattern: commit message as complete rationale
+
+Commit messages are valuable.
+
+But a code revision may not contain enough information to explain:
+
+```text
+why the architecture exists
+
+which Requirement governs it
+
+what alternatives were rejected
+```
+
+That reasoning belongs in more durable engineering artifacts where warranted.
+
+---
+
+# Traceability anti-pattern: giant graph first
+
+Building a universal graph before identifying useful engineering questions often creates complexity without value.
+
+Begin from the questions the system must answer.
+
+Then model the minimum relationships necessary.
+
+---
+
+# Traceability anti-pattern: graph as replacement for source systems
+
+Monad should not replace:
+
+```text
+Git
+
+GitHub
+
+package managers
+
+CI
+
+build tools
+```
+
+merely to own every relationship internally.
+
+Native systems remain first-class.
+
+Traceability should connect them.
+
+---
+
+# Traceability anti-pattern: relationships without ownership
+
+If no component is responsible for:
+
+```text
+creating
+
+validating
+
+updating
+
+reconciling
+
+retiring
+```
+
+a relationship type, it will eventually decay.
+
+Relationship ownership should be explicit in the system architecture.
+
+---
+
+# Traceability anti-pattern: hidden automatic mutation
+
+If an AI silently rewrites authoritative relationships based on inference, the graph may become impossible to trust.
+
+Automatic discovery can propose.
+
+Governance decides when proposal becomes authority.
+
+---
+
+# Traceability quality
+
+A high-quality trace should be:
+
+```text
+semantically meaningful
+
+resolvable
+
+revision-aware where needed
+
+historically preservable
+
+appropriately authoritative
+
+provenanced
+
+queryable
+
+fresh enough for its use
+
+proportional in granularity
+
+useful to an actual engineering question
+```
+
+---
+
+# Traceability health
+
+A project may eventually measure:
+
+```text
+orphan rate
+
+dangling-reference rate
+
+stale-edge rate
+
+active Requirements without Verification
+
+releases without evidence chains
+
+superseded artifacts still referenced as current
+
+percentage of inferred relationships awaiting Review
+```
+
+These metrics should diagnose engineering knowledge quality.
+
+They should not become gamified targets.
+
+---
+
+# Traceability maturity
+
+A possible maturity progression:
+
+```text
+Level 0
+Relationships exist only in human memory.
+
+Level 1
+Artifacts contain manual links.
+
+Level 2
+Stable identities allow durable references.
+
+Level 3
+Relationship types are explicit.
+
+Level 4
+Native systems are bound into the trace graph.
+
+Level 5
+Validation and diagnostics detect broken traces.
+
+Level 6
+Impact, context, and coverage queries use the graph.
+
+Level 7
+Relationships carry authority, provenance, and temporal semantics.
+
+Level 8
+Monad can maintain high-value traces incrementally and safely across change.
+```
+
+The goal is not maximum maturity everywhere.
+
+The goal is sufficient traceability for the consequence of the work.
+
+---
+
+# Example: requirement to release
+
+```text
+Problem
+P-004
+
+   ↓ motivates
+
+Goal
+G-002
+
+   ↓ requires
+
+Requirement
+REQ-ID-001
+
+   ↓ specified-by
+
+Specification
+SPEC-ID-003
+
+   ↓ implemented-by
+
+Component
+COMP-ID-RESOLVER
+
+   ↓ changed-through
+
+Work Package
+WP-0024
+
+   ↓ merged-as
+
+Commit
+6ac94...
+
+   ↓ verified-by
+
+Verification
+VER-ID-009
+
+   ↓ produced
+
+Evidence
+EV-ID-016
+
+   ↓ included-in
+
+Release
+REL-0004
+```
+
+This is the kind of chain Monad should make easy to inspect.
+
+---
+
+# Example: backward code trace
+
+An engineer starts with:
+
+```text
+IdentityResolver.resolve()
+```
+
+and asks:
+
+> Why does this function preserve the Subject identifier after a file move?
+
+The trace might reveal:
+
+```text
+IdentityResolver.resolve()
+   ↑ implements
+
+SPEC-ID-003
+   ↑ required-by
+
+REQ-ID-001
+   ↑ motivated-by
+
+Problem:
+Path-based identity interprets moves
+as deletion and recreation.
+```
+
+The code becomes understandable in context.
+
+---
+
+# Example: impact trace
+
+An engineer proposes changing:
+
+```text
+Schema S-004
+```
+
+Monad traverses:
+
+```text
+S-004
+   ├── consumed-by CLI
+   ├── consumed-by Read Model
+   ├── exposed-through Plugin Contract
+   └── persisted-by Local Store
+```
+
+The system can then recommend examining:
+
+```text
+CLI Specification
+
+Plugin compatibility
+
+migration requirements
+
+Verification suites
+
+release notes
+```
+
+Traceability turns a local edit into system-aware change reasoning.
+
+---
+
+# Example: historical trace
+
+A user asks:
+
+> Why did release 0.6 use the previous persistence model?
+
+The trace can preserve:
+
+```text
+REL-006
+   ↓ governed-by
+ADR-008
+
+ADR-008
+   ↓ supported-by
+EXP-003
+
+ADR-008
+   ↓ superseded-by
+ADR-019
+```
+
+The old release remains historically understandable even though ADR-019 governs the current system.
+
+---
+
+# Example: uncertain trace
+
+Monad discovers:
+
+```text
+test_move_identity
+```
+
+and infers it may verify:
+
+```text
+REQ-ID-001
+```
+
+The relationship is recorded as:
+
+```text
+Relationship:
+REQ-ID-001 verified-by test_move_identity
+
+State:
+inferred
+
+Authority:
+non-authoritative
+
+Provenance:
+static analysis
+
+Action:
+Review requested
+```
+
+The system gains useful information without pretending certainty.
+
+---
+
+# Example: stale trace
+
+Suppose:
+
+```text
+SPEC-004
+```
+
+changes after:
+
+```text
+VER-018
+```
+
+was executed.
+
+Monad may report:
+
+```text
+VER-018
+
+status:
+historically valid
+
+current applicability:
+stale
+
+reason:
+Specification revision changed after Verification
+```
+
+The old Evidence remains part of history.
+
+It simply no longer proves the new state.
+
+---
+
+# Example: orphan requirement
+
+```text
+REQ-028
+
+Status:
+Active
+
+Specification:
+none
+
+Verification:
+none
+```
+
+Monad should surface:
+
+```text
+Trace gap detected.
+```
+
+It should not automatically conclude:
+
+```text
+Requirement is violated.
+```
+
+The correct conclusion is that the engineering record is incomplete.
+
+---
+
+# Example: release evidence chain
+
+```text
+REL-014
+   │
+   ├── satisfies → REQ-011
+   │                  ↓
+   │              verified-by → VER-038
+   │                              ↓
+   │                           produced → EV-109
+   │
+   ├── governed-by → POLICY-REL-002
+   │
+   ├── approved-by → APP-022
+   │
+   └── produced-from → commit 92ff...
+```
+
+This provides a compact explanation of release readiness.
+
+---
+
+# Traceability as engineering memory
+
+The deepest purpose of traceability is not reporting.
+
+It is memory.
+
+A mature engineering system should preserve enough connected meaning that future engineers can understand:
+
+```text
+what was intended
+
+what was decided
+
+what was built
+
+what was verified
+
+what was released
+
+what was learned
+
+what changed afterward
+```
+
+without depending on the original participants still remembering.
+
+---
+
+# Traceability as machine context
+
+For AI systems, the same graph becomes structured context.
+
+Instead of providing:
+
+```text
+all files in repository
+```
+
+Monad can provide:
+
+```text
+Subject being changed
+
+governing Requirement
+
+Specification
+
+applicable Decisions
+
+dependent Subjects
+
+relevant Verification
+
+known risks
+
+Authority constraints
+```
+
+This makes context smaller and more meaningful.
+
+---
+
+# Traceability as control
+
+When traceability is combined with governance, it can help answer:
+
+```text
+What may change?
+
+Who may change it?
+
+What else must be considered?
+
+What Verification is mandatory?
+
+What evidence must exist before release?
+```
+
+The graph therefore becomes more than documentation.
+
+It participates in controlled evolution.
+
+---
+
+# Traceability as observability of engineering intent
+
+Traditional observability focuses on runtime systems.
+
+Traceability creates a complementary form of observability:
+
+> observability of engineering intent.
+
+It allows us to inspect whether:
+
+```text
+Requirements have implementation
+
+implementation has Verification
+
+Verification has Evidence
+
+releases have rationale
+
+current architecture still matches accepted decisions
+```
+
+This helps detect drift before it becomes purely operational failure.
+
+---
+
+# The traceability loop
+
+A healthy traceability loop looks like:
+
+```text
+Intent
+   ↓
+Artifacts
+   ↓
+Relationships
+   ↓
+Implementation
+   ↓
+Verification
+   ↓
+Evidence
+   ↓
+Release
+   ↓
+Observation
+   ↓
+Learning
+   ↓
+New or revised Intent
+```
+
+Traceability connects the loop.
+
+It does not freeze the system.
+
+---
+
+# The governing principle
+
+> **Preserve enough explicit, typed, durable, and inspectable relationships that engineers can explain where important system behavior came from, what depends on it, how it was verified, and how it changed over time without reconstructing those answers from disconnected artifacts.**
+
+The goal is not perfect linkage.
+
+It is recoverable engineering meaning.
+
+Traceability is successful when the system can answer not merely:
+
+> **What exists?**
+
+but also:
+
+> **Why does it exist, what does it satisfy, what supports it, what depends on it, and what happens if it changes?**
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Requirements"
+    href="/docs/artifacts/requirements"
+  >
+    Inspect the obligations that often begin a trace from engineering intent toward implementation and verification.
+  </Card>
+
+<Card
+title="Decisions"
+href="/docs/artifacts/decisions"
+>
+See how architectural and engineering choices preserve rationale within the trace graph.
+</Card>
+
+<Card
+title="Verification"
+href="/docs/artifacts/verification"
+>
+Understand how system claims are evaluated against specific revisions and observable results.
+</Card>
+
+<Card
+title="Evidence"
+href="/docs/artifacts/evidence"
+>
+Inspect the records that support claims reached through the engineering trace.
+</Card>
+</Cards>
+
+---
+
+## Related system views
+
+<Cards>
+  <Card
+    title="Architecture"
+    href="/docs/system/architecture"
+  >
+    See how the canonical model, engines, native integrations, and projections support connected engineering state.
+  </Card>
+
+<Card
+title="Concepts & Principles"
+href="/docs/system/concepts"
+>
+Review the semantic distinctions underlying Subjects, Relationships, Authority, Provenance, Evidence, and time.
+</Card>
+
+<Card
+title="Execution"
+href="/docs/system/execution"
+>
+Follow how intent becomes governed action, Verification, Evidence, reconciliation, and updated system state.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

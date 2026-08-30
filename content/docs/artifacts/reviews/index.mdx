@@ -1,0 +1,3924 @@
+---
+title: Reviews
+description: How Monad records structured human and machine examination of engineering work, preserving findings, rationale, scope, evidence, and resolution without confusing review with approval or verification.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Structured engineering examination
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Reviews are inspectable examinations of engineering work. They help identify defects, risks, ambiguities, missing evidence, architectural problems, policy concerns, and opportunities for improvement before those issues become harder or more expensive to correct.
+  </p>
+</div>
+
+# What is a review?
+
+A **Review** is a structured examination of an engineering Subject by one or more Actors.
+
+The Subject may be:
+
+```text
+Requirement
+
+Specification
+
+Architecture
+
+ADR
+
+implementation
+
+pull request
+
+schema
+
+Policy
+
+migration
+
+experiment
+
+release candidate
+
+Verification result
+
+Evidence bundle
+
+incident analysis
+
+operational change
+```
+
+A Review asks questions such as:
+
+```text
+Is this correct?
+
+Is this complete?
+
+Is this coherent?
+
+Does it satisfy its stated purpose?
+
+What assumptions does it make?
+
+What could fail?
+
+What evidence is missing?
+
+What conflicts exist?
+
+What should change before proceeding?
+```
+
+A Review produces findings.
+
+It may influence governance, Verification, planning, implementation, or release decisions.
+
+But Review is not itself synonymous with any of them.
+
+---
+
+# Review is not approval
+
+One of the most important distinctions is:
+
+```text
+Review ≠ Approval
+```
+
+A reviewer may conclude:
+
+```text
+I examined this work and found no blocking problems.
+```
+
+That does not necessarily mean:
+
+```text
+I possess the Authority to authorize the next action.
+```
+
+Likewise, an approver may rely on Reviews performed by others.
+
+Conceptually:
+
+```text
+Review
+   ↓
+Findings
+   ↓
+Evidence / Judgment
+   ↓
+Governance
+   ↓
+Approval or Denial
+```
+
+The same Actor may sometimes review and approve.
+
+The semantic roles should still remain distinct.
+
+---
+
+# Review is not verification
+
+[Verification](/docs/artifacts/verification) evaluates an explicit expectation against Evidence.
+
+Review is broader.
+
+A Review may examine:
+
+```text
+quality
+
+clarity
+
+architecture
+
+risk
+
+reasoning
+
+maintainability
+
+security
+
+consistency
+
+trade-offs
+
+unknowns
+```
+
+without having a binary acceptance criterion.
+
+For example:
+
+```text
+Review:
+Does this architecture create unnecessary coupling?
+```
+
+may produce:
+
+```text
+Finding:
+The persistence abstraction leaks database-specific identifiers
+into the semantic domain model.
+```
+
+That finding is useful even if there is no formal pass/fail criterion.
+
+---
+
+# Review can be a verification method
+
+Some Reviews are explicitly conformance-oriented.
+
+Example:
+
+```text
+Expectation:
+Domain components must not depend on infrastructure-specific types.
+
+Method:
+Architecture Review
+
+Finding:
+Database-specific identifier leaked through interface.
+
+Verification Result:
+FAIL
+```
+
+In this case:
+
+```text
+Review
+```
+
+is the method, while:
+
+```text
+Verification Result
+```
+
+is the conclusion against the explicit expectation.
+
+The distinction remains useful.
+
+---
+
+# Review is not discussion
+
+Engineering discussion is valuable.
+
+But unstructured conversation should not automatically become a formal Review.
+
+A Review normally has enough structure to identify:
+
+```text
+what was reviewed
+
+why it was reviewed
+
+who participated
+
+which revision was examined
+
+what findings emerged
+
+which findings matter
+
+what happens next
+```
+
+This allows the result to remain useful after the conversation ends.
+
+---
+
+# Review is not commentary
+
+Comments may participate in a Review.
+
+For example:
+
+```text
+GitHub pull request comments
+```
+
+may contain review findings.
+
+But:
+
+```text
+comment ≠ Review
+```
+
+A Review is the larger semantic activity.
+
+Individual comments are Representations or contributions within it.
+
+---
+
+# Why Reviews exist
+
+Engineering work frequently contains problems that automated systems cannot identify completely.
+
+Examples include:
+
+```text
+incorrect assumptions
+
+unclear Requirements
+
+unnecessary complexity
+
+weak abstractions
+
+architectural drift
+
+poor failure semantics
+
+missing edge cases
+
+security concerns
+
+ambiguous ownership
+
+insufficient Evidence
+
+misaligned trade-offs
+
+unintended coupling
+
+operational risk
+```
+
+Reviews provide a deliberate mechanism for discovering these problems before they become embedded in the system.
+
+---
+
+# Reviews produce findings
+
+The primary output of a Review is usually one or more **Findings**.
+
+A Finding is a structured observation or judgment resulting from the Review.
+
+Examples:
+
+```text
+Requirement is ambiguous.
+
+Specification does not define failure behavior.
+
+Migration lacks rollback strategy.
+
+Interface exposes infrastructure-specific details.
+
+Evidence does not support the stated Claim.
+
+Implementation violates architecture boundary.
+
+Security assumption is unjustified.
+
+No problem found in reviewed scope.
+```
+
+Findings should be traceable to the Review that produced them.
+
+---
+
+# Findings are not all defects
+
+A Finding may represent:
+
+```text
+defect
+
+risk
+
+question
+
+ambiguity
+
+gap
+
+suggestion
+
+observation
+
+recommendation
+
+conflict
+
+missing Evidence
+
+unresolved assumption
+
+positive confirmation
+```
+
+Not every useful Review outcome should be forced into:
+
+```text
+bug
+```
+
+The taxonomy should remain rich enough to preserve meaning without becoming bureaucratic.
+
+---
+
+# Illustrative finding classes
+
+A practical conceptual vocabulary might include:
+
+```text
+BLOCKER
+
+MAJOR
+
+MINOR
+
+QUESTION
+
+RISK
+
+GAP
+
+SUGGESTION
+
+OBSERVATION
+```
+
+Exact canonical classifications should be defined only where they provide operational value.
+
+---
+
+# Severity and disposition are different
+
+A finding may have:
+
+```text
+Severity:
+Major
+```
+
+and later:
+
+```text
+Disposition:
+Accepted
+```
+
+or:
+
+```text
+Disposition:
+Rejected with rationale
+```
+
+These are different dimensions.
+
+Severity describes consequence.
+
+Disposition describes what happened to the finding.
+
+---
+
+# Finding lifecycle
+
+A useful conceptual lifecycle is:
+
+```text
+Raised
+   ↓
+Acknowledged
+   ↓
+Investigating
+   ↓
+Resolved
+   ↓
+Verified
+   ↓
+Closed
+```
+
+Alternative paths may include:
+
+```text
+Rejected
+
+Deferred
+
+Superseded
+
+Accepted Risk
+
+Duplicate
+
+Not Applicable
+```
+
+The final lifecycle should remain as simple as actual engineering work permits.
+
+---
+
+# Findings need identity when consequence justifies it
+
+A typo suggestion in a small documentation patch may not need a globally durable identity.
+
+A critical architecture finding probably does.
+
+A finding earns durable identity when it may need to survive:
+
+```text
+revision changes
+
+Review closure
+
+release boundaries
+
+migration
+
+tool changes
+
+cross-artifact traceability
+
+long-running remediation
+```
+
+The cost of formalization should remain proportional to consequence.
+
+---
+
+# Review scope
+
+Every Review has scope.
+
+Scope might identify:
+
+```text
+Subject
+
+revision
+
+artifact section
+
+component
+
+interface
+
+change set
+
+release candidate
+
+Requirement set
+
+risk domain
+
+time period
+```
+
+Without scope, statements such as:
+
+```text
+review passed
+```
+
+are dangerously ambiguous.
+
+---
+
+# Review revision
+
+A Review should normally identify the revision examined.
+
+For example:
+
+```text
+Subject:
+SPEC-014
+
+Revision:
+7
+
+Review:
+REV-032
+```
+
+If the Specification later changes:
+
+```text
+Revision:
+8
+```
+
+the previous Review remains historically meaningful but may no longer establish anything about the new state.
+
+---
+
+# Review freshness
+
+Reviews can become stale.
+
+Potential invalidators include:
+
+```text
+Subject changed materially
+
+relevant Requirement changed
+
+architecture changed
+
+risk model changed
+
+Policy changed
+
+dependency behavior changed
+
+new Evidence emerged
+
+review assumption was invalidated
+```
+
+A stale Review should remain visible as history.
+
+It should not silently masquerade as current assurance.
+
+---
+
+# Review provenance
+
+A consequential Review should preserve enough provenance to answer:
+
+```text
+Who reviewed it?
+
+When?
+
+Which revision?
+
+Using what criteria?
+
+What context was available?
+
+What tools assisted?
+
+What findings were produced?
+
+What Evidence was examined?
+```
+
+This matters because engineering judgment depends on context.
+
+---
+
+# Review criteria
+
+A Review may define explicit criteria.
+
+Examples:
+
+```text
+Requirement quality
+
+architectural consistency
+
+security posture
+
+API compatibility
+
+migration safety
+
+operational readiness
+
+maintainability
+
+testability
+
+observability
+
+reproducibility
+```
+
+Explicit criteria improve consistency and help future reviewers understand the basis of judgment.
+
+---
+
+# Review checklists
+
+Checklists can be useful when recurring mistakes matter.
+
+For example:
+
+```text
+Architecture Review
+
+[ ] responsibilities are explicit
+[ ] ownership boundaries are coherent
+[ ] authority is not accidentally duplicated
+[ ] native systems remain first-class
+[ ] failure semantics are defined
+[ ] identity semantics survive relocation
+[ ] derived state is distinguishable from canonical state
+```
+
+But checklists must not become ceremonial substitutes for thought.
+
+A checked box is not Evidence that the underlying question was considered well.
+
+---
+
+# Review depth should match risk
+
+Not every artifact deserves the same Review process.
+
+A conceptual model:
+
+```text
+Low consequence
+→ lightweight self-review
+
+Moderate consequence
+→ peer Review
+
+High consequence
+→ specialized Review
+
+Critical consequence
+→ independent multi-discipline Review
+```
+
+This mirrors Monad's broader principle of proportional governance.
+
+---
+
+# Self-review
+
+The author may review their own work.
+
+Self-review is especially useful before requesting external Review.
+
+Typical questions:
+
+```text
+Did I solve the stated problem?
+
+Did I accidentally broaden scope?
+
+Are assumptions explicit?
+
+Are failure cases covered?
+
+Is the result internally consistent?
+
+Can another engineer understand why this exists?
+
+Did I provide enough Evidence?
+```
+
+Self-review is useful.
+
+It is not independent assurance.
+
+---
+
+# Peer review
+
+Peer Review introduces another perspective.
+
+It can expose:
+
+```text
+author blind spots
+
+unclear reasoning
+
+hidden assumptions
+
+local optimization
+
+unexpected integration effects
+```
+
+Peer Review is often appropriate for ordinary engineering changes.
+
+---
+
+# Independent review
+
+Independent Review is valuable when:
+
+```text
+consequence is high
+
+author bias matters
+
+regulatory or governance requirements exist
+
+safety or security is involved
+
+architectural commitments are difficult to reverse
+```
+
+The reviewer should have enough independence that:
+
+```text
+review outcome
+```
+
+is not merely a restatement of the author's prior conclusion.
+
+---
+
+# Specialist review
+
+Some domains require specialized expertise.
+
+Examples:
+
+```text
+Security Review
+
+Database Review
+
+API Compatibility Review
+
+Architecture Review
+
+Privacy Review
+
+Operational Readiness Review
+
+Accessibility Review
+
+Performance Review
+```
+
+A generic reviewer should not be assumed competent in every technical domain.
+
+---
+
+# Multi-reviewer examination
+
+Complex changes may need several Review perspectives.
+
+For example:
+
+```text
+Release Candidate
+    │
+    ├── Architecture Review
+    ├── Security Review
+    ├── Migration Review
+    ├── Operations Review
+    └── Product Requirement Review
+```
+
+These Reviews may produce independent findings.
+
+They should not be collapsed into one vague:
+
+```text
+reviewed
+```
+
+flag.
+
+---
+
+# Architecture Review
+
+Architecture Review asks whether the proposed or implemented structure remains coherent with system responsibilities and invariants.
+
+Potential questions include:
+
+```text
+Are responsibility boundaries explicit?
+
+Does this component own the right semantics?
+
+Has infrastructure leaked into the domain model?
+
+Has a derived Representation become accidentally authoritative?
+
+Are native systems still treated as legitimate owners?
+
+Does this architecture create duplicate sources of truth?
+
+Are failure boundaries understood?
+
+Does this decision unnecessarily constrain future evolution?
+```
+
+Architecture Review should challenge structure, not merely formatting.
+
+---
+
+# Requirement Review
+
+Requirement Review asks whether a Requirement is:
+
+```text
+necessary
+
+clear
+
+bounded
+
+testable
+
+consistent
+
+traceable
+
+feasible
+
+non-duplicative
+```
+
+A Requirement should often be reviewed before implementation begins.
+
+Otherwise engineering may precisely implement the wrong expectation.
+
+---
+
+# Specification Review
+
+Specification Review may examine:
+
+```text
+behavior
+
+inputs
+
+outputs
+
+invariants
+
+failure semantics
+
+state transitions
+
+compatibility
+
+acceptance criteria
+
+Verification method
+
+authority boundaries
+
+edge cases
+```
+
+A good Specification Review should make implementation more deterministic.
+
+---
+
+# ADR Review
+
+An [Architecture Decision](/docs/artifacts/decisions) Review should examine:
+
+```text
+decision context
+
+alternatives
+
+trade-offs
+
+assumptions
+
+evidence
+
+reversibility
+
+consequences
+
+supersession conditions
+```
+
+Reviewing only the selected option is insufficient.
+
+The reasoning matters.
+
+---
+
+# Schema Review
+
+Schema Review may examine:
+
+```text
+semantic correctness
+
+field ownership
+
+identity representation
+
+versioning
+
+migration strategy
+
+required versus optional fields
+
+unknown-state handling
+
+forward compatibility
+
+backward compatibility
+```
+
+A structurally valid schema can still encode the wrong model.
+
+---
+
+# Interface Review
+
+Interface Review should inspect:
+
+```text
+ownership
+
+operation semantics
+
+input/output contracts
+
+side effects
+
+idempotency
+
+authorization
+
+errors
+
+versioning
+
+revision behavior
+
+partial failure
+
+transport independence
+```
+
+Interfaces often become long-lived commitments.
+
+Review depth should reflect that.
+
+---
+
+# Code Review
+
+Code Review examines implementation.
+
+Useful concerns include:
+
+```text
+correctness
+
+clarity
+
+maintainability
+
+security
+
+performance
+
+failure handling
+
+tests
+
+architecture alignment
+
+unnecessary complexity
+```
+
+Monad should not reduce Review semantics to pull requests alone.
+
+A pull request is one native Representation of Review activity.
+
+---
+
+# Migration Review
+
+Migration Review deserves special attention because migrations can alter durable state.
+
+Questions may include:
+
+```text
+What changes?
+
+What remains invariant?
+
+How is identity preserved?
+
+What data can be lost?
+
+Can the migration resume?
+
+Can it be retried?
+
+How is partial failure handled?
+
+How will results be reconciled?
+
+How will success be verified?
+```
+
+---
+
+# Security Review
+
+Security Review examines adversarial risk.
+
+It may consider:
+
+```text
+trust boundaries
+
+authorization
+
+credential handling
+
+input validation
+
+attack surface
+
+dependency risk
+
+privilege escalation
+
+data exposure
+
+unsafe defaults
+
+auditability
+```
+
+Security Review should not be treated as a generic code-quality check.
+
+---
+
+# Operational Readiness Review
+
+Before deployment or release, operational Review may ask:
+
+```text
+Can this be observed?
+
+Can failure be detected?
+
+Can operators diagnose it?
+
+Can it be rolled back or compensated?
+
+Are runbooks sufficient?
+
+Are dependencies understood?
+
+Are alerts meaningful?
+
+Are capacity assumptions justified?
+```
+
+Operational readiness is different from implementation correctness.
+
+---
+
+# Release Review
+
+A Release Review examines whether a candidate is ready to move into a supported lifecycle state.
+
+Inputs may include:
+
+```text
+Verification results
+
+Evidence
+
+known risks
+
+open findings
+
+migration readiness
+
+compatibility status
+
+security status
+
+release notes
+
+rollback plan
+```
+
+The Review can inform release Approval.
+
+It should not itself be silently treated as Approval unless the same action explicitly performs both roles.
+
+---
+
+# Evidence Review
+
+Evidence itself may require Review.
+
+Questions include:
+
+```text
+Does this Evidence support the stated Claim?
+
+Is provenance sufficient?
+
+Is the Evidence stale?
+
+Was the correct revision evaluated?
+
+Are limitations disclosed?
+
+Could the result be misleading?
+```
+
+A large amount of Evidence is not useful if it does not support the relevant Claim.
+
+---
+
+# Review of Verification
+
+Verification artifacts may also be reviewed.
+
+For example:
+
+```text
+Are acceptance criteria correct?
+
+Does the test actually exercise the Requirement?
+
+Is the fixture representative?
+
+Could the method produce false positives?
+
+Could it miss important failure classes?
+
+Is the result being interpreted too broadly?
+```
+
+This is especially important for critical Verification infrastructure.
+
+---
+
+# Review of AI-generated work
+
+AI-generated engineering work should be reviewed according to consequence.
+
+The review should evaluate:
+
+```text
+the artifact
+
+the Claim
+
+the implementation
+
+the resulting system behavior
+```
+
+not merely whether the prose or code appears plausible.
+
+---
+
+# AI-assisted Review
+
+AI systems can assist reviewers by:
+
+```text
+comparing implementation to Specifications
+
+finding missing edge cases
+
+tracing Requirements
+
+summarizing diffs
+
+identifying suspicious patterns
+
+checking consistency
+
+searching related artifacts
+
+suggesting Review questions
+```
+
+These capabilities can reduce review burden.
+
+They do not remove the need for appropriate authority or independent judgment.
+
+---
+
+# AI findings are still findings
+
+An AI reviewer may produce:
+
+```text
+candidate Finding
+```
+
+with provenance such as:
+
+```text
+producer:
+AI model
+
+model version:
+...
+
+review method:
+Specification comparison
+```
+
+The Finding should not become authoritative merely because it was generated automatically.
+
+---
+
+# Human confirmation of AI findings
+
+For consequential issues, a useful flow is:
+
+```text
+AI Review
+   ↓
+Candidate Finding
+   ↓
+Human Examination
+   ↓
+Confirmed / Rejected / Modified
+```
+
+This preserves both automation value and epistemic clarity.
+
+---
+
+# Human reviewers can also be wrong
+
+Monad should not encode:
+
+```text
+human judgment = truth
+```
+
+Human Reviews can suffer from:
+
+```text
+bias
+
+fatigue
+
+missing context
+
+incorrect assumptions
+
+domain gaps
+
+social pressure
+
+premature consensus
+```
+
+Important conclusions remain strongest when connected to reasoning and Evidence.
+
+---
+
+# Review comments versus findings
+
+Native tools often represent Review activity as comments.
+
+For example:
+
+```text
+GitHub PR comment
+```
+
+may contain:
+
+```text
+"This function can silently overwrite canonical state."
+```
+
+Monad may interpret this as a Finding.
+
+The native comment remains the Native Reference.
+
+The semantic Finding may have a separate durable identity.
+
+---
+
+# Native review systems remain first-class
+
+GitHub, GitLab, Gerrit, IDEs, document systems, and issue trackers already support Review workflows.
+
+Monad should integrate with them rather than replace them unnecessarily.
+
+Conceptually:
+
+```text
+Semantic Review
+      │
+      ├── represented-by GitHub review
+      ├── represented-by issue discussion
+      └── represented-by review artifact
+```
+
+The semantic model provides continuity across representations.
+
+---
+
+# GitHub Review example
+
+A GitHub pull request may contain:
+
+```text
+PR #52
+
+Reviewer:
+Alice
+
+Review state:
+Changes requested
+
+Comments:
+4
+```
+
+Monad may derive or bind:
+
+```text
+Review:
+REV-052
+
+Subject:
+Implementation of SPEC-008
+
+Native Reference:
+GitHub PR #52
+
+Findings:
+F-103
+F-104
+F-105
+F-106
+```
+
+The GitHub state remains native GitHub state.
+
+The semantic Review captures engineering meaning.
+
+---
+
+# Review state versus native state
+
+GitHub might report:
+
+```text
+CHANGES_REQUESTED
+```
+
+Monad may separately track:
+
+```text
+Review findings:
+3 resolved
+1 unresolved blocker
+```
+
+These are related but not identical.
+
+Native state should not be overwritten by semantic interpretation.
+
+---
+
+# Review synchronization
+
+If Monad writes Review state back to a native system, the direction of authority must be explicit.
+
+Examples:
+
+```text
+Monad Finding
+→ create GitHub comment
+```
+
+or:
+
+```text
+GitHub review comment
+→ observed by Monad
+→ candidate Finding
+```
+
+Bidirectional synchronization should not be assumed.
+
+---
+
+# Review and reconciliation
+
+Native Review activity may diverge from Monad's semantic model.
+
+For example:
+
+```text
+GitHub comment edited
+
+Finding marked resolved in Monad
+
+PR reopened
+
+new commit invalidated previous Review
+```
+
+Reconciliation should surface those changes rather than silently guessing which state wins.
+
+---
+
+# Review status
+
+An illustrative Review lifecycle might be:
+
+```text
+Planned
+
+In Progress
+
+Completed
+
+Superseded
+
+Cancelled
+```
+
+The Review's lifecycle should remain distinct from individual finding lifecycles.
+
+A Review may be complete while some findings remain unresolved.
+
+---
+
+# Review outcome
+
+A Review outcome may summarize the state of its findings.
+
+For example:
+
+```text
+No Findings
+
+Non-blocking Findings
+
+Changes Requested
+
+Blocked
+
+Accepted with Known Risk
+```
+
+These labels are contextual.
+
+The underlying findings remain more important than the summary label.
+
+---
+
+# No universal "review passed"
+
+A single global:
+
+```text
+review:
+PASS
+```
+
+can erase important nuance.
+
+Consider:
+
+```text
+Security Review:
+PASS
+
+Architecture Review:
+PASS WITH 2 MINOR FINDINGS
+
+Migration Review:
+BLOCKED
+```
+
+Flattening this to:
+
+```text
+reviewed:
+true
+```
+
+destroys useful engineering state.
+
+---
+
+# Review disposition
+
+Each significant Finding should eventually have a disposition.
+
+Examples:
+
+```text
+Resolved
+
+Accepted
+
+Rejected
+
+Deferred
+
+Accepted Risk
+
+Duplicate
+
+Superseded
+
+Not Applicable
+```
+
+The disposition should include rationale when that rationale matters.
+
+---
+
+# Rejecting a finding
+
+A Finding may be rejected because:
+
+```text
+the reviewer misunderstood the system
+
+the concern is outside scope
+
+Evidence contradicts the Finding
+
+the proposed change would create greater harm
+
+the underlying assumption was incorrect
+```
+
+Rejecting a Finding is legitimate.
+
+Silently deleting it is not.
+
+---
+
+# Accepted risk
+
+Sometimes a Finding is valid but intentionally unresolved.
+
+Example:
+
+```text
+Finding:
+Current implementation does not support Windows.
+
+Disposition:
+Accepted Risk
+
+Rationale:
+M0 is Linux/macOS only.
+
+Expiry:
+Before M2 general availability.
+```
+
+This is more honest than pretending the issue does not exist.
+
+---
+
+# Deferred findings
+
+A Finding may be real but not currently actionable.
+
+A deferral should ideally record:
+
+```text
+why
+
+until when or until what condition
+
+risk
+
+owner
+
+affected scope
+```
+
+Otherwise:
+
+```text
+deferred
+```
+
+becomes another word for forgotten.
+
+---
+
+# Review debt
+
+Unresolved Review findings create engineering debt.
+
+Useful queries include:
+
+```text
+Which blockers remain open?
+
+Which accepted risks are approaching expiry?
+
+Which findings were deferred repeatedly?
+
+Which releases contain unresolved major findings?
+
+Which components accumulate recurring Review concerns?
+```
+
+This converts Review history into operational knowledge.
+
+---
+
+# Re-review
+
+Material changes may require re-review.
+
+Example:
+
+```text
+REV-021 reviewed SPEC-008@v3
+
+SPEC-008@v4 introduces
+new authority semantics
+```
+
+The earlier Review may remain useful historically.
+
+But the new revision may require another Review.
+
+---
+
+# Review invalidation
+
+A Review may be invalidated or superseded when:
+
+```text
+the wrong revision was examined
+
+key Evidence was missing
+
+review criteria changed materially
+
+a reviewer conflict was discovered
+
+the Subject changed significantly
+
+a critical assumption proved false
+```
+
+Invalidation should be recorded rather than rewriting history.
+
+---
+
+# Review history
+
+Review history can explain engineering evolution.
+
+For example:
+
+```text
+REV-011
+Architecture proposal rejected.
+
+REV-019
+Revised proposal accepted with findings.
+
+REV-027
+Implementation review discovered hidden coupling.
+
+REV-034
+Refactor resolved coupling.
+```
+
+This history can be more informative than the final architecture alone.
+
+---
+
+# Review and historical truth
+
+The [Building Monad](/docs/building-monad) narrative may explain how Review conclusions changed.
+
+The [System](/docs/system) documentation explains the current authoritative understanding.
+
+The Review artifacts preserve the inspectable engineering record between them.
+
+History should not be erased merely because the final system changed.
+
+---
+
+# Review rationale
+
+Important Review conclusions should preserve rationale.
+
+Instead of:
+
+```text
+Rejected.
+```
+
+prefer:
+
+```text
+Rejected because the proposed cache would become
+a second authoritative state store and violate the
+current ownership model.
+```
+
+The rationale may later matter more than the outcome.
+
+---
+
+# Review Evidence
+
+Reviewers may rely on:
+
+```text
+Requirements
+
+Specifications
+
+source code
+
+tests
+
+benchmark results
+
+threat models
+
+experiments
+
+runtime observations
+
+historical incidents
+
+external standards
+
+native system state
+```
+
+Those sources should be referenced when they materially support the Finding.
+
+---
+
+# Finding without Evidence
+
+Some findings are expert judgments rather than experimentally demonstrated facts.
+
+That is acceptable.
+
+The system should distinguish:
+
+```text
+Observation
+
+Inference
+
+Judgment
+
+Evidence-backed conclusion
+```
+
+rather than pretending every review comment has equal epistemic status.
+
+---
+
+# Review confidence
+
+A reviewer may sometimes express uncertainty.
+
+For example:
+
+```text
+Finding:
+Possible race condition in reconciliation.
+
+Confidence:
+Moderate
+
+Reason:
+Concurrency behavior is not fully specified.
+```
+
+Preserving uncertainty is better than overstating certainty.
+
+---
+
+# Review conflicts
+
+Reviewers may disagree.
+
+Example:
+
+```text
+Reviewer A:
+Interface is too broad.
+
+Reviewer B:
+Breadth is justified by provider portability.
+```
+
+Monad should not collapse this immediately into one authoritative conclusion.
+
+The disagreement may require:
+
+```text
+additional Evidence
+
+architecture decision
+
+experiment
+
+higher-authority review
+
+explicit trade-off decision
+```
+
+---
+
+# Competing findings
+
+Two findings may conflict directly.
+
+For example:
+
+```text
+Finding A:
+Split these components.
+
+Finding B:
+Splitting creates excessive coordination overhead.
+```
+
+Both may be legitimate observations.
+
+The eventual decision should preserve the trade-off.
+
+---
+
+# Review escalation
+
+A Review may escalate when:
+
+```text
+Authority is insufficient
+
+risk exceeds reviewer scope
+
+finding affects constitutional rules
+
+security issue is critical
+
+reviewers cannot resolve conflict
+
+additional expertise is required
+```
+
+Escalation should be a first-class outcome rather than an informal side channel.
+
+---
+
+# Review gates
+
+Governance may require certain Reviews before lifecycle transitions.
+
+Example:
+
+```text
+Specification
+    ↓
+Architecture Review
+    ↓
+Security Review
+    ↓
+Implementation Authorization
+```
+
+or:
+
+```text
+Release Candidate
+    ↓
+Release Review
+    ↓
+Approval
+    ↓
+Release
+```
+
+The exact gates should remain Policy-driven.
+
+---
+
+# Review obligations
+
+Governance may attach obligations such as:
+
+```text
+resolve all blockers
+
+obtain specialist Review
+
+document accepted risk
+
+repeat Review after major changes
+```
+
+These obligations should remain visible until satisfied or explicitly waived.
+
+---
+
+# Review waivers
+
+A required Review may occasionally be waived.
+
+A waiver should record:
+
+```text
+which Review was waived
+
+why
+
+Authority
+
+scope
+
+risk
+
+expiration
+
+mitigations
+```
+
+Waived does not mean reviewed.
+
+---
+
+# Emergency Review
+
+Urgent incidents may require abbreviated Review.
+
+For example:
+
+```text
+critical production vulnerability
+```
+
+may justify:
+
+```text
+fast security Review
+
+emergency Approval
+
+immediate Execution
+```
+
+followed by:
+
+```text
+full retrospective Review
+```
+
+The emergency path should remain visible as an exception.
+
+---
+
+# Review and planning
+
+Review findings often create work.
+
+A Finding may produce:
+
+```text
+Task
+
+Work Package
+
+Requirement change
+
+Specification revision
+
+Experiment
+
+ADR
+
+risk record
+```
+
+The relationship should be explicit where useful.
+
+---
+
+# Review-driven change
+
+Conceptually:
+
+```text
+Review
+   ↓
+Finding
+   ↓
+Remediation Work
+   ↓
+Implementation
+   ↓
+Verification
+   ↓
+Finding Resolution
+```
+
+This creates a closed assurance loop.
+
+---
+
+# Review and Work Packages
+
+A Work Package may define required Review as part of its Definition of Done.
+
+For example:
+
+```text
+WP-018
+
+Required Reviews:
+- architecture
+- security
+- implementation
+
+Required Finding State:
+no unresolved blockers
+```
+
+This makes Review an explicit engineering input rather than an ad hoc final ceremony.
+
+---
+
+# Review and Definition of Ready
+
+A Review is ready when:
+
+```text
+the Subject exists
+
+scope is clear
+
+the relevant revision is identified
+
+required context exists
+
+Review criteria are known
+
+required reviewers are available
+
+necessary Evidence is accessible
+```
+
+Starting Review too early can waste effort if the Subject is not coherent enough to examine.
+
+---
+
+# Review and Definition of Done
+
+A Review is complete when:
+
+```text
+the defined scope was examined
+
+findings were recorded
+
+critical questions were resolved or explicitly left open
+
+required Evidence was referenced
+
+outcome is recorded
+
+follow-up obligations are visible
+
+provenance is sufficient
+```
+
+Completion does not require every Finding to be fixed.
+
+It requires the Review itself to have produced an intelligible result.
+
+---
+
+# Review artifact structure
+
+A conceptual Review record might contain:
+
+```text
+id
+
+title
+
+review_type
+
+subject
+
+revision
+
+scope
+
+reviewers
+
+criteria
+
+started_at
+
+completed_at
+
+status
+
+outcome
+
+findings
+
+Evidence
+
+native references
+
+limitations
+
+provenance
+```
+
+Exact schemas belong in [Schemas](/docs/artifacts/schemas).
+
+---
+
+# Finding structure
+
+A conceptual Finding might contain:
+
+```text
+id
+
+review
+
+subject
+
+summary
+
+description
+
+classification
+
+severity
+
+status
+
+disposition
+
+rationale
+
+Evidence
+
+owner
+
+created_by
+
+resolved_by
+
+created_at
+
+resolved_at
+
+revision
+
+native references
+```
+
+Again, the final schema should remain driven by demonstrated need.
+
+---
+
+# Review type
+
+Useful Review types may include:
+
+```text
+Requirement Review
+
+Specification Review
+
+Architecture Review
+
+Code Review
+
+Security Review
+
+Migration Review
+
+Data Review
+
+Interface Review
+
+Schema Review
+
+Operational Readiness Review
+
+Release Review
+
+Evidence Review
+
+Verification Review
+
+Incident Review
+```
+
+Types help select appropriate criteria and reviewers.
+
+---
+
+# Review templates
+
+Repeatable Review types may use templates.
+
+For example:
+
+```text
+Architecture Review
+
+Purpose
+Scope
+System context
+Questions
+Findings
+Risks
+Evidence
+Outcome
+Follow-up
+```
+
+Templates should improve completeness.
+
+They should not dictate conclusions.
+
+---
+
+# Machine-readable review state
+
+Review artifacts should eventually expose machine-readable fields where useful.
+
+This can support queries such as:
+
+```text
+all unresolved blockers
+
+all Reviews for SPEC-012
+
+all security findings affecting release 1.0
+
+all findings accepted as risk
+
+all stale Reviews
+
+all artifacts missing required Review
+```
+
+Human-readable prose can coexist with structured state.
+
+---
+
+# Review projections
+
+Useful derived views may include:
+
+```text
+Review dashboard
+
+finding backlog
+
+artifact Review history
+
+release Review summary
+
+risk-by-component view
+
+review coverage
+
+open blocker report
+```
+
+These are projections over the underlying Review and Finding state.
+
+---
+
+# Review coverage
+
+Coverage can answer:
+
+```text
+Which critical Specifications received Architecture Review?
+
+Which releases received Security Review?
+
+Which migrations were reviewed?
+
+Which components repeatedly avoid peer Review?
+```
+
+Coverage should not be mistaken for quality.
+
+A bad Review still counts as a Review.
+
+---
+
+# Review effectiveness
+
+More important metrics ask whether Reviews find meaningful issues.
+
+Possible signals include:
+
+```text
+defects found before release
+
+repeated finding categories
+
+post-release defects that should have been found
+
+time to resolve major findings
+
+frequency of waived Reviews
+
+finding recurrence
+
+review rework rate
+```
+
+Metrics should improve the process, not incentivize performative Review activity.
+
+---
+
+# Avoid reviewer productivity metrics
+
+Metrics such as:
+
+```text
+comments per reviewer
+
+reviews per day
+
+findings per pull request
+```
+
+can create harmful incentives.
+
+A good Review may produce:
+
+```text
+No findings.
+```
+
+because the work is excellent.
+
+A poor Review may produce dozens of low-value comments.
+
+Quantity is not quality.
+
+---
+
+# Review latency
+
+Review delay matters because long queues slow engineering.
+
+Possible measurements include:
+
+```text
+time to first Review
+
+time to final Review
+
+time waiting on blocker resolution
+```
+
+But reducing latency should not undermine meaningful examination.
+
+---
+
+# Review burden
+
+Review itself has cost.
+
+High-friction processes can create:
+
+```text
+rubber-stamping
+
+review avoidance
+
+large batches
+
+late feedback
+
+process fatigue
+```
+
+Monad should therefore prefer:
+
+> **the lightest Review process that provides adequate assurance for the consequence involved.**
+
+---
+
+# Small changes
+
+A tiny low-risk change may need only:
+
+```text
+self-review
+
+automated checks
+```
+
+For example:
+
+```text
+fix documentation typo
+```
+
+Forcing a formal architecture Review would add cost without corresponding value.
+
+---
+
+# Large architectural changes
+
+A change to:
+
+```text
+semantic identity
+
+authority model
+
+canonical persistence
+
+constitutional rules
+
+migration semantics
+```
+
+deserves much deeper Review because errors may shape the entire system.
+
+---
+
+# Review before implementation
+
+Some of the highest-value Reviews happen before code exists.
+
+Examples:
+
+```text
+Requirement Review
+
+architecture proposal Review
+
+Specification Review
+
+threat-model Review
+```
+
+Early Review reduces the cost of correcting foundational mistakes.
+
+---
+
+# Review during implementation
+
+Iterative Review can expose problems while design remains flexible.
+
+Examples:
+
+```text
+draft pull request
+
+prototype Review
+
+incremental architecture Review
+
+schema Review before migration completion
+```
+
+This is often better than a single large Review at the end.
+
+---
+
+# Review after implementation
+
+Post-implementation Review remains valuable for:
+
+```text
+code
+
+operational readiness
+
+security
+
+release
+
+Evidence
+
+Verification results
+```
+
+Different lifecycle stages require different questions.
+
+---
+
+# Review after release
+
+Post-release Review may examine:
+
+```text
+incident behavior
+
+actual performance
+
+operator experience
+
+unexpected complexity
+
+false assumptions
+
+user impact
+```
+
+This feeds learning back into Requirements, architecture, and future work.
+
+---
+
+# Incident Review
+
+Incident Review should emphasize learning and system improvement.
+
+Useful questions include:
+
+```text
+What happened?
+
+What conditions made it possible?
+
+Why was it not detected earlier?
+
+Which safeguards failed?
+
+Which assumptions were wrong?
+
+What Evidence exists?
+
+What should change?
+```
+
+The goal is causal understanding, not simplistic blame assignment.
+
+---
+
+# Review of failures
+
+Failures are especially valuable Review subjects.
+
+A failed experiment, migration, release, or Verification may expose:
+
+```text
+incorrect assumptions
+
+weak abstractions
+
+missing observability
+
+bad governance
+
+inadequate testing
+
+poor recovery semantics
+```
+
+Review should preserve that knowledge.
+
+---
+
+# Review and learning
+
+A mature engineering loop is:
+
+```text
+Build
+  ↓
+Review
+  ↓
+Findings
+  ↓
+Change
+  ↓
+Verify
+  ↓
+Observe
+  ↓
+Learn
+```
+
+Review is therefore not just a gate.
+
+It is one of the mechanisms through which the engineering system improves its own understanding.
+
+---
+
+# Review and traceability
+
+A finding may trace across multiple artifacts.
+
+Example:
+
+```text
+REV-032
+   ↓ raised
+FIND-104
+   ↓ affects
+SPEC-008
+   ↓ causes
+WP-021
+   ↓ implemented-by
+commit abc123
+   ↓ verified-by
+VER-044
+   ↓ supported-by
+EV-203
+```
+
+This preserves the reasoning chain from discovery to resolution.
+
+---
+
+# Review and requirements
+
+Review findings may reveal that a Requirement itself is wrong.
+
+For example:
+
+```text
+Finding:
+Requirement assumes all Subjects have files.
+```
+
+That may result in:
+
+```text
+Requirement revision
+```
+
+rather than an implementation fix.
+
+Review should be allowed to challenge upstream assumptions.
+
+---
+
+# Review and decisions
+
+A difficult Finding may require an [Architecture Decision](/docs/artifacts/decisions).
+
+Example:
+
+```text
+Finding:
+Semantic identity can either wrap native IDs
+or use project-local stable IDs.
+
+Resolution:
+ADR-019
+```
+
+The Review identifies the issue.
+
+The ADR records the decision.
+
+---
+
+# Review and experiments
+
+When Reviewers disagree because Evidence is insufficient:
+
+```text
+Review disagreement
+   ↓
+Experiment
+   ↓
+Evidence
+   ↓
+Decision
+```
+
+This is preferable to resolving technical uncertainty through authority alone.
+
+---
+
+# Review and evidence
+
+Review findings should cite Evidence where appropriate.
+
+For example:
+
+```text
+Finding:
+current index design becomes impractical
+above approximately 1M edges.
+
+Evidence:
+EXP-014 benchmark results.
+```
+
+This is stronger than unsupported preference.
+
+---
+
+# Review and current system truth
+
+A Review Finding is not automatically current System truth.
+
+It may be:
+
+```text
+proposed
+
+contested
+
+accepted
+
+resolved
+
+obsolete
+
+superseded
+```
+
+The authoritative [System](/docs/system) documentation should reflect conclusions that have actually become current commitments.
+
+---
+
+# Review and Building Monad
+
+The [Building Monad](/docs/building-monad) narrative may explain:
+
+```text
+why a Review happened
+
+what disagreements emerged
+
+how thinking changed
+
+what lessons were learned
+```
+
+The Review artifact preserves the inspectable engineering record.
+
+The narrative interprets that history.
+
+---
+
+# Review and native authority
+
+Review systems such as GitHub may own native states like:
+
+```text
+APPROVED
+
+CHANGES_REQUESTED
+
+COMMENTED
+```
+
+Monad should preserve those states as native facts.
+
+It may additionally model:
+
+```text
+semantic findings
+
+governance meaning
+
+artifact relationships
+
+Review scope
+
+resolution state
+```
+
+without pretending those concepts are identical.
+
+---
+
+# Review and authorization
+
+A GitHub account may have permission to approve a pull request.
+
+That means:
+
+```text
+native capability exists
+```
+
+It does not automatically imply:
+
+```text
+Monad Policy authorizes this Actor
+to approve this engineering change.
+```
+
+Native permission and Monad Authority remain distinct.
+
+---
+
+# Review security
+
+Reviews may contain sensitive information.
+
+Examples:
+
+```text
+vulnerability details
+
+credentials accidentally exposed in diffs
+
+private architecture
+
+incident data
+
+customer information
+```
+
+Review systems should preserve appropriate access controls and avoid copying sensitive content unnecessarily.
+
+---
+
+# Review context
+
+Reviewers need enough context to judge the Subject.
+
+Relevant context may include:
+
+```text
+Requirement
+
+Specification
+
+architecture
+
+related decisions
+
+previous findings
+
+current implementation
+
+known constraints
+
+recent changes
+
+Evidence
+```
+
+But context should remain purpose-specific.
+
+Dumping the entire repository into every Review is neither efficient nor necessarily safer.
+
+---
+
+# Context quality matters
+
+A reviewer operating with incomplete context may produce incorrect findings.
+
+Monad's Context system may eventually help assemble:
+
+```text
+the smallest sufficient review context
+```
+
+while preserving provenance and authority.
+
+---
+
+# Review independence and context
+
+Independent Review does not mean context-free Review.
+
+A reviewer should understand:
+
+```text
+the problem
+
+constraints
+
+existing decisions
+
+system invariants
+```
+
+Independence concerns judgment and authority, not ignorance.
+
+---
+
+# Review reproducibility
+
+Human Review is not perfectly reproducible.
+
+But a future engineer should still be able to reconstruct:
+
+```text
+what was examined
+
+what information was available
+
+what criteria were used
+
+why findings were raised
+
+how they were resolved
+```
+
+That is sufficient for durable engineering history.
+
+---
+
+# Review determinism
+
+Automated Review tools may be deterministic.
+
+AI Review may be probabilistic.
+
+Human Review is judgment-based.
+
+The Review record should not falsely present these methods as epistemically identical.
+
+---
+
+# Review method provenance
+
+A Review should identify its method where that distinction matters.
+
+Examples:
+
+```text
+Manual architecture review
+
+Static security scanner
+
+LLM-assisted Specification review
+
+Peer code review
+
+Independent operational review
+```
+
+This helps interpret the strength and limitations of the result.
+
+---
+
+# Automated review
+
+Automation can examine:
+
+```text
+dependency rules
+
+style
+
+schema consistency
+
+security patterns
+
+API changes
+
+documentation links
+
+policy constraints
+```
+
+Automated Review is valuable when rules are sufficiently explicit.
+
+It should not create the illusion that all engineering judgment has been automated.
+
+---
+
+# Static analysis as Review
+
+A static analyzer may produce Finding-like outputs.
+
+Example:
+
+```text
+Finding:
+untrusted input reaches shell execution.
+
+Producer:
+security scanner
+```
+
+Monad can model this within the same general Finding system while preserving the tool's provenance.
+
+---
+
+# Review aggregation
+
+A high-level Review may aggregate findings from several methods.
+
+For example:
+
+```text
+Security Review
+    │
+    ├── static analyzer
+    ├── dependency scanner
+    ├── manual threat review
+    └── penetration test
+```
+
+The aggregate Review should preserve the underlying Evidence and findings.
+
+---
+
+# Review disagreement with automation
+
+An automated tool may raise a Finding that a human rejects.
+
+Example:
+
+```text
+Tool:
+possible SQL injection
+
+Human:
+false positive because parameterized query
+is enforced by lower-level API
+```
+
+The rejection and rationale should remain inspectable.
+
+This helps improve future tooling.
+
+---
+
+# Repeated false positives
+
+If a Review method repeatedly produces false positives, that is useful system Evidence.
+
+It may justify:
+
+```text
+method refinement
+
+configuration change
+
+tool replacement
+
+scope reduction
+```
+
+Review infrastructure itself should evolve based on observed value.
+
+---
+
+# Review anti-pattern: approval theater
+
+A process where reviewers simply click:
+
+```text
+Approve
+```
+
+without meaningful examination creates the appearance of governance without assurance.
+
+Monad should prefer explicit evidence of useful examination over ceremony.
+
+---
+
+# Review anti-pattern: style-only Review
+
+A Review focused entirely on:
+
+```text
+naming
+
+formatting
+
+minor style preferences
+```
+
+while ignoring:
+
+```text
+correctness
+
+architecture
+
+risk
+
+failure semantics
+```
+
+may waste reviewer attention.
+
+Automate mechanical concerns where practical.
+
+Preserve human attention for judgment.
+
+---
+
+# Review anti-pattern: drive-by comments
+
+Comments without:
+
+```text
+context
+
+rationale
+
+consequence
+
+actionability
+```
+
+can create noise rather than improve the system.
+
+A good Finding explains why the issue matters.
+
+---
+
+# Review anti-pattern: late architecture Review
+
+Reviewing architecture only after implementation is effectively complete makes structural changes expensive.
+
+Architecture Review should occur while architecture is still changeable.
+
+---
+
+# Review anti-pattern: review everything equally
+
+Treating:
+
+```text
+README typo
+```
+
+and:
+
+```text
+constitutional authority model change
+```
+
+as equivalent creates process dysfunction.
+
+Review depth should reflect consequence.
+
+---
+
+# Review anti-pattern: hidden findings
+
+Important Review conclusions should not remain only in:
+
+```text
+private messages
+
+ephemeral calls
+
+unrecorded meetings
+```
+
+If a Finding affects engineering decisions, preserve it somewhere durable enough to survive the conversation.
+
+---
+
+# Review anti-pattern: finding deletion
+
+A finding that is resolved should not simply disappear.
+
+Historical findings explain:
+
+```text
+why code changed
+
+why architecture changed
+
+why a decision exists
+
+why a release was delayed
+```
+
+Resolution is better than erasure.
+
+---
+
+# Review anti-pattern: authority by persistence
+
+A Finding does not become authoritative merely because nobody responded to it.
+
+Unresolved is not accepted.
+
+Old is not true.
+
+Repeated is not canonical.
+
+---
+
+# Review anti-pattern: consensus as correctness
+
+Several reviewers agreeing does not guarantee correctness.
+
+Consensus is useful social Evidence.
+
+It is not a substitute for technical Evidence where technical Evidence is available.
+
+---
+
+# Review anti-pattern: reviewer omniscience
+
+No reviewer should be assumed to understand every aspect of a complex system.
+
+Good Review processes make it easy to escalate:
+
+```text
+I do not know.
+
+This needs security expertise.
+
+We need an experiment.
+
+The Requirement is unclear.
+
+The available Evidence is insufficient.
+```
+
+Explicit uncertainty is a strength.
+
+---
+
+# Review anti-pattern: unresolved questions hidden in prose
+
+If a Review uncovers a real open question, preserve it explicitly.
+
+For example:
+
+```text
+OPEN QUESTION:
+Should semantic identity survive repository split?
+```
+
+Do not bury it inside a paragraph that future engineers will never discover.
+
+---
+
+# Review anti-pattern: no closure semantics
+
+If findings can be raised but there is no way to know:
+
+```text
+resolved?
+
+rejected?
+
+deferred?
+
+accepted risk?
+```
+
+the Review record becomes increasingly difficult to interpret.
+
+Findings need enough lifecycle to support closure.
+
+---
+
+# Review anti-pattern: no revision binding
+
+A Review that says:
+
+```text
+looks good
+```
+
+without identifying what revision was examined is fragile.
+
+Materially changing the Subject should make re-review requirements visible.
+
+---
+
+# Review anti-pattern: using Review to invent Requirements
+
+Reviewers may discover missing Requirements.
+
+They should not silently encode them into implementation comments.
+
+The proper flow may be:
+
+```text
+Review Finding
+   ↓
+Requirement update
+   ↓
+Specification update
+   ↓
+Implementation
+```
+
+This preserves authority and traceability.
+
+---
+
+# Review quality criteria
+
+A strong Review should be:
+
+```text
+scoped
+
+revision-aware
+
+purposeful
+
+risk-proportional
+
+traceable
+
+clear about findings
+
+clear about uncertainty
+
+supported by Evidence where appropriate
+
+independent where consequence requires it
+
+connected to follow-up work
+
+historically preservable
+```
+
+---
+
+# A Review should answer a question
+
+Before creating a Review, ask:
+
+> **What uncertainty, risk, or engineering judgment requires examination?**
+
+Examples:
+
+```text
+Does this Specification define enough behavior to implement safely?
+
+Does this architecture preserve authority boundaries?
+
+Could this migration lose semantic identity?
+
+Does this release contain unresolved critical risk?
+
+Does the Evidence actually support the performance Claim?
+
+Is this interface likely to become an irreversible compatibility burden?
+```
+
+If the question is unclear, the Review process probably will be too.
+
+---
+
+# Minimum viable Review model
+
+Monad does not need an elaborate enterprise Review platform to begin.
+
+A useful minimum is:
+
+```text
+Review ID
+
+Subject
+
+Revision
+
+Review Type
+
+Reviewer
+
+Findings
+
+Outcome
+
+Provenance
+```
+
+For significant findings:
+
+```text
+Finding ID
+
+Description
+
+Severity
+
+Disposition
+```
+
+This is enough to preserve much more engineering meaning than unstructured comments alone.
+
+---
+
+# Review maturity
+
+A reasonable progression is:
+
+```text
+Stage 1
+Native review links and durable notes
+
+Stage 2
+Structured Review identity and findings
+
+Stage 3
+Revision-aware Review
+
+Stage 4
+Finding lifecycle and traceability
+
+Stage 5
+Policy-driven Review obligations
+
+Stage 6
+Impact-aware re-review
+
+Stage 7
+Cross-system human + machine Review graph
+```
+
+Each stage should earn its complexity.
+
+---
+
+# Review invariants
+
+The Review system should preserve several distinctions:
+
+```text
+Review ≠ Approval
+
+Review ≠ Verification
+
+Comment ≠ Review
+
+Finding ≠ Decision
+
+Finding ≠ Requirement
+
+Native review state ≠ semantic Review state
+
+Reviewer opinion ≠ truth
+
+Resolved ≠ erased
+
+Rejected ≠ deleted
+
+Accepted Risk ≠ fixed
+
+Old Review ≠ current Review
+
+Review completion ≠ finding resolution
+
+Native permission ≠ Monad Authority
+
+Automated finding ≠ authoritative conclusion
+
+Consensus ≠ proof
+```
+
+---
+
+# Example: Specification Review
+
+```text
+Review:
+REV-031
+
+Type:
+Specification Review
+
+Subject:
+SPEC-008@v4
+
+Finding:
+Failure behavior is undefined when
+native identity resolution returns
+multiple plausible Subjects.
+
+Severity:
+Major
+
+Disposition:
+Resolved
+
+Resolution:
+SPEC-008@v5 introduces
+AmbiguousIdentity error semantics.
+```
+
+The Review explains why the Specification changed.
+
+---
+
+# Example: Architecture Review
+
+```text
+Review:
+REV-044
+
+Subject:
+Projection persistence architecture
+
+Finding:
+Proposal allows derived projection state
+to become authoritative after native
+source deletion.
+
+Severity:
+Blocker
+
+Rationale:
+Violates canonical/derived separation.
+
+Disposition:
+Accepted
+
+Follow-up:
+ADR-021
+```
+
+The Review surfaces the issue.
+
+The ADR records the architectural decision.
+
+---
+
+# Example: rejected Finding
+
+```text
+Finding:
+FIND-118
+
+Claim:
+The filesystem adapter should own
+semantic identity because it observes paths.
+
+Disposition:
+Rejected
+
+Rationale:
+Path is a Native Reference property.
+Owning semantic identity in the adapter
+would couple Subject continuity to location.
+```
+
+The Finding remains historically useful even though it was rejected.
+
+---
+
+# Example: accepted risk
+
+```text
+Finding:
+Windows filesystem event semantics
+have not been verified.
+
+Severity:
+Major
+
+Disposition:
+Accepted Risk
+
+Scope:
+M0 preview only
+
+Constraint:
+Linux and macOS supported
+
+Expiration:
+Before Windows support milestone
+```
+
+The unresolved condition remains explicit.
+
+---
+
+# Example: AI-assisted Review
+
+```text
+Review:
+REV-052
+
+Method:
+AI-assisted Specification comparison
+
+Subject:
+Implementation of SPEC-012
+
+Candidate Finding:
+Implementation accepts ambiguous Subject
+resolution without escalation.
+
+Human Review:
+Confirmed
+
+Disposition:
+Resolved
+
+Verification:
+VER-088
+```
+
+AI helped discover the issue.
+
+Human confirmation and Verification established the final assurance chain.
+
+---
+
+# Example: conflicting Reviews
+
+```text
+REV-061
+Architecture Reviewer:
+Split Identity and Reconciliation components.
+
+REV-062
+Operations Reviewer:
+Do not split yet because the operational
+boundary would add complexity without
+independent lifecycle needs.
+```
+
+A useful response is:
+
+```text
+Architecture question opened.
+
+Evidence requested.
+
+Prototype or ADR required.
+```
+
+Not:
+
+```text
+majority vote wins automatically.
+```
+
+---
+
+# Example: Review to remediation
+
+```text
+REV-071
+   ↓
+FIND-209
+   ↓
+WP-044
+   ↓
+commit 7ac91e
+   ↓
+VER-117
+   ↓
+EV-302
+   ↓
+FIND-209 resolved
+```
+
+This is an inspectable path from discovery to correction.
+
+---
+
+# Example: Release Review
+
+```text
+Release:
+RC-4
+
+Architecture Review:
+Complete
+
+Security Review:
+Complete
+
+Migration Review:
+Complete
+
+Verification:
+1 incomplete item
+
+Known Risks:
+2 accepted
+
+Blockers:
+0
+
+Review Outcome:
+Ready for Approval
+```
+
+Notice:
+
+```text
+Ready for Approval
+```
+
+is not the same as:
+
+```text
+Approved
+```
+
+---
+
+# Review traceability
+
+A mature trace may look like:
+
+```text
+Requirement
+    ↓
+Specification
+    ↓
+Review
+    ↓
+Finding
+    ↓
+Decision
+    ↓
+Work Package
+    ↓
+Implementation
+    ↓
+Verification
+    ↓
+Evidence
+    ↓
+Finding Resolution
+    ↓
+Release
+```
+
+This turns Review from ephemeral commentary into part of the engineering record.
+
+---
+
+# Review as part of Monad's control loop
+
+Reviews participate in the larger engineering loop:
+
+```text
+Understand
+    ↓
+Define
+    ↓
+Design
+    ↓
+Review
+    ↓
+Decide
+    ↓
+Implement
+    ↓
+Verify
+    ↓
+Release
+    ↓
+Observe
+    ↓
+Review again when reality demands it
+```
+
+Review is not a single checkpoint.
+
+It is a recurring mechanism for challenging engineering assumptions.
+
+---
+
+# The governing principle
+
+> **A Review should preserve enough structure that future engineers can understand what was examined, which concerns were raised, why those concerns mattered, what happened to them, and how the Review influenced the system.**
+
+The goal is not to maximize Review artifacts.
+
+The goal is to keep important engineering judgment from disappearing into transient conversations, tool-specific comments, or unexplained decisions.
+
+Reviews are valuable when they make the engineering process more inspectable, more falsifiable, and more capable of learning.
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Releases"
+    href="/docs/artifacts/releases"
+  >
+    See how reviewed, verified, and explicitly supported engineering state becomes a release.
+  </Card>
+
+<Card
+title="Verification"
+href="/docs/artifacts/verification"
+>
+Understand how explicit expectations are evaluated against Evidence.
+</Card>
+
+<Card
+title="Evidence"
+href="/docs/artifacts/evidence"
+>
+Inspect the observations and records that support engineering Claims and Review findings.
+</Card>
+
+<Card
+title="Traceability"
+href="/docs/artifacts/traceability"
+>
+Follow findings, decisions, implementation, Verification, Evidence, and releases across the engineering record.
+</Card>
+</Cards>
+
+---
+
+## Related artifact views
+
+<Cards>
+  <Card
+    title="Architecture Decisions"
+    href="/docs/artifacts/decisions"
+  >
+    See how important trade-offs discovered during Review become explicit decisions.
+  </Card>
+
+<Card
+title="Specifications"
+href="/docs/artifacts/specifications"
+>
+Inspect the engineering contracts commonly examined before implementation.
+</Card>
+
+<Card
+title="Requirements"
+href="/docs/artifacts/requirements"
+>
+Review the expectations that engineering work ultimately exists to satisfy.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

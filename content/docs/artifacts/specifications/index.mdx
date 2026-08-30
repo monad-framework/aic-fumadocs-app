@@ -1,0 +1,3320 @@
+---
+title: Specifications
+description: The precise, implementable contracts that define how Monad must behave, what its interfaces mean, which invariants hold, and how accepted requirements and architecture become verifiable engineering commitments.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Precise engineering contracts
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Specifications turn accepted intent into precise, implementable, and verifiable contracts.
+  </p>
+</div>
+
+# What is a specification?
+
+A **Specification** defines what a part of Monad must mean or do with enough precision that implementation and verification can proceed without repeatedly reopening fundamental design questions.
+
+A Specification may define:
+
+* behavior,
+* interfaces,
+* data structures,
+* state transitions,
+* invariants,
+* command semantics,
+* error conditions,
+* compatibility rules,
+* authority rules,
+* serialization formats,
+* lifecycle behavior,
+* or other externally meaningful contracts.
+
+A useful Specification answers:
+
+```text id="0wqohl"
+What exactly is required?
+
+What inputs are valid?
+
+What outputs are produced?
+
+What invariants must hold?
+
+What states exist?
+
+Which transitions are permitted?
+
+What happens when something fails?
+
+Which behavior is observable?
+
+How can conformance be verified?
+```
+
+---
+
+# From intent to implementation
+
+Specifications sit between architectural intent and concrete implementation.
+
+```text id="uq72k4"
+Problem
+   ↓
+Goal
+   ↓
+Requirement
+   ↓
+Decision
+   ↓
+Specification
+   ↓
+Implementation
+   ↓
+Verification
+   ↓
+Evidence
+```
+
+Each layer has a different responsibility.
+
+A Requirement might say:
+
+> Semantic identity must remain stable when a Representation moves.
+
+An Architecture Decision might say:
+
+> Subject identity is distinct from filesystem path identity.
+
+A Specification must go further.
+
+It must define what stability means, how identity is represented, how bindings change, which operations preserve identity, what errors occur, and how the behavior can be tested.
+
+---
+
+# Specifications remove ambiguity
+
+Architecture can intentionally remain conceptual.
+
+Implementation cannot.
+
+Consider:
+
+```text id="hu5nux"
+Subjects have stable identity.
+```
+
+That is an architectural principle.
+
+A Specification must eventually answer questions such as:
+
+```text id="rf9744"
+What is the identifier syntax?
+
+Who assigns identifiers?
+
+Are identifiers globally unique?
+
+Can they be regenerated?
+
+What happens when two Subjects are merged?
+
+What happens when one Subject splits?
+
+How is a native identifier associated with a Subject?
+
+Can identity bindings be inferred?
+
+When does an inferred binding become authoritative?
+
+How is identity history preserved?
+```
+
+Without those answers, different implementations can all claim to satisfy the same architecture while behaving incompatibly.
+
+---
+
+# Specifications are contracts
+
+A Specification is stronger than explanatory documentation.
+
+It creates an engineering contract.
+
+Where normative language is appropriate, specifications may use terms such as:
+
+```text id="j4lmhu"
+MUST
+MUST NOT
+SHOULD
+SHOULD NOT
+MAY
+```
+
+For example:
+
+> A Subject identifier **MUST NOT** change solely because one of its Representations is renamed or moved.
+
+This statement is testable.
+
+Compare it with:
+
+```text id="88l87b"
+Subject identifiers should generally be stable.
+```
+
+The latter expresses direction.
+
+The former defines a contract.
+
+---
+
+# Normative and explanatory content
+
+Specifications can contain both:
+
+```text id="tfq1d2"
+normative content
+```
+
+and:
+
+```text id="j2zy8r"
+non-normative explanation
+```
+
+They should distinguish them where ambiguity would matter.
+
+Normative content defines required behavior.
+
+Explanatory content helps readers understand why the contract exists.
+
+For example:
+
+```text id="7zb1al"
+Normative:
+An identity binding MUST record the Subject and Native Reference.
+
+Rationale:
+This allows the semantic identity layer to survive changes
+to a native system's location or presentation.
+```
+
+Rationale is valuable.
+
+It should not accidentally become an additional undocumented requirement.
+
+---
+
+# What belongs in a Specification?
+
+Specifications are appropriate when engineering behavior needs precision.
+
+Common examples include:
+
+## Data contracts
+
+```text id="emx4nf"
+Subject schema
+Claim structure
+Evidence record
+Native Reference encoding
+Graph serialization
+Manifest format
+```
+
+## Interface contracts
+
+```text id="99hjy1"
+CLI commands
+API endpoints
+engine interfaces
+provider adapters
+plugin contracts
+```
+
+## Behavioral contracts
+
+```text id="ohyeps"
+identity resolution
+graph mutation
+projection generation
+staleness detection
+reconciliation
+verification
+```
+
+## Lifecycle contracts
+
+```text id="3wydfz"
+Requirement states
+Decision states
+Evidence states
+release transitions
+artifact supersession
+```
+
+## Governance contracts
+
+```text id="tyooyt"
+authority evaluation
+approval requirements
+capability checks
+policy enforcement
+constitutional amendment
+```
+
+## Execution contracts
+
+```text id="jc7yt8"
+task planning
+work authorization
+execution context
+tool invocation
+result recording
+```
+
+---
+
+# What does not belong in a Specification?
+
+A Specification should not become a catch-all document.
+
+The following usually belong elsewhere.
+
+## Product motivation
+
+Why a capability matters belongs primarily in Requirements and project documentation.
+
+## Historical reasoning
+
+Why an architecture direction was selected belongs in Architecture Decisions.
+
+## General explanation
+
+Teaching readers how Monad works belongs in [System](/docs/system).
+
+## Implementation notes
+
+Internal code organization that carries no contractual significance belongs with source documentation.
+
+## Current progress
+
+Whether a feature is 40% implemented belongs in project tracking.
+
+## Experimental observations
+
+Raw findings belong in [Experiments](/docs/artifacts/experiments) and [Evidence](/docs/artifacts/evidence).
+
+---
+
+# Specification scope
+
+A good Specification has clear boundaries.
+
+For example:
+
+```text id="75ne3y"
+SPEC-ID-001
+Subject Identity
+```
+
+should not quietly expand into:
+
+```text id="o3g786"
+all graph semantics
+all storage behavior
+all repository behavior
+all authorization behavior
+```
+
+Large specifications become difficult to review, evolve, and verify.
+
+A useful decomposition keeps each contract coherent.
+
+---
+
+# Specification identity
+
+Each consequential Specification should have stable identity.
+
+Examples might include:
+
+```text id="afppbs"
+SPEC-ID-001
+```
+
+```text id="cb8e01"
+SPEC-CLI-004
+```
+
+```text id="nnvuzf"
+SPEC-GRAPH-012
+```
+
+The exact naming scheme belongs in the artifact model.
+
+The important requirement is durable referenceability.
+
+Other artifacts should be able to say:
+
+```text id="uu983h"
+REQ-017 satisfied-by SPEC-ID-001
+```
+
+or:
+
+```text id="8t15lu"
+ADR-004 realized-by SPEC-GRAPH-003
+```
+
+without depending on filenames alone.
+
+---
+
+# Specification status
+
+A Specification should expose its lifecycle state.
+
+A conceptual lifecycle may look like:
+
+```text id="7qw5vj"
+draft
+  ↓
+proposed
+  ↓
+approved
+  ↓
+active
+  ↓
+deprecated
+  ↓
+superseded
+  ↓
+historical
+```
+
+The exact state machine belongs in the lifecycle specification.
+
+The important point is that readers and machines should know whether a document currently governs implementation.
+
+---
+
+# Draft Specifications
+
+A draft Specification may contain unresolved questions.
+
+For example:
+
+```text id="yuevxp"
+OPEN:
+Should Subject IDs be UUIDv7, URI-like identifiers,
+or project-local opaque strings?
+```
+
+That is acceptable during design.
+
+What matters is that unresolved content is not mistaken for authoritative contract.
+
+---
+
+# Proposed Specifications
+
+A proposed Specification is sufficiently complete for review but is not yet authoritative.
+
+It may be used for:
+
+* implementation experiments,
+* review,
+* compatibility analysis,
+* test design,
+* and architecture validation.
+
+But production work should not silently treat it as settled unless project policy allows that explicitly.
+
+---
+
+# Approved Specifications
+
+An approved Specification has passed the required authority boundary.
+
+Implementations can now be evaluated for conformance against it.
+
+---
+
+# Active Specifications
+
+An active Specification governs current system behavior for its Scope.
+
+System documentation should reflect active Specifications.
+
+Implementation should conform to them.
+
+Verification should test them.
+
+---
+
+# Deprecated Specifications
+
+A deprecated Specification remains valid for some existing context but should not be used as the basis for new work.
+
+For example:
+
+```text id="o9h2ze"
+SPEC-CLI-001
+Legacy v0 command output
+```
+
+may remain supported during a migration window.
+
+---
+
+# Superseded Specifications
+
+A superseded Specification has been replaced.
+
+For example:
+
+```text id="8gv5b4"
+SPEC-ID-001 v1
+      │
+      │ superseded-by
+      ▼
+SPEC-ID-001 v2
+```
+
+or:
+
+```text id="02hbfu"
+SPEC-STORAGE-003
+      │
+      ▼
+SPEC-READMODEL-001
+```
+
+The previous Specification remains useful for historical reconstruction and compatibility analysis.
+
+---
+
+# Specification versions
+
+A Specification can change without necessarily becoming a new conceptual artifact.
+
+The project must distinguish:
+
+```text id="jvfq2r"
+editorial revision
+```
+
+from:
+
+```text id="9zjw8m"
+contract revision
+```
+
+and:
+
+```text id="u2e05y"
+incompatible contract revision
+```
+
+For example:
+
+```text id="etpwve"
+fix typo
+```
+
+should not have the same semantic significance as:
+
+```text id="4bthrf"
+change identifier comparison from case-sensitive
+to case-insensitive
+```
+
+Version semantics should eventually reflect that distinction.
+
+---
+
+# Compatibility
+
+Some Specification changes affect compatibility.
+
+A Specification should define compatibility boundaries where they matter.
+
+Examples include:
+
+```text id="j3rydo"
+CLI output
+serialized files
+database migrations
+plugin interfaces
+API contracts
+provider interfaces
+schema versions
+```
+
+The project should be able to answer:
+
+```text id="w05l0s"
+Can an implementation of v2 read v1 data?
+
+Can a v1 client communicate with a v2 engine?
+
+Does upgrading require migration?
+
+Can old artifacts remain valid?
+
+Is downgrade possible?
+```
+
+These are Specification questions.
+
+---
+
+# Invariants
+
+Invariants define conditions that must remain true.
+
+Examples:
+
+```text id="7ot77u"
+Identity ≠ location
+```
+
+```text id="mkimpk"
+Capability ≠ Authority
+```
+
+```text id="g85kef"
+A superseded artifact MUST NOT be returned
+as the current authoritative artifact.
+```
+
+```text id="qek8hf"
+A generated Representation MUST retain provenance
+identifying the source state from which it was produced.
+```
+
+Invariants are among the most valuable parts of a Specification because they define what implementation freedom cannot violate.
+
+---
+
+# Preconditions
+
+Some operations require valid preconditions.
+
+For example:
+
+```text id="e22mz9"
+Operation:
+supersede Decision
+
+Preconditions:
+- existing Decision exists
+- replacement Decision exists
+- replacement Decision is accepted
+- caller has required Authority
+```
+
+A Specification should state these where relevant.
+
+---
+
+# Postconditions
+
+The contract should also describe what must be true after successful completion.
+
+For example:
+
+```text id="y60r3f"
+Postconditions:
+- previous Decision status = superseded
+- replacement relationship exists
+- current-resolution query returns replacement
+- provenance records the transition
+```
+
+This enables precise testing.
+
+---
+
+# Failure behavior
+
+Successful behavior is only half a Specification.
+
+Failures must also be defined.
+
+Questions include:
+
+```text id="vz17m1"
+What makes the operation invalid?
+
+Is failure recoverable?
+
+Is state changed before failure?
+
+What error is returned?
+
+Is the error stable enough for automation?
+
+What provenance is retained?
+
+Should retry be safe?
+```
+
+Undefined failure behavior becomes implementation-specific behavior.
+
+---
+
+# Errors are part of the contract
+
+Consider a CLI command:
+
+```text id="ol4acj"
+monad subject resolve foo
+```
+
+Possible failures might include:
+
+```text id="zot6vc"
+not found
+ambiguous match
+invalid identifier
+corrupt binding
+unauthorized access
+read-model unavailable
+```
+
+These should not all collapse into:
+
+```text id="qw9odw"
+something went wrong
+```
+
+when downstream automation must distinguish them.
+
+---
+
+# Determinism
+
+Where reproducibility matters, Specifications should define determinism expectations.
+
+For example:
+
+```text id="iq5n8k"
+Given identical canonical input and identical
+applicable policy, graph normalization MUST produce
+equivalent canonical output.
+```
+
+That statement can drive:
+
+* implementation,
+* testing,
+* reproducibility checks,
+* and release verification.
+
+---
+
+# Ordering
+
+Many subtle compatibility bugs come from unspecified ordering.
+
+For example:
+
+```text id="v5a64l"
+Are graph edges serialized in insertion order?
+
+Canonical identifier order?
+
+Arbitrary implementation order?
+```
+
+If consumers compare output, hash it, or commit it to Git, ordering may become part of the contract.
+
+Specify it when it matters.
+
+Do not specify it when implementations should remain free.
+
+---
+
+# Canonicalization
+
+Canonicalization rules require particular precision.
+
+A canonical representation may need to define:
+
+```text id="gtcwpz"
+field ordering
+whitespace
+normalization
+identifier encoding
+null handling
+optional fields
+numeric representation
+timestamp format
+character encoding
+sorting
+```
+
+If canonicalization is used for hashing, comparison, signing, or reproducibility, ambiguity is especially dangerous.
+
+---
+
+# Identity specifications
+
+Identity is likely to require multiple focused Specifications.
+
+Potential areas include:
+
+```text id="xuw3ly"
+Subject identity
+Native Reference identity
+Representation identity
+identity bindings
+aliases
+resolution
+split transitions
+merge transitions
+supersession
+cross-project identity
+```
+
+The architecture can define the concepts.
+
+Specifications define the exact semantics.
+
+---
+
+# Representation specifications
+
+A Representation Specification may need to define:
+
+* what qualifies as a Representation,
+* how it references a Subject,
+* what role it plays,
+* whether it is authored or generated,
+* authority semantics,
+* freshness,
+* provenance,
+* fragment addressing,
+* and lifecycle.
+
+For example:
+
+```text id="q3q5h8"
+Representation:
+  README.md#architecture
+
+Subject:
+  system-architecture
+
+Role:
+  explanatory-documentation
+
+Authority:
+  derived
+
+Producer:
+  docs projection engine
+```
+
+The exact structure belongs in a formal schema and contract.
+
+---
+
+# Claim specifications
+
+Claims require precision because they sit close to semantic truth.
+
+A Claim contract may eventually answer:
+
+```text id="dghsg6"
+What is the Subject?
+
+What proposition is asserted?
+
+Who asserted it?
+
+Under what authority?
+
+When was it valid?
+
+When was it observed?
+
+Can Claims conflict?
+
+Can Claims be equivalent?
+
+How are typed values represented?
+
+How is provenance attached?
+```
+
+This is significantly more precise than saying simply:
+
+```text id="v7d28s"
+the graph stores facts
+```
+
+---
+
+# Evidence specifications
+
+Evidence must remain distinct from Claims.
+
+A Specification may define:
+
+```text id="3u8wys"
+what counts as an Evidence record
+what the Evidence observes
+who produced it
+how validity is represented
+what Claim it supports or challenges
+whether it is reproducible
+```
+
+For example:
+
+```text id="r84bib"
+Claim:
+Build is reproducible.
+
+Evidence:
+Reproduction run R-142 produced identical artifact digest.
+```
+
+The Evidence supports the Claim.
+
+It is not identical to the Claim.
+
+---
+
+# Time specifications
+
+Time semantics require special care.
+
+Monad may need to distinguish:
+
+```text id="jr7y1e"
+valid time
+```
+
+from:
+
+```text id="4kcsfy"
+observation time
+```
+
+from:
+
+```text id="tlnucg"
+recording time
+```
+
+For example:
+
+```text id="roub48"
+A policy became effective Monday.
+
+Monad first observed it Tuesday.
+
+The Evidence record was imported Wednesday.
+```
+
+Those are three different facts.
+
+A Specification should prevent implementations from collapsing them accidentally.
+
+---
+
+# Lifecycle Specifications
+
+Every lifecycle should define:
+
+```text id="ycirk6"
+states
+initial state
+terminal states
+allowed transitions
+forbidden transitions
+transition authority
+transition side effects
+transition provenance
+```
+
+For example:
+
+```text id="6uu6vo"
+proposed
+   │
+   │ approve
+   ▼
+accepted
+   │
+   │ supersede
+   ▼
+superseded
+```
+
+A state machine should be more than an illustration when implementation depends on it.
+
+---
+
+# Authority Specifications
+
+Authority requires precise evaluation semantics.
+
+A Specification may need to define:
+
+```text id="v61xl3"
+Actor
+Scope
+Action
+Resource
+Capability
+Policy
+Authority
+Decision
+```
+
+For example:
+
+```text id="rrf8t0"
+Actor:
+  AI agent
+
+Capability:
+  write repository file
+
+Authority:
+  may modify docs/*
+
+Restriction:
+  may not modify constitution/* without approval
+```
+
+Possessing the technical ability to perform an action is not the same as being authorized to perform it.
+
+That distinction must survive implementation.
+
+---
+
+# Governance Specifications
+
+Governance contracts may define:
+
+* who can propose changes,
+* who can approve them,
+* which changes require review,
+* constitutional amendment procedures,
+* escalation behavior,
+* emergency actions,
+* audit requirements,
+* and policy precedence.
+
+These are not merely organizational conventions if engines enforce them.
+
+Once software behavior depends on them, they become part of the system contract.
+
+---
+
+# CLI Specifications
+
+A CLI Specification may define:
+
+```text id="e1xrnq"
+command
+arguments
+flags
+stdin
+stdout
+stderr
+exit codes
+JSON output
+interactive behavior
+configuration precedence
+environment behavior
+errors
+side effects
+```
+
+For example:
+
+```text id="aib44a"
+monad inspect --json
+```
+
+might require:
+
+```text id="76bi67"
+stdout:
+  valid JSON only
+
+stderr:
+  diagnostics only
+
+exit 0:
+  inspection completed
+
+exit 2:
+  invalid command input
+
+exit 4:
+  repository state invalid
+```
+
+Without such precision, automation becomes brittle.
+
+---
+
+# Human-readable and machine-readable output
+
+Where a command serves both humans and machines, those interfaces should be separated deliberately.
+
+For example:
+
+```text id="7u36ek"
+monad inspect
+```
+
+may optimize for humans.
+
+```text id="hhqj1z"
+monad inspect --json
+```
+
+may provide a stable machine contract.
+
+A machine-readable mode should not require scraping decorative terminal output.
+
+---
+
+# API Specifications
+
+An API contract should define more than endpoint names.
+
+It may include:
+
+* request schema,
+* response schema,
+* authentication,
+* authority checks,
+* idempotency,
+* pagination,
+* error model,
+* concurrency,
+* versioning,
+* retries,
+* consistency,
+* and compatibility.
+
+If the API is internal but crosses a meaningful component boundary, it may still deserve explicit specification.
+
+---
+
+# Engine interface Specifications
+
+Monad's Engines should depend on explicit contracts rather than hidden implementation knowledge.
+
+For example:
+
+```text id="m7jekp"
+IdentityResolver
+GraphStore
+PolicyEvaluator
+ProjectionEngine
+EvidenceRecorder
+ExecutionEngine
+```
+
+An interface Specification should describe semantics, not merely TypeScript signatures.
+
+The following:
+
+```ts
+resolve(id: string): Promise<Node>
+```
+
+does not answer:
+
+```text id="pcpsui"
+What does "resolve" mean?
+
+Can aliases resolve?
+
+What happens with ambiguity?
+
+Which node version is returned?
+
+Does resolution consult native systems?
+
+Is the operation side-effect free?
+```
+
+Those belong in the contract.
+
+---
+
+# Provider-neutral Specifications
+
+External providers should be hidden behind provider-neutral semantics where feasible.
+
+For example, an AI provider contract might define:
+
+```text id="5k0eyw"
+generate
+stream
+structured-output
+tool-call
+embedding
+capability-discovery
+usage-reporting
+```
+
+without making the entire system depend on one provider's terminology.
+
+Provider adapters then map native capabilities into the shared contract.
+
+---
+
+# Capability Specifications
+
+Not every provider or tool will support every capability.
+
+A Specification may define capability discovery such as:
+
+```text id="1pmzng"
+supports_streaming
+supports_tools
+supports_structured_output
+supports_embeddings
+supports_reasoning_controls
+```
+
+Higher layers can then select behavior deliberately.
+
+This is safer than assuming every integration behaves identically.
+
+---
+
+# Plugin Specifications
+
+A plugin contract may define:
+
+```text id="mfhatj"
+discovery
+manifest
+capabilities
+configuration
+lifecycle
+permissions
+host interface
+version compatibility
+errors
+sandboxing
+```
+
+A plugin architecture without a precise contract tends to become accidental coupling.
+
+---
+
+# Repository Specifications
+
+The repository itself may have contractual structure.
+
+Examples:
+
+```text id="a0phwq"
+required root files
+canonical artifact directories
+generated directories
+ignored transient state
+schema locations
+workspace metadata
+```
+
+However, the repository tree should not be mistaken for the domain model.
+
+Filesystem organization is a Representation.
+
+---
+
+# Artifact model Specifications
+
+Monad's artifact system may eventually define a shared contract for:
+
+```text id="n65qiy"
+identity
+type
+status
+authority
+provenance
+relationships
+version
+scope
+timestamps
+```
+
+Individual artifact types can then extend that common contract.
+
+This can reduce duplication while retaining type-specific semantics.
+
+---
+
+# Serialization Specifications
+
+If Monad's semantic state is portable, serialization must be defined carefully.
+
+Potential concerns include:
+
+```text id="0lnbn2"
+format
+schema version
+forward compatibility
+unknown fields
+canonical ordering
+encoding
+references
+extensions
+migration
+validation
+```
+
+A serialized file is not portable merely because it uses JSON or YAML.
+
+Portability requires stable semantics.
+
+---
+
+# Schema and Specification are different
+
+A Schema can validate structure.
+
+A Specification defines meaning.
+
+For example, a schema may confirm:
+
+```json id="x113ed"
+{
+  "status": "active"
+}
+```
+
+is structurally valid.
+
+The Specification must define what `active` means.
+
+A schema cannot by itself express all behavioral semantics.
+
+See [Schemas](/docs/artifacts/schemas).
+
+---
+
+# Models and Specifications are different
+
+A Model describes entities and relationships.
+
+A Specification defines contractual behavior around them.
+
+For example:
+
+```text id="bv80oq"
+Domain Model:
+Subject has Representations.
+```
+
+A Specification may define:
+
+```text id="8o7iab"
+A Subject MAY have zero or more Representations.
+
+Deleting a Representation MUST NOT delete
+the Subject unless an explicit lifecycle operation
+authorizes Subject deletion.
+```
+
+The Model gives structure.
+
+The Specification gives operational semantics.
+
+---
+
+# Architecture and Specifications are different
+
+Architecture answers questions such as:
+
+```text id="7c3tl2"
+What major pieces exist?
+
+How are responsibilities divided?
+
+Where are boundaries?
+
+Which direction have we chosen?
+```
+
+Specifications answer:
+
+```text id="vqlscq"
+Exactly what behavior must each boundary provide?
+```
+
+Architecture should not become a 500-page protocol document.
+
+Specifications should not duplicate architectural narrative unnecessarily.
+
+---
+
+# Requirements and Specifications are different
+
+A Requirement expresses a need or obligation.
+
+A Specification defines how that obligation appears as a concrete contract.
+
+For example:
+
+```text id="uy43wz"
+Requirement:
+Monad MUST operate locally without requiring
+a hosted control plane for core inspection.
+```
+
+Possible Specification:
+
+```text id="m8thyt"
+The inspect command MUST complete using only
+repository-local state and configured local read-model
+state when all required data is locally available.
+
+The command MUST NOT initiate a network request
+unless the user explicitly requests remote enrichment.
+```
+
+The Requirement defines intent.
+
+The Specification makes it executable.
+
+---
+
+# Decisions and Specifications are different
+
+An ADR may say:
+
+> Use hybrid filesystem authority.
+
+The Specification must define:
+
+```text id="79ty3j"
+Which authority modes exist?
+
+How are they represented?
+
+How is conflict resolved?
+
+What does synchronization mean?
+
+Which mode wins during reconciliation?
+
+What happens when authority is ambiguous?
+```
+
+A Decision chooses the direction.
+
+A Specification closes enough ambiguity for implementation.
+
+---
+
+# Specifications and code
+
+Code is often the most precise description of what an implementation currently does.
+
+But code alone is not sufficient as a system Specification.
+
+Why?
+
+Because implementation may contain:
+
+```text id="0zdsq9"
+bugs
+temporary compromises
+accidental behavior
+unreviewed assumptions
+performance workarounds
+incomplete features
+```
+
+If current code automatically becomes the Specification, implementation defects become requirements.
+
+That reverses the authority relationship.
+
+---
+
+# Executable Specifications
+
+Where practical, Specifications should connect to executable verification.
+
+For example:
+
+```text id="5nfxuh"
+SPEC-ID-001 §4.2
+A rename MUST preserve Subject identity.
+```
+
+could map to:
+
+```text id="dyo45d"
+TEST-ID-RENAME-001
+```
+
+which produces:
+
+```text id="v0nbfu"
+Evidence E-193
+```
+
+Conceptually:
+
+```text id="jmc1ya"
+Specification
+     │
+     │ verified-by
+     ▼
+Test
+     │
+     │ produces
+     ▼
+Evidence
+```
+
+This is stronger than prose alone.
+
+---
+
+# Not everything should be executable
+
+Some contracts cannot be completely reduced to automated tests.
+
+Examples may include:
+
+* architectural quality,
+* usability,
+* governance appropriateness,
+* human comprehensibility,
+* and some security properties.
+
+The absence of full automation does not eliminate the need for explicit specification.
+
+Verification may include:
+
+```text id="eslzw2"
+tests
+reviews
+analysis
+experiments
+inspection
+formal checks
+```
+
+depending on the property.
+
+---
+
+# Conformance
+
+An implementation conforms when it satisfies the applicable active Specification.
+
+Conformance may be:
+
+```text id="w9g65m"
+complete
+partial
+conditional
+non-conforming
+unknown
+```
+
+For example:
+
+```text id="qeav9w"
+Component:
+Identity Resolver v0.2
+
+Specification:
+SPEC-ID-001 v1.3
+
+Conformance:
+partial
+
+Missing:
+split identity transition support
+```
+
+This is much more informative than simply saying the feature exists.
+
+---
+
+# Partial implementation
+
+Specifications can intentionally precede implementation.
+
+A Specification may define a larger contract than the current milestone implements.
+
+That should be visible.
+
+For example:
+
+```text id="bdwzs2"
+Specification:
+complete
+
+M0 implementation:
+Sections 1–5
+
+Deferred:
+Sections 6–8
+```
+
+Do not silently narrow the Specification to match incomplete code.
+
+Do not claim implementation support that does not exist.
+
+---
+
+# Milestone profiles
+
+One way to handle staged implementation is through explicit profiles.
+
+For example:
+
+```text id="2z6zfs"
+SPEC-ID-001
+
+M0 profile:
+  stable Subject IDs
+  Native Reference binding
+  rename continuity
+
+M1 profile:
+  aliases
+  merge
+  split
+
+M2 profile:
+  cross-project identity
+```
+
+Profiles can preserve one semantic contract while making implementation scope explicit.
+
+Whether Monad adopts this pattern remains a design decision.
+
+---
+
+# Acceptance criteria
+
+Requirements often contain acceptance criteria.
+
+Specifications may refine them into exact observable behavior.
+
+For example:
+
+```text id="qkxrz3"
+Given:
+  Subject S represented by src/a.ts
+
+When:
+  src/a.ts is moved to src/core/a.ts
+  without semantic replacement
+
+Then:
+  resolving either recorded transition or current
+  Native Reference MUST identify Subject S
+
+And:
+  Subject identity MUST remain unchanged
+```
+
+This can become an executable acceptance test.
+
+---
+
+# Examples
+
+Examples are particularly valuable where contracts are subtle.
+
+A good Specification may include:
+
+```text id="g3xjsn"
+valid example
+invalid example
+edge case
+migration example
+failure example
+```
+
+Examples help expose ambiguity that abstract prose hides.
+
+---
+
+# Counterexamples
+
+Counterexamples can be even more useful.
+
+For example:
+
+```text id="v6myth"
+INVALID:
+
+Subject ID:
+  /src/core/parser.ts
+```
+
+if paths are not valid stable semantic identifiers.
+
+The Specification should explain why the example violates the contract.
+
+---
+
+# Edge cases
+
+A Specification is often only as useful as its treatment of edge cases.
+
+For identity:
+
+```text id="asjds8"
+rename
+move
+copy
+delete
+restore
+split
+merge
+fork
+duplicate native ID
+```
+
+For authority:
+
+```text id="1wkyvc"
+conflicting authoritative sources
+expired authority
+nested scope
+policy override
+emergency approval
+```
+
+For synchronization:
+
+```text id="ej1336"
+both sides changed
+one side deleted
+stale projection
+partial failure
+network loss
+```
+
+Ignoring edge cases merely postpones the design decision until implementation.
+
+---
+
+# Ambiguity budget
+
+Not every detail needs specification.
+
+Over-specification can make architecture rigid and implementation unnecessarily constrained.
+
+A useful rule is:
+
+> **Specify behavior where independent implementations must agree or where ambiguity creates meaningful risk.**
+
+Leave implementation freedom elsewhere.
+
+For example, a Specification may require:
+
+```text id="8gqzpk"
+Identity lookup MUST be deterministic.
+```
+
+without requiring:
+
+```text id="l81ayz"
+Identity lookup MUST use a B-tree.
+```
+
+unless the B-tree itself is contractually relevant.
+
+---
+
+# Internal versus external contracts
+
+Some Specifications define public or durable interfaces.
+
+Others define internal component boundaries.
+
+Public contracts generally deserve stronger compatibility guarantees.
+
+Internal contracts may evolve more freely.
+
+But internal does not mean unimportant.
+
+An internal interface can still deserve explicit specification if:
+
+* multiple implementations exist,
+* plugins depend on it,
+* AI agents interact through it,
+* or incorrect semantics could violate system invariants.
+
+---
+
+# Portability
+
+Portable Specifications should avoid unnecessary dependence on one implementation environment.
+
+For example, instead of saying:
+
+```text id="m0w8l9"
+The graph is stored in SQLite table subjects.
+```
+
+a portable contract may say:
+
+```text id="ti2w6f"
+The canonical graph interface MUST support
+lookup of Subjects by stable identity.
+```
+
+SQLite may be the current read-model implementation.
+
+The contract should only depend on SQLite if that dependency is itself intentional architecture.
+
+---
+
+# Local-first semantics
+
+"Local-first" must eventually be more precise than a slogan.
+
+Specifications may need to define:
+
+```text id="t6i37l"
+Which operations require no network?
+
+Which operations may enrich from remote systems?
+
+What happens when remote systems are unavailable?
+
+Where canonical state resides?
+
+How conflicts are reconciled?
+
+What data is cached locally?
+
+What remains portable?
+```
+
+Without such precision, two systems can both claim to be local-first while providing very different guarantees.
+
+---
+
+# Reproducibility Specifications
+
+Reproducibility contracts may define:
+
+```text id="c90b8c"
+inputs
+tool versions
+environment
+dependency resolution
+build steps
+expected outputs
+artifact digests
+```
+
+The goal is not merely:
+
+```text id="oshrpr"
+works on my machine
+```
+
+but a verifiable relationship between declared inputs and outputs.
+
+---
+
+# Projection Specifications
+
+A Projection converts semantic state into another Representation.
+
+A Specification may define:
+
+```text id="sqz08i"
+input state
+projection version
+output format
+determinism
+authority
+freshness
+provenance
+regeneration behavior
+```
+
+For example:
+
+```text id="i18dc6"
+System Graph
+    │
+    │ projection
+    ▼
+generated documentation index
+```
+
+A generated Projection should not become an unexplained second source of truth.
+
+---
+
+# Staleness Specifications
+
+If projections can become stale, staleness semantics must be explicit.
+
+Questions include:
+
+```text id="zch22z"
+What source version produced this projection?
+
+How is staleness detected?
+
+Is stale output usable?
+
+Must commands warn?
+
+Can stale output be authoritative?
+
+Who may refresh it?
+```
+
+These are operational contracts.
+
+---
+
+# Synchronization Specifications
+
+Synchronization is often more dangerous than generation because multiple authorities may participate.
+
+A synchronization Specification may need to define:
+
+```text id="9i0x34"
+source
+target
+authority
+direction
+conflict detection
+conflict resolution
+retry
+idempotency
+partial failure
+provenance
+```
+
+"Keep these in sync" is not sufficient engineering precision.
+
+---
+
+# Reconciliation Specifications
+
+Reconciliation determines what happens when represented state diverges.
+
+A contract may define:
+
+```text id="l4z6hf"
+observe native state
+compare expected state
+classify difference
+determine authority
+propose action
+apply authorized correction
+record evidence
+```
+
+This is especially important in Monad's hybrid authority model.
+
+---
+
+# Migration Specifications
+
+Any durable model eventually changes.
+
+Migration contracts may define:
+
+```text id="2vmmf2"
+source version
+target version
+preconditions
+transformation
+validation
+rollback
+irreversibility
+failure handling
+audit record
+```
+
+A migration should not be only an implementation script.
+
+The script implements a migration contract.
+
+---
+
+# Downgrade behavior
+
+Upgrade is only one direction.
+
+Where downgrade matters, Specifications should state whether it is:
+
+```text id="tot9k7"
+supported
+unsupported
+lossy
+conditionally supported
+```
+
+Silence should not accidentally imply reversibility.
+
+---
+
+# Concurrency
+
+Where multiple Actors can modify state, concurrency semantics may matter.
+
+A Specification may need to define:
+
+```text id="pk183k"
+optimistic concurrency
+locking
+version checks
+conflict response
+transaction boundary
+```
+
+This is particularly important for shared governance state.
+
+---
+
+# Idempotency
+
+Operations invoked by automation should often define idempotency.
+
+For example:
+
+```text id="rny80z"
+monad project sync
+```
+
+might require that re-running against unchanged input produces no additional semantic changes.
+
+Idempotency is a contract.
+
+It should not be left to hope.
+
+---
+
+# Atomicity
+
+Some operations require all-or-nothing behavior.
+
+For example:
+
+```text id="9094cb"
+Supersede artifact:
+1. create replacement relation
+2. update previous status
+3. update current-resolution index
+```
+
+If step 2 fails after step 1, what state is valid?
+
+A Specification should define the atomic boundary where correctness depends on it.
+
+---
+
+# Observability
+
+Specifications can define required observability.
+
+For example:
+
+```text id="3ig70t"
+Every governed mutation MUST produce an attributable
+execution record containing Actor, action, result,
+and applicable authority context.
+```
+
+This can support auditing and debugging.
+
+---
+
+# Security Specifications
+
+Security behavior should not exist only as implementation convention.
+
+Specifications may define:
+
+```text id="39almm"
+authentication
+authorization
+secrets handling
+trust boundaries
+input validation
+sandboxing
+privilege escalation
+audit
+data exposure
+```
+
+Security requirements belong in Requirements.
+
+Security mechanisms and contracts belong in Specifications.
+
+---
+
+# Privacy Specifications
+
+Where user or organizational information is processed, privacy semantics may require specification.
+
+Examples:
+
+```text id="sq7eyx"
+retention
+redaction
+local storage
+remote transmission
+telemetry
+deletion
+access scope
+```
+
+These should become explicit before integrations make accidental policy.
+
+---
+
+# Performance Specifications
+
+Performance requirements should be precise when they materially constrain architecture.
+
+Instead of:
+
+```text id="vaqxa8"
+queries should be fast
+```
+
+prefer something testable:
+
+```text id="k5fz4p"
+For repository graphs up to the M0 reference corpus size,
+local Subject lookup SHOULD complete within the
+defined interactive latency budget.
+```
+
+The actual threshold should come from validated product requirements and evidence.
+
+---
+
+# Scalability
+
+Scalability should not be specified abstractly as:
+
+```text id="ngzurd"
+must scale
+```
+
+A useful contract identifies:
+
+```text id="lbe8a9"
+expected corpus size
+Actor count
+repository count
+graph size
+update rate
+latency target
+resource constraints
+```
+
+Otherwise "scale" has no verifiable meaning.
+
+---
+
+# Specification dependencies
+
+Specifications may depend on one another.
+
+For example:
+
+```text id="aj3es9"
+SPEC-PROJECTION-002
+       │
+       │ depends-on
+       ▼
+SPEC-PROVENANCE-001
+```
+
+because a Projection cannot satisfy its provenance requirements without the underlying provenance contract.
+
+These dependencies should be explicit when they affect implementation or review order.
+
+---
+
+# Specification conflicts
+
+Two active Specifications should not contradict each other.
+
+For example:
+
+```text id="p53suw"
+SPEC-A:
+Subject IDs are opaque and case-sensitive.
+
+SPEC-B:
+Subject IDs are normalized to lowercase.
+```
+
+If both apply to the same Scope, the system has a contract conflict.
+
+That conflict should be surfaced rather than resolved accidentally by whichever implementation executes first.
+
+---
+
+# Specification precedence
+
+Some contract layers may take precedence over others.
+
+Conceptually:
+
+```text id="8cyqyh"
+Constitution
+   ↓
+Policies
+   ↓
+System Specifications
+   ↓
+Component Specifications
+```
+
+The precise hierarchy must be governed.
+
+A lower-level Specification must not redefine a higher-level invariant without an authorized change to the higher-level artifact.
+
+---
+
+# Specification derivation
+
+A useful Specification should trace back to the intent that caused it.
+
+For example:
+
+```text id="o3y0rx"
+REQ-LOCAL-001
+      │
+      ▼
+ADR-READMODEL-001
+      │
+      ▼
+SPEC-READMODEL-001
+```
+
+This allows a future reviewer to ask:
+
+```text id="4649ne"
+Why does this rule exist?
+```
+
+and obtain more than:
+
+```text id="ylk9cm"
+because the specification says so
+```
+
+---
+
+# Traceability should work both directions
+
+From Requirement:
+
+```text id="5brjxu"
+Which Specifications satisfy this?
+```
+
+From Specification:
+
+```text id="eqx8fv"
+Which Requirements justify this?
+```
+
+From implementation:
+
+```text id="k836lk"
+Which Specification governs this behavior?
+```
+
+From test:
+
+```text id="dg7qep"
+Which Specification clause is this verifying?
+```
+
+Bidirectional traceability makes change analysis practical.
+
+---
+
+# Clause-level traceability
+
+Large Specifications may require references to individual clauses.
+
+For example:
+
+```text id="ba01my"
+SPEC-ID-001 §4.3.2
+```
+
+rather than only:
+
+```text id="v6z0sa"
+SPEC-ID-001
+```
+
+This becomes valuable when one Specification contains dozens of independently verifiable commitments.
+
+---
+
+# Clause identity
+
+Stable clause identifiers may eventually be useful.
+
+For example:
+
+```text id="qru6m3"
+SPEC-ID-001:R-17
+```
+
+could survive editorial reordering better than raw heading numbers.
+
+Whether Monad needs that level of formalization should depend on real traceability pressure.
+
+---
+
+# Specifications should be reviewable
+
+A Specification review should ask:
+
+1. Is the Scope clear?
+2. Which Requirements justify it?
+3. Which Decisions constrain it?
+4. Are normative statements distinguishable?
+5. Are invariants explicit?
+6. Are inputs and outputs defined?
+7. Are lifecycle states complete?
+8. Are failure cases defined?
+9. Are edge cases addressed?
+10. Is compatibility behavior clear?
+11. Is implementation freedom preserved where possible?
+12. Can conformance be verified?
+13. Are open questions still visible?
+14. Does this contract accidentally encode one implementation?
+15. Are migrations and versioning addressed where necessary?
+16. Is any complexity unjustified?
+
+---
+
+# Specifications should be implementable
+
+A Specification fails if implementers still need to invent major semantics independently.
+
+If two competent engineers can read the same approved Specification and produce fundamentally incompatible behavior while both reasonably claiming compliance, the Specification is probably underspecified.
+
+---
+
+# Specifications should be testable
+
+Not every sentence requires one automated test.
+
+But normative behavior should usually admit some verification strategy.
+
+For every meaningful contract, ask:
+
+```text id="qfw5um"
+How would we know whether an implementation conforms?
+```
+
+If there is no answer, the requirement may be too vague.
+
+---
+
+# Specifications should be minimal
+
+More detail is not automatically better.
+
+Every extra normative statement reduces implementation freedom and increases future compatibility burden.
+
+Specify what must remain stable.
+
+Do not specify incidental implementation detail merely because it is easy to document.
+
+---
+
+# Specifications should expose uncertainty
+
+A draft may contain:
+
+```text id="2ws69g"
+OPEN QUESTION
+```
+
+```text id="ibv6yx"
+TBD
+```
+
+```text id="m2cnmq"
+PROVISIONAL
+```
+
+when appropriate.
+
+This is better than hiding uncertainty inside vague normative language.
+
+---
+
+# Specifications should not contain unresolved contradictions
+
+Uncertainty is acceptable.
+
+Contradiction is not.
+
+If two clauses disagree, the Specification must either:
+
+```text id="no1yl3"
+resolve the conflict
+```
+
+or:
+
+```text id="9cn67w"
+mark the contract unapproved
+```
+
+until the issue is resolved.
+
+---
+
+# Formalization should earn its cost
+
+Monad is intentionally wary of creating documentation bureaucracy.
+
+A Specification exists because precision creates value.
+
+The test is not:
+
+```text id="7pa1u9"
+Could this be specified?
+```
+
+Almost anything can.
+
+The better question is:
+
+> **Would ambiguity here meaningfully increase implementation, verification, compatibility, governance, or maintenance risk?**
+
+If not, lighter documentation may be better.
+
+---
+
+# Progressive formalization
+
+A concept may evolve through stages.
+
+```text id="6znift"
+idea
+  ↓
+notes
+  ↓
+Requirement
+  ↓
+architecture decision
+  ↓
+draft Specification
+  ↓
+approved Specification
+  ↓
+schema / tests / implementation
+```
+
+The project should not require full formalization before the concept deserves discussion.
+
+But once implementation depends on precise semantics, those semantics should stop living only in conversation.
+
+---
+
+# Specifications and AI
+
+AI changes the value of precise contracts.
+
+An AI coding agent can generate implementation quickly.
+
+The harder problem becomes ensuring that generated implementation matches actual engineering intent.
+
+Specifications provide constrained context:
+
+```text id="x9y7hz"
+Goal:
+implement identity resolution
+
+Relevant context:
+SPEC-ID-001
+SPEC-NATIVE-REF-002
+ADR-ID-001
+POLICY-AUTH-004
+```
+
+This is far better than asking an agent:
+
+```text id="a16mw4"
+Implement identity.
+```
+
+---
+
+# AI should not invent missing contracts silently
+
+If a Specification leaves a consequential question unresolved, an AI agent should not quietly convert its preference into architecture.
+
+Instead it should surface:
+
+```text id="vvzn4u"
+Specification gap
+```
+
+or:
+
+```text id="071cxq"
+required Decision
+```
+
+or:
+
+```text id="rpqpab"
+open design question
+```
+
+depending on the nature of the ambiguity.
+
+---
+
+# AI-generated Specifications
+
+AI can assist in drafting Specifications.
+
+It can:
+
+* expand Requirements,
+* identify edge cases,
+* search contradictions,
+* propose state machines,
+* generate acceptance tests,
+* compare alternatives,
+* and review completeness.
+
+But generated text does not become authoritative merely because it is detailed.
+
+Authority remains explicit.
+
+---
+
+# Specification linting
+
+Because Specifications are structured engineering artifacts, Monad may eventually lint them.
+
+Potential checks include:
+
+```text id="su24a7"
+missing identity
+missing status
+broken references
+unknown Requirement
+unknown Decision
+invalid normative keyword usage
+missing supersession target
+contradictory lifecycle transition
+schema mismatch
+```
+
+Some checks can be structural.
+
+Others may require semantic analysis.
+
+---
+
+# Specification validation
+
+Validation answers:
+
+```text id="5g15of"
+Is this Specification artifact internally valid?
+```
+
+Conformance answers:
+
+```text id="hmr1iw"
+Does this implementation satisfy the Specification?
+```
+
+These are separate questions.
+
+A perfectly formatted Specification can describe a terrible design.
+
+A correct implementation can conform to a flawed Specification.
+
+Engineering judgment remains necessary.
+
+---
+
+# Specification indexes
+
+A generated index may eventually show:
+
+| ID             | Specification            | Status   | Domain    | Version |
+| -------------- | ------------------------ | -------- | --------- | ------- |
+| SPEC-ID-001    | Subject Identity         | Active   | Identity  | 1.0     |
+| SPEC-ID-002    | Native Reference Binding | Draft    | Identity  | 0.3     |
+| SPEC-GRAPH-001 | Graph Core               | Active   | Graph     | 1.1     |
+| SPEC-CLI-001   | CLI Core                 | Proposed | Interface | 0.8     |
+
+The rows are illustrative.
+
+The goal is discoverability, not manually maintained duplicate truth.
+
+---
+
+# Suggested specification domains
+
+As Monad matures, its corpus may include areas such as:
+
+```text id="ypao9x"
+specifications/
+├── identity/
+├── graph/
+├── claims/
+├── authority/
+├── provenance/
+├── evidence/
+├── lifecycle/
+├── governance/
+├── execution/
+├── cli/
+├── interfaces/
+├── providers/
+├── plugins/
+├── projections/
+├── storage/
+├── synchronization/
+├── repository/
+└── release/
+```
+
+This is a possible taxonomy, not a requirement to create empty directories.
+
+The information architecture should follow real artifact density.
+
+---
+
+# Foundational specification families
+
+Several Specification families are especially important to Monad's current architecture.
+
+## Identity
+
+Defines stable semantic identity, native bindings, aliases, split/merge behavior, and cross-system resolution.
+
+## Semantic graph
+
+Defines Subjects, relationships, Claims, graph invariants, and graph mutation semantics.
+
+## Authority
+
+Defines Actors, capabilities, Authority, policy evaluation, and governed actions.
+
+## Provenance
+
+Defines producer, derivation, origin, observation, recording, and execution context.
+
+## Evidence
+
+Defines Evidence records, Claims supported or challenged, reproducibility, and validity.
+
+## Lifecycle
+
+Defines state machines and governed transitions for major artifact types.
+
+## CLI
+
+Defines stable user and automation interfaces.
+
+## Projection
+
+Defines generated views, provenance, freshness, staleness, and regeneration.
+
+## Execution
+
+Defines work authorization, context, tool execution, result capture, and verification.
+
+---
+
+# Example — Subject identity
+
+An illustrative Specification fragment might read:
+
+```text id="x7ybdb"
+SPEC-ID-001
+
+R1.
+Every persisted Subject MUST have one stable
+semantic identifier.
+
+R2.
+A Subject identifier MUST NOT derive its identity
+solely from filesystem location.
+
+R3.
+Moving a Representation MUST NOT change the
+identifier of the Subject represented.
+
+R4.
+Deleting the final known Representation MUST NOT
+implicitly delete the Subject unless the applicable
+lifecycle contract authorizes deletion.
+
+R5.
+Native identifiers MAY be associated with a Subject
+through explicit bindings.
+```
+
+This is more precise than architecture prose while still leaving identifier encoding to another contract.
+
+---
+
+# Example — generated projection
+
+```text id="wphf54"
+SPEC-PROJECTION-001
+
+R1.
+Every generated Projection MUST identify the source
+state used to produce it.
+
+R2.
+A Projection MUST expose whether it is current with
+respect to that source state when freshness can be
+determined.
+
+R3.
+Regeneration from equivalent canonical input MUST
+produce semantically equivalent output.
+
+R4.
+A generated Projection MUST NOT become authoritative
+merely because it exists on the filesystem.
+```
+
+Again, illustrative rather than canonical.
+
+---
+
+# Example — capability and Authority
+
+```text id="05yq9w"
+SPEC-AUTH-001
+
+R1.
+Capability and Authority MUST be evaluated as
+distinct concepts.
+
+R2.
+Possession of a tool capable of performing an action
+MUST NOT itself authorize that action.
+
+R3.
+Governed mutations MUST evaluate applicable Authority
+before state is changed.
+
+R4.
+Denied governed mutations MUST NOT partially modify
+authoritative state.
+
+R5.
+The result of Authority evaluation MUST be attributable
+to the Actor and applicable policy context.
+```
+
+---
+
+# Example — CLI machine output
+
+```text id="o95xm5"
+SPEC-CLI-JSON-001
+
+R1.
+When --json is supplied, stdout MUST contain exactly
+one valid JSON document unless the command contract
+explicitly defines streaming JSON.
+
+R2.
+Human-oriented progress messages MUST NOT be written
+to stdout in JSON mode.
+
+R3.
+Diagnostics MAY be written to stderr.
+
+R4.
+Exit status MUST reflect command success or the
+defined failure category.
+```
+
+This kind of contract makes automation reliable.
+
+---
+
+# Specifications and implementation language
+
+Specifications should generally describe semantics independently of TypeScript, Rust, Python, or another implementation language unless language choice is itself part of the contract.
+
+For example:
+
+Prefer:
+
+```text id="9fxp5w"
+The resolver returns one of:
+Resolved, NotFound, or Ambiguous.
+```
+
+over:
+
+```text id="kcy28b"
+The function returns a TypeScript discriminated union.
+```
+
+unless consumers actually depend on the TypeScript interface.
+
+---
+
+# Specifications and storage
+
+Similarly, semantic contracts should not depend unnecessarily on storage layout.
+
+Prefer:
+
+```text id="6whnmv"
+Current Subject lookup MUST return the active Subject
+for a stable identifier.
+```
+
+instead of:
+
+```text id="mmhm9e"
+SELECT * FROM subjects WHERE current = 1
+```
+
+The latter is implementation.
+
+---
+
+# Specifications and generated code
+
+Some contracts may be strong enough to generate:
+
+* schemas,
+* validators,
+* client types,
+* command parsers,
+* documentation tables,
+* test fixtures,
+* or migration scaffolding.
+
+Generated artifacts should trace back to the Specification source.
+
+Generation should reduce duplication, not create hidden authority.
+
+---
+
+# Single source does not mean single representation
+
+One Specification Subject may have multiple useful Representations:
+
+```text id="rvltxo"
+Specification Subject
+      │
+      ├── authored MDX
+      ├── JSON Schema
+      ├── generated API reference
+      ├── executable tests
+      └── rendered website page
+```
+
+Those Representations have different roles.
+
+Monad's own model should be able to express that distinction.
+
+---
+
+# Specification provenance
+
+A Specification should preserve enough provenance to answer questions such as:
+
+```text id="t2vz2o"
+Who proposed it?
+
+Who approved it?
+
+Which Requirements caused it?
+
+Which Decisions constrain it?
+
+Which version replaced it?
+
+Which implementation claims conformance?
+
+Which tests verify it?
+```
+
+Not every field must be manually authored if the system can derive it reliably.
+
+---
+
+# Specification ownership
+
+Ownership should be clear where review or maintenance depends on it.
+
+For example:
+
+```text id="eunw98"
+Specification:
+SPEC-AUTH-001
+
+Owner:
+Governance domain
+
+Required reviewer:
+Security authority
+```
+
+Ownership is operational metadata.
+
+Authority is the power to approve or change the contract.
+
+They are related but not identical.
+
+---
+
+# Specification change process
+
+A meaningful contract change should trigger impact analysis.
+
+Conceptually:
+
+```text id="ht8efa"
+Proposed Specification Change
+            │
+            ▼
+Impact Analysis
+            │
+            ├──► Requirements
+            ├──► Decisions
+            ├──► Schemas
+            ├──► Components
+            ├──► Tests
+            ├──► Integrations
+            └──► Releases
+```
+
+The larger the contract surface, the more important this becomes.
+
+---
+
+# Breaking change detection
+
+Monad should eventually help answer:
+
+```text id="ay9itw"
+Does this Specification change break:
+
+stored data?
+
+CLI consumers?
+
+plugins?
+
+automation?
+
+old repositories?
+
+generated projections?
+
+provider adapters?
+```
+
+This is more useful than discovering breakage after release.
+
+---
+
+# Specification review versus implementation review
+
+These are different gates.
+
+Specification review asks:
+
+```text id="43do79"
+Is this the correct contract?
+```
+
+Implementation review asks:
+
+```text id="v3ffo2"
+Does this code satisfy the contract well?
+```
+
+Combining the two often causes architecture debates to happen inside pull requests after implementation effort has already been spent.
+
+---
+
+# Specification debt
+
+Specification debt appears when behavior that must remain stable exists only implicitly.
+
+Symptoms include:
+
+* multiple implementations behave differently,
+* tests encode undocumented rules,
+* AI agents repeatedly ask the same design questions,
+* compatibility breaks unexpectedly,
+* migrations rely on oral history,
+* and source code becomes the only authority.
+
+Not every internal function needs a Specification.
+
+But important contracts should not remain accidental.
+
+---
+
+# Over-specification debt
+
+The opposite failure also exists.
+
+A project can accumulate rigid contracts around behavior that never needed to be stable.
+
+Symptoms include:
+
+* implementation becomes difficult to improve,
+* harmless refactors require formal changes,
+* documentation maintenance exceeds engineering value,
+* experimental systems become prematurely frozen.
+
+The solution is not maximum specification.
+
+It is correct specification boundaries.
+
+---
+
+# Specification maturity
+
+A useful maturity model might be:
+
+```text id="ju2lnq"
+Conceptual
+   ↓
+Draft
+   ↓
+Reviewable
+   ↓
+Approved
+   ↓
+Implemented
+   ↓
+Verified
+   ↓
+Operationally evidenced
+```
+
+These are not necessarily artifact statuses.
+
+They represent increasing confidence that a contract is understood and realized.
+
+---
+
+# Correctness is layered
+
+A Specification can be:
+
+```text id="ruc0it"
+internally coherent
+```
+
+while the architecture is wrong.
+
+An implementation can:
+
+```text id="geywou"
+perfectly conform
+```
+
+to a bad Specification.
+
+Verification can:
+
+```text id="78vodt"
+prove conformance
+```
+
+without proving the product solves the right problem.
+
+Therefore Monad preserves the larger reasoning chain.
+
+```text id="0tebhn"
+Problem
+   ↓
+Requirement
+   ↓
+Decision
+   ↓
+Specification
+   ↓
+Implementation
+   ↓
+Verification
+   ↓
+Evidence
+```
+
+Each link answers a different question.
+
+---
+
+# Relationship to System
+
+[System](/docs/system) explains Monad's current architecture and concepts to humans.
+
+Specifications define the precise contracts underlying that explanation.
+
+A reader should not need to read every Specification to understand Monad.
+
+An implementer should not rely only on conceptual System prose when precise behavior matters.
+
+---
+
+# Relationship to Requirements
+
+[Requirements](/docs/artifacts/requirements) define what Monad must achieve or satisfy.
+
+Specifications turn those obligations into precise contracts.
+
+```text id="yzwk9p"
+Requirement
+    │
+    │ refined-by
+    ▼
+Specification
+```
+
+---
+
+# Relationship to Architecture Decisions
+
+[Architecture Decisions](/docs/artifacts/decisions) preserve why a technical direction was selected.
+
+Specifications define how that direction behaves precisely.
+
+```text id="rwrvml"
+Decision
+   │
+   │ realized-by
+   ▼
+Specification
+```
+
+---
+
+# Relationship to Models
+
+[Models](/docs/artifacts/models) define concepts, entities, relationships, and invariants.
+
+Specifications turn those concepts into implementable semantics.
+
+---
+
+# Relationship to Schemas
+
+[Schemas](/docs/artifacts/schemas) encode machine-validatable structures.
+
+Schemas may implement structural portions of Specifications.
+
+They do not replace the broader behavioral contract.
+
+---
+
+# Relationship to Policies
+
+[Policies](/docs/artifacts/policies) govern permitted behavior and decision boundaries.
+
+Specifications define the interfaces and semantics through which those Policies operate.
+
+---
+
+# Relationship to Verification
+
+[Verification](/docs/artifacts/verification) determines whether implementations satisfy Specifications.
+
+```text id="1te1xi"
+Specification
+     │
+     │ verified-by
+     ▼
+Verification
+```
+
+---
+
+# Relationship to Evidence
+
+[Evidence](/docs/artifacts/evidence) records the observations supporting claims that Specifications have been satisfied.
+
+```text id="45m20r"
+Specification
+    ↓
+Implementation
+    ↓
+Verification
+    ↓
+Evidence
+```
+
+---
+
+# Relationship to Traceability
+
+[Traceability](/docs/artifacts/traceability) connects Specification clauses to:
+
+* Requirements,
+* Decisions,
+* Models,
+* Schemas,
+* implementation,
+* tests,
+* Evidence,
+* and Releases.
+
+Specifications are therefore not isolated documents.
+
+They are part of a connected engineering argument.
+
+---
+
+# A Specification should earn its existence
+
+The purpose of Specifications is not documentation completeness.
+
+It is reduction of consequential ambiguity.
+
+A Specification is worthwhile when it improves one or more of:
+
+```text id="wby9e9"
+implementation consistency
+review quality
+verification
+interoperability
+compatibility
+governance
+automation
+maintenance
+change impact analysis
+AI execution quality
+```
+
+If none of those improve, the Specification may not be necessary.
+
+<Callout type="info" title="Precision is not the same as volume">
+
+A ten-page Specification can still be ambiguous.
+
+A one-page Specification can be precise.
+
+The goal is to preserve the smallest contract that removes the ambiguity that actually matters.
+
+</Callout>
+
+---
+
+# The governing principle
+
+A Specification should provide enough precision that independent implementers, reviewers, verification systems, and AI agents can agree on the behavior that matters without freezing details that should remain implementation choices.
+
+> **Specify the contract that must remain true, preserve the reason it exists, expose the uncertainty that remains, and leave everything else free to evolve.**
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Models"
+    href="/docs/artifacts/models"
+  >
+    Explore the entities, relationships, invariants, and semantic structures that Specifications formalize.
+  </Card>
+
+<Card
+title="Schemas"
+href="/docs/artifacts/schemas"
+>
+See how structural portions of Specifications become machine-validatable formats.
+</Card>
+
+<Card
+title="Verification"
+href="/docs/artifacts/verification"
+>
+Examine how implementations are evaluated for conformance with Specifications.
+</Card>
+
+<Card
+title="Traceability"
+href="/docs/artifacts/traceability"
+>
+Follow Specification clauses through requirements, implementation, verification, evidence, and releases.
+</Card>
+</Cards>
+
+---
+
+## Related artifact views
+
+<Cards>
+  <Card
+    title="Requirements"
+    href="/docs/artifacts/requirements"
+  >
+    Review the obligations that Specifications refine into concrete engineering contracts.
+  </Card>
+
+<Card
+title="Architecture Decisions"
+href="/docs/artifacts/decisions"
+>
+Inspect the consequential choices that determine which contracts need to exist.
+</Card>
+
+<Card
+title="Evidence"
+href="/docs/artifacts/evidence"
+>
+Inspect observations supporting claims that Specifications have been satisfied.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

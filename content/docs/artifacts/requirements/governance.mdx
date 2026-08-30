@@ -1,0 +1,1844 @@
+---
+title: Governance Requirements
+description: The requirements governing how Monad constrains consequential engineering action through authority, policy, approvals, obligations, exceptions, evidence, and constitutional rules.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-GOV
+  </p>
+</div>
+
+# Governance Requirements
+
+Engineering governance exists to answer a simple but consequential question:
+
+> **Under what conditions may this action legitimately occur?**
+
+That question becomes difficult when software engineering spans:
+
+* humans,
+* AI agents,
+* repositories,
+* build systems,
+* deployment platforms,
+* documentation,
+* policies,
+* releases,
+* evidence,
+* external services,
+* and evolving system state.
+
+Governance is the mechanism by which Monad makes those constraints explicit, inspectable, enforceable where appropriate, and proportional to the consequence of the action.
+
+It connects:
+
+```text
+Constitution
+    ↓ constrains
+Authority
+    ↓
+Capabilities
+    ↓
+Policies
+    ↓
+Obligations
+    ↓
+Approvals and Evidence
+    ↓
+Authorized Operation
+    ↓
+Execution
+```
+
+This stack is conceptual rather than a complete execution algorithm.
+
+The central requirement is that these concerns remain distinguishable.
+
+<Callout type="info" title="Governance is not permission management">
+Governance determines whether consequential engineering action is legitimate under the system's rules. Native permissions may help enforce that decision, but permission alone does not establish authority, policy compliance, or correctness.
+</Callout>
+
+---
+
+# Requirement family scope
+
+The `REQ-GOV-*` family governs:
+
+* constitutional constraints,
+* authority relationships,
+* policy evaluation,
+* approvals,
+* obligations,
+* lifecycle gates,
+* release gates,
+* exception handling,
+* emergency actions,
+* separation of duties,
+* evidence requirements,
+* AI autonomy,
+* delegated action,
+* policy conflicts,
+* authorization freshness,
+* governance provenance,
+* governance state transitions,
+* and reconciliation after governed operations.
+
+The family does not prescribe one universal workflow for all engineering activity.
+
+Governance SHOULD become stricter as consequence and irreversibility increase.
+
+---
+
+# Foundational governance requirements
+
+## REQ-GOV-001 — Governance MUST be explicit for consequential action
+
+Where an operation can materially affect:
+
+* system correctness,
+* production state,
+* security,
+* architecture,
+* identity,
+* authority,
+* policy,
+* release,
+* evidence,
+* or durable engineering state,
+
+Monad MUST be capable of determining which governance rules apply.
+
+---
+
+## REQ-GOV-002 — Governance MUST be proportional to consequence
+
+Monad MUST NOT require the same governance burden for every operation.
+
+Routine low-risk changes SHOULD remain lightweight.
+
+High-risk, irreversible, security-sensitive, identity-changing, authority-changing, or production-impacting actions MAY require stronger controls.
+
+---
+
+## REQ-GOV-003 — Governance MUST NOT collapse capability, authority, permission, and policy
+
+The following remain distinct:
+
+```text
+Capability = what an actor can technically do
+Authority  = what an actor may legitimately establish or authorize
+Permission = what a native system technically permits
+Policy     = rules constraining action
+```
+
+Monad MUST preserve those distinctions.
+
+---
+
+## REQ-GOV-004 — Governance MUST be explainable
+
+For consequential governed operations, Monad SHOULD be able to explain:
+
+* which rules applied,
+* which authority was evaluated,
+* which conditions were satisfied,
+* which conditions were unmet,
+* which approvals were required,
+* which obligations were created,
+* and why the operation was allowed, denied, deferred, or unresolved.
+
+---
+
+## REQ-GOV-005 — Governance decisions MUST be attributable
+
+A consequential governance decision SHOULD identify:
+
+* the relevant rules,
+* policy versions,
+* authority grants,
+* approvals,
+* actors,
+* system state,
+* and evaluation time.
+
+---
+
+# Constitutional governance
+
+## REQ-GOV-006 — Monad MUST support higher-order governance constraints
+
+Monad SHOULD support a constitutional layer that constrains:
+
+* allowed authority structures,
+* policy creation,
+* delegation,
+* lifecycle rules,
+* capability boundaries,
+* amendment mechanisms,
+* and other governance primitives.
+
+Conceptually:
+
+```text
+Constitution → constrains Governance
+```
+
+---
+
+## REQ-GOV-007 — Constitutional rules MUST NOT be silently overridden
+
+Lower-level governance rules MUST NOT override constitutional constraints unless the Constitution explicitly permits that form of override.
+
+---
+
+## REQ-GOV-008 — Constitutional change MUST itself be governed
+
+Changing the rules that constrain governance MUST require a defined amendment process.
+
+---
+
+## REQ-GOV-009 — Constitutional authority MUST remain distinguishable from ordinary policy authority
+
+A project policy SHOULD NOT automatically possess authority to amend constitutional constraints.
+
+---
+
+# Governance scope
+
+## REQ-GOV-010 — Governance rules MUST be scoped
+
+Governance SHOULD be capable of applying to scopes such as:
+
+* project,
+* repository,
+* component,
+* domain,
+* artifact,
+* environment,
+* lifecycle state,
+* release,
+* operation,
+* actor class,
+* capability,
+* or semantic Subject.
+
+---
+
+## REQ-GOV-011 — More specific governance MAY refine broader governance within allowed bounds
+
+A project-wide rule MAY permit domain-specific refinement.
+
+Such refinement MUST NOT exceed the authority granted by broader rules.
+
+---
+
+## REQ-GOV-012 — Scope inheritance and override behavior MUST be deterministic
+
+Where multiple governance layers apply, Monad MUST define how:
+
+* inheritance,
+* override,
+* composition,
+* precedence,
+* and conflict
+
+are resolved.
+
+---
+
+# Policy evaluation
+
+## REQ-GOV-013 — Governance policies SHOULD be explicit and inspectable
+
+Repeated consequential rules SHOULD be representable as explicit policies rather than remaining scattered through undocumented implementation logic.
+
+---
+
+## REQ-GOV-014 — Policy evaluation MUST remain distinct from execution
+
+A policy decision such as:
+
+```text
+allow
+```
+
+MUST NOT imply:
+
+```text
+executed
+```
+
+Likewise, successful execution MUST NOT imply that policy evaluation occurred correctly.
+
+---
+
+## REQ-GOV-015 — Policy evaluation SHOULD be deterministic for equivalent relevant state
+
+Given the same:
+
+* policy revisions,
+* authority state,
+* actor,
+* action,
+* target,
+* context,
+* and relevant system state,
+
+the evaluation SHOULD produce the same result.
+
+---
+
+## REQ-GOV-016 — Policy results SHOULD be structured
+
+A governance evaluation SHOULD be capable of returning information such as:
+
+```text
+decision:
+  allowed | denied | conditional | unresolved
+
+matched_rules:
+  ...
+
+required_approvals:
+  ...
+
+required_evidence:
+  ...
+
+obligations:
+  ...
+
+reason:
+  ...
+
+policy_revision:
+  ...
+```
+
+The exact representation belongs in the governance specification.
+
+---
+
+## REQ-GOV-017 — Policy non-applicability MUST remain distinguishable from denial
+
+These are not equivalent:
+
+```text
+rule does not apply
+```
+
+and:
+
+```text
+rule applies and denies
+```
+
+Monad SHOULD preserve that distinction.
+
+---
+
+## REQ-GOV-018 — Unknown governance state MUST remain distinguishable from explicit denial
+
+If governance cannot be resolved, the result SHOULD be represented as unresolved rather than falsely asserting that a denial rule exists.
+
+The governing policy MAY still require safe failure.
+
+---
+
+# Governance defaults
+
+## REQ-GOV-019 — Default behavior MUST be explicit per scope
+
+Monad MUST NOT silently assume one universal governance default such as:
+
+```text
+default deny everything
+```
+
+or:
+
+```text
+default permit everything
+```
+
+Defaults SHOULD reflect the risk and semantics of the governed scope.
+
+---
+
+## REQ-GOV-020 — Fail-open and fail-closed behavior MUST be intentional
+
+Where a governance subsystem is unavailable, the system SHOULD explicitly define whether an operation:
+
+* fails closed,
+* fails open,
+* defers,
+* falls back to native controls,
+* or uses previously validated local state.
+
+---
+
+## REQ-GOV-021 — High-consequence operations SHOULD favor safe failure
+
+Where uncertainty could create material harm, Monad SHOULD favor refusal or deferral over invented authorization.
+
+---
+
+# Approvals
+
+## REQ-GOV-022 — Governance MUST support approval requirements
+
+Policies SHOULD be capable of requiring one or more approvals before consequential action.
+
+---
+
+## REQ-GOV-023 — Approvals MUST bind to a concrete target
+
+An approval SHOULD identify:
+
+* the operation,
+* artifact,
+* change,
+* release,
+* policy revision,
+* or other governed target.
+
+---
+
+## REQ-GOV-024 — Approvals SHOULD bind to relevant revisions
+
+Approval of:
+
+```text
+revision 17
+```
+
+SHOULD NOT automatically authorize materially different:
+
+```text
+revision 22
+```
+
+---
+
+## REQ-GOV-025 — Approval authority MUST be validated
+
+The existence of an approval record MUST NOT establish that the approver had sufficient authority.
+
+---
+
+## REQ-GOV-026 — Approval MAY require multiple authorities
+
+Monad SHOULD support governance rules requiring:
+
+* multiple reviewers,
+* independent domains,
+* security review,
+* release review,
+* or other multi-party approval structures.
+
+---
+
+## REQ-GOV-027 — Separation of duties SHOULD be expressible
+
+Policies SHOULD be capable of requiring constraints such as:
+
+```text
+author ≠ approver
+```
+
+where justified.
+
+This SHOULD NOT be universal.
+
+---
+
+## REQ-GOV-028 — Self-approval MAY be permitted or prohibited by policy
+
+Monad SHOULD not assume self-approval is always invalid.
+
+The rule SHOULD depend on consequence, scope, and governance policy.
+
+---
+
+# Approval freshness
+
+## REQ-GOV-029 — Material changes SHOULD invalidate or trigger re-evaluation of approvals
+
+Changes to:
+
+* target revision,
+* execution plan,
+* environment,
+* dependencies,
+* evidence,
+* policy,
+* or relevant system state
+
+MAY render prior approvals stale.
+
+---
+
+## REQ-GOV-030 — Approval expiration SHOULD be supported
+
+Where time matters, approval SHOULD support explicit expiration.
+
+---
+
+## REQ-GOV-031 — Long-lived approvals SHOULD require deliberate policy
+
+Broad approvals with indefinite validity SHOULD be explicit rather than accidental.
+
+---
+
+# Obligations
+
+## REQ-GOV-032 — Governance MUST support obligations in addition to allow or deny
+
+Governance SHOULD be able to state:
+
+```text
+operation permitted,
+provided that obligation X is satisfied
+```
+
+or:
+
+```text
+operation permitted,
+and obligation Y follows afterward
+```
+
+---
+
+## REQ-GOV-033 — Obligations MAY occur before, during, or after execution
+
+Examples include:
+
+### Before
+
+* obtain approval,
+* run required verification,
+* collect evidence,
+* resolve conflict.
+
+### During
+
+* preserve audit context,
+* constrain execution scope,
+* enforce resource limits.
+
+### After
+
+* reconcile state,
+* publish evidence,
+* notify stakeholders,
+* run post-deployment verification,
+* perform retrospective review.
+
+---
+
+## REQ-GOV-034 — Execution success MUST NOT imply obligation completion
+
+A technically successful operation MAY remain governance-incomplete if required obligations remain outstanding.
+
+---
+
+## REQ-GOV-035 — Outstanding obligations SHOULD remain inspectable
+
+Monad SHOULD be capable of identifying which obligations remain:
+
+* pending,
+* satisfied,
+* failed,
+* waived,
+* expired,
+* or superseded.
+
+---
+
+# Evidence requirements
+
+## REQ-GOV-036 — Governance MAY require evidence as a precondition
+
+A policy MAY require evidence such as:
+
+* passing verification,
+* review record,
+* signed artifact,
+* test result,
+* security scan,
+* migration rehearsal,
+* or release validation.
+
+---
+
+## REQ-GOV-037 — Evidence existence MUST NOT imply evidence sufficiency
+
+The presence of a test result does not necessarily prove that the required condition was satisfied.
+
+Governance SHOULD evaluate evidence according to explicit requirements.
+
+---
+
+## REQ-GOV-038 — Governance SHOULD record which evidence supported a consequential authorization
+
+For important decisions, Monad SHOULD preserve the evidence set or references relied upon at authorization time.
+
+---
+
+## REQ-GOV-039 — Stale evidence SHOULD be detectable
+
+Evidence MAY become stale when:
+
+* implementation changes,
+* dependencies change,
+* environment changes,
+* requirement scope changes,
+* or the evidence itself expires.
+
+---
+
+# Policy and authority
+
+## REQ-GOV-040 — Policy MUST NOT create authority from nothing
+
+A policy that references an actor MUST NOT implicitly grant that actor authority unless the governing authority model explicitly permits such a grant.
+
+---
+
+## REQ-GOV-041 — Policy activation MUST require legitimate authority
+
+A policy MUST NOT become binding merely because it is parseable or loaded by a policy engine.
+
+---
+
+## REQ-GOV-042 — Policies MUST operate within constitutional and authority constraints
+
+A project policy MUST NOT be able to grant permissions beyond the legitimate authority available to the project.
+
+---
+
+# Governance over policy changes
+
+## REQ-GOV-043 — Consequential policy changes MUST themselves be governed
+
+A change that alters:
+
+* production permissions,
+* release gates,
+* AI autonomy,
+* authority requirements,
+* security controls,
+* or constitutional behavior
+
+SHOULD require proportionate review.
+
+---
+
+## REQ-GOV-044 — Policy changes SHOULD support impact analysis
+
+Before activation, Monad SHOULD be able to determine which:
+
+* actors,
+* workflows,
+* operations,
+* components,
+* releases,
+* or environments
+
+may be affected.
+
+---
+
+## REQ-GOV-045 — Policy changes SHOULD support simulation where practical
+
+Monad MAY evaluate a proposed policy revision against representative historical or hypothetical operations before activation.
+
+---
+
+## REQ-GOV-046 — Policy rollback MUST preserve history
+
+Returning to an earlier policy SHOULD NOT erase:
+
+* the superseded revision,
+* decisions made under it,
+* or the period during which it was active.
+
+---
+
+# Governance conflicts
+
+## REQ-GOV-047 — Conflicting governance rules MUST be detectable
+
+Monad SHOULD identify when multiple applicable rules produce incompatible outcomes.
+
+---
+
+## REQ-GOV-048 — Conflict resolution precedence MUST be explicit
+
+Conflict MAY be resolved by:
+
+* constitutional hierarchy,
+* specificity,
+* policy priority,
+* scope,
+* explicit override,
+* or adjudication.
+
+The rule MUST NOT depend on accidental evaluation order.
+
+---
+
+## REQ-GOV-049 — Unresolved governance conflict SHOULD fail safely for consequential operations
+
+Where the system cannot determine which rule governs a material operation, it SHOULD:
+
+* deny,
+* defer,
+* or escalate
+
+according to explicit policy.
+
+---
+
+# Lifecycle governance
+
+## REQ-GOV-050 — Lifecycle transitions SHOULD be governable
+
+Monad SHOULD support rules governing transitions such as:
+
+```text
+draft → approved
+approved → active
+active → deprecated
+deprecated → historical
+```
+
+---
+
+## REQ-GOV-051 — Lifecycle transition authority MAY vary by transition
+
+Authority to create a draft MUST NOT automatically imply authority to activate or release it.
+
+---
+
+## REQ-GOV-052 — Invalid transitions SHOULD be blocked or explicitly recorded as governance violations
+
+A technically possible transition that violates lifecycle rules SHOULD NOT silently become accepted state.
+
+---
+
+# Release governance
+
+## REQ-GOV-053 — Release gates SHOULD be explicit
+
+A release policy MAY require:
+
+* accepted Requirements,
+* approved Decisions,
+* implemented Specifications,
+* passing verification,
+* required evidence,
+* security checks,
+* approval,
+* clean reconciliation,
+* or satisfied obligations.
+
+---
+
+## REQ-GOV-054 — Release authorization SHOULD be revision-aware
+
+The release approval SHOULD identify the exact release candidate or equivalent revision.
+
+---
+
+## REQ-GOV-055 — Release execution and release authorization MUST remain distinct
+
+A deployment system capable of publishing a release MUST NOT automatically possess authority to approve that release.
+
+---
+
+## REQ-GOV-056 — Release gate bypass MUST be explicitly governed
+
+Emergency or exceptional bypass SHOULD require:
+
+* authorized exception,
+* documented rationale,
+* bounded scope,
+* evidence,
+* and post-event review where appropriate.
+
+---
+
+# Execution governance
+
+## REQ-GOV-057 — Consequential operations SHOULD pass through a governance boundary
+
+The execution flow SHOULD support:
+
+```text
+Intent
+  ↓
+Resolve operation
+  ↓
+Evaluate current state
+  ↓
+Evaluate governance
+  ↓
+Authorize
+  ↓
+Revalidate
+  ↓
+Execute
+```
+
+---
+
+## REQ-GOV-058 — Governance SHOULD evaluate the resolved operation
+
+Where a high-level intent expands into concrete operations, policy SHOULD evaluate enough detail to understand actual consequence.
+
+---
+
+## REQ-GOV-059 — Governance MUST NOT rely solely on pre-execution checks made against stale state
+
+Relevant governance SHOULD be revalidated sufficiently close to execution to reduce time-of-check/time-of-use risk.
+
+---
+
+## REQ-GOV-060 — Partial execution MUST remain governable
+
+If only part of an authorized plan succeeds, Monad SHOULD identify:
+
+* completed operations,
+* failed operations,
+* remaining obligations,
+* rollback needs,
+* reconciliation needs,
+* and whether further authorization is required.
+
+---
+
+## REQ-GOV-061 — Rollback MUST itself be treated as execution
+
+Rollback MAY be consequential and SHOULD therefore be subject to appropriate authority and governance.
+
+---
+
+# Human governance
+
+## REQ-GOV-062 — Human action MUST be governed according to role and authority, not presumed legitimacy
+
+A human user SHOULD NOT bypass governance merely because they are human.
+
+---
+
+## REQ-GOV-063 — Governance SHOULD preserve meaningful human judgment
+
+Monad SHOULD NOT attempt to formalize every engineering judgment into deterministic policy.
+
+Human review remains appropriate where:
+
+* context is ambiguous,
+* risk is qualitative,
+* trade-offs are novel,
+* or formal policy would create false precision.
+
+---
+
+## REQ-GOV-064 — Governance SHOULD minimize unnecessary human ceremony
+
+Human approval SHOULD be required where it adds meaningful governance value, not as a default ritual.
+
+---
+
+# AI governance
+
+## REQ-GOV-065 — AI actors MUST operate under explicit governance
+
+AI actions SHOULD be evaluated using the same foundational concepts as human actions:
+
+* Actor,
+* Capability,
+* Authority,
+* Policy,
+* Scope,
+* Approval,
+* Obligation,
+* Evidence.
+
+---
+
+## REQ-GOV-066 — AI autonomy MUST be bounded by explicit scope
+
+An AI actor's autonomous action SHOULD be constrained by factors such as:
+
+* operation type,
+* repository,
+* component,
+* environment,
+* risk,
+* lifecycle state,
+* budget,
+* tool,
+* and authority.
+
+---
+
+## REQ-GOV-067 — AI-generated governance changes MUST NOT automatically become authoritative
+
+AI MAY draft:
+
+* policies,
+* authority grants,
+* constitutional amendments,
+* approval rules,
+* or lifecycle constraints.
+
+Those changes SHOULD remain proposals unless the AI possesses explicit authority to enact them.
+
+---
+
+## REQ-GOV-068 — AI MUST NOT silently weaken constraints governing itself
+
+An AI actor MUST NOT evade its governance by:
+
+* editing the relevant policy,
+* changing its role,
+* altering authority metadata,
+* switching tools,
+* changing representation,
+* or invoking a less-governed path.
+
+---
+
+## REQ-GOV-069 — Governance SHOULD constrain actions, not merely models
+
+The same underlying AI model MAY operate under different authority and governance contexts.
+
+Governance SHOULD therefore attach to the actor or execution context rather than relying solely on provider or model identity.
+
+---
+
+# Tool governance
+
+## REQ-GOV-070 — Tool availability MUST remain distinct from tool authorization
+
+A registered tool MAY be technically invokable while still being disallowed in the current context.
+
+---
+
+## REQ-GOV-071 — High-risk tools SHOULD support narrower governance
+
+Examples may include tools capable of:
+
+* production deployment,
+* secret access,
+* destructive database changes,
+* repository administration,
+* policy modification,
+* authority modification,
+* or external publication.
+
+---
+
+## REQ-GOV-072 — Tool calls SHOULD preserve governance context
+
+Consequential tool invocation SHOULD retain enough information to explain:
+
+* actor,
+* authority,
+* policy result,
+* target,
+* intent,
+* operation,
+* and relevant revision.
+
+---
+
+# Integration governance
+
+## REQ-GOV-073 — Native systems MAY continue enforcing native controls
+
+Monad SHOULD integrate with:
+
+* Git hosting permissions,
+* branch protection,
+* operating-system permissions,
+* cloud IAM,
+* CI gates,
+* deployment controls,
+
+rather than assuming all enforcement must be centralized in Monad.
+
+---
+
+## REQ-GOV-074 — Native enforcement MUST NOT substitute for semantic governance where semantics differ
+
+A successful native operation MAY still violate Monad governance.
+
+Monad SHOULD preserve that distinction.
+
+---
+
+## REQ-GOV-075 — Governance SHOULD reconcile native and semantic control state where useful
+
+If Monad expects a branch to require review but GitHub configuration does not enforce it, the mismatch SHOULD be detectable where that integration is managed.
+
+---
+
+# Exceptions
+
+## REQ-GOV-076 — Exceptions MUST be explicit
+
+A governance exception SHOULD identify:
+
+* the rule being excepted,
+* target,
+* reason,
+* approving authority,
+* time bounds,
+* and obligations.
+
+---
+
+## REQ-GOV-077 — Exceptions MUST be bounded
+
+An exception SHOULD NOT silently become a permanent broad waiver.
+
+---
+
+## REQ-GOV-078 — Exceptions SHOULD expire
+
+Where practical, exception validity SHOULD end automatically.
+
+---
+
+## REQ-GOV-079 — Exception use SHOULD be reviewable
+
+Consequential exceptions SHOULD leave sufficient evidence for later inspection.
+
+---
+
+# Emergency governance
+
+## REQ-GOV-080 — Break-glass procedures MUST be part of governance
+
+Emergency mechanisms SHOULD NOT exist as undocumented backdoors.
+
+> **An exception is part of governance, not the absence of it.**
+
+---
+
+## REQ-GOV-081 — Emergency actions MAY reduce pre-action friction but SHOULD increase post-action evidence
+
+A legitimate emergency path MAY permit faster execution while requiring stronger:
+
+* audit,
+* attribution,
+* notification,
+* evidence,
+* and retrospective review.
+
+---
+
+## REQ-GOV-082 — Break-glass authority SHOULD be temporary and narrowly scoped
+
+Emergency authority SHOULD generally be bounded by:
+
+* duration,
+* action,
+* target,
+* and environment.
+
+---
+
+# Governance provenance
+
+## REQ-GOV-083 — Governance decisions MUST preserve provenance
+
+For consequential decisions, Monad SHOULD be able to answer:
+
+* which rules were evaluated,
+* which versions,
+* which authority records,
+* which inputs,
+* which evidence,
+* and which evaluator produced the result.
+
+---
+
+## REQ-GOV-084 — Governance provenance MUST remain distinct from governance authority
+
+Knowing who evaluated a policy does not itself establish that the evaluator was authorized to make the policy authoritative.
+
+---
+
+# Governance history
+
+## REQ-GOV-085 — Historical governance state MUST remain inspectable
+
+Monad SHOULD preserve enough historical state to determine why an operation was considered legitimate at the time.
+
+---
+
+## REQ-GOV-086 — Current governance MUST remain distinguishable from historical governance
+
+A rule that once permitted an operation MAY no longer permit it.
+
+Historical records SHOULD not be reinterpreted using current rules unless explicitly performing retrospective analysis.
+
+---
+
+# Governance revisions
+
+## REQ-GOV-087 — Governed decisions SHOULD retain policy and authority revisions
+
+A consequential authorization SHOULD identify the rule versions under which it was made.
+
+---
+
+## REQ-GOV-088 — Governance state changes SHOULD invalidate incompatible cached decisions
+
+Changes to:
+
+* policy,
+* authority,
+* Constitution,
+* target revision,
+* lifecycle,
+* or environment
+
+MAY require re-evaluation.
+
+---
+
+# Governance observability
+
+## REQ-GOV-089 — Governance events SHOULD be inspectable
+
+Useful governance events may include:
+
+* policy proposed,
+* policy activated,
+* approval granted,
+* approval revoked,
+* authority delegated,
+* authority revoked,
+* exception granted,
+* obligation created,
+* obligation satisfied,
+* authorization denied,
+* emergency path invoked.
+
+---
+
+## REQ-GOV-090 — Governance records SHOULD avoid unnecessary sensitive data
+
+Explainability and audit SHOULD NOT require indiscriminate logging of:
+
+* secrets,
+* credentials,
+* private payloads,
+* or unrelated personal data.
+
+---
+
+# Governance integrity
+
+## REQ-GOV-091 — Governance state SHOULD be protected proportionally to consequence
+
+Rules governing production, authority, identity, security, or constitutional state SHOULD receive stronger integrity controls than ordinary low-risk content.
+
+---
+
+## REQ-GOV-092 — Unauthorized governance modification MUST NOT silently become accepted governance
+
+If a user modifies a policy file without sufficient authority, Monad SHOULD distinguish:
+
+```text
+file changed
+```
+
+from:
+
+```text
+policy legitimately activated
+```
+
+---
+
+# Governance portability
+
+## REQ-GOV-093 — Governance semantics SHOULD remain portable across native platforms
+
+Core governance concepts SHOULD NOT depend exclusively on:
+
+* GitHub,
+* GitLab,
+* one cloud provider,
+* one CI system,
+* or one AI provider.
+
+---
+
+## REQ-GOV-094 — Enforcement bindings MAY vary by platform
+
+A semantic rule such as:
+
+```text
+production release requires two authorized approvals
+```
+
+MAY be enforced differently across native systems while preserving the same underlying governance meaning.
+
+---
+
+# Local-first governance
+
+## REQ-GOV-095 — Core governance rules SHOULD be locally inspectable
+
+A developer SHOULD be able to understand relevant project governance without continuous access to a hosted governance service.
+
+---
+
+## REQ-GOV-096 — Core governance evaluation SHOULD be locally possible where practical
+
+Monad SHOULD preserve local-first operation for governance that can be evaluated from locally available authoritative state.
+
+---
+
+## REQ-GOV-097 — Remote unavailability MUST NOT silently disable governance
+
+If a remote dependency needed for authorization is unavailable, the system SHOULD follow an explicit offline behavior rather than assuming permission.
+
+---
+
+# Governance validation
+
+## REQ-GOV-098 — Governance rules SHOULD be testable
+
+Policies and governance rules SHOULD support:
+
+* positive cases,
+* negative cases,
+* boundary cases,
+* conflict cases,
+* stale approval cases,
+* exception cases,
+* and unauthorized escalation cases.
+
+---
+
+## REQ-GOV-099 — Governance tests SHOULD include counterexamples
+
+A rule SHOULD demonstrate not only when action is permitted, but when superficially similar action must be rejected.
+
+---
+
+## REQ-GOV-100 — Policy changes SHOULD run affected governance tests
+
+Where policy impact can be determined, changes SHOULD trigger relevant validation before activation.
+
+---
+
+# Governance simulation
+
+## REQ-GOV-101 — Proposed governance changes SHOULD be simulatable where useful
+
+Monad MAY support evaluating:
+
+```text
+old policy
+```
+
+versus:
+
+```text
+proposed policy
+```
+
+against representative operations to identify changes in outcome.
+
+---
+
+## REQ-GOV-102 — Simulation MUST NOT itself activate governance
+
+A simulated policy result MUST remain distinct from active authoritative governance.
+
+---
+
+# Governance reconciliation
+
+## REQ-GOV-103 — Governance drift SHOULD be detectable
+
+Monad SHOULD be able to identify divergence between intended governance and observed native enforcement where integrations support that comparison.
+
+---
+
+## REQ-GOV-104 — Governance drift MUST NOT be silently normalized
+
+If native state contradicts expected governance, reconciliation SHOULD identify:
+
+* authoritative source,
+* mismatch,
+* remediation options,
+* and any required approval.
+
+---
+
+# Governance outcomes
+
+A conceptual governance evaluation may produce:
+
+```text
+Permit
+Deny
+Conditional
+Unresolved
+Not Applicable
+```
+
+This is illustrative.
+
+The exact result model belongs in the governance specification.
+
+A conditional result may require:
+
+```text
+approval
+evidence
+verification
+obligation
+scope reduction
+state correction
+```
+
+before execution may proceed.
+
+---
+
+# Illustrative governance context
+
+A governance engine may evaluate a context resembling:
+
+```text
+actor
+action
+target
+scope
+capabilities
+authority
+current state
+proposed state
+environment
+lifecycle state
+policy revisions
+evidence
+approvals
+time
+```
+
+This is conceptual, not a committed schema.
+
+---
+
+# Illustrative release case
+
+Suppose an AI agent requests:
+
+```text
+publish release v1.4.0 to production
+```
+
+Governance might require:
+
+```text
+actor capability:
+  release.publish
+
+actor authority:
+  release.execute
+
+release candidate:
+  immutable revision
+
+verification:
+  required suite passed
+
+approval:
+  release authority
+
+security:
+  required checks passed
+
+policy:
+  active production release policy
+```
+
+The result might be:
+
+```text
+authorized
+obligations:
+  - record release evidence
+  - reconcile deployment state
+```
+
+Only after that evaluation does execution begin.
+
+---
+
+# Illustrative denial case
+
+Suppose the same AI actor has:
+
+```text
+capability:
+  repository.write
+
+authority:
+  documentation.propose
+```
+
+and attempts:
+
+```text
+change production deployment policy
+```
+
+Expected governance result:
+
+```text
+decision: denied
+reason:
+  authority outside scope
+```
+
+The fact that the repository token permits the write is irrelevant to the semantic governance decision.
+
+---
+
+# Illustrative conditional case
+
+An operation may be valid only after review:
+
+```text
+decision: conditional
+
+requirements:
+  - security approval
+  - migration verification
+  - current production backup evidence
+```
+
+Once those conditions are satisfied, governance can be re-evaluated.
+
+---
+
+# Governance anti-patterns
+
+## Governance as universal bureaucracy
+
+Every edit does not need an approval ceremony.
+
+---
+
+## Governance as native permissions
+
+Filesystem and platform permissions are enforcement mechanisms, not the complete governance model.
+
+---
+
+## Hidden hard-coded policy
+
+Governance rules scattered through engine conditionals become difficult to inspect, test, and evolve.
+
+---
+
+## Capability equals authority
+
+A tool being available does not mean its use is legitimate.
+
+---
+
+## Human equals trusted
+
+Humans may also act outside authority.
+
+---
+
+## AI equals untrusted
+
+AI should not be excluded from authority categorically.
+
+It should receive bounded authority appropriate to risk and context.
+
+---
+
+## Approval detached from revision
+
+A generic:
+
+```text
+looks good
+```
+
+should not authorize arbitrary later changes.
+
+---
+
+## Silent policy override
+
+More specific rules MUST NOT silently weaken higher-order constraints.
+
+---
+
+## Permanent exception
+
+A temporary bypass should not become ordinary governance.
+
+---
+
+## Stale authorization
+
+A governance result must not outlive the state assumptions that justified it.
+
+---
+
+## Opaque denial
+
+A system that says only:
+
+```text
+not allowed
+```
+
+without explaining why becomes difficult to trust or repair.
+
+---
+
+## Governance as truth engine
+
+Governance decides legitimacy under rules.
+
+It does not establish objective truth.
+
+---
+
+# Progressive formalization
+
+Governance MAY mature incrementally.
+
+## Stage 1 — Human conventions
+
+Document major responsibilities and decision rights.
+
+---
+
+## Stage 2 — Explicit authority
+
+Represent who may approve or establish consequential state.
+
+---
+
+## Stage 3 — Policy capture
+
+Express repeated governance rules explicitly.
+
+---
+
+## Stage 4 — Structured approvals and evidence
+
+Bind approvals and evidence to concrete revisions.
+
+---
+
+## Stage 5 — Automated evaluation
+
+Evaluate policy deterministically before consequential actions.
+
+---
+
+## Stage 6 — Integrated enforcement
+
+Coordinate Monad governance with native tools.
+
+---
+
+## Stage 7 — Continuous governance
+
+Support:
+
+* drift detection,
+* stale approval invalidation,
+* obligation tracking,
+* policy simulation,
+* and governed human/AI autonomy.
+
+---
+
+# Minimal useful governance system
+
+A useful first governance layer does not need to become an enterprise policy platform.
+
+It may begin with:
+
+```text
+Actor
+Authority
+Action
+Target
+Policy
+Approval
+Evidence
+Decision
+```
+
+and a narrow deterministic evaluator.
+
+The system should grow only where governance complexity is justified by actual engineering risk.
+
+---
+
+# Falsifiability
+
+Monad's governance layer must justify itself.
+
+If a project can achieve sufficient safety and traceability through:
+
+* Git,
+* code review,
+* branch protection,
+* CI,
+* native deployment controls,
+* and simple documented ownership,
+
+Monad SHOULD use those mechanisms rather than recreating them.
+
+A richer governance model earns its cost when the engineering system needs capabilities such as:
+
+* cross-tool authority,
+* property-level authority,
+* semantic policy scope,
+* governed AI autonomy,
+* revision-aware approvals,
+* obligations,
+* explainable authorization,
+* exception management,
+* historical governance,
+* or reconciliation between native and semantic controls.
+
+If those needs never materialize, the simpler system may be correct.
+
+---
+
+# Governance review checklist
+
+For any proposed governance rule, ask:
+
+1. What consequential behavior is being governed?
+2. Why does it need governance?
+3. Which scope does the rule cover?
+4. Who has authority to create the rule?
+5. Which actors are affected?
+6. Which capabilities are relevant?
+7. What operation is governed?
+8. Which target or resource is involved?
+9. Is the default permit, deny, defer, or something else?
+10. Is the default explicit?
+11. Does the rule require approval?
+12. Who may approve?
+13. Is approval revision-aware?
+14. Can approval expire?
+15. Does the rule require evidence?
+16. What evidence is sufficient?
+17. Can that evidence become stale?
+18. Does the operation create obligations?
+19. How are obligations tracked?
+20. Can an exception be granted?
+21. Who may grant it?
+22. Does it expire?
+23. Is there a break-glass path?
+24. How is that path audited?
+25. Can rules conflict?
+26. How are conflicts resolved?
+27. What happens if the evaluator is unavailable?
+28. What happens if authority is unknown?
+29. Does native permission differ from semantic authority?
+30. Can the rule be tested?
+31. Can a proposed revision be simulated?
+32. Can an AI actor modify the rule governing itself?
+33. Can a lower layer weaken a higher-order rule?
+34. Are historical decisions reproducible?
+35. Is the governance burden proportional to the consequence?
+
+---
+
+# Relationship to authority
+
+Authority answers:
+
+> **Who or what may legitimately decide or authorize?**
+
+Governance answers:
+
+> **Under which rules and conditions may the consequential action proceed?**
+
+A useful relationship is:
+
+```text
+Authority establishes legitimate decision rights.
+Policy constrains those rights in context.
+Governance evaluates whether action may proceed.
+```
+
+---
+
+# Relationship to execution
+
+Governance occurs before and around execution.
+
+Execution performs the actual change.
+
+A useful conceptual chain is:
+
+```text
+Intent
+  ↓
+Resolved Operation
+  ↓
+Current State
+  ↓
+Governance Evaluation
+  ↓
+Authorization
+  ↓
+Execution
+  ↓
+Observation
+  ↓
+Verification
+  ↓
+Evidence
+  ↓
+Reconciliation
+```
+
+The existence of governance MUST NOT blur the distinction between:
+
+```text
+allowed
+executed
+succeeded
+verified
+```
+
+Each remains a separate fact.
+
+---
+
+# Requirement relationships
+
+The governance family is closely connected to:
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/authority" title="Authority Requirements">
+    Defines who or what may legitimately establish or authorize engineering state.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/execution" title="Execution Requirements">
+    Defines the boundary between governed intent and consequential native-system action.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/evidence" title="Evidence Requirements">
+    Defines how claims supporting governance decisions and verification remain inspectable.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/provenance" title="Provenance Requirements">
+    Preserves where governance rules, approvals, evaluations, and evidence came from.
+  </Card>
+</Cards>
+
+Governance also directly constrains:
+
+* Policies,
+* lifecycle transitions,
+* releases,
+* Decisions,
+* Specifications,
+* AI actors,
+* native integrations,
+* authority delegation,
+* identity operations,
+* verification,
+* and reconciliation.
+
+---
+
+# Traceability expectations
+
+Accepted governance requirements should eventually trace into architecture, policies, implementation, verification, and evidence.
+
+Illustratively:
+
+```text
+REQ-GOV-059
+  ↓ refined-by
+Execution Governance Specification
+  ↓ implemented-by
+Execution Boundary
+  ↓ constrained-by
+High-Risk Operation Policy
+  ↓ verified-by
+Authorization Freshness Test
+  ↓ evidenced-by
+Verification Result
+```
+
+This trace is illustrative.
+
+Actual links should only be created when corresponding artifacts exist.
+
+---
+
+# Governing principle
+
+Monad governance should make it possible to determine:
+
+> What action is being proposed?
+
+> Who or what is proposing it?
+
+> What can that actor technically do?
+
+> What is that actor legitimately authorized to do?
+
+> Which policies apply?
+
+> Which approvals are required?
+
+> Which evidence must exist?
+
+> Which obligations follow?
+
+> Are those approvals and evidence still current?
+
+> Has the relevant state changed?
+
+> Is an exception being used?
+
+> Who authorized that exception?
+
+> Can the decision be explained later?
+
+> Does native enforcement agree with semantic governance?
+
+> Is the governance burden justified by the consequence?
+
+The objective is neither unrestricted automation nor process for process's sake.
+
+It is controlled freedom:
+
+> **Governance should constrain consequential action without turning ordinary engineering into ceremony.**

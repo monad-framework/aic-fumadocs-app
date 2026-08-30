@@ -1,0 +1,3724 @@
+---
+title: Governance
+description: How Monad represents authority, capabilities, policy, obligations, approvals, protected invariants, lifecycle gates, exceptions, and governed system evolution.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Governed engineering
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Monad treats governance as part of the engineering system itself. Capability does not imply permission, information does not become authoritative merely because it exists, and increasingly capable automation must operate within explicit, inspectable boundaries.
+  </p>
+</div>
+
+## What this page defines
+
+[Concepts & Principles](/docs/system/concepts) defines authority, policy, capability, Actor, and Constitution conceptually.
+
+[Architecture](/docs/system/architecture) establishes governance as a major architectural responsibility.
+
+[Components](/docs/system/components) assigns policy evaluation and lifecycle enforcement to explicit components.
+
+This page defines how those ideas compose into the governance model.
+
+It answers:
+
+> **Who or what may perform an engineering action, why is the action legitimate, what conditions apply, what evidence or approval is required, and how does Monad prevent technical capability from becoming unrestricted authority?**
+
+This is **system governance**.
+
+It should not be confused with organizational governance of the Monad open-source project itself.
+
+---
+
+# Governance as engineering architecture
+
+In many software systems, governance exists mostly outside the software.
+
+It appears as:
+
+```text
+team conventions
+code-review expectations
+approval rules
+release checklists
+security policies
+tribal knowledge
+```
+
+Humans interpret those rules manually.
+
+That works only while:
+
+* everyone knows the rules,
+* everyone remembers them,
+* every actor understands the context,
+* and automation remains relatively weak.
+
+As engineering agents become capable of:
+
+* modifying source,
+* changing configuration,
+* updating infrastructure,
+* publishing packages,
+* deploying services,
+* creating releases,
+* and modifying other engineering artifacts,
+
+implicit governance becomes increasingly dangerous.
+
+Monad therefore asks:
+
+> **Which parts of engineering governance should become explicit enough for the system itself to understand and enforce?**
+
+---
+
+# The governance stack
+
+Monad governance can be understood as several related layers:
+
+```text
+Constitution
+      │
+      ▼
+Authority
+      │
+      ▼
+Capabilities
+      │
+      ▼
+Policies
+      │
+      ▼
+Obligations
+      │
+      ▼
+Approvals / Evidence
+      │
+      ▼
+Authorized Operation
+      │
+      ▼
+Execution
+```
+
+Each layer answers a different question.
+
+```text
+Constitution
+  What foundational rules constrain the system?
+
+Authority
+  Why may this Actor govern or act in this scope?
+
+Capability
+  What can this Actor technically do?
+
+Policy
+  Is this operation permitted under these conditions?
+
+Obligation
+  What must also happen if it is permitted?
+
+Approval
+  Whose explicit authorization is required?
+
+Evidence
+  What must support the action or resulting claim?
+
+Execution
+  What side effect actually occurs?
+```
+
+These distinctions should remain explicit.
+
+---
+
+# Governance is not permission alone
+
+A simple authorization system often asks:
+
+```text
+Can user X perform action Y?
+```
+
+Monad needs a richer question:
+
+```text
+May Actor X
+perform Operation Y
+against Subject Z
+within Scope S
+at Lifecycle State L
+under Policy P
+given Evidence E
+with Approval A
+against System Revision R?
+```
+
+The answer may not be merely:
+
+```text
+yes
+```
+
+or:
+
+```text
+no
+```
+
+It may instead be:
+
+```text
+permit
+
+permit with obligations
+
+require approval
+
+require additional evidence
+
+require narrower scope
+
+require updated plan
+
+deny
+
+escalate
+```
+
+Governance therefore produces structured decisions rather than only access-control bits.
+
+---
+
+# The Constitution
+
+The **Constitution** is the highest-order governance layer.
+
+It defines the foundational rules within which all ordinary governance operates.
+
+Potential constitutional concerns include:
+
+* core semantic invariants,
+* permitted foundational entity types,
+* authority hierarchy,
+* protected concepts,
+* extension constraints,
+* governance boundaries,
+* constitutional versioning,
+* and amendment procedure.
+
+Conceptually:
+
+```text
+Constitution
+     │
+     │ constrains
+     ▼
+ordinary governance
+     │
+     ▼
+ordinary system state
+```
+
+The Constitution should remain small.
+
+If every routine engineering policy becomes constitutional, the architecture has failed to distinguish foundational rules from operational governance.
+
+---
+
+# Constitutional authority
+
+Ordinary policy should not be able to rewrite constitutional constraints casually.
+
+For example:
+
+```text
+ordinary policy:
+  implementation agents may modify application code
+```
+
+must not imply:
+
+```text
+therefore implementation agents may modify
+the rules that define implementation-agent authority
+```
+
+The system must distinguish authority over:
+
+```text
+ordinary engineering state
+```
+
+from authority over:
+
+```text
+governance rules themselves
+```
+
+and:
+
+```text
+constitutional rules
+```
+
+These are different scopes of power.
+
+---
+
+# Constitutional amendment
+
+The Constitution must be able to evolve.
+
+But constitutional evolution should follow stronger governance than ordinary change.
+
+A conceptual amendment flow is:
+
+```text
+Amendment Proposal
+      │
+      ▼
+Constitutional Impact Analysis
+      │
+      ▼
+Compatibility Analysis
+      │
+      ▼
+Required Review
+      │
+      ▼
+Explicit Constitutional Approval
+      │
+      ▼
+Migration Plan
+      │
+      ▼
+Amendment
+      │
+      ▼
+Verification
+      │
+      ▼
+New Constitutional Version
+```
+
+The precise approval mechanism belongs in formal specification.
+
+The system-level rule is:
+
+> **Changing the rules governing the system must be distinguishable from operating within those rules.**
+
+---
+
+# Actor
+
+An **Actor** is an identifiable participant capable of performing or requesting engineering activity.
+
+Actors may include:
+
+```text
+human engineer
+maintainer
+reviewer
+AI agent
+automation
+CI system
+release service
+external system
+```
+
+Governance begins with knowing:
+
+```text
+who or what is acting?
+```
+
+Anonymous technical capability should not silently become privileged authority.
+
+---
+
+# Actor identity
+
+Governed operations should resolve to a meaningful Actor identity.
+
+For example:
+
+```text
+Actor:
+  human:alice
+```
+
+or:
+
+```text
+Actor:
+  agent:implementation-agent-17
+```
+
+or:
+
+```text
+Actor:
+  service:release-automation
+```
+
+The exact identifier form is a specification concern.
+
+The architectural principle is that significant actions can be attributed to identifiable Actors.
+
+---
+
+# Actor versus role
+
+An Actor is not the same thing as a role.
+
+For example:
+
+```text
+Actor:
+  Alice
+
+Role:
+  Maintainer
+```
+
+A role may contribute to authority.
+
+But the action should still remain attributable to Alice.
+
+Likewise:
+
+```text
+Actor:
+  Agent-17
+
+Role:
+  Implementation Agent
+```
+
+The role describes expected function.
+
+The Actor identifies who actually participated.
+
+---
+
+# Capability
+
+A **Capability** describes what an Actor or system is technically able to do.
+
+Examples:
+
+```text
+read source
+modify source
+create artifact
+run tests
+query system graph
+change specification
+approve review
+publish package
+deploy service
+modify policy
+```
+
+Capabilities are important because different Actors may have very different technical abilities.
+
+But:
+
+> **Capability is not authority.**
+
+An agent may technically possess a tool capable of deleting a repository.
+
+That does not establish permission to do so.
+
+---
+
+# Capability declaration
+
+Actors, adapters, agents, and extensions should be able to declare or expose their capabilities.
+
+For example:
+
+```text
+Actor:
+  implementation-agent
+
+Capabilities:
+  read-source
+  modify-source
+  run-tests
+  create-patch
+```
+
+while another Actor might expose:
+
+```text
+Actor:
+  release-service
+
+Capabilities:
+  create-release
+  publish-package
+  publish-container
+```
+
+Governance can then reason explicitly about what operations are even technically available.
+
+---
+
+# Capability is not delegation
+
+Giving a component access to:
+
+```text
+GitHub credential
+```
+
+may technically allow many GitHub operations.
+
+Monad should not treat that credential as equivalent to authorization for every operation it enables.
+
+A better model is:
+
+```text
+credential
+   enables technical capability
+
+policy + authority
+   constrain permissible use
+```
+
+This is especially important for agents and plugins.
+
+---
+
+# Authority
+
+**Authority** answers:
+
+> **Why is this Actor entitled to govern or perform this operation within this scope?**
+
+Authority may originate from:
+
+* constitutional rules,
+* explicit delegation,
+* role assignment,
+* ownership,
+* policy,
+* lifecycle state,
+* approved work scope,
+* human authorization,
+* or another authoritative system.
+
+Authority should always be understood relative to scope.
+
+---
+
+# Scoped authority
+
+Authority is not necessarily global.
+
+For example:
+
+```text
+Actor A
+
+may:
+  modify source under packages/auth/**
+
+may not:
+  modify public API specifications
+  change release policy
+  amend the Constitution
+```
+
+This is stronger than simply declaring:
+
+```text
+Actor A = developer
+```
+
+Scoped authority can express:
+
+```text
+resource scope
+operation scope
+time scope
+project scope
+lifecycle scope
+capability scope
+```
+
+---
+
+# Delegation
+
+Authority may be delegated.
+
+For example:
+
+```text
+Maintainer
+   │
+   │ delegates bounded work
+   ▼
+Implementation Agent
+```
+
+The delegation should ideally define:
+
+```text
+Actor
+Scope
+Capabilities
+Permitted Operations
+Expiration
+Required Verification
+Escalation Conditions
+```
+
+For example:
+
+```text
+Delegate:
+  implementation-agent
+
+Scope:
+  packages/auth/**
+
+Permitted:
+  modify-source
+  run-tests
+
+Not permitted:
+  change-public-interface
+  modify-policy
+  publish-release
+
+Expires:
+  end of Work Package
+```
+
+This enables bounded autonomy.
+
+---
+
+# Authority should be revocable
+
+Delegated authority should be removable or expire.
+
+Possible triggers include:
+
+```text
+task completion
+time expiration
+scope change
+policy change
+security concern
+Actor compromise
+manual revocation
+```
+
+The system should not assume that authority, once granted, remains permanent.
+
+---
+
+# Authority chains
+
+In some cases, authority may be derived through several layers.
+
+For example:
+
+```text
+Constitution
+     │
+     ▼
+Project Policy
+     │
+     ▼
+Maintainer Authority
+     │
+     ▼
+Work Package Authorization
+     │
+     ▼
+Implementation Agent
+```
+
+A governed operation may therefore need to answer:
+
+> Where did this Actor's authority come from?
+
+This is analogous to provenance for information.
+
+Authority itself may need provenance.
+
+---
+
+# Policy
+
+A **Policy** defines a rule constraining actions or transitions under particular conditions.
+
+Policies may express rules such as:
+
+```text
+Implementation agents may modify implementation
+inside their authorized Work Package scope.
+```
+
+```text
+Changes to public interfaces require compatibility review.
+```
+
+```text
+Release publication requires successful verification.
+```
+
+```text
+Constitutional changes require constitutional amendment authority.
+```
+
+Policies turn governance expectations into explicit system rules.
+
+---
+
+# Policy inputs
+
+A policy decision may consider:
+
+```text
+Actor
+Role
+Capability
+Requested Operation
+Target
+Scope
+Lifecycle State
+Current Revision
+Risk
+Environment
+Evidence
+Existing Approval
+```
+
+Conceptually:
+
+```text
+Actor
+   +
+Operation
+   +
+Target
+   +
+State
+   +
+Authority
+   +
+Policy Context
+       │
+       ▼
+Policy Evaluation
+```
+
+---
+
+# Policy outputs
+
+A policy evaluation should support rich outcomes.
+
+For example:
+
+```text
+PERMIT
+```
+
+```text
+DENY
+```
+
+```text
+PERMIT WITH OBLIGATIONS
+```
+
+```text
+REQUIRE APPROVAL
+```
+
+```text
+REQUIRE EVIDENCE
+```
+
+```text
+REQUIRE ESCALATION
+```
+
+```text
+REQUIRE REPLANNING
+```
+
+The system should be able to explain why.
+
+---
+
+# Explainable policy decisions
+
+A policy decision should ideally answer:
+
+```text
+What was requested?
+
+Which policy applied?
+
+What decision was reached?
+
+Why?
+
+What obligations remain?
+
+What authority was used?
+
+What evidence or approval is missing?
+```
+
+For example:
+
+```text
+Decision:
+  require-approval
+
+Operation:
+  modify-public-interface
+
+Target:
+  auth-api
+
+Policy:
+  POL-API-004
+
+Reason:
+  public interface changes require architecture review
+
+Required approval:
+  architecture-review
+```
+
+Governance should not feel arbitrary.
+
+---
+
+# Policy precedence
+
+Multiple policies may apply simultaneously.
+
+For example:
+
+```text
+Policy A:
+  implementation agents may modify source
+
+Policy B:
+  public interfaces require review
+
+Policy C:
+  security-sensitive files require security approval
+```
+
+A change may satisfy all three scopes.
+
+The system therefore needs explicit policy-composition rules.
+
+Potential concerns include:
+
+```text
+deny precedence
+more-specific scope
+constitutional priority
+explicit overrides
+obligation accumulation
+```
+
+The exact evaluation semantics belong in policy specification.
+
+---
+
+# Conflicting policies
+
+Policies may conflict.
+
+For example:
+
+```text
+Policy A:
+  Agent may modify schema.
+
+Policy B:
+  Schema modifications require human approval.
+```
+
+Monad should not silently choose whichever policy loaded last.
+
+Instead, the conflict should be:
+
+```text
+detected
+reported
+resolved through defined precedence
+or escalated
+```
+
+A governance system must itself be governable.
+
+---
+
+# Obligations
+
+A policy may permit an action while attaching **obligations**.
+
+For example:
+
+```text
+Operation:
+  modify public API
+
+Decision:
+  permit
+
+Obligations:
+  update specification
+  run compatibility suite
+  obtain architecture review
+  record change rationale
+```
+
+This is more expressive than:
+
+```text
+allowed / denied
+```
+
+because many engineering operations are conditionally legitimate.
+
+---
+
+# Obligation lifecycle
+
+An obligation may be:
+
+```text
+required
+satisfied
+waived
+failed
+expired
+```
+
+An authorized operation should not be treated as fully complete if required obligations remain unresolved.
+
+For example:
+
+```text
+implementation complete
+       │
+       ▼
+compatibility verification pending
+       │
+       ▼
+operation not yet complete
+```
+
+This links governance with lifecycle and verification.
+
+---
+
+# Approval
+
+An **Approval** represents explicit authorization by an Actor with sufficient authority.
+
+Examples may include:
+
+```text
+architecture approval
+security approval
+release approval
+constitutional approval
+exception approval
+```
+
+An approval should identify:
+
+```text
+approver
+scope
+subject
+decision
+time
+revision
+conditions
+```
+
+Approval should not be an unstructured checkbox detached from what was actually reviewed.
+
+---
+
+# Approval is revision-sensitive
+
+Suppose:
+
+```text
+Plan v1
+```
+
+is approved.
+
+Then the plan changes materially into:
+
+```text
+Plan v2
+```
+
+The previous approval should not automatically apply.
+
+Conceptually:
+
+```text
+Approval
+  binds to
+  specific state / revision / scope
+```
+
+This prevents approval from becoming indefinitely reusable authority.
+
+---
+
+# Self-approval
+
+Some governance contexts may prohibit an Actor from approving its own high-risk work.
+
+For example:
+
+```text
+Implementation Agent
+  performs change
+
+Independent Reviewer
+  approves change
+```
+
+This creates separation of duties.
+
+The exact rules should depend on risk.
+
+Monad should support independence requirements where they matter without making them universal ceremony.
+
+---
+
+# Evidence as governance input
+
+Evidence can be required before an operation becomes valid.
+
+For example:
+
+```text
+Release requires:
+  successful acceptance tests
+  security verification
+  reproducibility check
+```
+
+or:
+
+```text
+Migration completion requires:
+  source and target consistency evidence
+```
+
+Evidence therefore participates not only in verification but governance.
+
+---
+
+# Evidence versus approval
+
+These are different.
+
+```text
+Evidence
+  shows something about reality
+
+Approval
+  expresses authorized judgment
+```
+
+For example:
+
+```text
+Test result:
+  compatibility suite passed
+```
+
+does not automatically imply:
+
+```text
+release approved
+```
+
+Likewise:
+
+```text
+maintainer approved release
+```
+
+does not prove:
+
+```text
+compatibility suite passed
+```
+
+Both may be required.
+
+---
+
+# Lifecycle gates
+
+Governance often applies at state transitions.
+
+For example:
+
+```text
+Specification
+
+draft
+   ↓
+proposed
+   ↓
+accepted
+   ↓
+active
+```
+
+The transition:
+
+```text
+proposed → accepted
+```
+
+may require:
+
+```text
+review
+authority
+evidence
+```
+
+while:
+
+```text
+accepted → active
+```
+
+may require something else.
+
+Lifecycle therefore creates natural governance gates.
+
+---
+
+# State-dependent authority
+
+An Actor may be allowed to perform an operation in one lifecycle state but not another.
+
+For example:
+
+```text
+draft specification
+  editable by author
+
+active specification
+  requires change proposal
+
+superseded specification
+  historical; immutable except correction metadata
+```
+
+The operation cannot be evaluated without knowing the state.
+
+---
+
+# Risk-proportional governance
+
+Not every change deserves the same process.
+
+Monad should avoid governance that treats:
+
+```text
+fix typo
+```
+
+and:
+
+```text
+change authentication architecture
+```
+
+as equivalent.
+
+A useful conceptual risk model might consider:
+
+```text
+blast radius
+reversibility
+security impact
+public compatibility
+data loss potential
+authority sensitivity
+constitutional significance
+```
+
+Governance can then increase as consequences increase.
+
+---
+
+# Risk tiers
+
+A conceptual risk scale might look like:
+
+```text
+LOW
+  local, reversible, well-tested
+
+MODERATE
+  bounded functional change
+
+HIGH
+  public contract, security, data, release
+
+CRITICAL
+  governance, constitutional, irreversible
+```
+
+The exact categories are a policy decision.
+
+The governing principle is:
+
+> **Governance should be proportional to consequence.**
+
+---
+
+# Bounded autonomy
+
+One of Monad's primary goals is not to eliminate automation.
+
+It is to enable **bounded autonomy**.
+
+An agent may be given substantial freedom inside a clearly defined boundary.
+
+For example:
+
+```text
+Agent may:
+
+  inspect repository
+  modify implementation
+  add tests
+  run validation
+  create patch
+
+within:
+
+  Work Package WP-042
+
+but may not:
+
+  change requirements
+  modify architecture
+  publish release
+  amend policy
+```
+
+This gives the agent useful independence without unrestricted authority.
+
+---
+
+# Autonomy envelope
+
+A useful autonomy definition may include:
+
+```text
+Actor
+Scope
+Capabilities
+Policies
+Maximum Risk
+Allowed Side Effects
+Required Evidence
+Escalation Conditions
+Expiration
+```
+
+Conceptually:
+
+```text
+Autonomy Envelope
+      │
+      ├── where may I act?
+      ├── what may I do?
+      ├── how risky may the work be?
+      ├── what must I verify?
+      └── when must I stop and ask?
+```
+
+This is a more useful model than simply describing an agent as:
+
+```text
+autonomous
+```
+
+---
+
+# Escalation
+
+An Actor should be able to determine when it lacks authority.
+
+For example:
+
+```text
+Requested:
+  modify auth API
+
+Agent Authority:
+  implementation changes only
+
+Detected:
+  specification change required
+
+Result:
+  escalation required
+```
+
+A well-governed Actor should not interpret missing authority as a challenge to work around.
+
+It should request additional authority or human decision.
+
+---
+
+# Protected Subjects
+
+Some Subjects may require stronger governance.
+
+Examples might include:
+
+```text
+Constitution
+security policy
+public schema
+public API
+migration history
+release signing configuration
+credential policy
+```
+
+A protected Subject can require:
+
+* stronger Actor authority,
+* mandatory review,
+* restricted capabilities,
+* higher evidence requirements,
+* or complete prohibition for certain Actor classes.
+
+---
+
+# Protected operations
+
+Protection may apply not only to Subjects but operations.
+
+For example:
+
+```text
+read
+  widely allowed
+
+modify
+  restricted
+
+delete
+  strongly restricted
+
+supersede
+  requires review
+
+publish
+  release authority required
+```
+
+Governance therefore evaluates:
+
+```text
+Actor + Operation + Subject + Scope
+```
+
+rather than Subject alone.
+
+---
+
+# Invariants
+
+An **Invariant** is a condition that must remain true.
+
+Some invariants are constitutional.
+
+Others belong to specific domains.
+
+Examples might include:
+
+```text
+Every active Representation resolves to a known Subject.
+
+An active Specification cannot be superseded by itself.
+
+A released artifact must reference verification evidence.
+
+An Actor cannot exercise a Capability outside its delegated scope.
+```
+
+Governance can prevent operations that would violate invariants.
+
+---
+
+# Precondition versus invariant
+
+These concepts differ.
+
+A **precondition** is required for a particular operation.
+
+An **invariant** should remain true across relevant system states.
+
+For example:
+
+```text
+Precondition:
+  expected repository revision matches current revision
+```
+
+versus:
+
+```text
+Invariant:
+  confirmed Subject identities remain unique within scope
+```
+
+Governance may enforce both.
+
+---
+
+# Exceptions
+
+No policy system can predict every legitimate exceptional circumstance.
+
+Monad therefore needs explicit exception handling.
+
+An exception should not mean:
+
+```text
+ignore policy
+```
+
+It should mean:
+
+```text
+policy normally prohibits this
+
+an authorized Actor explicitly approved
+a bounded exception
+
+the exception has scope
+reason
+duration
+conditions
+and provenance
+```
+
+---
+
+# Exception record
+
+A useful exception may identify:
+
+```text
+policy
+Actor requesting exception
+approver
+scope
+reason
+risk
+expiration
+required mitigation
+```
+
+For example:
+
+```text
+Policy:
+  POL-RELEASE-004
+
+Exception:
+  skip benchmark threshold
+
+Reason:
+  benchmark infrastructure unavailable
+
+Scope:
+  release candidate rc3 only
+
+Approved by:
+  release-authority
+
+Mitigation:
+  benchmark required before stable release
+```
+
+Exceptions should be inspectable rather than invisible workarounds.
+
+---
+
+# Emergency authority
+
+Some systems may require emergency operations.
+
+For example:
+
+```text
+revoke compromised credential
+disable deployment
+rollback release
+```
+
+Emergency paths may legitimately bypass normal timing or review requirements.
+
+But they should still preserve:
+
+```text
+Actor
+reason
+scope
+operation
+evidence
+time
+post-action review
+```
+
+Emergency authority should be powerful and narrow.
+
+---
+
+# Break-glass operations
+
+A break-glass mechanism may allow exceptional privileged action under tightly controlled conditions.
+
+Conceptually:
+
+```text
+Normal policy denies operation
+       │
+       ▼
+Emergency condition declared
+       │
+       ▼
+Break-glass authority invoked
+       │
+       ▼
+Operation performed
+       │
+       ▼
+Mandatory evidence + audit
+       │
+       ▼
+Post-action review
+```
+
+A break-glass path should not become a convenient bypass for ordinary work.
+
+---
+
+# Human authority
+
+Humans retain important governance responsibilities.
+
+Monad does not assume all human decisions should eventually be automated.
+
+Examples that may remain human-centered include:
+
+* strategic tradeoffs,
+* acceptance of new risk,
+* constitutional amendments,
+* irreversible decisions,
+* organizational responsibility,
+* and decisions where values matter more than technical optimization.
+
+The architecture should represent human authority explicitly enough for machines to know when they must defer.
+
+---
+
+# AI authority
+
+AI agents may receive substantial operational authority.
+
+But their authority should be:
+
+* explicit,
+* scoped,
+* revocable,
+* inspectable,
+* policy-bound,
+* and proportional to risk.
+
+For example:
+
+```text
+AI agent
+  can create implementation patch
+
+AI agent
+  cannot approve its own architecture change
+```
+
+or:
+
+```text
+AI agent
+  can merge low-risk dependency update
+  after required verification passes
+```
+
+The exact delegation policy can vary by organization or project.
+
+The system needs the mechanisms to express it.
+
+---
+
+# Human and machine governance use the same foundation
+
+Humans and agents need not have identical policies.
+
+But governance should use the same underlying concepts:
+
+```text
+Actor
+Authority
+Capability
+Scope
+Policy
+Approval
+Evidence
+Lifecycle
+```
+
+This avoids building:
+
+```text
+one governance system for humans
+another unrelated system for AI
+```
+
+where the two drift apart.
+
+---
+
+# Review
+
+A **Review** evaluates an artifact, plan, change, or result.
+
+Review may serve several functions:
+
+```text
+technical scrutiny
+independence
+risk assessment
+policy satisfaction
+approval input
+evidence generation
+```
+
+A review should remain distinct from approval.
+
+A reviewer may conclude:
+
+```text
+technically sound
+```
+
+without possessing authority to approve release.
+
+---
+
+# Review types
+
+Potential review categories include:
+
+```text
+domain review
+architecture review
+security review
+specification review
+implementation review
+verification review
+release review
+constitutional review
+```
+
+Different policies may require different kinds of review depending on the change.
+
+---
+
+# Review independence
+
+Some reviews gain value from independence.
+
+For example:
+
+```text
+Actor A
+  creates implementation
+
+Actor B
+  verifies critical security behavior
+```
+
+The policy system may require that:
+
+```text
+A != B
+```
+
+for specific high-risk operations.
+
+This need not apply to routine low-risk work.
+
+---
+
+# Governance and planning
+
+Planning and governance are tightly connected but distinct.
+
+Planning answers:
+
+```text
+What should be done?
+```
+
+Governance answers:
+
+```text
+May this plan be executed?
+Under what conditions?
+```
+
+Conceptually:
+
+```text
+Intent
+  ↓
+Plan
+  ↓
+Impact
+  ↓
+Policy Evaluation
+  ↓
+Authorization
+  ↓
+Execution
+```
+
+A plan should be inspectable before it becomes action.
+
+---
+
+# Governance and execution
+
+Execution must not independently grant itself authority.
+
+The Execution Component should receive a governance result that establishes:
+
+```text
+operation
+scope
+Actor
+authorization
+obligations
+expected state
+```
+
+Conceptually:
+
+```text
+Policy Decision
+      │
+      ▼
+Authorized Operation
+      │
+      ▼
+Execution Boundary
+```
+
+Execution may still reject the operation if preconditions are no longer valid.
+
+---
+
+# Governance and verification
+
+Governance may define **what must be verified**.
+
+Verification determines **whether that condition was satisfied**.
+
+For example:
+
+```text
+Policy:
+  public API changes require compatibility verification
+```
+
+Verification:
+
+```text
+Compatibility Suite:
+  passed
+```
+
+Governance can then recognize the obligation as satisfied.
+
+---
+
+# Governance and provenance
+
+Governance decisions should be traceable.
+
+For important operations, Monad should be able to answer:
+
+```text
+Who requested this?
+
+Who authorized it?
+
+Which policy applied?
+
+Which evidence was considered?
+
+What obligations existed?
+
+What operation was actually performed?
+
+What was the outcome?
+```
+
+This creates governance provenance.
+
+---
+
+# Governance and identity
+
+Authority cannot be reliable if Actor or Subject identity is ambiguous.
+
+For example:
+
+```text
+policy permits maintainer to modify Subject A
+```
+
+is meaningless if Monad cannot determine which thing is Subject A.
+
+Governance therefore depends heavily on trustworthy identity resolution.
+
+---
+
+# Governance and authority of information
+
+Governance is not only about actions.
+
+It also concerns information.
+
+For example:
+
+```text
+Which artifact may define required behavior?
+
+Which source may declare a release complete?
+
+Which system owns runtime truth?
+
+Which claim may supersede another?
+```
+
+The authority model therefore governs both:
+
+```text
+action authority
+```
+
+and:
+
+```text
+information authority
+```
+
+These related concerns should remain distinguishable.
+
+---
+
+# Governance hierarchy
+
+A simplified hierarchy might look like:
+
+```text
+CONSTITUTION
+    │
+    ▼
+SYSTEM-WIDE POLICY
+    │
+    ▼
+DOMAIN POLICY
+    │
+    ▼
+PROJECT / WORKSPACE POLICY
+    │
+    ▼
+WORK-SCOPE AUTHORITY
+    │
+    ▼
+OPERATION-SPECIFIC AUTHORIZATION
+```
+
+Lower levels operate inside constraints imposed by higher levels.
+
+A Work Package cannot legitimately authorize an operation prohibited by the Constitution.
+
+---
+
+# Policy scope
+
+Policies may apply at many scopes.
+
+Examples:
+
+```text
+global
+workspace
+project
+repository
+domain
+Subject type
+individual Subject
+Actor type
+individual Actor
+operation
+environment
+release channel
+```
+
+Specificity matters.
+
+The system needs enough scope semantics to avoid applying every rule globally.
+
+---
+
+# Policy inheritance
+
+Some scopes may inherit policy from broader scopes.
+
+For example:
+
+```text
+Organization Policy
+        ↓
+Project Policy
+        ↓
+Repository Policy
+        ↓
+Subject-specific Policy
+```
+
+A narrower policy may:
+
+```text
+add constraints
+specialize behavior
+```
+
+but should not automatically be able to weaken higher-order requirements.
+
+The exact override rules belong in specification.
+
+---
+
+# Deny versus obligation
+
+Two policy outcomes should remain distinct.
+
+```text
+DENY
+```
+
+means:
+
+> The operation may not proceed under the current conditions.
+
+```text
+OBLIGATION
+```
+
+means:
+
+> The operation may proceed if additional required conditions are satisfied.
+
+This distinction makes automated workflows much more useful.
+
+---
+
+# Conditional authorization
+
+Authorization may depend on future obligations.
+
+For example:
+
+```text
+Change approved for execution
+provided that:
+
+  compatibility suite passes
+  security scan passes
+  no unexpected impact appears
+```
+
+The resulting state may be:
+
+```text
+conditionally authorized
+```
+
+rather than fully complete.
+
+This is especially useful for CI-driven workflows.
+
+---
+
+# Authorization expiry
+
+Authorization should sometimes expire.
+
+For example:
+
+```text
+approval granted
+against revision abc123
+```
+
+may no longer be valid after:
+
+```text
+repository changed to def456
+```
+
+Likewise, temporary elevated authority may expire by time.
+
+This helps prevent stale approval from becoming indefinite permission.
+
+---
+
+# Revision-aware governance
+
+A governance decision may bind to:
+
+```text
+Plan revision
+Target revision
+Policy revision
+Constitution version
+```
+
+If any materially relevant state changes, reevaluation may be required.
+
+Conceptually:
+
+```text
+authorized against state A
+        │
+        ▼
+state becomes B
+        │
+        ▼
+authorization may be stale
+```
+
+This is essential for concurrent engineering systems.
+
+---
+
+# Policy versioning
+
+Policies evolve.
+
+A policy decision should therefore be capable of identifying:
+
+```text
+which policy version was evaluated
+```
+
+For example:
+
+```text
+Policy:
+  POL-API-004@3
+```
+
+This allows later reconstruction of why an operation was permitted or denied.
+
+---
+
+# Governance events
+
+Important governance events may include:
+
+```text
+authority.granted
+authority.revoked
+policy.changed
+operation.denied
+approval.granted
+approval.revoked
+exception.created
+exception.expired
+constitutional.amended
+```
+
+These may feed:
+
+* observability,
+* provenance,
+* audit,
+* reconciliation,
+* and lifecycle behavior.
+
+Not every low-level policy evaluation needs permanent storage.
+
+Significant governance changes often do.
+
+---
+
+# Auditability
+
+Monad should support reconstruction of significant governance decisions.
+
+For an important operation, it should eventually be possible to answer:
+
+```text
+Who acted?
+
+What were they allowed to do?
+
+Which policy applied?
+
+Which decision was made?
+
+Who approved it?
+
+Which evidence existed?
+
+Which revision was evaluated?
+
+What side effects occurred?
+```
+
+This is not only a compliance feature.
+
+It is part of engineering explainability.
+
+---
+
+# Audit is not surveillance
+
+The objective is not to preserve every human or machine action forever.
+
+Monad should retain governance information when its reconstruction value justifies the cost.
+
+The same principle applied elsewhere remains relevant:
+
+> **Preserve information that is expensive or important to reconstruct.**
+
+Governance metadata should remain purposeful.
+
+---
+
+# Governance failures
+
+Governance itself can fail.
+
+Potential failure modes include:
+
+```text
+ambiguous Actor identity
+missing authority
+conflicting policy
+stale approval
+expired delegation
+invalid lifecycle transition
+missing evidence
+unknown scope
+constitutional conflict
+unavailable authoritative source
+```
+
+These should become explicit diagnostics.
+
+---
+
+# Fail closed versus fail open
+
+Different operations require different behavior when governance information is unavailable.
+
+For high-risk operations:
+
+```text
+cannot determine authorization
+      ↓
+deny / require escalation
+```
+
+may be appropriate.
+
+For harmless read-only inspection:
+
+```text
+authority metadata unavailable
+      ↓
+return result with warning
+```
+
+may be more useful.
+
+The policy system should allow risk-sensitive failure behavior.
+
+---
+
+# Governance uncertainty
+
+Governance can itself contain uncertainty.
+
+For example:
+
+```text
+Actor identity confirmed
+Target identity ambiguous
+Applicable policy uncertain
+```
+
+The system should not automatically interpret ambiguity as permission.
+
+A governance decision may therefore return:
+
+```text
+undetermined
+```
+
+or:
+
+```text
+requires resolution
+```
+
+where appropriate.
+
+---
+
+# Governance and native systems
+
+Native systems may already have their own authorization models.
+
+Examples:
+
+```text
+filesystem permissions
+GitHub permissions
+cloud IAM
+database roles
+CI permissions
+```
+
+Monad should not pretend these do not exist.
+
+Instead:
+
+```text
+Monad governance
+      +
+native authorization
+```
+
+both apply.
+
+Monad may permit an operation that the native system ultimately refuses.
+
+Or the native system may technically permit an operation that Monad policy prohibits.
+
+---
+
+# Native permission does not imply Monad authority
+
+For example:
+
+```text
+GitHub token:
+  can merge pull requests
+```
+
+does not establish:
+
+```text
+Monad policy:
+  this Actor may merge this pull request
+```
+
+Monad governance operates above raw technical capability.
+
+---
+
+# Governance should not duplicate native enforcement unnecessarily
+
+Where a native system already strongly enforces a rule, Monad may model and rely on that enforcement.
+
+For example:
+
+```text
+cloud IAM
+```
+
+may remain the primary enforcement mechanism for cloud-resource access.
+
+Monad can preserve:
+
+* intended authority,
+* policy,
+* provenance,
+* and relationships
+
+without reimplementing the entire IAM system.
+
+---
+
+# Policy enforcement points
+
+Policies may be enforced at different boundaries.
+
+Examples include:
+
+```text
+planning
+authorization
+execution
+lifecycle transition
+release
+projection publication
+adapter invocation
+```
+
+A policy should be enforced where violation can still be prevented meaningfully.
+
+---
+
+# Defense in depth
+
+Critical rules may be checked more than once.
+
+For example:
+
+```text
+Planning:
+  identifies public API change
+
+Policy:
+  requires compatibility review
+
+Execution:
+  verifies authorization still current
+
+Release:
+  verifies compatibility evidence exists
+```
+
+This is not necessarily redundant.
+
+Each check protects a different transition.
+
+---
+
+# Governance of extensions
+
+Extensions introduce new capabilities and therefore new risk.
+
+An extension should declare:
+
+```text
+identity
+version
+capabilities
+permissions
+native integrations
+schema contributions
+```
+
+Governance can then determine whether it may be activated.
+
+An extension should not automatically gain all host-process authority.
+
+---
+
+# Extension capability boundary
+
+For example:
+
+```text
+Extension:
+  GitHub Project Adapter
+
+Requires:
+  read-project
+  update-project-item
+
+Does not require:
+  delete-repository
+  modify-organization-security
+```
+
+Capability declarations make least-authority extension models possible.
+
+---
+
+# Governance of AI providers
+
+AI providers introduce privacy, data-handling, and capability concerns.
+
+Policy may govern:
+
+```text
+which data may leave local environment
+which provider may receive sensitive context
+which model capability is permitted
+whether tool use is allowed
+whether output requires human review
+```
+
+Provider selection can therefore be a governance concern.
+
+---
+
+# Governance of context
+
+Even reading information can require policy.
+
+For example:
+
+```text
+Agent:
+  allowed to modify package A
+
+but:
+  should not receive production credentials
+  unrelated customer data
+  private security material
+```
+
+The Context Component should respect governance when assembling task context.
+
+This is an important form of least authority.
+
+---
+
+# Information disclosure policy
+
+Policies may constrain:
+
+```text
+what an Actor can read
+```
+
+as well as:
+
+```text
+what an Actor can change
+```
+
+For example:
+
+```text
+public documentation agent
+  may read public project artifacts
+
+security analysis agent
+  may read restricted security artifacts
+
+implementation agent
+  may receive only task-relevant secrets
+```
+
+Governance therefore applies to information flow as well as mutation.
+
+---
+
+# Governance of generated artifacts
+
+Generated output may require review before promotion.
+
+For example:
+
+```text
+AI-generated specification
+      │
+      ▼
+draft
+      │
+      ▼
+review
+      │
+      ▼
+accepted specification
+```
+
+The generated artifact exists before it becomes authoritative.
+
+Governance controls the promotion.
+
+---
+
+# Promotion of inferred information
+
+The same principle applies to inference.
+
+For example:
+
+```text
+inferred relationship
+      │
+      ▼
+candidate
+      │
+      ▼
+validation
+      │
+      ▼
+confirmed relationship
+```
+
+Policy may allow automatic promotion for low-risk high-confidence inference.
+
+More consequential identity or authority claims may require human confirmation.
+
+---
+
+# Governance and correction
+
+Incorrect authoritative information must be correctable.
+
+The governance system should support:
+
+```text
+correction proposal
+      ↓
+authority evaluation
+      ↓
+supporting evidence
+      ↓
+approval if required
+      ↓
+new authoritative state
+```
+
+while preserving the earlier record.
+
+Correction should not require pretending the previous state never existed.
+
+---
+
+# Governance and rollback
+
+Rollback may itself be governed.
+
+A previous version having existed does not automatically mean any Actor may restore it.
+
+For example:
+
+```text
+rollback production release
+```
+
+may require release authority.
+
+Governance must apply to reversal as well as forward change.
+
+---
+
+# Governance and release
+
+Release is one of the most consequential governance boundaries.
+
+A release may require:
+
+```text
+required artifacts complete
+specifications active
+tests passed
+security checks passed
+migration ready
+known risks accepted
+release approval
+```
+
+The Release Component evaluates these requirements with the relevant policy and evidence.
+
+---
+
+# Release authority
+
+Different Actors may have authority to:
+
+```text
+prepare release candidate
+```
+
+versus:
+
+```text
+approve release
+```
+
+versus:
+
+```text
+publish release
+```
+
+Those should not automatically be the same capability.
+
+This enables separation of duties where needed.
+
+---
+
+# Governance and environment
+
+Authority may vary by environment.
+
+For example:
+
+```text
+Agent may deploy to:
+  development
+
+Agent may deploy to:
+  staging after tests
+
+Agent may not deploy to:
+  production
+```
+
+Environment is therefore a possible policy scope.
+
+---
+
+# Governance and reversibility
+
+Reversible operations may safely permit more autonomy than irreversible ones.
+
+For example:
+
+```text
+generate local projection
+  highly reversible
+```
+
+versus:
+
+```text
+delete production data
+  potentially irreversible
+```
+
+Reversibility can therefore participate in risk evaluation.
+
+---
+
+# Governance and blast radius
+
+A change affecting:
+
+```text
+one internal file
+```
+
+may require less governance than one affecting:
+
+```text
+public package API
+100 downstream repositories
+production infrastructure
+```
+
+Impact analysis can feed governance decisions.
+
+Conceptually:
+
+```text
+Proposed Change
+      │
+      ▼
+Impact Analysis
+      │
+      ▼
+Risk Assessment
+      │
+      ▼
+Policy Evaluation
+```
+
+This connects the graph directly to safer automation.
+
+---
+
+# Governance and unknown impact
+
+Unknown impact should increase caution rather than disappear from evaluation.
+
+For example:
+
+```text
+Known dependents:
+  4
+
+Unknown external dependents:
+  possible
+```
+
+may trigger:
+
+```text
+human review required
+```
+
+even if all known automated checks pass.
+
+---
+
+# Governance and trust
+
+Monad should not reduce trust to a single numerical score.
+
+Trust may depend on:
+
+* Actor identity,
+* provenance,
+* authority,
+* evidence quality,
+* source,
+* verification,
+* history,
+* and scope.
+
+Governance should use explicit facts where possible rather than vague universal trust rankings.
+
+---
+
+# Governance and history
+
+Historical governance records remain useful.
+
+For example:
+
+```text
+2026:
+  Agent class A prohibited from release
+
+2027:
+  new verification system introduced
+
+Policy changed:
+  Agent class A may release low-risk packages
+```
+
+Both states matter historically.
+
+A governance system should preserve which policy governed an action at the time it occurred.
+
+---
+
+# Current policy versus historical policy
+
+This distinction mirrors the wider System model:
+
+```text
+Policy valid at time T
+```
+
+is not necessarily:
+
+```text
+Policy active now
+```
+
+Governance evaluation should use policy valid for the relevant operation and time.
+
+---
+
+# A governed change example
+
+Consider an AI agent asked to change an authentication API.
+
+The governance flow might look like:
+
+```text
+Request
+   │
+   ▼
+Actor Resolution
+   │
+   ▼
+Capability Check
+   │
+   ▼
+Target Resolution
+   │
+   ▼
+Impact Analysis
+   │
+   ▼
+Applicable Policy Resolution
+   │
+   ▼
+Risk Evaluation
+   │
+   ▼
+Authority Evaluation
+   │
+   ▼
+Decision:
+  permit-with-obligations
+   │
+   ├── architecture review
+   ├── compatibility verification
+   └── specification update
+   │
+   ▼
+Required Approval
+   │
+   ▼
+Authorized Plan
+   │
+   ▼
+Execution
+   │
+   ▼
+Verification
+   │
+   ▼
+Obligations Satisfied
+   │
+   ▼
+Lifecycle Transition
+```
+
+Governance participates throughout the workflow.
+
+It is not merely a permission check at the beginning.
+
+---
+
+# Example: low-risk autonomous change
+
+Suppose an agent updates an internal test fixture.
+
+Policy may determine:
+
+```text
+Actor:
+  implementation-agent
+
+Scope:
+  current Work Package
+
+Change:
+  internal test fixture
+
+Risk:
+  low
+
+Decision:
+  permit
+
+Obligations:
+  affected test suite must pass
+
+Approval:
+  none required
+```
+
+The agent can proceed autonomously.
+
+This is governed automation without unnecessary ceremony.
+
+---
+
+# Example: high-risk change
+
+Now suppose the same agent proposes changing a public authentication protocol.
+
+Policy may determine:
+
+```text
+Risk:
+  high
+
+Required:
+  specification change
+  architecture review
+  compatibility analysis
+  security verification
+  human approval
+
+Decision:
+  cannot execute until obligations satisfied
+```
+
+The same Actor may still participate heavily.
+
+Its autonomy envelope becomes narrower because the consequences are greater.
+
+---
+
+# Example: constitutional change
+
+Suppose an Actor proposes changing the definition of authority itself.
+
+That should cross a fundamentally different boundary.
+
+```text
+ordinary Actor authority
+       │
+       ✕ insufficient
+       │
+       ▼
+constitutional amendment process required
+```
+
+The system should not let a policy modify the rules used to determine whether that policy is valid.
+
+---
+
+# Governance anti-patterns
+
+Monad should actively guard against several failure modes.
+
+## Capability equals permission
+
+A tool can perform an operation, therefore it is allowed.
+
+## Credential equals authority
+
+Possession of a token is treated as governance.
+
+## Role equals unlimited authority
+
+A broad label such as "maintainer" silently grants every operation.
+
+## Boolean policy only
+
+Conditional obligations cannot be represented.
+
+## Approval without scope
+
+Approval becomes reusable indefinitely.
+
+## Invisible exceptions
+
+Engineers bypass policy without durable record.
+
+## Policy scattered through code
+
+Rules cannot be inspected or evaluated consistently.
+
+## AI privilege
+
+Agent-generated changes bypass ordinary review or evidence requirements.
+
+## Human privilege by assumption
+
+Human actions bypass rules merely because the Actor is human.
+
+## Governance everywhere
+
+Every trivial operation receives expensive approval ceremony.
+
+## Constitution inflation
+
+Ordinary project policy becomes nearly impossible to change because everything is treated as foundational.
+
+---
+
+# Governance design principles
+
+A healthy governance model should follow several principles.
+
+## Explicit over implicit
+
+Important authority and restrictions should be representable.
+
+## Scoped over global
+
+Authority should be no broader than necessary.
+
+## Revocable over permanent
+
+Delegation should be removable or expire.
+
+## Explainable over opaque
+
+Actors should be able to understand policy outcomes.
+
+## Evidence-aware
+
+Important claims and transitions can require support.
+
+## Risk-proportional
+
+Governance should increase with consequence.
+
+## Automation-friendly
+
+Low-risk operations should be governable without constant manual intervention.
+
+## Human-compatible
+
+Governance should remain understandable to engineers rather than becoming an unreadable policy machine.
+
+## Revision-aware
+
+Approval should not silently outlive the state it evaluated.
+
+## Historically inspectable
+
+Past decisions should remain reconstructable.
+
+---
+
+# Governance as a control plane
+
+One way to understand Monad governance is as a control plane over engineering capability.
+
+```text
+Engineering Capability
+       │
+       ▼
+Governance
+       │
+       ├── who?
+       ├── what?
+       ├── where?
+       ├── under which rules?
+       ├── with which evidence?
+       └── requiring whose approval?
+       │
+       ▼
+Permitted Action
+```
+
+The control plane does not replace the engineering tools.
+
+It determines how their capabilities may be exercised.
+
+---
+
+# Governance should remain inspectable
+
+An engineer should increasingly be able to ask:
+
+```text
+Why can't I perform this operation?
+```
+
+and receive an answer such as:
+
+```text
+Operation:
+  publish release
+
+Actor:
+  implementation-agent
+
+Capability:
+  publish-release available technically
+
+Authority:
+  not granted for production releases
+
+Applicable policy:
+  POL-REL-002
+
+Required authority:
+  release-authority
+
+Required evidence:
+  release verification bundle
+
+Current result:
+  denied
+```
+
+This is far more useful than:
+
+```text
+permission denied
+```
+
+---
+
+# Governance queries
+
+Monad should eventually support questions such as:
+
+```text
+What may this Actor do?
+
+Who may modify this Subject?
+
+Which policies apply here?
+
+Why was this operation denied?
+
+What approvals are required?
+
+Which obligations remain unsatisfied?
+
+Who granted this authority?
+
+When does this authority expire?
+
+Which policy version governed this operation?
+
+Which Subjects are protected?
+
+Which operations require human review?
+```
+
+Governance should be queryable like the rest of the system.
+
+---
+
+# Governance state
+
+Governance itself becomes semantic state.
+
+Examples include:
+
+```text
+authority assignments
+delegations
+policy versions
+approval records
+exception records
+obligations
+protected scopes
+```
+
+These states need:
+
+* identity,
+* lifecycle,
+* provenance,
+* authority,
+* and history
+
+like other meaningful Monad entities.
+
+---
+
+# Governance must govern itself
+
+This creates an unavoidable recursive question:
+
+> Who may change governance?
+
+Monad addresses this through hierarchy.
+
+Conceptually:
+
+```text
+ordinary policy
+   governed by
+      │
+      ▼
+higher-order governance
+      │
+      ▼
+Constitution
+```
+
+The Constitution cannot eliminate recursion entirely.
+
+It establishes the deliberately explicit root rules by which that recursion is managed.
+
+---
+
+# Governance versus organizational governance
+
+This page describes governance **inside the Monad system**.
+
+Examples:
+
+```text
+Can this Actor modify this Subject?
+
+Which approval is required?
+
+Which policy applies?
+
+Can this release be published?
+```
+
+Organizational governance asks different questions:
+
+```text
+Who are the Monad maintainers?
+
+How are project leaders chosen?
+
+How are community decisions made?
+
+Who owns the organization?
+
+How are contributors recognized?
+```
+
+Those concerns belong outside this System section.
+
+The two domains may interact, but they should not be conflated.
+
+---
+
+# Governance versus security
+
+Security and governance overlap.
+
+Security asks questions such as:
+
+```text
+Can an unauthorized Actor gain access?
+Can credentials be stolen?
+Can malicious input escape a boundary?
+```
+
+Governance asks:
+
+```text
+Even if the Actor technically has access,
+is this operation legitimate?
+```
+
+Strong systems need both.
+
+---
+
+# Governance versus workflow
+
+A workflow says:
+
+```text
+do A, then B, then C
+```
+
+Governance says:
+
+```text
+who may perform each step
+under what conditions
+and what makes the transition legitimate
+```
+
+Workflow can implement governance.
+
+It should not be mistaken for governance itself.
+
+---
+
+# Governance versus verification
+
+Verification asks:
+
+```text
+Did the implementation satisfy the contract?
+```
+
+Governance asks:
+
+```text
+Was the operation authorized and were
+the required conditions satisfied?
+```
+
+A perfectly correct implementation can still be unauthorized.
+
+An authorized operation can still fail verification.
+
+Both dimensions matter.
+
+---
+
+# Governance interfaces
+
+The governance model is exposed through interfaces such as:
+
+```text
+evaluate_policy
+resolve_authority
+list_capabilities
+grant_authority
+revoke_authority
+request_approval
+record_approval
+list_obligations
+satisfy_obligation
+request_exception
+transition_lifecycle
+```
+
+The exact request and response contracts belong in formal interface specifications.
+
+See [Interfaces](/docs/system/interfaces).
+
+---
+
+# Governance components
+
+Several components participate in governance.
+
+```text
+Constitution Component
+  foundational constraints
+
+Identity Component
+  resolves Actor and Subject identity
+
+Impact Component
+  informs risk and blast radius
+
+Policy Component
+  evaluates permissible behavior
+
+Lifecycle Component
+  controls state transitions
+
+Planning Component
+  creates inspectable proposed work
+
+Verification Component
+  satisfies evidence obligations
+
+Execution Component
+  performs authorized side effects
+
+Provenance Component
+  records governance and execution origins
+```
+
+Governance is therefore cross-cutting while still having clear ownership boundaries.
+
+---
+
+# Governance artifacts
+
+Formal governance definitions belong in the engineering record.
+
+Examples include:
+
+* Constitution,
+* authority model,
+* capability model,
+* policy specifications,
+* lifecycle specifications,
+* approval rules,
+* exception rules,
+* constitutional amendments,
+* governance ADRs,
+* and verification evidence.
+
+These belong under [Artifacts](/docs/artifacts).
+
+The System section explains their current meaning.
+
+---
+
+# Governance traceability
+
+A significant policy rule should eventually be traceable through:
+
+```text
+Problem
+   │
+   ▼
+Requirement
+   │
+   ▼
+Governance Decision
+   │
+   ▼
+Policy Specification
+   │
+   ▼
+Policy Implementation
+   │
+   ▼
+Verification
+   │
+   ▼
+Evidence
+```
+
+This prevents policy from becoming unexplained institutional folklore embedded in code.
+
+---
+
+# Governance quality criteria
+
+A strong governance system should be:
+
+## Explicit
+
+Important rules are inspectable.
+
+## Scoped
+
+Authority is limited to what is necessary.
+
+## Composable
+
+Multiple policies can apply without undefined behavior.
+
+## Explainable
+
+Decisions expose reasons and obligations.
+
+## Enforceable
+
+Rules affect actual execution boundaries.
+
+## Risk-proportional
+
+Low-risk work remains efficient.
+
+## Revocable
+
+Authority can expire or be removed.
+
+## Revision-aware
+
+Stale authorization is detectable.
+
+## Historically traceable
+
+Past decisions can be reconstructed.
+
+## Extensible
+
+New domains can define policy without rewriting the core.
+
+## Secure
+
+Actors cannot trivially bypass the governance boundary.
+
+---
+
+# Governance maturity
+
+The full governance model does not need to appear in the first implementation.
+
+A staged progression might be:
+
+```text
+Stage 1
+  Actors
+  Capabilities
+  Scope
+
+Stage 2
+  Policy evaluation
+  explicit permit / deny
+
+Stage 3
+  obligations
+  approvals
+  lifecycle gates
+
+Stage 4
+  delegated authority
+  exceptions
+  risk-based governance
+
+Stage 5
+  constitutional amendment
+  cross-project governance
+  organization-wide policy
+```
+
+The conceptual model can remain stable while implementation depth increases.
+
+---
+
+# Minimum viable governance
+
+The smallest useful governance kernel likely requires:
+
+```text
+Actor identity
+      +
+Capability
+      +
+Scope
+      +
+Policy
+      +
+Policy Decision
+      +
+Execution enforcement
+```
+
+This enables the fundamental invariant:
+
+> **An operation does not become legitimate merely because a tool is technically capable of performing it.**
+
+More advanced governance can build from there.
+
+---
+
+# A governance decision model
+
+At its simplest, the decision pipeline is:
+
+```text
+Who?
+  Actor
+
+Can?
+  Capability
+
+Where?
+  Scope
+
+What?
+  Operation
+
+Against what?
+  Subject / Resource
+
+Under which rules?
+  Policy
+
+With what authority?
+  Authority
+
+With what additional requirements?
+  Obligations
+
+With what support?
+  Evidence / Approval
+
+Result?
+  Governance Decision
+```
+
+This provides a consistent way to reason about human, machine, automated, and extension behavior.
+
+---
+
+# Governance invariants
+
+Several invariants should hold across the system.
+
+## Capability does not imply authority
+
+Technical possibility alone is insufficient.
+
+## Authority is scoped
+
+No Actor should implicitly gain universal authority.
+
+## Authority has provenance
+
+Important delegation should be explainable.
+
+## Policy decisions are contextual
+
+Actor, target, state, operation, and scope matter.
+
+## Approval binds to scope and state
+
+Approval should not become an unlimited reusable token.
+
+## Obligations remain visible until resolved
+
+Conditional authorization should not masquerade as completion.
+
+## Constitutional rules cannot be modified through ordinary authority
+
+System self-governance requires a stronger boundary.
+
+## Human Actors are not automatically exempt
+
+Governance can apply to humans and machines.
+
+## AI Actors are not automatically privileged
+
+Machine-generated work follows ordinary semantic and governance rules.
+
+## Native permissions do not define Monad authority
+
+Technical credentials remain distinct from legitimate permission.
+
+## Exceptions are explicit
+
+Exceptional action should remain inspectable.
+
+## Governance history is preserved
+
+Past policy state should remain reconstructable.
+
+---
+
+# The governance loop
+
+Governance participates in an ongoing engineering loop:
+
+```text
+Intent
+  │
+  ▼
+Plan
+  │
+  ▼
+Impact
+  │
+  ▼
+Governance Evaluation
+  │
+  ▼
+Authorized Action
+  │
+  ▼
+Execution
+  │
+  ▼
+Verification
+  │
+  ▼
+Evidence
+  │
+  ▼
+Lifecycle Transition
+  │
+  ▼
+Observation
+  │
+  ▼
+Policy / Authority may evolve
+```
+
+Governance itself therefore learns from engineering reality.
+
+Policies should be open to revision when evidence shows that they create either:
+
+```text
+too much risk
+```
+
+or:
+
+```text
+too much friction
+```
+
+---
+
+# The governing principle
+
+Monad governance can be summarized as:
+
+> **Engineering capability should be exercised only within explicit, inspectable authority whose scope, conditions, obligations, and consequences are understood well enough to govern the change safely.**
+
+The goal is not to stop humans or machines from acting.
+
+The goal is to make increasingly powerful action **bounded, explainable, and trustworthy**.
+
+---
+
+## Where to go next
+
+Governance defines what may happen.
+
+The next question is how authorized work actually moves through the system.
+
+<Cards>
+  <Card
+    title="Execution"
+    href="/docs/system/execution"
+  >
+    Follow engineering work from intent through planning, context, authorization, native-system mutation, verification, provenance, and reconciliation.
+  </Card>
+
+<Card
+title="Interfaces"
+href="/docs/system/interfaces"
+>
+Review the policy, approval, lifecycle, execution, and verification contracts through which governance is exercised.
+</Card>
+
+<Card
+title="Components"
+href="/docs/system/components"
+>
+See which components own policy evaluation, lifecycle transitions, execution, verification, and provenance.
+</Card>
+
+<Card
+title="Artifacts"
+href="/docs/artifacts"
+>
+Inspect the formal policies, governance decisions, specifications, reviews, and evidence supporting this model.
+</Card>
+</Cards>
+
+---
+
+## Related system views
+
+<Cards>
+  <Card
+    title="Concepts & Principles"
+    href="/docs/system/concepts"
+  >
+    Review the foundational definitions of Actor, Capability, Authority, Policy, Evidence, Lifecycle, and Constitution.
+  </Card>
+
+<Card
+title="Architecture"
+href="/docs/system/architecture"
+>
+Return to the architectural boundaries that separate governance, execution, semantic state, and native systems.
+</Card>
+
+<Card
+title="System Overview"
+href="/docs/system"
+>
+Return to the current authoritative overview of Monad.
+</Card>
+
+<Card
+title="Project"
+href="/docs/project"
+>
+Understand how the broader engineering program organizes and governs project work.
+</Card>
+</Cards>

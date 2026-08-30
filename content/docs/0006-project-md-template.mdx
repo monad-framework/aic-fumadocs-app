@@ -1,0 +1,843 @@
+---
+title: Placeholder/Template project.md
+description: Self-Documenting Placeholder/Template for project.md
+---
+```markdown
+# Project Definition
+
+> This document defines the **current authoritative understanding of the project**.
+>
+> Unlike `idea.md`, which preserves exploration, possibilities, hypotheses, and unresolved thinking, this document records what the project has deliberately decided to pursue.
+>
+> Information should move into this document only when it is sufficiently understood to guide planning, requirements, architecture, and implementation.
+>
+> This document should remain concise enough that a new contributor can read it and understand:
+>
+> * what the project is;
+> * why it exists;
+> * who it serves;
+> * what it intends to accomplish;
+> * what is currently inside and outside its boundaries;
+> * what constraints govern it;
+> * how success will be recognized.
+
+---
+
+## 1. Project Identity
+
+### Purpose
+
+Establish the basic identity of the project.
+
+This section should provide a stable reference for the project without attempting to describe its entire vision.
+
+### Example
+
+**Name:** Example Project
+
+**Short Description:**
+
+> A system for maintaining a structured, machine-readable representation of software-project knowledge and engineering state.
+
+**Status:** Discovery / Definition
+
+### Define the actual project identity here
+
+**Name:** `[Project Name]`
+
+**Short Description:**
+
+> Replace this paragraph with one or two sentences describing what the project is.
+
+**Status:** `[Discovery | Definition | Planning | Implementation | Operational | Other]`
+
+---
+
+## 2. Project Purpose
+
+### Purpose
+
+Explain why this project exists.
+
+The purpose should describe the enduring reason for undertaking the project rather than a specific technical implementation.
+
+A good purpose statement answers:
+
+* What meaningful problem are we trying to address?
+* Why is solving it worthwhile?
+* What improvement should exist because this project exists?
+
+### Example
+
+> The project exists to reduce the fragmentation of engineering knowledge across source code, documentation, planning systems, issue trackers, and automation tools by creating a coherent representation of important project state.
+
+### Define the actual project purpose here
+
+> Replace this paragraph with the project's purpose.
+
+---
+
+## 3. Problem Statement
+
+### Purpose
+
+State the problem the project has committed to addressing.
+
+The problem may have originated in `idea.md`, but its inclusion here means the project accepts it as a sufficiently established basis for further work.
+
+The problem statement should describe:
+
+1. the current condition;
+2. who or what is affected;
+3. why the condition is undesirable;
+4. the consequences of leaving it unresolved.
+
+Avoid embedding implementation decisions into the problem statement.
+
+### Example
+
+> Software engineering projects accumulate important knowledge across numerous systems and artifacts. These sources frequently become inconsistent, incomplete, difficult to trace, or understandable only through undocumented human context.
+>
+> As projects grow, developers and automated systems must repeatedly reconstruct this context, increasing cognitive overhead, reducing traceability, and making safe automation more difficult.
+
+### Define the actual problem here
+
+> Replace this section with the project's accepted problem statement.
+
+---
+
+## 4. Target Outcome
+
+### Purpose
+
+Describe the condition that should exist if the project succeeds.
+
+The outcome is not necessarily a feature list.
+
+It describes the change produced by the project.
+
+### Example
+
+> A software project can maintain a coherent representation of its important entities, relationships, decisions, artifacts, and lifecycle state so that humans and automated systems can understand the project without reconstructing critical context from disconnected sources.
+
+### Define the actual target outcome here
+
+> Replace this paragraph with the outcome the project intends to produce.
+
+---
+
+## 5. Project Thesis
+
+### Purpose
+
+State the central proposition the project is acting upon.
+
+The thesis connects the problem to the proposed direction.
+
+A useful form is:
+
+> We believe that **approach** can improve **problem condition** by **mechanism**, resulting in **desired outcome**.
+
+### Example
+
+> We believe that maintaining an explicit and continuously reconciled model of important software-project knowledge can reduce fragmentation and improve engineering reasoning by giving humans and automation a shared representation of project state.
+
+### Define the actual thesis here
+
+> Replace this paragraph with the project's central thesis.
+
+---
+
+## 6. Intended Users and Beneficiaries
+
+### Purpose
+
+Identify the people, teams, systems, or organizations the project is intentionally designed to serve.
+
+Unlike the speculative user list in `idea.md`, users listed here are part of the current project definition.
+
+For each important user group, describe:
+
+* who they are;
+* what problem they experience;
+* what value the project should provide.
+
+### Example
+
+#### Individual Developers
+
+Need to understand project structure, decisions, dependencies, and history without manually reconstructing context.
+
+#### Engineering Teams
+
+Need shared, durable representations of project decisions and implementation state.
+
+#### Automated Engineering Systems
+
+Need structured project context and explicit boundaries to reason about and modify software safely.
+
+### Define the actual users here
+
+#### `[User Group]`
+
+> Describe this user group and the value the project intends to provide.
+
+---
+
+## 7. Core Value Proposition
+
+### Purpose
+
+Explain why the intended users should care about the project.
+
+This should focus on value rather than technical implementation.
+
+A strong value proposition answers:
+
+> What becomes easier, safer, faster, clearer, or newly possible because this project exists?
+
+### Example
+
+> The project gives humans and automated systems a shared, traceable understanding of a software project, reducing the amount of context that must be reconstructed manually and enabling safer engineering automation.
+
+### Define the actual value proposition here
+
+> Replace this paragraph with the project's core value proposition.
+
+---
+
+## 8. Scope
+
+### Purpose
+
+Define what the project currently intends to address.
+
+Scope should describe meaningful domains of responsibility rather than an exhaustive feature backlog.
+
+Anything listed here becomes eligible for requirements, design, and implementation.
+
+### Example
+
+The project currently includes:
+
+* representing important project entities;
+* representing relationships among those entities;
+* connecting project artifacts to their semantic meaning;
+* maintaining traceability between project concepts and implementation;
+* exposing structured project knowledge to humans and automation;
+* detecting certain forms of inconsistency or drift;
+* maintaining project history and provenance.
+
+### Define the actual scope here
+
+The project currently includes:
+
+* Replace this item.
+* Add explicitly accepted areas of responsibility.
+* Remove anything that is not actually committed.
+
+---
+
+## 9. Out of Scope
+
+### Purpose
+
+Define what the project deliberately does not currently intend to address.
+
+This is stronger than the speculative `Non-Goals` section in `idea.md`.
+
+An item listed here should not become implementation work without an explicit change to project scope.
+
+### Example
+
+The project currently does not include:
+
+* replacing source-control systems;
+* replacing every project-management platform;
+* replacing programming-language toolchains;
+* making unrestricted autonomous engineering changes;
+* prescribing one universal software architecture.
+
+### Define the actual exclusions here
+
+The project currently does not include:
+
+* Replace this item.
+* Add explicit project boundaries.
+
+---
+
+## 10. Core Capabilities
+
+### Purpose
+
+Identify broad capabilities the project has committed to delivering.
+
+These are more authoritative than the `Desired Capabilities` in `idea.md`, but they are still higher-level than formal functional requirements.
+
+Each capability should eventually be decomposed into requirements.
+
+### Example
+
+The project should be capable of:
+
+1. **Project discovery**
+
+   * Identify important structures and artifacts within a project.
+
+2. **Semantic representation**
+
+   * Represent meaningful project entities and relationships.
+
+3. **Traceability**
+
+   * Connect decisions, requirements, implementation artifacts, and project state.
+
+4. **Reconciliation**
+
+   * Detect and reconcile differences between declared and observed project state.
+
+5. **Query and inspection**
+
+   * Allow humans and automated systems to inspect project knowledge.
+
+6. **Governed automation**
+
+   * Permit automated operations within explicitly defined authority boundaries.
+
+### Define the actual core capabilities here
+
+1. **`[Capability Name]`**
+
+   * Describe the capability at a project level.
+
+2. **`[Capability Name]`**
+
+   * Describe the capability at a project level.
+
+---
+
+## 11. Project Principles
+
+### Purpose
+
+Record principles that have graduated from exploratory preferences into actual decision criteria.
+
+These principles should influence future requirements, architecture, implementation, and governance decisions.
+
+Principles should be durable enough that violating one requires deliberate justification.
+
+### Example
+
+#### Human-Understandable
+
+Important project state should remain understandable by humans without requiring opaque infrastructure.
+
+#### Machine-Readable
+
+Important project concepts should have structured representations suitable for automation.
+
+#### Explicit Over Implicit
+
+Important relationships, assumptions, authority boundaries, and lifecycle states should be represented explicitly.
+
+#### Deterministic Where Practical
+
+Operations that can reasonably be deterministic should behave predictably for identical inputs.
+
+#### Progressive Complexity
+
+Simple use cases should remain simple while more advanced capabilities can be introduced incrementally.
+
+#### Interoperability
+
+The project should integrate with established engineering tools instead of replacing them without compelling reason.
+
+### Define the actual principles here
+
+#### `[Principle]`
+
+> Describe the principle and how it should influence project decisions.
+
+---
+
+## 12. Constraints
+
+### Purpose
+
+Record conditions the project must respect.
+
+Constraints differ from preferences because violating them may make a solution unacceptable.
+
+Constraints may be:
+
+* technical;
+* operational;
+* financial;
+* organizational;
+* regulatory;
+* legal;
+* security-related;
+* compatibility-related;
+* deployment-related;
+* time-related.
+
+Do not invent constraints merely to fill the section.
+
+### Example
+
+Possible constraints might include:
+
+* core functionality must work without mandatory cloud infrastructure;
+* project artifacts must remain compatible with Git-based workflows;
+* automation must respect explicit authorization boundaries;
+* critical project state must be exportable in non-proprietary formats.
+
+### Define the actual constraints here
+
+* Replace this item.
+* Add only constraints that genuinely apply.
+
+If no meaningful constraints are currently known, state:
+
+> No project-level constraints have yet been established.
+
+---
+
+## 13. Assumptions Accepted for Planning
+
+### Purpose
+
+Record assumptions that are sufficiently credible to permit planning but have not necessarily been proven.
+
+These are different from speculative assumptions in `idea.md`.
+
+An assumption listed here may affect project decisions and therefore should eventually be validated or retired.
+
+### Example
+
+* Software projects benefit from an explicit representation of important engineering relationships.
+* Human-readable files can remain important interfaces even when richer internal representations exist.
+* Automated engineering systems benefit from explicit authority and lifecycle information.
+
+### Define current planning assumptions here
+
+* Replace this item.
+* Record assumptions currently influencing project planning.
+
+---
+
+## 14. Dependencies and External Relationships
+
+### Purpose
+
+Identify external systems, standards, organizations, technologies, or projects that materially affect the project.
+
+Do not use this section to prematurely select implementation technologies.
+
+Only record dependencies that are already meaningful at the project-definition level.
+
+### Example
+
+The project may need to interoperate with:
+
+* Git repositories;
+* source-control hosting platforms;
+* issue trackers;
+* development tools;
+* CI systems;
+* AI-assisted engineering tools.
+
+### Define actual dependencies here
+
+* Replace this item.
+* Add known external relationships or dependencies.
+
+If none are currently established:
+
+> No mandatory external project dependencies have yet been established.
+
+---
+
+## 15. Success Criteria
+
+### Purpose
+
+Define how the project will know that it is succeeding.
+
+Success criteria should be observable and eventually measurable.
+
+Avoid criteria such as:
+
+> The system works well.
+
+Prefer statements that describe concrete outcomes.
+
+### Example
+
+The project may be considered successful when:
+
+* a project can be represented without requiring substantial duplication of existing engineering information;
+* developers can trace important project concepts to implementation artifacts;
+* automation can obtain sufficient structured context to perform bounded engineering tasks;
+* project drift can be detected reliably;
+* the system demonstrates usefulness on projects other than itself.
+
+### Define the actual success criteria here
+
+The project will be considered successful when:
+
+1. Replace this criterion.
+2. Add additional observable outcomes.
+3. Add measurable thresholds where appropriate.
+
+---
+
+## 16. Failure Conditions
+
+### Purpose
+
+Describe outcomes that would indicate the project is not delivering its intended value.
+
+Explicit failure conditions help prevent continuation based only on sunk cost.
+
+### Example
+
+The project should be reconsidered if:
+
+* maintaining its project model requires more effort than the value it produces;
+* ordinary development becomes substantially harder because of the system;
+* the model cannot remain synchronized with real project state;
+* useful automation does not materially benefit from the structured representation;
+* the architecture becomes dependent on undocumented implicit knowledge.
+
+### Define the actual failure conditions here
+
+The project should be reconsidered if:
+
+* Replace this item.
+* Add meaningful indicators of project failure.
+
+---
+
+## 17. Initial Delivery Boundary
+
+### Purpose
+
+Define the smallest meaningful delivery boundary currently recognized by the project.
+
+This is not necessarily the full MVP specification.
+
+It establishes what must eventually be demonstrated before broadening the project.
+
+### Example
+
+> The initial delivery should prove that a real software repository can be discovered, represented using a small semantic model, queried meaningfully, and kept synchronized with relevant repository changes.
+
+### Define the initial delivery boundary here
+
+> Replace this paragraph with the smallest meaningful proof the project intends to deliver.
+
+If this is not yet known:
+
+> The initial delivery boundary has not yet been defined and must be established during requirements and planning work.
+
+---
+
+## 18. Project Invariants
+
+### Purpose
+
+Record truths that should remain valid throughout the project's development unless the project definition itself is deliberately amended.
+
+Invariants are stronger than principles.
+
+Examples may include:
+
+* there is a clearly identifiable source of authority for important state;
+* destructive automated operations require authorization;
+* project history must remain traceable;
+* human-readable representations cannot silently diverge from authoritative state.
+
+### Example
+
+The project currently recognizes the following invariants:
+
+1. Important project state must have an identifiable authority.
+2. Changes to governed state must be traceable.
+3. Automation must operate within explicit capability boundaries.
+
+### Define actual invariants here
+
+* Replace this item.
+* Add only rules intended to remain fundamental.
+
+If none have yet been established:
+
+> No formal project invariants have yet been established.
+
+---
+
+## 19. Open Project-Level Questions
+
+### Purpose
+
+Record unresolved questions that block or materially influence project definition.
+
+This is not the place for every technical question.
+
+Questions belong here when answering them may change:
+
+* project scope;
+* project purpose;
+* target users;
+* fundamental capabilities;
+* success criteria;
+* major constraints.
+
+Lower-level questions should eventually live in requirements, architecture, ADRs, or implementation planning.
+
+### Example
+
+* What is the minimum useful scope for the first delivery?
+* Which project artifacts should be treated as authoritative?
+* What level of automation is necessary to validate the project's thesis?
+* What is the boundary between project knowledge and implementation-specific metadata?
+
+### Define actual project-level questions here
+
+* Replace this item.
+* Add unresolved questions that materially affect the project definition.
+
+---
+
+## 20. Decision Status
+
+### Purpose
+
+Make clear which portions of this document are stable and which remain provisional.
+
+### Example
+
+| Area             | Status      | Notes                                       |
+| ---------------- | ----------- | ------------------------------------------- |
+| Purpose          | Accepted    | Core project motivation established         |
+| Problem          | Accepted    | Evidence considered sufficient for planning |
+| Users            | Provisional | Additional user research needed             |
+| Scope            | Provisional | Initial boundary established                |
+| Success Criteria | Draft       | Metrics not yet quantified                  |
+| Initial Delivery | Draft       | Requires requirements work                  |
+
+### Define actual decision status here
+
+| Area              | Status | Notes                                        |
+| ----------------- | ------ | -------------------------------------------- |
+| Project Identity  | Draft  | Replace when project identity is established |
+| Purpose           | Draft  | Requires project-specific content            |
+| Problem           | Draft  | Requires project-specific content            |
+| Target Outcome    | Draft  | Requires project-specific content            |
+| Users             | Draft  | Requires project-specific content            |
+| Scope             | Draft  | Requires project-specific content            |
+| Core Capabilities | Draft  | Requires project-specific content            |
+| Constraints       | Draft  | Requires project-specific content            |
+| Success Criteria  | Draft  | Requires project-specific content            |
+| Initial Delivery  | Draft  | Requires project-specific content            |
+
+Suggested statuses:
+
+* **Draft** — proposed but not yet accepted;
+* **Provisional** — usable for current work but expected to evolve;
+* **Accepted** — deliberately adopted as current project truth;
+* **Superseded** — replaced by a later definition.
+
+---
+
+## 21. One-Paragraph Project Definition
+
+### Purpose
+
+Provide the shortest authoritative description of the project.
+
+A reader who reads only this section should understand what has actually been decided—not everything that has been imagined.
+
+### Example
+
+> Example Project is a software engineering system intended to maintain a coherent, structured, and traceable representation of important project knowledge and state. It is designed to help developers and automated engineering systems understand relationships among project artifacts, decisions, requirements, and implementation while preserving human-readable workflows and explicit authority boundaries.
+
+### Define the actual project here
+
+> Replace this paragraph with the concise authoritative definition of the project.
+```
+
+---
+
+# Document Authority
+
+This document represents the **project-definition layer**.
+
+Its authority is narrower than a complete specification but stronger than exploratory material.
+
+The conceptual flow should normally be:
+
+```text
+idea.md
+   │
+   │ exploration
+   ▼
+project.md
+   │
+   │ accepted project definition
+   ▼
+requirements/
+   │
+   │ required behavior and qualities
+   ▼
+architecture.md
+   │
+   │ system structure and technical strategy
+   ▼
+workspace.md
+   │
+   │ engineering/repository organization
+   ▼
+planning/
+   │
+   │ increments, milestones, work packages, tasks
+   ▼
+implementation
+```
+
+These relationships are not strictly one-way.
+
+Implementation discoveries may reveal problems that require revisiting architecture, requirements, project assumptions, or even the original idea.
+
+The important rule is that each layer answers a different category of question.
+
+---
+
+# Relationship to `idea.md`
+
+`idea.md` asks:
+
+> **What might this project be, and why is the idea worth exploring?**
+
+`project.md` asks:
+
+> **What have we currently decided this project actually is?**
+
+Therefore:
+
+```text
+idea.md                              project.md
+────────────────────────────────     ────────────────────────────────
+possibilities                        commitments
+hypotheses                           accepted project thesis
+possible users                       intended users
+desired capabilities                 core capabilities
+possible directions                  current scope
+speculative non-goals                explicit exclusions
+unvalidated assumptions              planning assumptions
+questions                            project-level open questions
+vision                               target outcome
+```
+
+Material should not automatically move from `idea.md` into `project.md`.
+
+It should move when the project deliberately decides:
+
+> **We are now willing to plan and engineer against this statement.**
+
+---
+
+# What Does Not Belong Here
+
+Avoid turning `project.md` into a universal project document.
+
+Unless the information materially defines the project itself, the following should live elsewhere:
+
+```text
+Detailed functional behavior        → requirements/
+Quality attributes                  → requirements/
+API contracts                       → specifications/
+Domain entities and invariants      → domain-model/
+System components                   → architecture.md
+Technology selection                → architecture.md / ADRs
+Repository topology                 → workspace.md
+Toolchain configuration             → workspace.md
+Individual design decisions         → ADRs
+Milestones                          → planning/
+Epics and features                  → planning/
+Work packages                       → planning/
+Tasks                               → planning/
+Implementation notes                → code / engineering notes
+Operational procedures              → operations/
+```
+
+---
+
+# Change Discipline
+
+Because this document defines the project rather than merely discussing it, changes should become increasingly deliberate as the project matures.
+
+During early discovery, frequent edits are expected.
+
+Later, meaningful changes to sections such as:
+
+* purpose;
+* problem;
+* target outcome;
+* scope;
+* exclusions;
+* principles;
+* invariants;
+* success criteria;
+
+should be treated as **project-definition changes**, not ordinary documentation edits.
+
+The repository history should make those changes visible.
+
+---
+
+# Completion Criteria
+
+This template is considered sufficiently populated to proceed into formal requirements work when:
+
+* the project's purpose is understandable;
+* the problem is clearly stated;
+* intended users are identified;
+* the target outcome is defined;
+* meaningful scope boundaries exist;
+* core capabilities are identifiable;
+* important constraints are recorded;
+* success criteria exist;
+* major project-level unknowns are visible;
+* the initial delivery boundary is at least provisionally understood.
+
+It does **not** need to contain all possible answers before work can continue.
+
+The goal is sufficient clarity to make the next class of decisions responsibly.
+
+---
+
+# Template Instruction
+
+When adapting this file for a real project:
+
+1. replace instructional placeholders with project-specific content;
+2. retain explanatory text only where it remains useful to future contributors;
+3. remove examples once the real content makes them unnecessary;
+4. preserve unresolved questions instead of inventing answers;
+5. keep exploratory material in `idea.md`;
+6. move detailed requirements, architecture, workspace, and planning information into their respective layers;
+7. update the `Decision Status` section as the project definition matures.
+
+The finished `project.md` should eventually read as an **authoritative project definition**, not as a questionnaire.
+
+Save that as `docs/project.md`, replacing the small placeholder version, then commit it:
+
+```bash
+git add docs/project.md
+git commit -m "docs: establish self-documenting project definition"
+```
+
+At this point we are going to stop adding documents for a moment. The next question is important: **what comes between `project.md` and `architecture.md`?** There are several layers worth establishing before we make any technical decisions—most importantly requirements, domain understanding, constraints, and quality attributes.

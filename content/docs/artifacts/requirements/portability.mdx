@@ -1,0 +1,2673 @@
+---
+title: Portability Requirements
+description: The requirements governing Monad's ability to preserve engineering meaning, identity, artifacts, configuration, evidence, and operational usefulness across machines, environments, repositories, tools, providers, and time.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-PORT
+  </p>
+</div>
+
+# Portability Requirements
+
+Portability in Monad is not merely:
+
+> Can the software execute on another machine?
+
+That matters, but it is only one layer.
+
+Monad is intended to preserve engineering knowledge and system meaning across changes in:
+
+* filesystem location,
+* repository layout,
+* operating system,
+* machine,
+* runtime,
+* database,
+* service provider,
+* issue tracker,
+* source-control host,
+* package registry,
+* AI provider,
+* execution environment,
+* deployment platform,
+* organization,
+* and time.
+
+A portable engineering system should survive changes in its surrounding tools without losing the meaning of the system it describes.
+
+The deeper portability question is therefore:
+
+> **Can the engineering record remain intelligible, inspectable, reconstructable, and useful when its original environment changes or disappears?**
+
+---
+
+# Requirement family scope
+
+The `REQ-PORT-*` family governs:
+
+* semantic portability,
+* data portability,
+* artifact portability,
+* serialization,
+* filesystem independence,
+* repository movement,
+* operating-system portability,
+* runtime portability,
+* environment portability,
+* provider portability,
+* storage portability,
+* tool portability,
+* configuration portability,
+* schema portability,
+* integration portability,
+* historical portability,
+* export and import,
+* backup and restoration,
+* migration,
+* compatibility,
+* reproducibility,
+* and long-term inspectability.
+
+---
+
+# Foundational portability requirements
+
+## REQ-PORT-001 — Monad MUST preserve semantic identity independently of filesystem location
+
+Moving:
+
+```text
+docs/requirements/auth.md
+```
+
+to:
+
+```text
+engineering/requirements/authority.md
+```
+
+MUST NOT create a new semantic Subject merely because the path changed.
+
+---
+
+## REQ-PORT-002 — Monad MUST preserve semantic identity independently of repository location
+
+A repository transfer or rename SHOULD NOT redefine the identity of Subjects whose semantic continuity remains established.
+
+---
+
+## REQ-PORT-003 — Monad MUST distinguish semantic identity from native-provider identity
+
+A GitHub repository ID, local filesystem path, database row ID, or external issue number MAY participate in identity binding.
+
+None automatically defines the entire semantic identity of the governed Subject.
+
+---
+
+## REQ-PORT-004 — Core engineering records SHOULD remain inspectable without dependence on a single proprietary service
+
+---
+
+## REQ-PORT-005 — Loss of an optional external provider MUST NOT make the locally retained engineering record unintelligible
+
+---
+
+## REQ-PORT-006 — Portability MUST preserve meaning, not merely bytes
+
+A successful byte-for-byte export that loses:
+
+* relationships,
+* authority semantics,
+* provenance,
+* lifecycle state,
+* revision information,
+* evidence links,
+* or identity bindings
+
+is not sufficient semantic portability.
+
+---
+
+# Portability layers
+
+Monad SHOULD reason about portability across several distinct layers:
+
+```text
+semantic portability
+        ↓
+artifact portability
+        ↓
+data portability
+        ↓
+schema portability
+        ↓
+configuration portability
+        ↓
+runtime portability
+        ↓
+environment portability
+        ↓
+provider portability
+```
+
+These layers are related but not interchangeable.
+
+---
+
+# Semantic portability
+
+## REQ-PORT-007 — Semantic Subjects MUST remain distinguishable from their serialized representations
+
+---
+
+## REQ-PORT-008 — A Subject SHOULD remain identifiable when one Representation is replaced by another
+
+Example:
+
+```text
+Markdown document
+      ↓
+database representation
+      ↓
+generated web page
+```
+
+The underlying Requirement may remain the same Subject.
+
+---
+
+## REQ-PORT-009 — Relationships SHOULD preserve meaning across serialization formats
+
+---
+
+## REQ-PORT-010 — Authority information SHOULD survive export and import where it remains applicable
+
+---
+
+## REQ-PORT-011 — Provenance SHOULD survive migration where the original source can still be identified
+
+---
+
+## REQ-PORT-012 — Historical lifecycle state SHOULD remain distinguishable after migration
+
+---
+
+## REQ-PORT-013 — Supersession relationships MUST survive portable export where their Subjects are included
+
+---
+
+## REQ-PORT-014 — Inferred and confirmed semantic state MUST remain distinguishable after migration
+
+---
+
+# Representation portability
+
+## REQ-PORT-015 — Monad SHOULD support more than one Representation for important Subjects where useful
+
+---
+
+## REQ-PORT-016 — Generated representations MUST NOT become semantic identity merely because they are portable
+
+---
+
+## REQ-PORT-017 — Representation-specific metadata SHOULD remain distinguishable from Subject metadata
+
+---
+
+## REQ-PORT-018 — Importing a Representation SHOULD NOT silently create duplicate Subjects when an existing identity binding can be established
+
+---
+
+# Portable serialization
+
+## REQ-PORT-019 — Monad SHOULD provide a portable serialization for core semantic records
+
+The exact format remains a specification concern.
+
+Potential representations may include:
+
+* JSON,
+* YAML,
+* JSON Lines,
+* SQLite,
+* canonical archives,
+* or combinations of these.
+
+The requirement is the portable semantic capability, not a premature format commitment.
+
+---
+
+## REQ-PORT-020 — Portable serialization SHOULD use documented structures
+
+---
+
+## REQ-PORT-021 — Portable serialization SHOULD avoid requiring undocumented application internals to interpret the data
+
+---
+
+## REQ-PORT-022 — Serialized records SHOULD identify their schema or format version
+
+---
+
+## REQ-PORT-023 — Serialized identity SHOULD survive round-trip export and import
+
+---
+
+## REQ-PORT-024 — Unknown extension fields SHOULD be preserved where practical
+
+This reduces unnecessary data loss when older implementations encounter newer records.
+
+---
+
+## REQ-PORT-025 — Serialization SHOULD distinguish absent, unknown, null, and explicit negative state where the model distinguishes them
+
+---
+
+# Canonicalization
+
+## REQ-PORT-026 — Portable representations SHOULD define canonicalization where deterministic byte identity is required
+
+---
+
+## REQ-PORT-027 — Canonicalization MUST NOT alter semantic meaning
+
+---
+
+## REQ-PORT-028 — Canonicalization rules SHOULD be versioned if they can change
+
+---
+
+## REQ-PORT-029 — Noncanonical but semantically valid input MAY be normalized during import
+
+---
+
+## REQ-PORT-030 — Normalization SHOULD preserve provenance where transformation matters
+
+---
+
+# Human inspectability
+
+## REQ-PORT-031 — Core portable records SHOULD remain inspectable using commonly available tooling where practical
+
+---
+
+## REQ-PORT-032 — Essential engineering meaning SHOULD NOT require a proprietary graphical client to understand
+
+---
+
+## REQ-PORT-033 — Human-readable projections SHOULD remain derivable from canonical or durable semantic records
+
+---
+
+## REQ-PORT-034 — Human-readable representations SHOULD identify when they are generated or derived
+
+---
+
+# Machine inspectability
+
+## REQ-PORT-035 — Portable records SHOULD be machine-readable without invoking the complete Monad runtime where practical
+
+---
+
+## REQ-PORT-036 — Schemas SHOULD be available for machine validation where suitable
+
+---
+
+## REQ-PORT-037 — Machine-readable exports SHOULD preserve stable identifiers
+
+---
+
+# Local-first portability
+
+## REQ-PORT-038 — Core project knowledge SHOULD be retainable locally
+
+---
+
+## REQ-PORT-039 — A developer SHOULD be able to inspect essential project state while disconnected from remote services
+
+---
+
+## REQ-PORT-040 — Remote service unavailability MUST NOT cause Monad to fabricate current remote state
+
+---
+
+## REQ-PORT-041 — Cached remote information SHOULD retain freshness metadata
+
+---
+
+## REQ-PORT-042 — Locally available historical information SHOULD remain usable even when remote confirmation is unavailable
+
+---
+
+# Filesystem portability
+
+## REQ-PORT-043 — Project state SHOULD support relocation to another filesystem path
+
+---
+
+## REQ-PORT-044 — Absolute machine-specific paths SHOULD NOT be required in portable project records unless inherently necessary
+
+---
+
+## REQ-PORT-045 — Machine-specific paths SHOULD be explicitly identified when retained
+
+---
+
+## REQ-PORT-046 — Relative paths SHOULD be interpreted against an explicit base
+
+---
+
+## REQ-PORT-047 — Path normalization MUST account for platform differences where supported
+
+Potential differences include:
+
+* separator conventions,
+* path case sensitivity,
+* Unicode normalization,
+* drive letters,
+* filesystem roots,
+* symlink behavior.
+
+---
+
+## REQ-PORT-048 — Portable identity MUST NOT depend solely on path case behavior
+
+---
+
+# Repository portability
+
+## REQ-PORT-049 — Repository relocation SHOULD preserve semantic identity
+
+---
+
+## REQ-PORT-050 — Repository rename SHOULD preserve semantic identity where continuity is known
+
+---
+
+## REQ-PORT-051 — Repository transfer between organizations SHOULD preserve semantic identity where continuity is known
+
+---
+
+## REQ-PORT-052 — Native repository identifiers SHOULD be retained as historical references after migration
+
+---
+
+## REQ-PORT-053 — A Subject MAY accumulate native references from multiple repository hosts over time
+
+---
+
+## REQ-PORT-054 — Repository-host migration SHOULD NOT require rewriting unrelated semantic identifiers
+
+---
+
+# Monorepo and multi-repository portability
+
+## REQ-PORT-055 — Moving a component between repositories SHOULD NOT necessarily change its semantic identity
+
+---
+
+## REQ-PORT-056 — Monad SHOULD support Subjects whose Representations span multiple repositories
+
+---
+
+## REQ-PORT-057 — Repository topology SHOULD remain distinct from semantic system topology
+
+A monorepo is a storage and coordination structure.
+
+It is not necessarily the architecture.
+
+---
+
+## REQ-PORT-058 — Splitting a monorepo SHOULD preserve historical relationships where semantic continuity exists
+
+---
+
+## REQ-PORT-059 — Consolidating repositories SHOULD preserve prior native references
+
+---
+
+# Operating-system portability
+
+## REQ-PORT-060 — Core Monad functionality SHOULD support explicitly declared operating systems
+
+---
+
+## REQ-PORT-061 — Platform-specific limitations SHOULD be explicit
+
+---
+
+## REQ-PORT-062 — Unsupported behavior SHOULD fail visibly rather than silently diverge
+
+---
+
+## REQ-PORT-063 — Platform-specific implementation details SHOULD remain isolated where practical
+
+---
+
+## REQ-PORT-064 — Portable records SHOULD avoid unnecessary operating-system-specific semantics
+
+---
+
+# Runtime portability
+
+## REQ-PORT-065 — Core semantic records SHOULD remain independent of a particular programming-language runtime
+
+---
+
+## REQ-PORT-066 — Runtime-specific serialization SHOULD NOT be the only durable representation of core state
+
+Examples to avoid as sole durable formats include opaque:
+
+* language object dumps,
+* runtime memory snapshots,
+* framework-specific binary caches.
+
+---
+
+## REQ-PORT-067 — Runtime upgrades SHOULD preserve portable stored state through explicit compatibility or migration
+
+---
+
+## REQ-PORT-068 — Runtime replacement SHOULD remain possible without redefining the semantic domain model
+
+---
+
+# Architecture portability
+
+## REQ-PORT-069 — Logical architecture SHOULD remain distinguishable from deployment architecture
+
+---
+
+## REQ-PORT-070 — A logical component SHOULD be deployable differently without changing its semantic role where behavior remains equivalent
+
+---
+
+## REQ-PORT-071 — Strong logical boundaries SHOULD not require premature distributed deployment boundaries
+
+---
+
+## REQ-PORT-072 — Moving from one process to several services SHOULD not require redesigning core identity semantics
+
+---
+
+# Storage portability
+
+## REQ-PORT-073 — Core domain semantics MUST NOT depend on one specific database engine
+
+---
+
+## REQ-PORT-074 — Storage-specific identifiers SHOULD remain distinguishable from semantic identifiers
+
+---
+
+## REQ-PORT-075 — Storage migrations SHOULD preserve semantic identity
+
+---
+
+## REQ-PORT-076 — Storage migrations SHOULD preserve historical state required by retention policy
+
+---
+
+## REQ-PORT-077 — Storage migrations SHOULD be verifiable
+
+---
+
+## REQ-PORT-078 — Storage export SHOULD preserve enough information to restore the semantic model
+
+---
+
+## REQ-PORT-079 — Database backup alone SHOULD NOT be considered sufficient portability if interpretation requires undocumented application code
+
+---
+
+# Embedded and external storage
+
+## REQ-PORT-080 — Monad MAY support embedded local storage
+
+---
+
+## REQ-PORT-081 — Monad MAY support external database storage
+
+---
+
+## REQ-PORT-082 — Changing between supported storage modes SHOULD preserve semantic meaning
+
+---
+
+## REQ-PORT-083 — Deployment choice SHOULD NOT redefine domain concepts
+
+---
+
+# Schema portability
+
+## REQ-PORT-084 — Persisted portable records SHOULD identify the schema version needed to interpret them
+
+---
+
+## REQ-PORT-085 — Schema migrations SHOULD be explicit
+
+---
+
+## REQ-PORT-086 — Migration history SHOULD be inspectable where consequential
+
+---
+
+## REQ-PORT-087 — Old schema versions SHOULD either remain readable or have a documented migration path while supported
+
+---
+
+## REQ-PORT-088 — Schema evolution SHOULD distinguish additive from breaking changes
+
+---
+
+# Configuration portability
+
+## REQ-PORT-089 — Project configuration SHOULD distinguish portable project settings from machine-local settings
+
+---
+
+## REQ-PORT-090 — Secrets MUST NOT be required in portable configuration artifacts where secure references can be used
+
+---
+
+## REQ-PORT-091 — Environment-specific values SHOULD be explicit
+
+---
+
+## REQ-PORT-092 — Configuration SHOULD support validation before execution
+
+---
+
+## REQ-PORT-093 — Configuration defaults SHOULD be documented when they affect behavior
+
+---
+
+## REQ-PORT-094 — Hidden machine-global state SHOULD be minimized where reproducibility matters
+
+---
+
+# Environment portability
+
+## REQ-PORT-095 — Required execution dependencies SHOULD be explicitly describable
+
+---
+
+## REQ-PORT-096 — Monad SHOULD make environment assumptions inspectable
+
+Examples include:
+
+* runtimes,
+* system packages,
+* environment variables,
+* credentials,
+* network dependencies,
+* local services,
+* tool versions.
+
+---
+
+## REQ-PORT-097 — Machine-local environment state SHOULD remain distinguishable from project state
+
+---
+
+## REQ-PORT-098 — Reconstructing an environment SHOULD not require relying exclusively on undocumented developer-machine configuration
+
+---
+
+# Toolchain portability
+
+## REQ-PORT-099 — Monad SHOULD preserve the ability to evolve toolchains without rewriting semantic project history
+
+---
+
+## REQ-PORT-100 — Tool versions SHOULD be recorded where they materially affect outputs
+
+---
+
+## REQ-PORT-101 — Generated Evidence SHOULD retain relevant tool provenance
+
+---
+
+## REQ-PORT-102 — Replacement of one tool with another SHOULD NOT invalidate historical Evidence solely because the producer changed
+
+Historical Evidence may remain valid for its historical scope.
+
+---
+
+## REQ-PORT-103 — Current Verification MAY require rerunning with the current supported toolchain
+
+---
+
+# Provider portability
+
+## REQ-PORT-104 — Core Monad concepts SHOULD remain independent of any single external provider
+
+---
+
+## REQ-PORT-105 — Provider migration SHOULD preserve semantic Subject identity where the underlying engineering Subject remains the same
+
+---
+
+## REQ-PORT-106 — Historical native references SHOULD survive provider migration
+
+---
+
+## REQ-PORT-107 — Provider-specific metadata MAY remain attached as historical information after migration
+
+---
+
+## REQ-PORT-108 — Provider replacement SHOULD NOT require rewriting unrelated engineering relationships
+
+---
+
+# Source-host portability
+
+## REQ-PORT-109 — Moving from one repository host to another SHOULD preserve repository semantic identity where continuity is established
+
+Example:
+
+```text
+GitHub
+  ↓
+GitLab
+```
+
+MAY preserve the same semantic Repository Subject.
+
+---
+
+## REQ-PORT-110 — Host-specific issue and pull-request references SHOULD remain historical Native References after migration
+
+---
+
+# Issue-tracker portability
+
+## REQ-PORT-111 — Requirements and Tasks MUST NOT derive their semantic identity solely from an issue tracker
+
+---
+
+## REQ-PORT-112 — Migrating work items between trackers SHOULD preserve the underlying semantic Subject when appropriate
+
+---
+
+## REQ-PORT-113 — Tracker-specific workflow state MAY require explicit translation
+
+---
+
+## REQ-PORT-114 — Lossy workflow translation SHOULD be disclosed
+
+---
+
+# CI portability
+
+## REQ-PORT-115 — Verification meaning SHOULD remain independent of a particular CI provider
+
+---
+
+## REQ-PORT-116 — CI-provider migration SHOULD preserve historical verification Evidence
+
+---
+
+## REQ-PORT-117 — Native CI run identifiers SHOULD remain historical references
+
+---
+
+## REQ-PORT-118 — Verification contracts SHOULD be capable of execution in another supported environment where practical
+
+---
+
+# Registry portability
+
+## REQ-PORT-119 — Artifact identity SHOULD prefer immutable content identity where available
+
+---
+
+## REQ-PORT-120 — Moving artifacts between registries SHOULD preserve artifact identity where the bytes and semantics remain identical
+
+---
+
+## REQ-PORT-121 — Registry location SHOULD remain distinguishable from artifact identity
+
+---
+
+## REQ-PORT-122 — Historical publication locations SHOULD remain traceable
+
+---
+
+# Deployment-provider portability
+
+## REQ-PORT-123 — Release identity SHOULD remain independent of deployment provider
+
+---
+
+## REQ-PORT-124 — Deployment identity MAY be provider-specific
+
+---
+
+## REQ-PORT-125 — Moving workloads between providers SHOULD preserve the Release and relevant system-component identities
+
+---
+
+## REQ-PORT-126 — Provider-specific infrastructure semantics SHOULD remain explicit where migration is not lossless
+
+---
+
+# AI-provider portability
+
+## REQ-PORT-127 — AI capabilities SHOULD be modeled independently of one provider where useful
+
+---
+
+## REQ-PORT-128 — Provider-neutral capability MUST NOT imply equivalent model behavior
+
+---
+
+## REQ-PORT-129 — AI provider changes SHOULD preserve generation provenance
+
+---
+
+## REQ-PORT-130 — Historical AI-generated Evidence SHOULD retain the provider and model identity that produced it
+
+---
+
+## REQ-PORT-131 — Replacing an AI provider MUST NOT silently reinterpret prior generated Claims
+
+---
+
+## REQ-PORT-132 — Provider fallback SHOULD be capability-aware rather than name-based
+
+---
+
+# Artifact portability
+
+## REQ-PORT-133 — Requirements SHOULD remain exportable with their stable identity and metadata
+
+---
+
+## REQ-PORT-134 — Decisions SHOULD remain exportable with context, alternatives, rationale, status, and relationships
+
+---
+
+## REQ-PORT-135 — Specifications SHOULD remain exportable with normative content and revision identity
+
+---
+
+## REQ-PORT-136 — Models SHOULD remain exportable with entities, relationships, and invariants sufficiently represented
+
+---
+
+## REQ-PORT-137 — Evidence SHOULD remain exportable or referenceable with provenance
+
+---
+
+## REQ-PORT-138 — Verification results SHOULD remain exportable with target, revision, method, outcome, and Evidence relationships
+
+---
+
+## REQ-PORT-139 — Release records SHOULD remain exportable with source revision, artifacts, verification status, and native publication references
+
+---
+
+## REQ-PORT-140 — Traceability relationships SHOULD survive artifact export and import
+
+---
+
+# Evidence portability
+
+## REQ-PORT-141 — Evidence metadata SHOULD be portable even when the Evidence payload cannot be embedded
+
+---
+
+## REQ-PORT-142 — External Evidence SHOULD retain a resolvable or historically meaningful reference
+
+---
+
+## REQ-PORT-143 — Evidence digests SHOULD be preserved where they are used for integrity
+
+---
+
+## REQ-PORT-144 — Export SHOULD distinguish included Evidence from externally referenced Evidence
+
+---
+
+## REQ-PORT-145 — Redacted Evidence SHOULD retain enough metadata to indicate that evidence existed and was intentionally withheld where policy permits
+
+---
+
+# Traceability portability
+
+## REQ-PORT-146 — Typed trace relationships SHOULD survive export and import
+
+---
+
+## REQ-PORT-147 — Relationship direction MUST survive export and import
+
+---
+
+## REQ-PORT-148 — Relationship provenance SHOULD survive migration when known
+
+---
+
+## REQ-PORT-149 — Inferred relationships MUST remain distinguishable from confirmed relationships after migration
+
+---
+
+## REQ-PORT-150 — Broken external relationships SHOULD remain diagnosable rather than silently discarded
+
+---
+
+# Governance portability
+
+## REQ-PORT-151 — Policies SHOULD remain portable as explicit artifacts or equivalent semantic records
+
+---
+
+## REQ-PORT-152 — Authority bindings SHOULD retain scope and provenance during migration
+
+---
+
+## REQ-PORT-153 — Approval records SHOULD retain the revision and scope to which they applied
+
+---
+
+## REQ-PORT-154 — Historical governance outcomes SHOULD not be silently re-evaluated under new policy versions
+
+---
+
+## REQ-PORT-155 — Current operations MUST evaluate current applicable policy unless historical simulation is intentionally requested
+
+---
+
+# Temporal portability
+
+## REQ-PORT-156 — Migration MUST preserve the distinction between current and historical state
+
+---
+
+## REQ-PORT-157 — Recorded time SHOULD retain timezone or unambiguous absolute representation
+
+---
+
+## REQ-PORT-158 — Observed time SHOULD remain distinguishable from valid time where both exist
+
+---
+
+## REQ-PORT-159 — Migration time SHOULD NOT overwrite original event or observation time
+
+---
+
+## REQ-PORT-160 — Imported historical records SHOULD retain original provenance timestamps where known
+
+---
+
+# Export
+
+## REQ-PORT-161 — Monad SHOULD provide an explicit export operation for portable project state
+
+---
+
+## REQ-PORT-162 — Export scope SHOULD be selectable where practical
+
+Examples:
+
+* entire project,
+* artifact family,
+* Subject subtree,
+* release snapshot,
+* evidence bundle,
+* historical range.
+
+---
+
+## REQ-PORT-163 — Export SHOULD report omitted or externally referenced content
+
+---
+
+## REQ-PORT-164 — Export SHOULD identify the format version
+
+---
+
+## REQ-PORT-165 — Export SHOULD preserve stable semantic identifiers
+
+---
+
+## REQ-PORT-166 — Export SHOULD avoid mutating the project state merely to serialize it
+
+---
+
+# Import
+
+## REQ-PORT-167 — Monad SHOULD provide an explicit import operation for supported portable state
+
+---
+
+## REQ-PORT-168 — Import SHOULD validate structural compatibility before mutation
+
+---
+
+## REQ-PORT-169 — Import SHOULD detect identifier collisions
+
+---
+
+## REQ-PORT-170 — Identifier collision MUST NOT be silently resolved by creating duplicate semantic Subjects
+
+---
+
+## REQ-PORT-171 — Import SHOULD distinguish:
+
+* new Subject,
+* existing Subject,
+* additional Representation,
+* additional Native Reference,
+* conflicting record,
+* superseding record.
+
+---
+
+## REQ-PORT-172 — Import SHOULD support dry-run or preview behavior for consequential migrations where practical
+
+---
+
+## REQ-PORT-173 — Import SHOULD produce diagnostics for unsupported data
+
+---
+
+# Round-trip portability
+
+## REQ-PORT-174 — Supported export and import SHOULD preserve semantic equivalence
+
+Conceptually:
+
+```text
+State A
+  ↓ export
+Portable Representation
+  ↓ import
+State B
+```
+
+should satisfy:
+
+```text
+semantic(State A) ≈ semantic(State B)
+```
+
+within the documented portability contract.
+
+---
+
+## REQ-PORT-175 — Byte-for-byte equality SHOULD NOT be required unless canonical serialization explicitly promises it
+
+---
+
+## REQ-PORT-176 — Round-trip tests SHOULD verify identity, relationships, lifecycle, provenance, and authority semantics
+
+---
+
+# Backup
+
+## REQ-PORT-177 — Durable project state SHOULD be backupable using documented mechanisms
+
+---
+
+## REQ-PORT-178 — Backup SHOULD include sufficient metadata to restore semantic relationships
+
+---
+
+## REQ-PORT-179 — Backup scope SHOULD be explicit
+
+---
+
+## REQ-PORT-180 — Backup success SHOULD be verifiable
+
+---
+
+# Restore
+
+## REQ-PORT-181 — Restore SHOULD validate compatibility before applying state
+
+---
+
+## REQ-PORT-182 — Restore SHOULD preserve stable semantic identifiers
+
+---
+
+## REQ-PORT-183 — Restore SHOULD preserve historical provenance
+
+---
+
+## REQ-PORT-184 — Restoration SHOULD be testable without destroying the active system where practical
+
+---
+
+# Disaster recovery
+
+## REQ-PORT-185 — A recoverable local or exported representation SHOULD exist for project-critical semantic state
+
+---
+
+## REQ-PORT-186 — Recovery procedures SHOULD identify external dependencies that cannot be reconstructed solely from Monad data
+
+---
+
+## REQ-PORT-187 — Recovery SHOULD distinguish reconstructed state from freshly observed native state
+
+---
+
+# Migration
+
+## REQ-PORT-188 — Migration SHOULD be modeled as an explicit engineering operation
+
+---
+
+## REQ-PORT-189 — Migration SHOULD have defined:
+
+* source,
+* target,
+* transformation,
+* assumptions,
+* preconditions,
+* verification,
+* rollback or compensation strategy,
+* provenance.
+
+---
+
+## REQ-PORT-190 — Migration SHOULD preserve semantic identity where continuity exists
+
+---
+
+## REQ-PORT-191 — Migration MUST NOT invent continuity where Subjects are actually different
+
+---
+
+## REQ-PORT-192 — Migration MAY create supersession relationships where identity genuinely changes
+
+---
+
+# Split and merge
+
+## REQ-PORT-193 — Portability MUST account for Subjects that split during migration
+
+Example:
+
+```text
+old service
+   ↓
+service A
+service B
+```
+
+---
+
+## REQ-PORT-194 — Portability MUST account for Subjects that merge during migration
+
+---
+
+## REQ-PORT-195 — Split and merge SHOULD preserve lineage rather than force false identity continuity
+
+---
+
+# Compatibility
+
+## REQ-PORT-196 — Portable formats SHOULD define supported compatibility behavior
+
+---
+
+## REQ-PORT-197 — Backward compatibility SHOULD be explicit
+
+---
+
+## REQ-PORT-198 — Forward compatibility SHOULD be explicit
+
+---
+
+## REQ-PORT-199 — Unsupported versions SHOULD fail with actionable diagnostics
+
+---
+
+## REQ-PORT-200 — Compatibility MUST NOT be inferred solely from successful parsing
+
+A record can parse successfully while having changed semantics.
+
+---
+
+# Versioning
+
+## REQ-PORT-201 — Portable formats SHOULD have independently identifiable versions where useful
+
+---
+
+## REQ-PORT-202 — Data format version SHOULD remain distinguishable from application version
+
+---
+
+## REQ-PORT-203 — Schema version SHOULD remain distinguishable from artifact revision
+
+---
+
+## REQ-PORT-204 — Migration version SHOULD remain distinguishable from source-content version
+
+---
+
+# Vendor independence
+
+## REQ-PORT-205 — No external provider SHOULD be the sole durable location of project-critical semantic state where avoidable
+
+---
+
+## REQ-PORT-206 — Provider-native functionality MAY still be used deeply
+
+Vendor independence does not require rejecting useful provider capability.
+
+---
+
+## REQ-PORT-207 — Monad SHOULD preserve enough local or exportable information to migrate away from a provider when practical
+
+---
+
+## REQ-PORT-208 — Provider lock-in SHOULD be treated as an explicit tradeoff when unavoidable
+
+---
+
+# Open standards
+
+## REQ-PORT-209 — Monad SHOULD prefer broadly supported or openly documented formats when they satisfy the requirement
+
+---
+
+## REQ-PORT-210 — An open format MUST NOT be chosen solely because it is open if it materially fails required semantics
+
+---
+
+## REQ-PORT-211 — Proprietary formats MAY be integrated when accompanied by an adequate portability path for project-critical state
+
+---
+
+# Self-description
+
+## REQ-PORT-212 — Portable project exports SHOULD identify enough metadata to understand what they contain
+
+Potential fields include:
+
+```yaml
+format: monad-project-export
+format_version: 1
+project_id: ...
+created_at: ...
+producer: ...
+scope: ...
+```
+
+---
+
+## REQ-PORT-213 — Export metadata SHOULD identify the producer version where relevant
+
+---
+
+# Deterministic generation
+
+## REQ-PORT-214 — Generated portable artifacts SHOULD be deterministic where the specification requires reproducible output
+
+---
+
+## REQ-PORT-215 — Nondeterministic generation SHOULD preserve the inputs needed to explain variation where practical
+
+---
+
+# Reproducibility relationship
+
+Portability and reproducibility overlap, but they are not identical.
+
+```text
+Portability:
+Can this state move?
+
+Reproducibility:
+Can this result be recreated?
+```
+
+---
+
+## REQ-PORT-216 — Portable state SHOULD preserve reproducibility-relevant metadata when available
+
+---
+
+## REQ-PORT-217 — Portability MUST NOT be claimed as reproducibility
+
+---
+
+## REQ-PORT-218 — Reproducibility requirements MAY impose stricter preservation than ordinary portability
+
+---
+
+# Historical portability
+
+## REQ-PORT-219 — Historical project state SHOULD remain interpretable after application upgrades
+
+---
+
+## REQ-PORT-220 — Old artifact revisions SHOULD retain the semantics that applied when they were recorded
+
+---
+
+## REQ-PORT-221 — Historical native references SHOULD remain intact even if their providers are no longer connected
+
+---
+
+## REQ-PORT-222 — Historical provider names and identifiers SHOULD not be silently rewritten into current providers
+
+---
+
+# Long-term inspectability
+
+## REQ-PORT-223 — Important project records SHOULD remain intelligible without requiring the exact original application version where practical
+
+---
+
+## REQ-PORT-224 — Durable records SHOULD avoid unnecessary dependence on opaque framework internals
+
+---
+
+## REQ-PORT-225 — Long-lived artifact types SHOULD have documented meaning
+
+---
+
+## REQ-PORT-226 — Archival exports SHOULD preserve enough context to explain relationships among included records
+
+---
+
+# Archival mode
+
+## REQ-PORT-227 — Monad MAY support an archival export optimized for long-term inspection
+
+Such an archive MAY contain:
+
+* canonical records,
+* human-readable projections,
+* schemas,
+* relationship indexes,
+* provenance,
+* evidence manifests,
+* version metadata,
+* integrity hashes.
+
+---
+
+## REQ-PORT-228 — Archival export SHOULD NOT depend on a running external service for basic interpretation
+
+---
+
+# Integrity
+
+## REQ-PORT-229 — Portable archives SHOULD support integrity checking where appropriate
+
+---
+
+## REQ-PORT-230 — Integrity checking MAY use cryptographic digests
+
+---
+
+## REQ-PORT-231 — Integrity MUST remain distinguishable from correctness
+
+```text
+digest matches
+```
+
+means:
+
+> these bytes are the expected bytes.
+
+It does not mean:
+
+> the engineering Claim represented by these bytes is true.
+
+---
+
+# Security portability
+
+## REQ-PORT-232 — Export SHOULD avoid embedding secrets by default
+
+---
+
+## REQ-PORT-233 — Sensitive artifacts SHOULD preserve classification or policy metadata where appropriate
+
+---
+
+## REQ-PORT-234 — Access-control metadata SHOULD be exported where required to preserve governance intent
+
+---
+
+## REQ-PORT-235 — Exporting access-control metadata MUST NOT be assumed to recreate equivalent enforcement in another environment
+
+---
+
+# Privacy portability
+
+## REQ-PORT-236 — Portable archives SHOULD respect retention and privacy policy
+
+---
+
+## REQ-PORT-237 — Export SHOULD support excluding or redacting protected information where required
+
+---
+
+## REQ-PORT-238 — Redaction SHOULD not silently create misleading engineering history
+
+---
+
+# Portability and authority
+
+## REQ-PORT-239 — Migration MUST NOT silently transfer authority merely because data moved
+
+Example:
+
+An approval created under Organization A does not automatically confer operational authority in Organization B.
+
+---
+
+## REQ-PORT-240 — Imported authority records SHOULD retain original scope
+
+---
+
+## REQ-PORT-241 — Authority requiring revalidation after migration SHOULD be marked accordingly
+
+---
+
+# Portability and policy
+
+## REQ-PORT-242 — Imported policies SHOULD remain identifiable by version
+
+---
+
+## REQ-PORT-243 — Policy applicability MAY change across environments
+
+---
+
+## REQ-PORT-244 — Migration SHOULD NOT silently reinterpret historical actions using a new policy context
+
+---
+
+# Portability and Evidence
+
+## REQ-PORT-245 — Historical Evidence SHOULD remain valid for its original scope after migration unless the Evidence itself is invalidated
+
+---
+
+## REQ-PORT-246 — Migration MAY make Evidence less relevant to the new environment without making it historically false
+
+Example:
+
+A Linux compatibility test remains valid Evidence that a prior revision worked on Linux.
+
+It does not prove a migrated Windows deployment works.
+
+---
+
+# Portability and Verification
+
+## REQ-PORT-247 — Verification results SHOULD preserve the environment in which they were produced
+
+---
+
+## REQ-PORT-248 — Migration SHOULD trigger re-verification when environment changes invalidate prior Verification scope
+
+---
+
+## REQ-PORT-249 — Historical Verification SHOULD remain available after re-verification
+
+---
+
+# Portability and Releases
+
+## REQ-PORT-250 — Release identity SHOULD remain independent of publication location
+
+---
+
+## REQ-PORT-251 — A Release MAY accumulate multiple publication references
+
+---
+
+## REQ-PORT-252 — Moving a Release artifact between registries SHOULD preserve immutable artifact identity where content is unchanged
+
+---
+
+## REQ-PORT-253 — Historical Release records SHOULD preserve their original publication context
+
+---
+
+# Cross-project portability
+
+## REQ-PORT-254 — Monad SHOULD support moving portable semantic records between projects where policy permits
+
+---
+
+## REQ-PORT-255 — Cross-project import MUST NOT assume source identifiers are globally collision-free unless the identifier system guarantees it
+
+---
+
+## REQ-PORT-256 — Cross-project identity binding SHOULD be explicit
+
+---
+
+## REQ-PORT-257 — Project-local authority SHOULD not automatically transfer across projects
+
+---
+
+# Multi-project workspace portability
+
+## REQ-PORT-258 — A workspace MAY reference multiple projects without collapsing their identities
+
+---
+
+## REQ-PORT-259 — Moving a project between workspaces SHOULD NOT redefine project-internal Subject identity
+
+---
+
+## REQ-PORT-260 — Workspace-relative metadata SHOULD remain distinguishable from project-local metadata
+
+---
+
+# Cloning
+
+## REQ-PORT-261 — Cloning a project MUST distinguish copy from identity continuity
+
+A copied repository might mean:
+
+```text
+same project, another working copy
+```
+
+or:
+
+```text
+new project derived from old project
+```
+
+Monad SHOULD NOT assume these are equivalent.
+
+---
+
+## REQ-PORT-262 — Forking SHOULD preserve lineage without necessarily preserving Subject identity
+
+---
+
+## REQ-PORT-263 — Template instantiation SHOULD create new identity where the instantiated project is a distinct system
+
+---
+
+# Export subsets
+
+## REQ-PORT-264 — Partial export SHOULD preserve enough context to identify missing external dependencies
+
+---
+
+## REQ-PORT-265 — Partial exports SHOULD not silently imply completeness
+
+---
+
+## REQ-PORT-266 — Relationship endpoints omitted from an export SHOULD remain representable as external references where useful
+
+---
+
+# Portable references
+
+## REQ-PORT-267 — Internal portable references SHOULD prefer stable semantic identifiers
+
+---
+
+## REQ-PORT-268 — Native references SHOULD preserve provider namespace
+
+---
+
+## REQ-PORT-269 — External URLs SHOULD NOT be the sole durable identifier when a stronger native identifier exists
+
+---
+
+## REQ-PORT-270 — Broken URLs SHOULD not erase the historical existence of the referenced resource
+
+---
+
+# Relative addressing
+
+## REQ-PORT-271 — Representation references MAY use relative addressing where the base is explicit
+
+---
+
+## REQ-PORT-272 — Relative addressing SHOULD survive project-root relocation
+
+---
+
+## REQ-PORT-273 — Relative paths MUST NOT substitute for semantic Subject identity
+
+---
+
+# Content-addressed identity
+
+## REQ-PORT-274 — Content digests MAY be used to identify immutable representations or artifacts
+
+---
+
+## REQ-PORT-275 — Content digest MUST remain distinct from semantic Subject identity unless the domain explicitly defines content identity as semantic identity
+
+---
+
+## REQ-PORT-276 — Two identical byte sequences MAY represent different Subjects
+
+---
+
+## REQ-PORT-277 — One Subject MAY have different byte representations across revisions
+
+---
+
+# Portable extensions
+
+## REQ-PORT-278 — Extension mechanisms SHOULD allow unknown provider- or plugin-specific data to survive round trips where practical
+
+---
+
+## REQ-PORT-279 — Extension namespaces SHOULD avoid collisions
+
+---
+
+## REQ-PORT-280 — Unknown extension data SHOULD NOT automatically become authoritative semantic state
+
+---
+
+# Degraded portability
+
+## REQ-PORT-281 — Monad SHOULD report when a migration is lossy
+
+---
+
+## REQ-PORT-282 — Lossy migration SHOULD identify which semantics cannot be preserved
+
+---
+
+## REQ-PORT-283 — Users SHOULD be able to distinguish:
+
+* fully portable,
+* portable with transformation,
+* portable with loss,
+* externally referenced,
+* unsupported.
+
+---
+
+# Portability diagnostics
+
+## REQ-PORT-284 — Monad SHOULD be able to diagnose portability risks
+
+Potential risks include:
+
+* absolute paths,
+* unversioned schemas,
+* opaque provider IDs,
+* missing native references,
+* external-only Evidence,
+* undocumented custom fields,
+* provider-specific assumptions,
+* embedded secrets,
+* unsupported formats,
+* missing migrations,
+* stale external references.
+
+---
+
+## REQ-PORT-285 — Portability diagnostics SHOULD distinguish errors from warnings
+
+---
+
+# Portability validation
+
+## REQ-PORT-286 — Portable exports SHOULD be structurally validatable
+
+---
+
+## REQ-PORT-287 — Semantic validation SHOULD verify required cross-record relationships where practical
+
+---
+
+## REQ-PORT-288 — Validation SHOULD detect unresolved required references
+
+---
+
+## REQ-PORT-289 — Validation SHOULD detect unsupported schema versions
+
+---
+
+# Portability testing
+
+## REQ-PORT-290 — Portability SHOULD be verified through actual migration and round-trip tests
+
+---
+
+## REQ-PORT-291 — Tests SHOULD include movement across filesystem locations
+
+---
+
+## REQ-PORT-292 — Tests SHOULD include fresh-machine restoration
+
+---
+
+## REQ-PORT-293 — Tests SHOULD include provider-disconnected inspection
+
+---
+
+## REQ-PORT-294 — Tests SHOULD include schema-version transitions
+
+---
+
+## REQ-PORT-295 — Tests SHOULD include import/export identity preservation
+
+---
+
+## REQ-PORT-296 — Tests SHOULD include unknown extension preservation where supported
+
+---
+
+## REQ-PORT-297 — Tests SHOULD verify history and provenance preservation
+
+---
+
+# Fresh-machine test
+
+A strong portability test is:
+
+```text
+1. Export project state.
+2. Move archive to a clean machine.
+3. Install only documented dependencies.
+4. Import the project.
+5. Inspect Requirements, Decisions, relationships, Evidence, and Releases.
+6. Verify stable semantic identities.
+7. Confirm unavailable external providers remain explicit.
+8. Reconnect providers if desired.
+9. Reconcile native state.
+```
+
+---
+
+## REQ-PORT-298 — Monad SHOULD be able to demonstrate documented fresh-machine recovery for supported deployment modes
+
+---
+
+# Provider-removal test
+
+Another useful falsification test is:
+
+```text
+Disconnect GitHub.
+```
+
+Then ask:
+
+* Can the project still identify its Requirements?
+* Can it still inspect Decisions?
+* Can it still understand semantic relationships?
+* Can it still see historical Verification?
+* Can it distinguish cached GitHub state from current state?
+* Can it identify which information is unavailable?
+
+---
+
+## REQ-PORT-299 — Loss of an external provider SHOULD degrade provider-dependent capability without destroying unrelated project knowledge
+
+---
+
+# Format-removal test
+
+Suppose the original UI disappears.
+
+Can an engineer still inspect the project using ordinary tools?
+
+---
+
+## REQ-PORT-300 — Durable engineering records SHOULD not depend exclusively on a specific UI for interpretation
+
+---
+
+# Storage-replacement test
+
+Suppose the current database engine becomes unacceptable.
+
+Can project state be moved without changing Subject identity?
+
+---
+
+## REQ-PORT-301 — Storage-engine replacement SHOULD preserve semantic equivalence within the supported migration contract
+
+---
+
+# Repository-migration example
+
+Before:
+
+```text
+provider:
+  github
+
+organization:
+  old-org
+
+repository:
+  monad
+
+native_repository_id:
+  10042
+```
+
+After:
+
+```text
+provider:
+  gitlab
+
+namespace:
+  monad-framework
+
+repository:
+  monad
+
+native_repository_id:
+  88120
+```
+
+Semantic layer:
+
+```text
+Repository Subject:
+  SYS-REPO-0001
+```
+
+may remain unchanged.
+
+The old and new native references both remain useful historical facts.
+
+---
+
+# Representation-move example
+
+Before:
+
+```text
+Subject:
+  REQ-00042
+
+Representation:
+  docs/requirements/authority.md
+```
+
+After:
+
+```text
+Subject:
+  REQ-00042
+
+Representation:
+  content/docs/artifacts/requirements/authority.mdx
+```
+
+The representation moved.
+
+The Requirement did not necessarily become a new Requirement.
+
+---
+
+# Storage-migration example
+
+Before:
+
+```text
+SQLite
+```
+
+After:
+
+```text
+PostgreSQL
+```
+
+The storage implementation changes.
+
+The domain concepts should not:
+
+```text
+Subject
+Representation
+Claim
+Relationship
+Authority
+Evidence
+```
+
+---
+
+# Provider-migration example
+
+A work item moves from GitHub to another tracker.
+
+Historical state:
+
+```text
+Native Reference A
+  GitHub issue #42
+```
+
+Current state:
+
+```text
+Native Reference B
+  Tracker XYZ item MON-312
+```
+
+Semantic Subject:
+
+```text
+REQ-00042
+```
+
+can remain stable if both native records refer to the same underlying Requirement.
+
+---
+
+# Clone-versus-fork example
+
+Two copies of a repository exist.
+
+Case A:
+
+```text
+laptop clone
+server clone
+```
+
+Both represent working copies of the same project.
+
+Case B:
+
+```text
+Monad
+   ↓ fork
+Monad-derived experimental system
+```
+
+The second may be a new project with lineage to the first.
+
+Portability must not confuse copying bytes with preserving identity.
+
+---
+
+# Export example
+
+An illustrative export might eventually resemble:
+
+```yaml
+format: monad-project
+format_version: 1
+
+project:
+  id: PRJ-0001
+  title: Monad
+
+subjects:
+  - id: REQ-0001
+    type: requirement
+
+relationships:
+  - type: verified-by
+    from: REQ-0001
+    to: VER-0042
+
+native_references:
+  - subject: REQ-0001
+    provider: github
+    resource_type: issue
+    repository: monad-framework/monad
+    native_id: 42
+```
+
+The exact representation is intentionally not established here.
+
+The requirement is that equivalent meaning can be preserved.
+
+---
+
+# Portable archive example
+
+A long-term archive could eventually resemble:
+
+```text
+monad-export/
+├── manifest.json
+├── schemas/
+├── subjects/
+├── relationships/
+├── requirements/
+├── decisions/
+├── specifications/
+├── evidence/
+├── verification/
+├── releases/
+├── provenance/
+└── README.md
+```
+
+This is illustrative rather than normative.
+
+---
+
+# Portability invariants
+
+The portability system SHOULD preserve these distinctions:
+
+```text
+Subject ≠ Representation
+
+Semantic identity ≠ Filesystem path
+
+Semantic identity ≠ Repository location
+
+Semantic identity ≠ Database key
+
+Semantic identity ≠ Provider ID
+
+Semantic identity ≠ URL
+
+Semantic identity ≠ Content digest
+
+Project identity ≠ Working copy
+
+Copy ≠ Continuity
+
+Fork ≠ Clone
+
+Repository topology ≠ System architecture
+
+Storage model ≠ Domain model
+
+Serialization ≠ Meaning
+
+Bytes preserved ≠ Semantics preserved
+
+Export successful ≠ Import equivalent
+
+Parsing successful ≠ Compatible semantics
+
+Schema version ≠ Artifact revision
+
+Application version ≠ Data format version
+
+Historical state ≠ Current state
+
+Migration time ≠ Original time
+
+Portable ≠ Reproducible
+
+Digest integrity ≠ Correctness
+
+Provider-neutral ≠ Provider-identical
+
+Cached remote state ≠ Current remote state
+
+External reference ≠ Included Evidence
+
+Redacted ≠ Absent
+
+Imported authority ≠ Current authority
+
+Historical approval ≠ Current approval
+
+Historical Verification ≠ Current Verification
+
+Publication location ≠ Release identity
+
+Registry coordinate ≠ Artifact identity
+
+Working directory ≠ Project identity
+
+Generated projection ≠ Canonical Subject
+
+Storage replacement ≠ Semantic redesign
+
+Provider replacement ≠ Semantic replacement
+
+Unknown field ≠ Invalid automatically
+
+Lossy migration ≠ Equivalent migration
+```
+
+---
+
+# Portability anti-patterns
+
+## Path is identity
+
+Repository restructuring breaks the semantic model.
+
+---
+
+## Database primary key is identity
+
+Changing storage becomes equivalent to changing the engineering system.
+
+---
+
+## Provider object is the domain object
+
+Leaving the provider requires rewriting the ontology.
+
+---
+
+## SaaS is the archive
+
+Critical project knowledge disappears when an account or provider disappears.
+
+---
+
+## Export is a CSV dump
+
+Relationships and semantics are flattened beyond recovery.
+
+---
+
+## Proprietary serialized runtime state
+
+Only the original application can interpret the records.
+
+---
+
+## Hidden global configuration
+
+A project works only on the original developer's machine.
+
+---
+
+## Absolute paths everywhere
+
+Moving the project breaks references.
+
+---
+
+## Silent lossy migration
+
+Information disappears while the migration reports success.
+
+---
+
+## Rewrite history during migration
+
+Old provider references and prior states vanish.
+
+---
+
+## New provider means new identity
+
+Stable Subjects are unnecessarily recreated.
+
+---
+
+## Import duplicates everything
+
+Existing semantic Subjects are not reconciled.
+
+---
+
+## Copy means same project
+
+Template instantiations accidentally share identity.
+
+---
+
+## Fork means unrelated project
+
+Lineage disappears.
+
+---
+
+## Portability means lowest common denominator
+
+Useful provider-specific capability is discarded.
+
+---
+
+## Portable means reproducible
+
+State movement is confused with deterministic recreation.
+
+---
+
+## Backup means recovery
+
+Backups are never tested.
+
+---
+
+## Human readable means semantically complete
+
+Pretty Markdown exists, but relationships and provenance disappear.
+
+---
+
+## Machine readable means future proof
+
+A JSON file with undocumented semantics remains opaque.
+
+---
+
+## Preserve bytes, lose meaning
+
+The archive technically survives but the engineering record does not.
+
+---
+
+# Progressive portability maturity
+
+## Stage 1 — Relocatable project
+
+The project can move to another filesystem path.
+
+---
+
+## Stage 2 — Stable semantic identity
+
+Paths and native IDs no longer define Subject identity.
+
+---
+
+## Stage 3 — Portable artifact record
+
+Core artifacts can be exported with stable identifiers.
+
+---
+
+## Stage 4 — Portable relationships
+
+Traceability, provenance, lifecycle, and authority metadata survive migration.
+
+---
+
+## Stage 5 — Provider independence
+
+External providers can change without destroying semantic identity.
+
+---
+
+## Stage 6 — Storage independence
+
+The semantic model can move across supported persistence implementations.
+
+---
+
+## Stage 7 — Fresh-machine reconstruction
+
+The project can be reconstructed on a clean machine using documented dependencies.
+
+---
+
+## Stage 8 — Long-term archival
+
+Engineering history remains intelligible without the original operational environment.
+
+---
+
+## Stage 9 — Semantic continuity across ecosystem evolution
+
+Monad preserves engineering meaning through:
+
+* repository movement,
+* tool replacement,
+* provider migration,
+* storage migration,
+* runtime evolution,
+* organizational change,
+* and long-term history.
+
+---
+
+# Minimal useful portability baseline
+
+A first meaningful portability baseline should establish:
+
+```text
+stable semantic identifiers
++
+relative and explicit Representation addressing
++
+documented portable serialization
++
+schema versions
++
+native-reference preservation
++
+export
++
+import
++
+round-trip verification
++
+local inspection
+```
+
+This would already prevent several forms of accidental lock-in.
+
+---
+
+# Portability review checklist
+
+Before declaring a feature portable, ask:
+
+1. What semantic Subject is being moved?
+2. Which parts are merely Representations?
+3. Does any filesystem path define identity?
+4. Does any repository URL define identity?
+5. Does any database key define identity?
+6. Does any provider-native ID define identity?
+7. What stable semantic identifier survives?
+8. Which native references must remain historical?
+9. What information is canonical?
+10. What information is derived?
+11. What information is provider-specific?
+12. What information is machine-local?
+13. Which records need serialization?
+14. Is the serialization documented?
+15. Is its version explicit?
+16. Are schemas available?
+17. Are relationships preserved?
+18. Is relationship direction preserved?
+19. Is relationship provenance preserved?
+20. Are lifecycle states preserved?
+21. Are supersession links preserved?
+22. Are inference states preserved?
+23. Is authority preserved with scope?
+24. Does authority need revalidation?
+25. Are approvals revision-bound?
+26. Are historical approvals preserved?
+27. Is Evidence included or externally referenced?
+28. Are Evidence digests preserved?
+29. Are Verification results scoped?
+30. Will environment changes invalidate prior Verification?
+31. Are native provider references preserved?
+32. Are timestamps preserved?
+33. Are observed and recorded times distinct?
+34. Are historical and current state distinct?
+35. Are unknown fields preserved?
+36. Is migration lossy?
+37. If so, is the loss disclosed?
+38. Can a dry-run identify conflicts?
+39. Can import detect duplicate Subjects?
+40. Can import detect identifier collisions?
+41. Can a project move to another directory?
+42. Can it move to another repository?
+43. Can it move to another source host?
+44. Can it move between machines?
+45. Can it move between supported operating systems?
+46. Can storage be replaced?
+47. Can a provider be replaced?
+48. Can an AI provider be replaced?
+49. Can an issue tracker be replaced?
+50. Can a CI provider be replaced?
+51. Can a package registry be replaced?
+52. Can a deployment provider be replaced?
+53. Which changes preserve identity?
+54. Which require lineage instead?
+55. Could a split occur?
+56. Could a merge occur?
+57. Does the project still work offline?
+58. What becomes unavailable offline?
+59. Is remote freshness explicit?
+60. Can project-critical state be inspected without SaaS?
+61. Can a clean machine interpret the exported project?
+62. Which tools are required?
+63. Are those dependencies documented?
+64. Is hidden machine configuration required?
+65. Are absolute paths embedded?
+66. Are secrets embedded?
+67. Is sensitive information appropriately protected?
+68. Can an archival export be read without the original UI?
+69. Can it be read without the original database?
+70. Can it be read without the original external providers?
+71. Can export integrity be verified?
+72. Has restore actually been tested?
+73. Has round-trip identity been tested?
+74. Has relationship preservation been tested?
+75. Has history preservation been tested?
+76. Have incompatible versions been tested?
+77. Have unknown extensions been tested?
+78. Have partial exports been tested?
+79. Does partial export identify omitted dependencies?
+80. Can old versions still be interpreted?
+81. Is there a migration path?
+82. Can migration be verified?
+83. Can failed migration be recovered?
+84. Does portability preserve semantic meaning?
+85. Or are we merely moving bytes?
+
+---
+
+# Relationship to semantic identity
+
+Portability depends first on identity.
+
+If identity is equivalent to location:
+
+```text
+move file
+   =
+new Subject
+```
+
+If identity is semantic:
+
+```text
+move file
+   =
+new Representation location
+```
+
+That distinction is foundational.
+
+---
+
+# Relationship to Representations
+
+Representations are expected to move and evolve.
+
+A Requirement may appear as:
+
+```text
+Markdown
+GitHub issue
+database record
+generated website page
+API representation
+archive record
+```
+
+Portability means these forms can change without silently redefining the underlying Subject.
+
+---
+
+# Relationship to integrations
+
+Integrations introduce provider-specific identity and behavior.
+
+Portability requires Monad to preserve:
+
+```text
+native meaning
++
+semantic independence
+```
+
+rather than choosing only one.
+
+---
+
+# Relationship to reconciliation
+
+After migration, Monad may need to reconnect to native systems.
+
+That produces:
+
+```text
+imported semantic state
+        +
+new native observations
+        ↓
+reconciliation
+```
+
+Reconciliation determines whether:
+
+* bindings remain valid,
+* provider state changed,
+* imported state is stale,
+* native resources moved,
+* new native references should be attached.
+
+---
+
+# Relationship to Evidence
+
+Evidence can outlive the tool that produced it.
+
+Therefore a future engineer should ideally be able to determine:
+
+```text
+what produced this Evidence
+which revision it concerned
+when it was produced
+what Claim it supported
+what environment it represented
+```
+
+even if the producing CI platform or provider no longer exists.
+
+---
+
+# Relationship to Verification
+
+Verification is scoped.
+
+Migrating a project may preserve the historical Verification while invalidating its applicability to the new environment.
+
+For example:
+
+```text
+verified on Linux
+```
+
+remains historical truth after migration.
+
+It does not automatically become:
+
+```text
+verified on Windows
+```
+
+---
+
+# Relationship to releases
+
+Releases should survive movement among registries and deployment systems.
+
+The Release Subject may remain:
+
+```text
+REL-0007
+```
+
+while its native publication references change.
+
+---
+
+# Relationship to traceability
+
+Traceability provides semantic continuity.
+
+A portable project should retain chains such as:
+
+```text
+Requirement
+   ↓ specified-by
+
+Specification
+   ↓ implemented-by
+
+Component
+   ↓ verified-by
+
+Verification
+   ↓ supported-by
+
+Evidence
+   ↓ released-in
+
+Release
+```
+
+even after moving to another machine or provider.
+
+---
+
+# Relationship to reproducibility
+
+Portability allows engineering state to travel.
+
+Reproducibility allows engineering results to be reconstructed.
+
+A strong system should support both, but they remain separate Claims.
+
+---
+
+# Relationship to local-first design
+
+Local-first is one of Monad's strongest portability mechanisms.
+
+When essential state is locally available and represented using documented semantics, migration becomes easier because the project is not fundamentally trapped inside remote application state.
+
+---
+
+# Definition of Ready
+
+A portability capability is ready for implementation when:
+
+* the Subjects being moved are identified,
+* stable identity rules are defined,
+* Representation boundaries are understood,
+* source and destination environments are known,
+* portable data is identified,
+* local-only data is identified,
+* provider-specific data is identified,
+* serialization requirements are defined,
+* schema/version requirements are defined,
+* compatibility requirements are known,
+* migration behavior is specified,
+* conflicts are understood,
+* security constraints are known,
+* privacy constraints are known,
+* backup and recovery requirements are known where applicable,
+* and verification criteria exist.
+
+---
+
+# Definition of Done
+
+A portability capability is complete enough when:
+
+* semantic identity survives the supported migration,
+* Representation locations may change safely,
+* native references remain preserved,
+* relationships survive,
+* lifecycle state survives,
+* provenance survives,
+* historical state remains historical,
+* authority scope is preserved or explicitly revalidated,
+* portable records identify their format version,
+* migration incompatibilities fail explicitly,
+* lossy transformations are reported,
+* secrets are not inadvertently exported,
+* external dependencies remain identifiable,
+* import detects conflicts,
+* round-trip tests pass,
+* fresh-machine restoration has been demonstrated where required,
+* and the resulting project remains intelligible without reconstructing meaning manually.
+
+---
+
+# Governing principle
+
+Monad should always be able to ask:
+
+> If this file moves, is it still the same Subject?
+
+> If this repository moves, is it still the same project?
+
+> If the Git host changes, which identities remain stable?
+
+> If the database changes, does the domain model remain intact?
+
+> If the operating system changes, which assumptions become invalid?
+
+> If the provider disappears, what engineering knowledge remains locally inspectable?
+
+> If the UI disappears, can engineers still understand the record?
+
+> If the serialization format changes, can old records still be interpreted?
+
+> If a project is copied, is it another working copy or a new project?
+
+> If a system splits, should identity continue or branch through lineage?
+
+> If two systems merge, what historical identities survive?
+
+> If Evidence moves, can we still tell what produced it?
+
+> If Verification was performed in another environment, is it still applicable?
+
+> If authority records are imported, do they still grant authority here?
+
+> If a provider is replaced, can semantic Subjects retain their identity?
+
+> If a future engineer receives nothing but the archive, can they reconstruct what the project meant?
+
+The portability objective is not:
+
+```text
+everything becomes provider-neutral
+```
+
+nor:
+
+```text
+everything becomes plain text
+```
+
+nor:
+
+```text
+every environment behaves identically
+```
+
+It is:
+
+```text
+stable semantic identity
+        +
+documented portable representations
+        +
+preserved provenance and history
+        +
+explicit environment/provider differences
+        +
+verifiable migration
+        +
+local inspectability
+        ↓
+engineering meaning survives change
+```
+
+> **Monad should be portable enough that changing where engineering knowledge lives does not silently change what that knowledge means.**
+
+---
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/reconciliation" title="Reconciliation Requirements">
+    Define how imported, cached, local, and native state are compared and brought back into an explicit relationship after change.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/reproducibility" title="Reproducibility Requirements">
+    Define what Monad must preserve so consequential engineering results can be reconstructed, explained, or independently checked.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/integration" title="Integration Requirements">
+    Define how Monad connects to external engineering systems without allowing provider identity to become semantic identity.
+  </Card>
+
+  <Card href="/docs/system/architecture" title="System Architecture">
+    Read the current architectural model that separates semantic meaning from storage, execution, integration, and projection concerns.
+  </Card>
+</Cards>

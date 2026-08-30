@@ -1,0 +1,22 @@
+{
+  "title": "Docs",
+  "description": "Project documentation",
+  "pages": [
+    "index",
+    "about",
+    "artifacts",
+    "author",
+    "building-monad",
+    "project",
+    "system",
+    "0000-starting-repo",
+    "0001-readme",
+    "0002-project-definition",
+    "0003-project-idea-workspace",
+    "0004-writing-idea-md",
+    "0005-idea-md-template",
+    "0006-project-md-template",
+    "0007-intro-to-requirements",
+    "0008-requirements-readme"
+  ]
+}

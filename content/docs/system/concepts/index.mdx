@@ -1,0 +1,2355 @@
+---
+title: Concepts & Principles
+description: The foundational concepts, semantic primitives, distinctions, and invariants that define how Monad understands a software system.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    The semantic foundation
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Monad begins by making a small set of distinctions that conventional engineering systems often leave implicit: the thing is not its representation, existence is not authority, a claim is not evidence, capability is not permission, and historical truth is not necessarily current truth.
+  </p>
+</div>
+
+## Why concepts come before architecture
+
+Architecture is only as coherent as the concepts it is built from.
+
+If terms such as:
+
+* identity,
+* representation,
+* authority,
+* provenance,
+* evidence,
+* state,
+* policy,
+* capability,
+* and context
+
+remain ambiguous, architectural components may implement incompatible interpretations of the same idea.
+
+Monad therefore establishes a conceptual model before treating those concepts as technical mechanisms.
+
+This section defines that model.
+
+It answers:
+
+> **What kinds of things does Monad believe exist in an engineering system, and what distinctions must remain true when we reason about them?**
+
+---
+
+## The central idea
+
+Monad begins with a simple principle:
+
+> **A software system is more than the set of files used to implement it.**
+
+The full engineering system includes things such as:
+
+```text
+code
+requirements
+decisions
+specifications
+policies
+tests
+runtime state
+external services
+people
+AI agents
+relationships
+history
+evidence
+intent
+```
+
+Those things appear through many native systems.
+
+Monad does not attempt to replace those systems.
+
+Instead, it introduces a semantic layer capable of describing what those systems mean and how their contents relate.
+
+---
+
+## Semantic primitives
+
+At the conceptual level, Monad reasons through a small set of recurring primitives.
+
+```text
+Subject
+Representation
+Native Reference
+Claim
+Relationship
+Authority
+Provenance
+Evidence
+Lifecycle
+Context
+Actor
+Capability
+Policy
+Projection
+```
+
+These are not necessarily one-to-one database tables or runtime classes.
+
+They are semantic concepts.
+
+The implementation may represent them differently while preserving their meaning.
+
+---
+
+# Subject
+
+A **Subject** is the underlying thing Monad is talking about.
+
+Examples might include:
+
+```text
+a requirement
+a component
+an interface
+a capability
+a specification
+a decision
+a policy
+a release
+a service
+a project
+```
+
+The defining property of a Subject is that it has semantic identity independent of any particular representation.
+
+For example:
+
+```text
+Subject:
+  Requirement R
+```
+
+might currently be represented by:
+
+```text
+content/requirements/r.mdx
+GitHub issue #42
+generated documentation
+database record
+```
+
+Those representations can change without necessarily changing the underlying Subject.
+
+---
+
+## Subject is not representation
+
+This is one of Monad's foundational distinctions.
+
+```text
+Subject
+   ≠
+Representation
+```
+
+A file can represent a Subject.
+
+A database record can represent a Subject.
+
+An issue can represent a Subject.
+
+But none is automatically identical to the Subject itself.
+
+Consider:
+
+```text
+docs/api-authentication.mdx
+```
+
+The file may move to:
+
+```text
+docs/security/authentication.mdx
+```
+
+The path changed.
+
+The conceptual subject may not have changed at all.
+
+Without a distinction between subject and representation, systems often interpret this as:
+
+```text
+old thing deleted
+new thing created
+```
+
+when what actually happened was:
+
+```text
+same subject
+new representation location
+```
+
+Monad attempts to preserve that distinction.
+
+---
+
+# Semantic identity
+
+**Semantic identity** expresses continuity of meaning.
+
+It answers:
+
+> **Is this still the same underlying thing?**
+
+This differs from:
+
+```text
+filesystem identity
+database identity
+Git identity
+issue-tracker identity
+URL identity
+```
+
+All of those can be useful.
+
+But they are identities defined by native systems.
+
+Semantic identity belongs to the engineering model.
+
+---
+
+## Identity should survive representation change
+
+A stable Subject should be capable of surviving events such as:
+
+```text
+rename
+move
+format conversion
+regeneration
+repository migration
+tool migration
+projection
+```
+
+For example:
+
+```text
+Requirement R
+     │
+     ├── represented as Markdown
+     │
+     ├── migrated into a database
+     │
+     └── projected into documentation
+```
+
+The underlying requirement remains Requirement R.
+
+---
+
+## Identity does not imply immutability
+
+Semantic identity does not mean that a Subject can never change.
+
+A component can evolve while remaining the same component.
+
+A specification can acquire revisions.
+
+A policy can be amended.
+
+The relevant question is whether the change preserves continuity of identity.
+
+In some cases it will not.
+
+This creates more difficult transitions such as:
+
+```text
+split
+merge
+replacement
+supersession
+```
+
+Those should be modeled explicitly rather than hidden behind identifier reassignment.
+
+---
+
+# Representation
+
+A **Representation** is a concrete manifestation of a Subject.
+
+Examples include:
+
+```text
+Markdown file
+source file
+GitHub issue
+database row
+JSON document
+API resource
+generated documentation page
+diagram
+```
+
+A representation has properties that belong to the representation rather than necessarily to the Subject.
+
+For example:
+
+```text
+path
+format
+encoding
+native identifier
+repository
+generation state
+```
+
+These may change even when the underlying Subject does not.
+
+---
+
+## One Subject can have many representations
+
+Conceptually:
+
+```text
+                    ┌── Markdown
+                    │
+                    ├── GitHub issue
+Subject ────────────┼── database row
+                    │
+                    ├── API representation
+                    │
+                    └── generated page
+```
+
+This allows Monad to integrate with existing engineering systems without pretending each native copy creates a new semantic entity.
+
+---
+
+## Representation roles
+
+Representations can serve different purposes.
+
+A useful conceptual distinction is:
+
+```text
+canonical
+authored
+generated
+coordination
+external
+transient
+```
+
+For example:
+
+### Canonical representation
+
+A representation designated as authoritative for a particular scope.
+
+### Authored representation
+
+A representation directly maintained by a human or agent.
+
+### Generated representation
+
+A projection produced from another source.
+
+### Coordination representation
+
+A representation used primarily to coordinate work, such as an issue or project-management item.
+
+### External representation
+
+A representation owned by another system.
+
+### Transient representation
+
+A short-lived form created during execution or transformation.
+
+These roles can overlap in some systems, but their meanings should remain explicit.
+
+---
+
+# Native Reference
+
+A **Native Reference** identifies something inside an external or native engineering system.
+
+Examples include:
+
+```text
+filesystem path
+Git commit SHA
+GitHub issue number
+GitHub pull request
+database primary key
+package coordinate
+deployment ID
+URL
+CI run ID
+```
+
+A Native Reference is useful because Monad should not invent substitute identities for things that already have meaningful native identifiers.
+
+But:
+
+```text
+Native Reference
+     ≠
+Semantic Identity
+```
+
+A Native Reference tells Monad how to find something in a particular system.
+
+Semantic identity tells Monad what underlying thing it represents.
+
+---
+
+## Binding semantic and native identity
+
+Conceptually:
+
+```text
+Subject
+   │
+   │ represented-by
+   ▼
+Representation
+   │
+   │ addressed-by
+   ▼
+Native Reference
+```
+
+For example:
+
+```text
+Subject:
+  authentication-interface
+
+Representation:
+  TypeScript interface
+
+Native Reference:
+  packages/auth/src/interface.ts
+```
+
+If the file moves, Monad can update the Native Reference without changing the Subject.
+
+---
+
+# Claim
+
+A **Claim** is an assertion about the engineering system.
+
+Examples:
+
+```text
+Component A depends on Component B.
+
+Requirement R constrains Interface I.
+
+Specification S governs Command C.
+
+Artifact A supersedes Artifact B.
+
+Deployment D runs version V.
+```
+
+Claims matter because system knowledge is not always reducible to object properties.
+
+Different sources may make different assertions about the same Subject.
+
+---
+
+## Claim is not truth
+
+A Claim represents:
+
+> Something asserts that this is true.
+
+It does not automatically mean:
+
+> Monad has established this as authoritative truth.
+
+This distinction allows the model to preserve:
+
+```text
+observation
+hypothesis
+proposal
+inference
+accepted assertion
+conflicting assertion
+historical assertion
+```
+
+without collapsing all of them into one unquestioned state.
+
+---
+
+# Relationship
+
+A **Relationship** connects Subjects or other meaningful entities with typed semantics.
+
+Examples include:
+
+```text
+depends-on
+implements
+specified-by
+represented-by
+satisfies
+supersedes
+derived-from
+produced-by
+governed-by
+verified-by
+constrained-by
+conflicts-with
+```
+
+Typed relationships are important because:
+
+```text
+A links to B
+```
+
+does not tell us enough.
+
+Compare:
+
+```text
+A depends-on B
+```
+
+with:
+
+```text
+A supersedes B
+```
+
+or:
+
+```text
+A is-evidence-for B
+```
+
+The same two entities can have completely different engineering meaning depending on the relationship type.
+
+---
+
+## Relationships enable reasoning
+
+Typed relationships make questions possible such as:
+
+```text
+What depends on this?
+
+Which requirements constrain this component?
+
+Which tests verify this specification?
+
+Which artifact superseded this one?
+
+Which evidence supports this claim?
+```
+
+This is one of the core reasons Monad uses a graph-shaped semantic model.
+
+---
+
+# Authority
+
+**Authority** determines which information is entitled to govern a particular question.
+
+A central Monad invariant is:
+
+> **Existence is not authority.**
+
+A repository may contain:
+
+```text
+accepted specification
+obsolete document
+generated documentation
+AI hypothesis
+runtime observation
+external reference
+```
+
+All contain information.
+
+They should not automatically have equal authority.
+
+---
+
+## Authority is scoped
+
+Authority should usually be understood within a scope.
+
+For example:
+
+```text
+Requirement
+  authoritative for required outcome
+
+Specification
+  authoritative for expected behavior
+
+Source code
+  authoritative for current implementation
+
+Runtime observation
+  authoritative for what was observed at a particular time
+
+ADR
+  authoritative for the existence and rationale of a decision
+```
+
+No single source necessarily governs every question.
+
+---
+
+## Authority is not merely ranking
+
+A simplistic authority system might say:
+
+```text
+Specification > Documentation > Issue
+```
+
+That is often insufficient.
+
+The real question is:
+
+> Authoritative about what?
+
+Authority may apply to:
+
+```text
+specific claim
+property
+subject
+artifact type
+domain
+time interval
+operation
+scope
+```
+
+Monad therefore treats authority as contextual rather than merely hierarchical.
+
+---
+
+# Provenance
+
+**Provenance** describes where information came from and how it came to exist.
+
+It may include:
+
+```text
+producer
+source
+derivation
+tool
+actor
+execution environment
+timestamp
+input state
+transformation
+observation point
+```
+
+Conceptually:
+
+```text
+Result
+  │
+  ├── produced-by
+  ├── derived-from
+  ├── generated-by
+  ├── observed-at
+  └── recorded-by
+```
+
+Provenance helps answer:
+
+> **How did we get this information?**
+
+---
+
+## Provenance is not authority
+
+A source being known does not automatically make it authoritative.
+
+For example:
+
+```text
+Claim:
+  Component A supports protocol X
+
+Provenance:
+  generated by Agent 7
+  from repository commit abc123
+```
+
+That provenance is useful.
+
+But whether the claim governs depends on authority.
+
+This creates an important distinction:
+
+```text
+Provenance
+  → where did this come from?
+
+Authority
+  → why should this govern?
+```
+
+---
+
+# Evidence
+
+**Evidence** is information used to support or challenge a Claim.
+
+Examples include:
+
+```text
+test results
+experiment output
+benchmark
+runtime observation
+log
+review finding
+reproduction
+measurement
+external reference
+```
+
+The conceptual distinction is:
+
+```text
+Claim
+   ≠
+Evidence
+```
+
+For example:
+
+```text
+Claim:
+  The build is reproducible.
+```
+
+may be supported by:
+
+```text
+Evidence:
+  Three clean builds generated identical outputs
+  using the recorded environment and inputs.
+```
+
+---
+
+## Evidence has context
+
+Evidence should not be interpreted without understanding its conditions.
+
+Useful properties may include:
+
+```text
+scope
+time
+environment
+method
+provenance
+validity
+relevance
+```
+
+Evidence that supported a claim for version 1 may no longer support the same claim for version 4.
+
+---
+
+## Evidence can challenge authority
+
+Authority determines what currently governs.
+
+Evidence can still challenge that authoritative state.
+
+For example:
+
+```text
+authoritative specification
+       │
+       ▼
+expected behavior
+
+runtime evidence
+       │
+       ▼
+actual behavior differs
+```
+
+The evidence does not instantly rewrite the specification.
+
+But it creates a contradiction the engineering system should surface.
+
+---
+
+# Observation
+
+An **Observation** records something perceived about system reality.
+
+Examples:
+
+```text
+test failed
+service returned 500
+file exists
+dependency version is 3.2.1
+latency measured 280ms
+```
+
+Observations are important because observed state is distinct from desired or specified state.
+
+For example:
+
+```text
+Specification:
+  request must complete under 100ms
+
+Observation:
+  request completed in 280ms
+```
+
+Both can simultaneously be valid records.
+
+Their disagreement is useful information.
+
+---
+
+# Inference
+
+An **Inference** is a conclusion produced from other information rather than explicitly asserted by an authoritative source.
+
+Examples:
+
+```text
+likely dependency
+candidate duplicate
+probable Subject identity
+suspected ownership
+inferred relationship
+likely affected component
+```
+
+AI systems make inference increasingly useful.
+
+But Monad preserves a critical rule:
+
+> **Inference is not confirmation.**
+
+---
+
+## Inference should preserve uncertainty
+
+A healthy lifecycle might be:
+
+```text
+inferred
+   ↓
+proposed
+   ↓
+reviewed
+   ↓
+confirmed
+```
+
+Rather than:
+
+```text
+inferred
+   ↓
+silently treated as truth
+```
+
+Policies may permit some low-risk inferences to be promoted automatically.
+
+Others may require explicit human confirmation.
+
+---
+
+# Lifecycle
+
+A **Lifecycle** defines meaningful states and transitions for a type of Subject or artifact.
+
+For example:
+
+```text
+Specification
+
+draft
+  ↓
+proposed
+  ↓
+accepted
+  ↓
+active
+  ↓
+superseded
+```
+
+A hypothesis may have a different lifecycle:
+
+```text
+Hypothesis
+
+proposed
+  ↓
+investigating
+  ↓
+supported
+  ├──► refined
+  ├──► weakened
+  ├──► rejected
+  └──► superseded
+```
+
+Lifecycle semantics belong to the kind of entity being modeled.
+
+Monad should not force every Subject into one universal state machine.
+
+---
+
+## State is meaningful
+
+Lifecycle state helps prevent incorrect interpretation.
+
+For example:
+
+```text
+draft specification
+```
+
+should not necessarily govern an implementation.
+
+Likewise:
+
+```text
+superseded ADR
+```
+
+remains historically useful but should not necessarily drive current architecture.
+
+---
+
+# Time
+
+Monad distinguishes more than one kind of time.
+
+A statement may involve:
+
+```text
+valid time
+observation time
+record time
+transaction time
+```
+
+The exact implementation may vary, but the conceptual distinction matters.
+
+Consider:
+
+```text
+10:00 behavior changed
+10:05 monitoring observed it
+10:15 engineer diagnosed it
+10:30 Monad recorded the confirmed state
+```
+
+One event produced several meaningful timestamps.
+
+Using only:
+
+```text
+created_at
+```
+
+would lose important semantics.
+
+---
+
+## Historical truth and current truth
+
+Monad should support statements that were true during different periods.
+
+For example:
+
+```text
+Architecture A
+valid:
+  Jan 1 → Mar 10
+
+Architecture B
+valid:
+  Mar 10 → present
+```
+
+This allows history to remain accurate without allowing historical information to govern current state accidentally.
+
+---
+
+# Context
+
+**Context** is the subset of system information relevant to a particular purpose.
+
+Monad does not treat context as:
+
+> Whatever files happen to fit in a context window.
+
+Useful context is task-specific.
+
+For example, modifying an interface may require:
+
+```text
+target Subject
+governing specification
+requirements
+dependent components
+applicable policies
+tests
+historical decisions
+known risks
+current implementation
+```
+
+A different task may require an entirely different view.
+
+---
+
+## Context is derived
+
+Context is usually a projection of the larger system model.
+
+Conceptually:
+
+```text
+System Model
+     │
+     ▼
+task + policy + scope
+     │
+     ▼
+Context Projection
+```
+
+This allows Monad to construct context deliberately rather than relying only on proximity or search ranking.
+
+---
+
+# Projection
+
+A **Projection** is a derived representation of system state optimized for a particular use.
+
+Examples include:
+
+```text
+documentation
+dependency diagram
+AI context package
+dashboard
+index
+impact report
+filesystem view
+release summary
+```
+
+Conceptually:
+
+```text
+Canonical / authoritative sources
+          │
+          ▼
+       Projection
+```
+
+A projection may be extremely useful.
+
+It is still derived.
+
+---
+
+## Projection is not automatically authority
+
+Generated documentation can look authoritative while being stale.
+
+A dependency diagram can look precise while reflecting yesterday's graph.
+
+A context bundle can contain excellent information while omitting a new requirement.
+
+Monad therefore preserves:
+
+```text
+source
+generation process
+generation time
+source state
+freshness
+```
+
+where those properties matter.
+
+---
+
+# Freshness
+
+**Freshness** describes whether derived information still corresponds to the source state from which it was produced.
+
+Conceptually:
+
+```text
+source state A
+     │
+     ▼
+projection P
+
+source becomes state B
+     │
+     ▼
+projection P may now be stale
+```
+
+Freshness matters especially for:
+
+* generated documentation,
+* AI context,
+* indexes,
+* dependency views,
+* reports,
+* and cached derived state.
+
+A stale projection should not silently present itself as current truth.
+
+---
+
+# Actor
+
+An **Actor** is an entity capable of participating in engineering activity.
+
+Actors may include:
+
+```text
+human engineer
+maintainer
+reviewer
+AI agent
+automation service
+CI system
+external system
+```
+
+Actors may possess:
+
+* identity,
+* capabilities,
+* authority,
+* assigned scope,
+* provenance,
+* and accountability.
+
+---
+
+# Capability
+
+A **Capability** describes what an Actor or system can technically do.
+
+Examples:
+
+```text
+read repository
+modify file
+query graph
+run test
+create artifact
+deploy service
+change policy
+approve release
+```
+
+Capabilities describe technical possibility.
+
+They do not grant permission.
+
+This produces one of Monad's core distinctions:
+
+```text
+Capability
+     ≠
+Authority
+```
+
+---
+
+# Policy
+
+A **Policy** defines rules governing behavior under specific conditions.
+
+A policy may constrain:
+
+```text
+actor
+capability
+resource
+operation
+scope
+lifecycle state
+evidence requirement
+review requirement
+```
+
+For example:
+
+```text
+An implementation agent may modify source files
+inside its assigned Work Package.
+
+Changes to public interfaces require review.
+
+Constitutional artifacts may not be modified
+through ordinary implementation authority.
+```
+
+Policies make governance machine-interpretable where appropriate.
+
+---
+
+## Policy is not capability
+
+The fact that an AI agent technically can run:
+
+```text
+git push
+```
+
+does not establish that it may do so.
+
+Conceptually:
+
+```text
+Capability
+  "Can this actor perform the action?"
+
+Policy
+  "Is the action permitted under these conditions?"
+
+Authority
+  "What legitimizes the action?"
+```
+
+These concepts intentionally remain separate.
+
+---
+
+# Governance
+
+**Governance** is the system by which significant changes become legitimate.
+
+It includes mechanisms such as:
+
+```text
+proposal
+review
+approval
+policy evaluation
+lifecycle transition
+release gate
+amendment
+exception handling
+```
+
+Governance should be proportional.
+
+For example:
+
+```text
+local implementation detail
+        ↓
+bounded automatic authority
+
+public API change
+        ↓
+specification + review
+
+constitutional change
+        ↓
+explicit amendment
+```
+
+The objective is not maximum ceremony.
+
+The objective is explicit control where the consequences justify it.
+
+---
+
+# Constitution
+
+The **Constitution** is the highest-order governing layer of a Monad system.
+
+It defines the small set of rules that constrain the model and its evolution.
+
+Potential constitutional concerns include:
+
+```text
+allowed semantic primitives
+fundamental invariants
+authority hierarchy
+permitted extension rules
+constitutional amendment process
+governance boundaries
+```
+
+Conceptually:
+
+```text
+Constitution
+     │
+     │ constrains
+     ▼
+System Model
+```
+
+The Constitution should remain deliberately small.
+
+Ordinary project rules and implementation policies should not be promoted into constitutional status unnecessarily.
+
+---
+
+# Canonical
+
+**Canonical** means designated as the authoritative representation or source for a defined scope.
+
+It does not mean:
+
+```text
+globally authoritative for everything
+```
+
+For example:
+
+```text
+source file
+  canonical for implementation
+
+requirement artifact
+  canonical for required outcome
+
+external API
+  canonical for external service state
+```
+
+Canonical authority can therefore be distributed across systems.
+
+---
+
+## Canonical does not mean centralized
+
+Monad does not require all authoritative information to exist in one database.
+
+A system may have several authoritative sources.
+
+The important requirement is that Monad can answer:
+
+> **Where does authority for this question reside?**
+
+---
+
+# Derived
+
+**Derived information** is produced from other information.
+
+Examples:
+
+```text
+generated documentation
+dependency index
+context package
+impact report
+dashboard
+summary
+```
+
+Derived information should preserve enough provenance to identify:
+
+```text
+what produced it
+from which inputs
+under which rules
+at which system state
+```
+
+This enables trust and freshness evaluation.
+
+---
+
+# Current state
+
+**Current state** describes what Monad presently believes about the engineering system.
+
+Current state may be constructed from multiple authoritative sources.
+
+Conceptually:
+
+```text
+native sources
+canonical artifacts
+observations
+policies
+accepted claims
+       │
+       ▼
+interpreted current state
+```
+
+The system should not pretend current state is perfect.
+
+Unknown or conflicting information should remain visible.
+
+---
+
+# Conflict
+
+A **Conflict** exists when two relevant claims cannot both govern the same scope consistently.
+
+For example:
+
+```text
+Specification:
+  API returns object A
+
+Implementation:
+  API returns object B
+```
+
+or:
+
+```text
+Policy 1:
+  Agent may modify schema
+
+Policy 2:
+  Schema modification requires human approval
+```
+
+Monad should surface conflicts rather than silently choosing whichever source was indexed last.
+
+Resolution may depend on:
+
+* authority,
+* scope,
+* lifecycle,
+* time,
+* policy,
+* or explicit human decision.
+
+---
+
+# Uncertainty
+
+Monad treats uncertainty as representable state.
+
+Useful categories may include:
+
+```text
+unknown
+hypothesized
+inferred
+proposed
+contested
+confirmed
+```
+
+The exact vocabulary may evolve.
+
+The principle should not:
+
+> **The system must not manufacture certainty merely because software prefers definite values.**
+
+Unknown is often the correct answer.
+
+---
+
+# Correction
+
+A trustworthy semantic model must be able to represent having been wrong.
+
+Suppose Monad asserted:
+
+```text
+Subject A == Subject B
+```
+
+Later evidence disproves that identity.
+
+The system should preserve:
+
+```text
+earlier assertion
+      ↓
+contradicting evidence
+      ↓
+correction
+      ↓
+new authoritative state
+```
+
+rather than rewriting the past as though the error never occurred.
+
+Correction applies to:
+
+* identity,
+* relationships,
+* claims,
+* provenance,
+* classification,
+* and inferred state.
+
+---
+
+# Split and merge
+
+Identity can evolve in structurally difficult ways.
+
+One Subject may later be understood as two:
+
+```text
+Subject A
+   │
+   ├──► Subject B
+   └──► Subject C
+```
+
+Two Subjects may later be recognized as one:
+
+```text
+Subject A ──┐
+            ├──► Subject C
+Subject B ──┘
+```
+
+These transitions should preserve historical continuity.
+
+They should not simply recycle identifiers.
+
+The detailed mechanics belong in the identity specifications.
+
+---
+
+# Progressive formalization
+
+Monad does not require all information to begin fully structured.
+
+A useful progression is:
+
+```text
+prose
+  ↓
+identified artifact
+  ↓
+structured metadata
+  ↓
+structured claims
+  ↓
+typed relationships
+```
+
+Additional formalization should occur when the value justifies the cost.
+
+---
+
+## Capture before perfection
+
+A perfect schema that discourages capture is worse than a lightweight representation that preserves useful information.
+
+Monad therefore favors:
+
+```text
+capture
+  ↓
+identify
+  ↓
+connect
+  ↓
+formalize
+```
+
+rather than:
+
+```text
+fully formalize
+  ↓
+only then record anything
+```
+
+This principle is essential to usability.
+
+---
+
+# Native systems
+
+A **Native System** is an external or existing engineering environment that owns some part of engineering reality.
+
+Examples include:
+
+```text
+filesystem
+Git
+GitHub
+package manager
+build system
+CI platform
+database
+deployment platform
+issue tracker
+observability system
+```
+
+Native systems remain first-class.
+
+Monad does not automatically absorb their responsibilities.
+
+---
+
+## Native authority remains valid
+
+If Git is authoritative for repository history, Monad should not invent a competing history database and pretend it is more real.
+
+If an external service owns its runtime state, Monad should model that authority.
+
+The goal is integration, not semantic imperialism.
+
+---
+
+# The engineering graph
+
+These concepts combine into a graph-shaped model.
+
+For example:
+
+```text
+                  ┌──────────── Evidence
+                  │
+                  │ supports
+                  ▼
+Requirement ───► Claim
+    │             │
+    │ constrains  │ concerns
+    ▼             ▼
+Specification ─► Subject
+    │             │
+    │ governs     │ represented-by
+    ▼             ▼
+Interface      Representation
+                  │
+                  │ addressed-by
+                  ▼
+             Native Reference
+```
+
+Additional dimensions may attach to any relevant element:
+
+```text
+authority
+provenance
+lifecycle
+time
+actor
+policy
+```
+
+The value comes not from the existence of a graph alone, but from the semantics represented by the graph.
+
+---
+
+# Core distinctions
+
+Many Monad concepts are easiest to understand as pairs that must not collapse into one another.
+
+| Concept           | Must remain distinct from |
+| ----------------- | ------------------------- |
+| Subject           | Representation            |
+| Semantic identity | Native identifier         |
+| Claim             | Truth                     |
+| Claim             | Evidence                  |
+| Provenance        | Authority                 |
+| Existence         | Authority                 |
+| Capability        | Permission                |
+| Historical truth  | Current truth             |
+| Canonical source  | Derived projection        |
+| Observation       | Specification             |
+| Inference         | Confirmation              |
+| Unknown           | False                     |
+| Generated         | Authoritative             |
+| Model             | Native reality            |
+
+These distinctions form much of Monad's conceptual foundation.
+
+---
+
+# System invariants
+
+The conceptual model produces several invariants.
+
+## Identity is not location
+
+Paths may identify representations.
+
+They do not universally define Subjects.
+
+## Representation is not Subject
+
+A Subject can have multiple representations.
+
+Representations may change independently.
+
+## Native identity is not semantic identity
+
+Native identifiers belong to native systems.
+
+Monad may bind them to Subjects without equating the two.
+
+## Existence is not authority
+
+Information can exist without governing the system.
+
+## Claim is not evidence
+
+Assertions and their supporting evidence remain distinct.
+
+## Provenance is not authority
+
+Knowing where something came from does not establish that it governs.
+
+## Capability is not permission
+
+Technical ability does not imply legitimate authority.
+
+## Historical truth is not current truth
+
+A claim may remain historically correct after being superseded.
+
+## Generated is not canonical
+
+A projection derives authority from its sources and rules.
+
+## Inference is not confirmation
+
+Automated conclusions must preserve uncertainty.
+
+## Unknown is valid
+
+The model must tolerate incomplete knowledge.
+
+## Correction preserves history
+
+A corrected model should not pretend the earlier state never existed.
+
+## Native systems remain real
+
+Monad describes and coordinates native engineering systems rather than replacing their reality.
+
+## Formalization must earn its cost
+
+Structure is useful only when it produces enough engineering value to justify maintaining it.
+
+---
+
+# What these concepts enable
+
+Together, these concepts allow Monad to reason about questions such as:
+
+```text
+What is this thing?
+
+Where is it represented?
+
+Is this still the same thing after a rename?
+
+Which source governs this property?
+
+Where did this claim come from?
+
+What evidence supports it?
+
+Is that evidence still relevant?
+
+Is this view stale?
+
+Who is allowed to modify this Subject?
+
+Which policy applies?
+
+What depends on this?
+
+What would be affected if it changed?
+
+Was this once true but later superseded?
+
+Is this relationship confirmed or inferred?
+
+What do we still not know?
+```
+
+These are the kinds of questions the architecture is designed to make increasingly answerable.
+
+---
+
+# Concepts versus implementation
+
+This page defines semantics.
+
+It does not prescribe every implementation detail.
+
+For example:
+
+```text
+Subject
+```
+
+does not necessarily imply:
+
+```text
+subjects SQL table
+```
+
+Likewise:
+
+```text
+System Graph
+```
+
+does not necessarily imply:
+
+```text
+dedicated graph database
+```
+
+The implementation is free to evolve as long as it preserves the conceptual contracts.
+
+This separation matters because the semantic model should outlive particular storage technologies.
+
+---
+
+# Concepts versus specifications
+
+Concepts explain:
+
+> **What does this mean?**
+
+Specifications explain:
+
+> **Exactly how must the system represent or behave around it?**
+
+For example:
+
+```text
+Concept:
+A Subject has semantic identity.
+
+Specification:
+Subject identifiers use format X,
+must satisfy rules Y,
+and behave according to lifecycle Z.
+```
+
+The first belongs here.
+
+The second belongs under [Artifacts](/docs/artifacts).
+
+---
+
+# Concepts versus architecture
+
+Concepts define the vocabulary.
+
+Architecture assigns responsibilities.
+
+For example:
+
+```text
+Concept:
+Authority determines which claims govern.
+
+Architecture:
+The Policy Engine evaluates applicable authority rules.
+
+Specification:
+POL-EVAL-001 defines the exact evaluation algorithm.
+```
+
+Keeping these layers separate prevents implementation details from becoming conceptual definitions.
+
+---
+
+# The conceptual stack
+
+A simplified view of the semantic foundation is:
+
+```text
+                    Constitution
+                         │
+                         ▼
+                    Governance
+                         │
+           ┌─────────────┴─────────────┐
+           ▼                           ▼
+       Authority                    Policy
+           │                           │
+           └─────────────┬─────────────┘
+                         ▼
+                      Claims
+                         │
+            ┌────────────┼────────────┐
+            ▼            ▼            ▼
+         Subjects   Relationships   Evidence
+            │                         │
+            ▼                         ▼
+      Representations            Provenance
+            │
+            ▼
+      Native References
+            │
+            ▼
+       Native Systems
+
+Across the model:
+identity · lifecycle · time · context · uncertainty
+```
+
+This is not intended as a complete schema.
+
+It is a conceptual map.
+
+---
+
+# A small example
+
+Consider a requirement governing an authentication API.
+
+The engineering reality might contain:
+
+```text
+Subject
+  Authentication Requirement
+
+Representation
+  content/requirements/authentication.mdx
+
+Native Reference
+  repository path
+
+Claim
+  Requests must require authenticated identity.
+
+Authority
+  Requirement is authoritative for required behavior.
+
+Specification
+  API authentication contract
+
+Relationship
+  Requirement specified-by Specification
+
+Implementation
+  authentication middleware
+
+Relationship
+  Middleware implements Specification
+
+Evidence
+  authentication acceptance-test results
+
+Relationship
+  Evidence verifies Requirement
+
+Provenance
+  test run produced by CI against commit abc123
+
+Lifecycle
+  Requirement active
+  Specification active
+
+Context
+  all of the above assembled for an API-change task
+```
+
+Without the semantic relationships, those are simply disconnected pieces of project information.
+
+With them, they become a navigable engineering argument.
+
+---
+
+# Design principles
+
+The conceptual model is guided by several broader design principles.
+
+## Preserve meaning, not metadata for its own sake
+
+Metadata is not valuable merely because it is structured.
+
+The system should preserve information that improves understanding, governance, traceability, or execution.
+
+## Prefer explicit uncertainty to false certainty
+
+Unknown and contested states are legitimate.
+
+## Keep authority inspectable
+
+An answer should increasingly be able to explain why a source governs.
+
+## Keep provenance inspectable
+
+Generated or inferred information should increasingly be traceable to its origins.
+
+## Preserve native systems
+
+Monad should integrate before reimplementing.
+
+## Favor stable semantic identity
+
+A meaningful entity should survive changes in representation where continuity exists.
+
+## Use typed relationships where semantics matter
+
+Generic hyperlinks are insufficient for machine reasoning.
+
+## Separate authored truth from generated views
+
+Derived information should remain recognizable as derived.
+
+## Make correction possible
+
+The system must be able to represent changed understanding.
+
+## Formalize progressively
+
+Do not impose maximum structure before its value is established.
+
+## Keep the core small
+
+The foundational semantic vocabulary should remain constrained enough to be understandable and governed.
+
+---
+
+# Failure modes
+
+A conceptual model can itself become harmful.
+
+Monad should guard against several failure modes.
+
+## Modeling everything
+
+Not every file, line, task, observation, or temporary state deserves a semantic Subject.
+
+## Metadata explosion
+
+If the number of required fields grows faster than their practical value, capture quality will collapse.
+
+## Identity inflation
+
+Creating stable identities for transient things can introduce unnecessary complexity.
+
+## Relationship inflation
+
+A graph full of weak, redundant, or automatically inferred relationships becomes noise.
+
+## Authority ambiguity
+
+Multiple competing authoritative sources without explicit scope create confusion rather than clarity.
+
+## Silent inference
+
+AI-generated relationships must not quietly become facts.
+
+## Semantic drift
+
+Different components must not independently redefine foundational terms.
+
+## Stale projections
+
+Generated views that appear current when they are not can become dangerous.
+
+## Model-reality divergence
+
+The graph must remain grounded in native engineering systems.
+
+A beautiful model of the wrong system is worse than no model.
+
+---
+
+# What belongs in the conceptual core
+
+The conceptual core should contain only ideas that are:
+
+* broadly applicable across Monad,
+* necessary for interpreting system state,
+* stable enough to become shared vocabulary,
+* useful across multiple components,
+* and expensive to redefine independently.
+
+Domain-specific concepts can extend the model without becoming universal primitives.
+
+For example:
+
+```text
+Subject
+```
+
+belongs in the core.
+
+A specific:
+
+```text
+KubernetesDeployment
+```
+
+probably does not.
+
+It can be represented as a domain-specific Subject type or extension.
+
+---
+
+# Extensibility
+
+Monad must support new engineering domains without turning the conceptual core into an unlimited taxonomy.
+
+The preferred model is:
+
+```text
+small governed core
+       +
+controlled extensions
+```
+
+Extensions may define:
+
+* domain-specific Subject types,
+* relationship types,
+* artifact types,
+* capabilities,
+* policies,
+* lifecycle rules,
+* validators,
+* and projections.
+
+Extensions should remain compatible with the foundational distinctions defined here.
+
+---
+
+# Canonical terminology
+
+The following terms should be used consistently throughout System documentation.
+
+| Term                 | Meaning                                                                         |
+| -------------------- | ------------------------------------------------------------------------------- |
+| **Subject**          | The underlying semantic entity being described.                                 |
+| **Representation**   | A concrete form through which a Subject appears.                                |
+| **Native Reference** | An identifier owned by a native or external system.                             |
+| **Claim**            | An assertion about the system.                                                  |
+| **Relationship**     | A typed semantic connection between entities.                                   |
+| **Authority**        | The basis on which information governs a defined scope.                         |
+| **Provenance**       | Information describing origin and derivation.                                   |
+| **Evidence**         | Information supporting or challenging a Claim.                                  |
+| **Observation**      | A recorded perception of system reality.                                        |
+| **Inference**        | A derived conclusion not yet necessarily confirmed.                             |
+| **Lifecycle**        | Meaningful states and permitted transitions.                                    |
+| **Context**          | A purpose-specific subset of relevant system information.                       |
+| **Projection**       | A derived view of system state.                                                 |
+| **Freshness**        | Whether derived information still corresponds to its source state.              |
+| **Actor**            | A human, agent, service, or system participating in engineering activity.       |
+| **Capability**       | What an Actor or system is technically able to do.                              |
+| **Policy**           | Rules constraining behavior under defined conditions.                           |
+| **Governance**       | The mechanisms through which significant actions and changes become legitimate. |
+| **Constitution**     | The highest-order rules constraining the system model and its evolution.        |
+
+The [Glossary](/docs/system/glossary) should eventually provide the complete reference vocabulary.
+
+---
+
+# Where these concepts appear
+
+These concepts recur throughout the rest of the System section.
+
+<Cards>
+  <Card
+    title="Architecture"
+    href="/docs/system/architecture"
+  >
+    See how these concepts are assigned to concrete architectural responsibilities and system boundaries.
+  </Card>
+
+<Card
+title="Components"
+href="/docs/system/components"
+
+>
+
+Understand which components implement querying, governance, execution, projection, verification, and other system capabilities.
+
+</Card>
+
+<Card
+title="Interfaces"
+href="/docs/system/interfaces"
+
+>
+
+Explore the contracts through which semantic state and capabilities cross system boundaries.
+
+</Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+
+>
+
+Go deeper into authority, policy, capabilities, approvals, protected invariants, and controlled evolution.
+
+</Card>
+
+<Card
+title="Execution"
+href="/docs/system/execution"
+
+>
+
+See how humans and AI agents use these concepts during real engineering work.
+
+</Card>
+
+<Card
+title="Integrations"
+href="/docs/system/integrations"
+
+>
+
+Understand how Subjects, Representations, and Native References connect Monad to existing engineering systems.
+
+</Card>
+</Cards>
+
+---
+
+# Relationship to Artifacts
+
+The definitions on this page describe the conceptual model.
+
+The precise contracts supporting them belong in [Artifacts](/docs/artifacts).
+
+For example:
+
+```text
+Concept
+  Subject has semantic identity
+
+        ↓
+
+Architecture
+  Identity service/model owns resolution
+
+        ↓
+
+Artifact
+  Subject Identity Specification
+
+        ↓
+
+Implementation
+  concrete identifier and resolution behavior
+```
+
+This allows System documentation to remain readable while still being traceable to precise engineering contracts.
+
+---
+
+# Relationship to the glossary
+
+This page explains concepts in context.
+
+The [Glossary](/docs/system/glossary) should provide concise canonical definitions.
+
+The two serve different purposes:
+
+```text
+Concepts & Principles
+  → understand the ideas
+
+Glossary
+  → quickly resolve terminology
+```
+
+The glossary should avoid becoming a second conceptual specification.
+
+---
+
+# The governing principle
+
+The conceptual model can be summarized by one rule:
+
+> **Preserve the distinctions necessary to understand what something is, where it appears, what is being claimed about it, why that claim should be trusted, where it came from, and how it may legitimately change.**
+
+Those distinctions are the foundation on which the rest of Monad is built.
+
+---
+
+## Where to go next
+
+Once the conceptual vocabulary is clear, the next question is how those ideas become a system.
+
+<Cards>
+  <Card
+    title="Architecture"
+    href="/docs/system/architecture"
+  >
+    See how the Constitution, System Graph, engines, persistence, projections, and native systems compose into the Monad architecture.
+  </Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+
+>
+
+Go deeper into authority, policy, capabilities, and controlled evolution.
+
+</Card>
+
+<Card
+title="Artifacts"
+href="/docs/artifacts"
+
+>
+
+Inspect the specifications, decisions, schemas, models, and evidence behind these concepts.
+
+</Card>
+
+<Card
+title="System Overview"
+href="/docs/system"
+
+>
+
+Return to the current authoritative overview of Monad as a whole.
+
+</Card>
+</Cards>

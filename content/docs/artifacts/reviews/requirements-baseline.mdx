@@ -1,0 +1,1440 @@
+---
+title: Requirements Baseline Review
+description: Cross-family review and acceptance of the initial Monad requirements baseline, including duplication, contradiction, architecture leakage, specification leakage, and change-control findings.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirements baseline review · RB-001
+  </p>
+</div>
+
+# Requirements Baseline Review
+
+**Requirements Baseline:** RB-001
+**Status:** Accepted
+**Baseline date:** 2026-08-28
+**Scope:** REQ-ID, REQ-SEM, REQ-AUTH, REQ-PROV, REQ-GOV, REQ-EXEC, REQ-INT, REQ-REC, REQ-LOCAL, REQ-REPRO, REQ-AI, and REQ-VFY
+
+<Callout type="info" title="Baseline decision">
+RB-001 accepts the current requirements corpus as the first controlled statement of Monad's system obligations.
+
+Acceptance does **not** mean every existing requirement is ideally located, uniquely expressed, or at the correct level of abstraction.
+
+The findings in this review establish a controlled normalization backlog. Future cleanup MUST preserve requirement history and traceability rather than silently rewriting the baseline. 
+</Callout>
+
+---
+
+# Executive finding
+
+The requirements corpus is sufficiently complete and internally coherent to establish **RB-001**.
+
+The review found:
+
+* substantial cross-family duplication,
+* no known hard normative contradictions,
+* several requirements that constrain architecture strongly enough to require explicit Architecture Decisions,
+* significant specification-level detail embedded in several requirement families,
+* and a need to establish canonical ownership for cross-cutting concepts.
+
+The dominant problem is therefore **not missing requirements**.
+
+The dominant problem is that the corpus has reached the point where further expansion would increasingly mix:
+
+```text
+Requirements
+    +
+Architecture Decisions
+    +
+Specifications
+    +
+Operational contracts
+    +
+Verification profiles
+```
+
+into one layer.
+
+RB-001 establishes the boundary after which those concerns are separated deliberately.
+
+---
+
+# Review objective
+
+This review evaluates the requirements corpus for four classes of problem:
+
+1. duplicate or substantially overlapping requirements across families,
+2. contradictory requirements,
+3. requirements that are actually architecture decisions,
+4. requirements that are actually implementation or behavioral specifications.
+
+The review does **not** attempt to redesign the system or rewrite the requirement families.
+
+Its purpose is to establish:
+
+```text
+what Monad is obligated to do
+        ↓
+which family owns each obligation
+        ↓
+which choices remain architectural
+        ↓
+which details belong in Specifications
+```
+
+---
+
+# Reviewed requirement families
+
+| Family          | Prefix      | Primary concern                                   | Requirements |
+| --------------- | ----------- | ------------------------------------------------- | -----------: |
+| Identity        | `REQ-ID`    | Stable semantic identity                          |           48 |
+| Semantic Model  | `REQ-SEM`   | Foundational semantic distinctions                |          100 |
+| Authority       | `REQ-AUTH`  | Legitimate authority and authorization            |          117 |
+| Provenance      | `REQ-PROV`  | Origin, derivation, observation, and lineage      |          100 |
+| Governance      | `REQ-GOV`   | Policies, constraints, approvals, and obligations |          104 |
+| Execution       | `REQ-EXEC`  | Controlled consequential operations               |           90 |
+| Integration     | `REQ-INT`   | Native-system integration                         |          327 |
+| Reconciliation  | `REQ-REC`   | Detection and resolution of divergence            |          319 |
+| Local First     | `REQ-LOCAL` | Local inspectability and degraded operation       |           84 |
+| Reproducibility | `REQ-REPRO` | Reconstructability and reproduction               |          220 |
+| AI Interaction  | `REQ-AI`    | Governed AI participation                         |           83 |
+| Verification    | `REQ-VFY`   | Evaluation of engineering expectations            |          292 |
+
+**Total:** 1,884 numbered requirements.
+
+The total is useful evidence in itself.
+
+The corpus is now broad enough that additional detail should normally flow into Decisions and Specifications rather than continuing to increase requirement granularity.
+
+---
+
+# Baseline decision
+
+## RB-001 is accepted
+
+The twelve reviewed requirement families collectively establish a sufficiently coherent statement of Monad's intended obligations.
+
+No finding in this review requires rejection of the baseline.
+
+Instead:
+
+> **The existing requirement IDs and their current semantic intent become the RB-001 baseline.**
+
+Any later correction, consolidation, extraction, clarification, deprecation, or supersession becomes an explicit change to that baseline.
+
+---
+
+# Canonical family ownership
+
+Cross-cutting requirements are unavoidable.
+
+Duplication becomes harmful when it is unclear which family defines the governing semantics.
+
+RB-001 therefore establishes the following ownership model.
+
+| Concern                    | Canonical family | Other families may                                 |
+| -------------------------- | ---------------- | -------------------------------------------------- |
+| Semantic identity          | `REQ-ID`         | Apply identity requirements to their domain        |
+| Core semantic distinctions | `REQ-SEM`        | Require those concepts in domain-specific behavior |
+| Authority                  | `REQ-AUTH`       | Require authority evaluation at domain boundaries  |
+| Provenance                 | `REQ-PROV`       | Specify domain-specific provenance inputs          |
+| Governance and policy      | `REQ-GOV`        | Invoke governance requirements                     |
+| Execution                  | `REQ-EXEC`       | Define domain-specific operations                  |
+| Native integration         | `REQ-INT`        | Depend on integration contracts                    |
+| Reconciliation             | `REQ-REC`        | Trigger or consume reconciliation                  |
+| Local-first behavior       | `REQ-LOCAL`      | State domain-specific offline consequences         |
+| Reproducibility            | `REQ-REPRO`      | State required reproduction guarantees             |
+| AI participation           | `REQ-AI`         | Apply ordinary system requirements to AI Actors    |
+| Verification               | `REQ-VFY`        | Establish domain-specific verification obligations |
+
+This rule should guide future normalization:
+
+> **The owning family defines the concept. Other families describe how that concept constrains their domain.**
+
+---
+
+# Duplicate and overlapping requirements
+
+## Finding D-001 — Identity and semantic-model overlap
+
+There is substantial overlap between the identity family and the identity-related portions of the semantic model.
+
+Representative examples include:
+
+```text
+REQ-ID-002
+Subject identity ≠ Representation identity
+
+REQ-SEM-009
+Representation ≠ Subject
+
+REQ-SEM-010
+Representation identity must not determine Subject identity
+```
+
+Likewise:
+
+```text
+REQ-ID-003
+Semantic identity ≠ native-system identity
+
+REQ-SEM-013
+Native References are independently represented
+
+REQ-SEM-014
+Native Reference ≠ Subject
+```
+
+### Disposition
+
+**Retain both families, but establish `REQ-ID` as authoritative for identity semantics.**
+
+`REQ-SEM` should retain only those requirements necessary to establish that the semantic model can represent the distinctions.
+
+Identity continuity, merge, split, aliasing, migration, confirmation, and binding behavior belong primarily to `REQ-ID`.
+
+---
+
+## Finding D-002 — Authority semantics are repeated across multiple families
+
+The distinction:
+
+```text
+Capability ≠ Authority
+```
+
+appears throughout:
+
+* semantic-model requirements,
+* authority requirements,
+* governance requirements,
+* execution requirements,
+* integration requirements,
+* reconciliation requirements,
+* local-first requirements,
+* and AI requirements.
+
+Similar repetition exists for:
+
+```text
+Native permission ≠ Monad authority
+
+Provenance ≠ Authority
+
+Technical success ≠ Authorization
+
+Human involvement ≠ Authority
+
+AI capability ≠ Authority
+```
+
+### Disposition
+
+`REQ-AUTH` owns the definitions and invariants.
+
+Other families SHOULD retain domain-specific consequences such as:
+
+```text
+execution must evaluate authority
+```
+
+but SHOULD eventually reference the canonical authority requirement rather than redefine authority independently.
+
+---
+
+## Finding D-003 — Authority and governance overlap
+
+Several concepts currently appear in both `REQ-AUTH` and `REQ-GOV`, including:
+
+* authority hierarchy,
+* precedence,
+* approval scope,
+* approval revision binding,
+* approval expiration,
+* stale approval,
+* separation of duties,
+* exceptions,
+* break-glass behavior,
+* obligations,
+* conflict resolution,
+* and explainability.
+
+The distinction should be:
+
+```text
+Authority
+    = who or what legitimately possesses power
+
+Governance
+    = rules controlling how that power may be exercised
+```
+
+### Disposition
+
+Preserve both families.
+
+Normalize future requirements according to this boundary.
+
+Authority grants, delegation, revocation, authority scope, and authority precedence belong to `REQ-AUTH`.
+
+Policies, approvals, obligations, gates, exceptions, and governance evaluation belong to `REQ-GOV`.
+
+---
+
+## Finding D-004 — Provenance obligations are repeatedly redefined
+
+Domain-specific provenance requirements occur throughout the corpus.
+
+Examples include provenance for:
+
+* identity changes,
+* authority grants,
+* governance decisions,
+* execution,
+* integrations,
+* reconciliation,
+* AI output,
+* verification,
+* and reproducibility.
+
+This repetition is conceptually valid but risks creating multiple definitions of what provenance means.
+
+### Disposition
+
+`REQ-PROV` owns provenance semantics.
+
+Other families MAY require specific provenance to exist, but SHOULD avoid independently defining the provenance model.
+
+For example:
+
+```text
+REQ-AI
+AI output requires provenance
+```
+
+should ultimately depend on:
+
+```text
+REQ-PROV
+how provenance is represented and preserved
+```
+
+---
+
+## Finding D-005 — Governance and execution overlap
+
+Governance requirements currently specify parts of the execution path, including:
+
+* resolved-operation evaluation,
+* pre-execution revalidation,
+* execution boundaries,
+* partial execution,
+* rollback,
+* and side-effect handling.
+
+Execution requirements independently define the same operational concerns.
+
+### Disposition
+
+`REQ-EXEC` owns execution semantics.
+
+`REQ-GOV` owns the requirement that consequential execution be governed.
+
+The preferred dependency is:
+
+```text
+Governance
+    ↓ authorizes/constrains
+
+Execution
+    ↓ performs
+
+Verification
+    ↓ evaluates result
+```
+
+rather than governance independently defining the mechanics of execution.
+
+---
+
+## Finding D-006 — Execution and integration overlap
+
+The following concerns appear substantially in both `REQ-EXEC` and `REQ-INT`:
+
+* side effects,
+* idempotency,
+* retry,
+* timeout uncertainty,
+* concurrency,
+* revision checks,
+* partial success,
+* native result observation,
+* rollback or compensation,
+* and provenance.
+
+### Disposition
+
+`REQ-EXEC` defines provider-independent execution semantics.
+
+`REQ-INT` defines how a native provider exposes those semantics.
+
+Example:
+
+```text
+REQ-EXEC
+An operation must represent partial success.
+
+REQ-INT
+A particular adapter contract must expose enough information
+to represent provider-specific partial success.
+```
+
+---
+
+## Finding D-007 — Integration and reconciliation overlap
+
+The integration and reconciliation families repeatedly cover:
+
+* observation,
+* freshness,
+* native revisions,
+* events,
+* polling,
+* eventual consistency,
+* external changes,
+* native authority,
+* provider errors,
+* retries,
+* and native-state comparison.
+
+### Disposition
+
+Use the boundary:
+
+```text
+Integration
+    = obtain and mutate native state
+
+Reconciliation
+    = compare relevant states and determine what their disagreement means
+```
+
+`REQ-INT` owns provider interaction.
+
+`REQ-REC` owns divergence semantics.
+
+---
+
+## Finding D-008 — Local-first obligations are restated throughout the corpus
+
+Local inspectability and remote-unavailability behavior appear in:
+
+* identity,
+* semantic model,
+* authority,
+* provenance,
+* governance,
+* execution,
+* integration,
+* reconciliation,
+* AI,
+* verification,
+* and reproducibility.
+
+### Disposition
+
+`REQ-LOCAL` owns the general local-first contract.
+
+Other families SHOULD contain only the domain-specific consequence.
+
+For example:
+
+```text
+REQ-AUTH
+offline operation must not manufacture authority
+```
+
+is a valid authority-specific consequence.
+
+A general statement that the system must remain locally inspectable belongs in `REQ-LOCAL`.
+
+---
+
+## Finding D-009 — AI requirements repeat ordinary system semantics
+
+The AI family correctly asserts that AI does not receive a separate engineering ontology.
+
+Consequently, several requirements duplicate ordinary rules for:
+
+* authority,
+* provenance,
+* execution,
+* verification,
+* integration,
+* reproducibility,
+* and governance.
+
+### Disposition
+
+Keep AI-specific invariants such as:
+
+* AI is an Actor,
+* model confidence is not authority,
+* AI inference is not observation,
+* AI output is not automatically Evidence,
+* AI proposals do not automatically apply,
+* conversational instructions have bounded authority,
+* retrieved content is not automatically governing instruction,
+* prompt injection does not gain authority,
+* AI non-determinism must be represented,
+* consequential AI state must survive the originating conversation.
+
+Where the only distinction is:
+
+> “the normal Monad rule also applies to AI,”
+
+prefer a cross-reference to the canonical family.
+
+---
+
+## Finding D-010 — Verification and reproducibility overlap
+
+Verification requirements contain substantial reproducibility behavior.
+
+Reproducibility requirements likewise contain detailed verification behavior.
+
+The two concepts remain distinct:
+
+```text
+Verification
+    = does observed evidence satisfy an expectation?
+
+Reproducibility
+    = can a defined result or behavior be reconstructed
+      under a declared equivalence contract?
+```
+
+### Disposition
+
+`REQ-VFY` owns verification semantics.
+
+`REQ-REPRO` owns reproducibility semantics.
+
+A verification method may itself be reproducible, and reproduction may produce verification Evidence, but neither family should absorb the other.
+
+---
+
+# Contradiction review
+
+## Finding C-001 — No hard normative contradiction identified
+
+The review found no pair of requirements that requires the system to satisfy mutually exclusive behavior under the same conditions.
+
+Several apparent tensions exist, but they resolve through scope.
+
+---
+
+## Tension C-001A — Native access versus governed execution
+
+Some requirements permit direct native-system use while others require consequential operations to pass through governance and execution controls.
+
+These are compatible.
+
+The intended interpretation is:
+
+```text
+Direct native access may exist
+        ↓
+Monad does not pretend all engineering changes originate through Monad
+        ↓
+Governance may restrict particular operations
+        ↓
+Out-of-band changes remain observable through reconciliation
+```
+
+No universal requirement states that every native mutation must originate through Monad.
+
+---
+
+## Tension C-001B — Integration-first versus local-first
+
+Monad prefers integration over unnecessary reimplementation while also requiring meaningful local-first operation.
+
+These are complementary rather than contradictory.
+
+The intended architecture is:
+
+```text
+Local-first
+    ≠
+Reimplement every remote system locally
+```
+
+Local state preserves core meaning and supports locally resolvable capability.
+
+Native providers remain first-class systems for capabilities they legitimately own.
+
+---
+
+## Tension C-001C — Native authority versus Monad authority
+
+Native systems may remain authoritative for native facts while Monad governs semantic facts and consequential operations.
+
+This is compatible because authority is scoped.
+
+Example:
+
+```text
+Git
+    authoritative for commit identity
+
+Monad governance
+    authoritative for release approval
+```
+
+There is no requirement for one universal source of truth.
+
+---
+
+## Tension C-001D — Safe failure versus degraded operation
+
+Local-first requirements encourage useful degraded operation.
+
+Governance requirements encourage safe failure when consequential authorization cannot be determined.
+
+These coexist through capability scoping:
+
+```text
+unavailable capability
+    → explicitly degraded
+
+locally satisfiable operation
+    → may continue
+
+high-consequence operation with unresolved authority
+    → deny or defer
+```
+
+---
+
+## Tension C-001E — Generated state versus authoritative state
+
+Generated and derived artifacts are repeatedly prohibited from becoming authoritative merely because they exist or were successfully generated.
+
+Other requirements permit automation to produce authoritative state when explicitly governed.
+
+These are compatible.
+
+The invariant is:
+
+> **Generation does not confer authority automatically. Explicit governance may.**
+
+---
+
+# Architecture-decision leakage
+
+The following requirements state valid constraints but also embed or strongly imply architectural choices.
+
+They SHOULD generate ADRs rather than being expanded further inside the requirements corpus.
+
+---
+
+## A-001 — Constitutional governance structure
+
+Representative requirements:
+
+```text
+REQ-AUTH-008
+REQ-GOV-006
+REQ-GOV-007
+REQ-GOV-008
+REQ-GOV-009
+```
+
+The durable requirement is:
+
+> Monad must support higher-order governance constraints that lower-level rules cannot silently override.
+
+Whether this is implemented as:
+
+* a Constitution artifact,
+* a dedicated governance layer,
+* signed policy roots,
+* a hierarchy of authority records,
+* or another mechanism
+
+is an architecture decision.
+
+### Required action
+
+Create an ADR defining the **System Constitution architecture**.
+
+---
+
+## A-002 — Explicit execution boundary
+
+Representative requirements include:
+
+```text
+REQ-EXEC-035
+REQ-EXEC-037
+REQ-INT-061
+REQ-REC-094
+REQ-AI-051
+```
+
+The durable requirement is:
+
+> Consequential side effects must be governable, attributable, inspectable, and consistently controlled across execution surfaces.
+
+The exact architecture of the execution boundary is a decision.
+
+### Required action
+
+Create an ADR defining the **governed execution architecture**.
+
+---
+
+## A-003 — Adapter architecture
+
+Requirements such as:
+
+```text
+REQ-INT-014
+REQ-INT-016
+REQ-INT-017
+REQ-INT-251
+REQ-INT-252
+REQ-INT-253
+```
+
+strongly imply an adapter/plugin architecture.
+
+The durable requirement is provider independence combined with preservation of native semantics.
+
+The exact adapter abstraction belongs in architecture.
+
+### Required action
+
+Create an ADR defining the **integration adapter architecture**.
+
+---
+
+## A-004 — Graph-shaped semantic representation
+
+`REQ-SEM` intentionally permits graph-shaped semantics while refusing to require graph-specific persistence.
+
+That is an important architectural constraint.
+
+The remaining choice between:
+
+* relational representation,
+* document representation,
+* embedded graph structures,
+* graph database,
+* event-derived model,
+* hybrid persistence,
+* or another representation
+
+belongs in an ADR.
+
+### Required action
+
+Create an ADR for **semantic-model persistence architecture**.
+
+---
+
+## A-005 — Local persistence architecture
+
+`REQ-LOCAL` establishes durability, portability, inspectability, recovery, and local availability while intentionally avoiding commitment to one storage engine.
+
+### Required action
+
+Create an ADR for **local authoritative persistence and read-model architecture**.
+
+---
+
+## A-006 — Event, polling, and observation architecture
+
+Integration and reconciliation requirements support:
+
+* events,
+* polling,
+* hybrid observation,
+* freshness,
+* replay,
+* duplicate handling,
+* ordering,
+* and authoritative refresh.
+
+The requirement should remain:
+
+> Monad must obtain sufficiently reliable native observations for the required consistency and freshness.
+
+The mechanism belongs in architecture.
+
+### Required action
+
+Create an ADR for **native change observation and event architecture**.
+
+---
+
+## A-007 — Reconciliation execution architecture
+
+Requirements currently mention:
+
+* plans,
+* checkpoints,
+* retries,
+* compensation,
+* concurrent reconciliation,
+* incremental processing,
+* and saga-like workflows.
+
+Those are architectural mechanisms.
+
+### Required action
+
+Create an ADR for the **reconciliation engine architecture**.
+
+---
+
+## A-008 — Reproducibility execution strategy
+
+The corpus discusses:
+
+* clean execution,
+* hermetic execution,
+* containers,
+* declarative environments,
+* caching,
+* and reconstructed environments.
+
+These are possible mechanisms for satisfying reproducibility requirements.
+
+### Required action
+
+Create an ADR defining the **reproducibility execution strategy**.
+
+---
+
+# Specification leakage
+
+Several families contain requirements whose underlying intent is valid but whose detail belongs primarily in Specifications.
+
+---
+
+## S-001 — Authority record schema
+
+Requirements describe fields such as:
+
+* grantee,
+* scope,
+* action,
+* constraints,
+* granting authority,
+* effective time,
+* expiration,
+* policy,
+* revision,
+* and provenance.
+
+These are the beginnings of an Authority Specification.
+
+### Required extraction
+
+```text
+Specification: Authority Model
+```
+
+The requirement corpus should preserve the obligation that authority be explicit, scoped, temporal, attributable, and evaluable.
+
+The Specification should define the precise representation.
+
+---
+
+## S-002 — Governance evaluation result
+
+Requirements describe structured outputs including:
+
+* allow,
+* deny,
+* unresolved,
+* obligations,
+* applicable policies,
+* authority,
+* rationale,
+* and Evidence.
+
+### Required extraction
+
+```text
+Specification: Governance / Policy Evaluation
+```
+
+---
+
+## S-003 — Execution operation contract
+
+`REQ-EXEC` contains sufficient detail to derive a formal operation model covering:
+
+* operation identity,
+* Actor,
+* target,
+* preconditions,
+* expected effects,
+* side effects,
+* authorization,
+* execution attempts,
+* partial success,
+* uncertain outcome,
+* postconditions,
+* rollback,
+* compensation,
+* and Evidence.
+
+### Required extraction
+
+```text
+Specification: Operation and Execution Model
+```
+
+---
+
+## S-004 — Integration contract
+
+The Integration family is the clearest example of specification expansion.
+
+It contains 327 requirements covering:
+
+* adapter contracts,
+* provider capabilities,
+* authentication,
+* permissions,
+* event ingestion,
+* polling,
+* normalization,
+* retries,
+* backoff,
+* timeout,
+* concurrency,
+* pagination,
+* caching,
+* fixtures,
+* provider health,
+* migration,
+* shutdown,
+* replay,
+* and individual native-system categories.
+
+Much of this material is useful.
+
+It is simply more precise than a durable requirements baseline should need to be.
+
+### Required extraction
+
+```text
+Specification: Integration Contract
+Specification: Adapter Contract
+Specification: Native Observation Contract
+Specification: Native Mutation Contract
+```
+
+Provider-specific behavior should later live in provider profiles or adapter specifications.
+
+---
+
+## S-005 — Reconciliation contract
+
+The Reconciliation family contains 319 requirements covering:
+
+* divergence classification,
+* conflict representation,
+* comparison,
+* freshness,
+* authority,
+* remediation,
+* retry,
+* idempotency,
+* events,
+* polling,
+* eventual consistency,
+* checkpoints,
+* errors,
+* metrics,
+* drift,
+* fixtures,
+* dry-run,
+* multi-system convergence,
+* and provider behavior.
+
+### Required extraction
+
+```text
+Specification: Reconciliation Model
+Specification: Reconciliation State Machine
+Specification: Divergence and Conflict Model
+```
+
+The requirements corpus should retain the durable obligations.
+
+The Specification should define the mechanics.
+
+---
+
+## S-006 — Reproducibility profiles
+
+The Reproducibility family contains 220 requirements and includes highly detailed capture concerns such as:
+
+* tool versions,
+* runtime versions,
+* dependencies,
+* operating systems,
+* kernel versions,
+* hardware,
+* environment variables,
+* locale,
+* timezone,
+* random seeds,
+* network resources,
+* container digests,
+* datasets,
+* caches,
+* fixtures,
+* AI models,
+* benchmarks,
+* and security scanners.
+
+These details are useful, but not every reproducibility obligation needs every field.
+
+### Required extraction
+
+Define reproducibility profiles such as:
+
+```text
+source reproducibility
+build reproducibility
+test reproducibility
+verification reproducibility
+release reproducibility
+experiment reproducibility
+benchmark reproducibility
+AI-assisted-work reproducibility
+```
+
+Each profile can specify the information necessary for its declared equivalence contract.
+
+---
+
+## S-007 — Verification profiles
+
+The Verification family contains 292 requirements and already approaches a comprehensive verification specification.
+
+It contains specialized requirements for:
+
+* automated verification,
+* manual verification,
+* hybrid verification,
+* security,
+* performance,
+* reliability,
+* migration,
+* compatibility,
+* interfaces,
+* invariants,
+* negative requirements,
+* flaky tests,
+* retries,
+* destructive verification,
+* waivers,
+* gates,
+* continuous verification,
+* AI-assisted verification,
+* historical verification,
+* and assurance coverage.
+
+### Required extraction
+
+```text
+Specification: Verification Model
+Specification: Verification Result
+Specification: Verification Obligation
+Specification: Verification Method Profiles
+```
+
+---
+
+# Family disposition
+
+## Identity — `REQ-ID`
+
+**Disposition:** Retain.
+
+This family is appropriately requirement-oriented.
+
+Later Specifications must define:
+
+* identifier encoding,
+* alias representation,
+* binding representation,
+* confirmation state,
+* split/merge mechanics,
+* and migration behavior.
+
+---
+
+## Semantic Model — `REQ-SEM`
+
+**Disposition:** Retain foundational invariants; normalize cross-family restatement.
+
+This family should become the semantic kernel contract, not a container for every downstream behavior.
+
+---
+
+## Authority — `REQ-AUTH`
+
+**Disposition:** Retain core semantics; normalize overlap with Governance.
+
+Extract the concrete authority representation into an Authority Specification.
+
+---
+
+## Provenance — `REQ-PROV`
+
+**Disposition:** Retain as canonical owner of provenance semantics.
+
+Other families should reference it rather than independently evolving competing provenance models.
+
+---
+
+## Governance — `REQ-GOV`
+
+**Disposition:** Retain governance outcomes; extract architecture and policy-evaluation mechanics.
+
+Maintain a strict boundary between Authority and Governance.
+
+---
+
+## Execution — `REQ-EXEC`
+
+**Disposition:** Retain provider-independent execution obligations.
+
+Extract operation schema, lifecycle, and execution contracts into Specifications.
+
+---
+
+## Integration — `REQ-INT`
+
+**Disposition:** Retain the durable integration principles; substantial specification extraction required.
+
+This family should eventually become considerably smaller at the requirements layer.
+
+---
+
+## Reconciliation — `REQ-REC`
+
+**Disposition:** Retain the durable reconciliation semantics; substantial specification extraction required.
+
+Mechanisms for polling, event handling, retries, checkpoints, batching, concurrency, metrics, and provider-specific behavior should move downstream.
+
+---
+
+## Local First — `REQ-LOCAL`
+
+**Disposition:** Retain.
+
+This family expresses a strategic architectural property of Monad and provides the canonical contract for offline and degraded operation.
+
+---
+
+## Reproducibility — `REQ-REPRO`
+
+**Disposition:** Retain high-level reproducibility guarantees; extract detailed profiles.
+
+The current material is valuable as source material for the Reproducibility Specification.
+
+---
+
+## AI Interaction — `REQ-AI`
+
+**Disposition:** Retain AI-specific invariants; reduce repetition of ordinary Monad rules over time.
+
+AI should remain an Actor operating within ordinary identity, authority, governance, provenance, execution, and verification semantics.
+
+---
+
+## Verification — `REQ-VFY`
+
+**Disposition:** Retain foundational verification semantics; extract detailed verification profiles and mechanics.
+
+---
+
+# Requirements that MUST remain requirements
+
+Normalization must not remove the core system obligations surfaced by the corpus.
+
+At minimum, RB-001 establishes these invariant commitments:
+
+1. Semantic identity is not physical location.
+2. Subjects are distinct from their Representations.
+3. Native identity is distinct from semantic identity.
+4. Claims are distinct from truth.
+5. Evidence is distinct from Claims.
+6. Provenance is distinct from authority.
+7. Capability is distinct from authority.
+8. Native permission is distinct from Monad authority.
+9. Authority is scoped and historically interpretable.
+10. Governance is explicit for consequential action.
+11. Intent, authorization, execution, and verification are distinct states.
+12. Requested effects are distinct from observed effects.
+13. Native systems remain first-class rather than being unnecessarily replaced.
+14. Reconciliation preserves disagreement rather than manufacturing consistency.
+15. Unknown is distinct from false, denied, missing, and failed.
+16. Historical truth is not rewritten to simplify current truth.
+17. Generated or derived state does not automatically become canonical.
+18. Local-first operation preserves meaningful project understanding without continuous remote access.
+19. Reproducibility Claims do not exceed retained Evidence and context.
+20. AI output does not automatically become authoritative, factual, or evidentiary.
+21. AI participates through the same foundational governance model as other Actors.
+22. Verification evaluates explicit expectations rather than implementation completion.
+23. Verification results bind to their evaluated scope and revision.
+24. Successful execution does not imply successful verification.
+25. Monad's own architectural Claims remain falsifiable.
+
+These invariants should survive later architectural and implementation change.
+
+---
+
+# Baseline change control
+
+After acceptance of RB-001, requirements MUST NOT change casually.
+
+## Existing identifiers
+
+Existing requirement identifiers MUST NOT be silently:
+
+* reused,
+* reassigned,
+* renumbered to hide history,
+* or deleted merely because requirements are consolidated.
+
+---
+
+## Allowed change types
+
+A post-baseline change SHOULD be classified as one of:
+
+```text
+add
+clarify
+refine
+split
+merge
+deprecate
+supersede
+correct
+extract-to-decision
+extract-to-specification
+```
+
+---
+
+## Duplicate consolidation
+
+When duplicate requirements are consolidated:
+
+1. select the canonical owning requirement,
+2. preserve the old identifier,
+3. mark the old requirement as deprecated or superseded where appropriate,
+4. link it to the canonical requirement,
+5. preserve historical references,
+6. update downstream traceability.
+
+A duplicate requirement identifier MUST NOT simply disappear.
+
+---
+
+## Architecture extraction
+
+When requirement text currently embeds an architectural choice:
+
+```text
+existing requirement
+        ↓
+preserve desired outcome
+        ↓
+extract design choice
+        ↓
+Architecture Decision
+        ↓
+trace ADR back to requirement
+```
+
+The ADR decides **how** the requirement will be satisfied.
+
+It does not replace the requirement itself.
+
+---
+
+## Specification extraction
+
+When requirement text contains detailed contract mechanics:
+
+```text
+requirement
+    ↓ defines obligation
+
+Specification
+    ↓ defines exact behavior and representation
+```
+
+Extraction SHOULD preserve enough requirement text to state the durable obligation without binding the system unnecessarily to implementation detail.
+
+---
+
+# Normalization backlog
+
+RB-001 creates the following controlled follow-up work.
+
+## NORM-001 — Establish requirement ownership map
+
+Create a cross-family map assigning each major invariant to its canonical requirement family.
+
+---
+
+## NORM-002 — Create duplicate-equivalence map
+
+Record known duplicate and refinement relationships such as:
+
+```text
+duplicates
+refines
+constrains
+depends-on
+supersedes
+specializes
+```
+
+Do not immediately delete duplicates.
+
+---
+
+## NORM-003 — Extract architecture-decision candidates
+
+Create the initial ADR backlog for:
+
+1. semantic identifier strategy,
+2. semantic-model persistence,
+3. System Constitution architecture,
+4. authority evaluation architecture,
+5. governance and policy evaluation,
+6. governed execution architecture,
+7. integration adapter architecture,
+8. native observation/event architecture,
+9. reconciliation architecture,
+10. local authoritative persistence,
+11. reproducibility execution strategy,
+12. verification architecture,
+13. AI Actor and context architecture.
+
+---
+
+## NORM-004 — Extract foundational Specifications
+
+Begin with:
+
+```text
+Semantic Kernel
+Identity
+Claims and Relationships
+Provenance
+Authority
+Governance / Policy
+Operation and Execution
+Integration Contract
+Reconciliation
+Reproducibility
+AI Interaction
+Verification
+```
+
+---
+
+## NORM-005 — Establish requirement-to-verification traceability
+
+Every accepted durable requirement should eventually map to one or more of:
+
+```text
+Specification clause
+Architecture Decision
+Conformance scenario
+Verification method
+Evidence
+Implementation element
+```
+
+---
+
+# Review acceptance criteria
+
+RB-001 is complete when:
+
+* [x] all twelve requirement families have been included in scope,
+* [x] duplicate and overlapping areas have been identified,
+* [x] contradiction risk has been reviewed,
+* [x] architecture-decision leakage has been identified,
+* [x] specification leakage has been identified,
+* [x] canonical family ownership has been established,
+* [x] normalization work has been made explicit,
+* [x] requirement identifiers are protected from silent reuse or deletion,
+* [x] future changes are subject to deliberate change control.
+
+---
+
+# Final determination
+
+**Requirements Baseline RB-001 is Accepted.**
+
+The corpus is now treated as a controlled baseline rather than an open-ended drafting surface.
+
+That does not freeze Monad permanently.
+
+It changes the mode of evolution.
+
+Before RB-001:
+
+```text
+discover
+    ↓
+expand
+    ↓
+refine
+    ↓
+discover more
+```
+
+After RB-001:
+
+```text
+Requirement
+    ↓
+Decision
+    ↓
+Specification
+    ↓
+Implementation
+    ↓
+Verification
+    ↓
+Evidence
+```
+
+Future requirements may still be added when genuinely new obligations are discovered.
+
+Existing requirements may still be corrected, clarified, deprecated, split, merged, or superseded.
+
+But those changes must now be explicit and traceable.
+
+> **RB-001 marks the transition from requirements discovery to controlled system definition.**

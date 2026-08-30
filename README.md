@@ -1,9 +1,8 @@
 # aic-fumadocs-app
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+This is the source code for the AIC Engineering blog/website. It is a Next.js application generated with [Create Fumadocs](https://github.com/fuma-nama/fumadocs).
 
-Run development server:
+## Run development server:
 
 ```bash
 npm run dev
@@ -27,6 +26,11 @@ In the project, you can see:
 | `app/(home)`              | The route group for your landing page and other pages. |
 | `app/docs`                | The documentation layout and pages.                    |
 | `app/api/search/route.ts` | The Route Handler for search.                          |
+| `app/articles`            | The blog/articles layout and pages.                    |
+| `app/changelog`           | The changelog layout and pages.                        |
+| `app/journal`             | The journal layout and pages.                          |
+| `components`              | ai and ui components                                   |
+| `content`                 | content in mdx.                                        |
 
 ### Fumadocs MDX
 
@@ -43,3 +47,12 @@ resources:
   features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 - [Fumadocs](https://fumadocs.dev) - learn about Fumadocs
+
+## Monad
+
+To learn more about the Monad project that this blog, etc. covers take 
+a look at the following resources:
+
+- [Monad Repo](https://github.com/monad-framework/monad) - github repo for monad
+- [Monad Framework](https://github.com/monad-framework/) - github repo for monad framework
+- [AIC Engineering](https://github.com/monad-framework/aic-engineering) - github repo for this site

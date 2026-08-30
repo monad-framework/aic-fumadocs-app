@@ -1,0 +1,1582 @@
+---
+title: Identity Requirements
+description: The requirements governing stable semantic identity in Monad, including independence from location and representation, native-system bindings, lifecycle continuity, inference boundaries, and identity change.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-ID
+  </p>
+</div>
+
+# Identity Requirements
+
+Monad must be able to reason about an engineering subject as the **same thing** even when the files, paths, tools, representations, identifiers, or other native references associated with it change.
+
+That capability depends on a distinction that appears simple but is foundational:
+
+> **Identity is not location, and semantic identity is not native-system identity.**
+
+A file path can change.
+A GitHub issue can be migrated.
+A document can be regenerated.
+A specification can have several representations.
+A system concept can outlive every particular artifact that currently describes it.
+
+Monad therefore requires a durable semantic identity model that can preserve continuity without pretending that native systems, representations, and identifiers are interchangeable.
+
+<Callout type="info" title="Status of this requirement family">
+These requirements establish the current identity obligations for Monad. They intentionally do not settle every implementation detail. Identifier encoding, persistence representation, split/merge mechanics, and some confirmation policies remain matters for specifications and architecture decisions.
+</Callout>
+
+---
+
+## Requirement family scope
+
+The `REQ-ID-*` family governs:
+
+* stable semantic identity,
+* Subject identity,
+* identity independence from physical location,
+* distinction between Subjects and Representations,
+* distinction between semantic identifiers and native identifiers,
+* bindings between semantic Subjects and native-system entities,
+* continuity across rename, move, regeneration, and reprojection,
+* aliasing,
+* identity confirmation,
+* inferred identity,
+* ambiguity,
+* collisions,
+* lifecycle continuity,
+* supersession,
+* split and merge transitions,
+* deletion and disappearance,
+* historical identity,
+* identifier portability,
+* identity provenance,
+* and reconciliation of identity information.
+
+It does **not** independently define:
+
+* the concrete identifier encoding,
+* the storage engine,
+* serialization format,
+* database keys,
+* graph database technology,
+* filesystem layout,
+* API transport,
+* or user-interface presentation.
+
+Those belong to specifications, models, schemas, implementation decisions, or other requirement families.
+
+---
+
+# Core requirements
+
+## REQ-ID-001 — Semantic identity MUST be independent of physical location
+
+A Monad Subject MUST be capable of retaining the same semantic identity when its physical location changes.
+
+Examples of physical-location changes include:
+
+* moving a file,
+* renaming a directory,
+* relocating a repository,
+* reorganizing a documentation tree,
+* moving an artifact between packages,
+* changing a workspace layout,
+* or changing the storage location of a representation.
+
+The system MUST NOT define semantic identity solely from a mutable filesystem path.
+
+### Rationale
+
+Paths are addresses.
+
+They are not durable statements of semantic identity.
+
+If:
+
+```text
+docs/architecture/system-model.md
+```
+
+moves to:
+
+```text
+docs/system/architecture/model.md
+```
+
+the move alone must not require Monad to conclude that the former subject ceased to exist and an unrelated subject appeared.
+
+### Verification intent
+
+Verification should demonstrate that a known Subject can survive a supported location change while retaining its identity and historical relationships.
+
+---
+
+## REQ-ID-002 — Semantic identity MUST be distinct from Representation identity
+
+Monad MUST distinguish the identity of a Subject from the identity of any Representation of that Subject.
+
+A single Subject MAY have:
+
+* one Representation,
+* many Representations,
+* no currently available Representation,
+* historical Representations,
+* generated Representations,
+* human-authored Representations,
+* native-tool Representations,
+* or representations in different formats.
+
+Therefore:
+
+```text
+Subject ≠ Representation
+```
+
+### Example
+
+A design decision might exist semantically as one Subject while being represented through:
+
+* an ADR Markdown file,
+* a GitHub issue,
+* a generated documentation page,
+* an indexed database record,
+* and a rendered web page.
+
+Those representations do not become five independent decisions merely because they are five inspectable objects.
+
+---
+
+## REQ-ID-003 — Semantic identity MUST be distinct from native-system identity
+
+Monad MUST distinguish semantic identity from identifiers assigned by external or native engineering systems.
+
+Examples include:
+
+* Git commit hashes,
+* GitHub issue numbers,
+* pull request numbers,
+* filesystem paths,
+* package names,
+* database primary keys,
+* CI run IDs,
+* deployment IDs,
+* cloud resource IDs,
+* documentation slugs,
+* ticket IDs,
+* and tool-specific object identifiers.
+
+A native identifier MAY participate in identifying or resolving a Subject, but it MUST NOT automatically become equivalent to the Subject's semantic identity.
+
+Formally:
+
+```text
+Semantic Identity ≠ Native Identity
+```
+
+unless an explicit contract defines a special case where equivalence is safe and intentional.
+
+---
+
+## REQ-ID-004 — A Subject MUST be able to bind to one or more native references
+
+Monad MUST support explicit relationships between a semantic Subject and the native entities through which that Subject is represented, implemented, tracked, or observed.
+
+Conceptually:
+
+```text
+Subject
+   ↓
+Native Binding
+   ↓
+Native Reference
+```
+
+A Subject MAY have multiple native references.
+
+Examples:
+
+```text
+Subject: Architecture Decision 17
+├── GitHub issue #81
+├── docs/adr/0017-authority-model.md
+└── generated documentation route
+```
+
+Bindings MUST preserve the distinction between:
+
+* the Subject,
+* the native entity,
+* the reference used to locate the native entity,
+* and the evidence supporting the binding.
+
+---
+
+## REQ-ID-005 — A change to a native reference MUST NOT inherently change semantic identity
+
+If the native locator or identifier associated with a Subject changes, Monad MUST NOT infer a semantic identity change solely from that fact.
+
+Examples include:
+
+```text
+old/path.md → new/path.md
+```
+
+or:
+
+```text
+repository-A → repository-B
+```
+
+or migration from one tracking system to another.
+
+Whether identity continues MUST be determined by identity semantics, evidence, explicit mappings, reconciliation policy, or authoritative declarations—not merely by address equality.
+
+---
+
+## REQ-ID-006 — Rename operations MUST be capable of preserving Subject identity
+
+Monad MUST support cases where an entity is renamed without becoming a new semantic Subject.
+
+For example:
+
+```text
+"System Graph"
+```
+
+may later be renamed:
+
+```text
+"Canonical System Model"
+```
+
+A semantic rename SHOULD be representable as a change to naming information associated with the same Subject when the underlying identity remains continuous.
+
+The previous name SHOULD remain historically discoverable where doing so materially improves traceability.
+
+---
+
+## REQ-ID-007 — Move operations MUST be capable of preserving Subject identity
+
+A move between:
+
+* files,
+* folders,
+* packages,
+* repositories,
+* namespaces,
+* documentation sections,
+* or other supported containers
+
+MUST be capable of preserving Subject identity when the semantic entity itself remains continuous.
+
+Move detection MAY be:
+
+* explicit,
+* inferred,
+* confirmed,
+* derived from native history,
+* or reconciled from multiple forms of evidence.
+
+The method of detection MUST NOT alter the semantic distinction between **observed continuity** and **confirmed continuity**.
+
+---
+
+## REQ-ID-008 — Regeneration MUST NOT inherently create a new Subject
+
+When a Representation is generated again from the same semantic source, Monad MUST NOT require the resulting generated object to become a new semantic Subject merely because its physical bytes, timestamp, build identifier, or location changed.
+
+For example:
+
+```text
+Canonical Subject
+      ↓
+Generated documentation page v1
+
+Canonical Subject
+      ↓
+Generated documentation page v2
+```
+
+The generated pages may be different Representations while the represented Subject remains the same.
+
+---
+
+## REQ-ID-009 — Projection changes MUST NOT inherently change Subject identity
+
+A Subject rendered through different projections MUST remain distinguishable from those projections.
+
+Examples include:
+
+* graph views,
+* documentation pages,
+* dashboards,
+* search indexes,
+* AI context packages,
+* API response models,
+* dependency views,
+* and traceability matrices.
+
+A projection MUST NOT become the authoritative identity of a Subject merely because it is convenient to query.
+
+---
+
+# Identity continuity
+
+## REQ-ID-010 — Identity continuity MUST be explicit enough to inspect
+
+Monad MUST make identity continuity inspectable.
+
+When the system concludes that:
+
+```text
+Entity A at time T1
+```
+
+and:
+
+```text
+Entity B at time T2
+```
+
+represent the same continuing Subject, the basis for that conclusion SHOULD be discoverable where the conclusion has engineering significance.
+
+Possible bases include:
+
+* explicit declaration,
+* native rename history,
+* authoritative mapping,
+* matching stable identifier,
+* migration record,
+* provenance,
+* reconciliation result,
+* confirmed inference,
+* or another formally supported mechanism.
+
+Identity continuity MUST NOT depend exclusively on opaque implementation behavior.
+
+---
+
+## REQ-ID-011 — Identity confidence MUST be distinguishable from identity fact
+
+Monad MUST distinguish between:
+
+* an identity relationship known through an authoritative mechanism,
+* an identity relationship observed directly,
+* an identity relationship inferred with evidence,
+* and an identity relationship that remains uncertain.
+
+An inference MUST NOT silently become authoritative identity merely because the inference is highly probable.
+
+Conceptually:
+
+```text
+possible same identity
+        ≠
+confirmed same identity
+```
+
+---
+
+## REQ-ID-012 — Inferred identity MUST remain distinguishable from confirmed identity
+
+When Monad infers that two native entities or Representations refer to the same Subject, the inference MUST retain its epistemic status until confirmation occurs according to applicable policy.
+
+The system SHOULD preserve:
+
+* how the inference was produced,
+* relevant supporting evidence,
+* confidence where applicable,
+* the time of inference,
+* and whether a human, rule, tool, or AI system produced it.
+
+This supports the broader Monad invariant:
+
+> **Inference is not confirmation.**
+
+---
+
+## REQ-ID-013 — Ambiguous identity MUST be representable without forced resolution
+
+If available evidence does not support a reliable identity determination, Monad MUST be capable of representing that uncertainty.
+
+The system MUST NOT be required to collapse ambiguity into an arbitrary identity assignment.
+
+For example:
+
+```text
+native object X
+    ├── possibly represents Subject A
+    └── possibly represents Subject B
+```
+
+may remain unresolved until sufficient evidence or authority exists.
+
+Unknown identity MUST NOT be treated as false identity.
+
+---
+
+## REQ-ID-014 — Identity conflicts MUST be representable
+
+Monad MUST support the existence of conflicting identity assertions.
+
+For example:
+
+```text
+Assertion 1: Native object X represents Subject A
+Assertion 2: Native object X represents Subject B
+```
+
+The data model MUST be capable of retaining the conflict when both assertions matter to the engineering record.
+
+The system MUST NOT resolve conflicting identity claims merely by destructive overwrite unless the governing specification explicitly makes such behavior appropriate for that context.
+
+---
+
+# Native bindings
+
+## REQ-ID-015 — Native references MUST retain native-system context
+
+A native identifier MUST carry sufficient context to avoid accidental ambiguity.
+
+For example:
+
+```text
+#42
+```
+
+is not generally sufficient.
+
+A useful native reference might require conceptual information such as:
+
+```text
+system: GitHub
+repository: monad-framework/monad
+entity-type: issue
+native-id: 42
+```
+
+The exact serialization is specification-defined.
+
+The requirement is that native identity MUST be resolved within an appropriate native-system scope.
+
+---
+
+## REQ-ID-016 — Monad MUST preserve native identity where it has engineering value
+
+Monad MUST NOT destructively normalize away useful native identifiers.
+
+If GitHub says an issue is `#42`, or Git identifies a commit by a particular hash, Monad SHOULD retain that native information rather than replacing it with only an internal Monad identifier.
+
+The semantic system enriches native reality.
+
+It does not erase it.
+
+---
+
+## REQ-ID-017 — Native identity bindings MUST be inspectable
+
+Bindings between Subjects and native entities MUST be inspectable where those bindings contribute to:
+
+* authority,
+* provenance,
+* traceability,
+* execution,
+* verification,
+* reconciliation,
+* or other material system behavior.
+
+A developer should be able to determine, at an appropriate interface:
+
+> “Why does Monad believe this native object represents this Subject?”
+
+---
+
+## REQ-ID-018 — Binding history SHOULD be preserved when material
+
+When a Subject changes native location or native representation, Monad SHOULD preserve sufficient historical binding information to reconstruct meaningful identity transitions.
+
+For example:
+
+```text
+Subject S
+2026-01: represented by docs/a.md
+2026-04: moved to docs/system/a.md
+2026-07: represented additionally by generated page /system/a
+```
+
+Historical bindings SHOULD be preserved when they are important for:
+
+* provenance,
+* historical queries,
+* release reconstruction,
+* auditability,
+* migration,
+* traceability,
+* or reasoning about past system state.
+
+---
+
+# Identity lifecycle
+
+## REQ-ID-019 — Disappearance of a Representation MUST NOT inherently imply destruction of its Subject
+
+If a file or other Representation disappears, Monad MUST NOT automatically conclude that the associated semantic Subject ceased to exist.
+
+The disappearance may mean:
+
+* deletion,
+* relocation,
+* archival,
+* supersession,
+* regeneration,
+* migration,
+* synchronization delay,
+* integration failure,
+* stale observation,
+* or an actual semantic deletion.
+
+Those possibilities MUST remain conceptually distinguishable.
+
+---
+
+## REQ-ID-020 — Subject deletion MUST be distinguishable from Representation deletion
+
+Monad MUST distinguish:
+
+```text
+delete Representation
+```
+
+from:
+
+```text
+delete Subject
+```
+
+A Representation may disappear while the Subject continues.
+
+Similarly, a Subject may become historical or retired while some of its Representations remain available for archival or evidentiary purposes.
+
+---
+
+## REQ-ID-021 — Supersession MUST NOT erase prior identity
+
+When one Subject supersedes another, Monad MUST preserve the distinct identity of each Subject.
+
+Conceptually:
+
+```text
+Subject A
+   ↓ superseded-by
+Subject B
+```
+
+MUST NOT be normalized into:
+
+```text
+Subject A = Subject B
+```
+
+unless the underlying semantic event was actually a rename or continuation rather than supersession.
+
+This distinction is critical for decisions, specifications, policies, requirements, and other versioned engineering knowledge.
+
+---
+
+## REQ-ID-022 — Historical identity MUST remain queryable when retained
+
+When Monad retains historical Subjects, their identities and relevant historical relationships SHOULD remain queryable.
+
+A historical Subject MUST NOT be mistaken for current authoritative truth merely because it remains available.
+
+This supports the broader separation between:
+
+* historical truth,
+* current truth,
+* and evidence explaining the transition between them.
+
+---
+
+# Split and merge identity
+
+## REQ-ID-023 — Identity split MUST be representable
+
+Monad MUST be capable of representing a semantic entity that later divides into multiple distinct Subjects.
+
+Conceptually:
+
+```text
+Subject A
+   ↓ split
+├── Subject B
+└── Subject C
+```
+
+The model MUST NOT require either:
+
+```text
+A = B
+```
+
+or:
+
+```text
+A = C
+```
+
+when the actual semantic transition is a split.
+
+The exact lifecycle semantics, transition relations, and migration behavior require separate specification.
+
+---
+
+## REQ-ID-024 — Identity merge MUST be representable
+
+Monad MUST be capable of representing multiple Subjects that are intentionally consolidated into a new or continuing Subject.
+
+Conceptually:
+
+```text
+Subject A ─┐
+           ├── merge → Subject C
+Subject B ─┘
+```
+
+A merge MUST NOT silently erase the historical identities of the participating Subjects when those identities remain relevant to engineering history.
+
+---
+
+## REQ-ID-025 — Split and merge transitions MUST preserve provenance
+
+When Subjects split or merge, Monad MUST retain sufficient provenance to determine:
+
+* which Subjects participated,
+* what transition occurred,
+* when it occurred,
+* what initiated or authorized it,
+* which resulting Subjects exist,
+* and which relevant relationships were inherited, transformed, or terminated.
+
+The exact inheritance semantics belong in formal specifications.
+
+---
+
+## REQ-ID-026 — Split and merge behavior MUST NOT be inferred destructively without sufficient evidence
+
+An automated system MAY propose or infer a possible split or merge.
+
+It MUST NOT silently rewrite canonical identity relationships as a confirmed split or merge unless authorized by the applicable governance and identity rules.
+
+This restriction applies equally to:
+
+* deterministic tools,
+* heuristic systems,
+* and AI systems.
+
+---
+
+# Identifier requirements
+
+## REQ-ID-027 — Semantic identifiers MUST be durable
+
+A canonical semantic identifier MUST remain stable across changes that do not semantically replace the Subject.
+
+Examples include:
+
+* renaming,
+* moving,
+* formatting changes,
+* Representation replacement,
+* regenerated projections,
+* native-system migration,
+* and ordinary edits that preserve identity.
+
+---
+
+## REQ-ID-028 — Semantic identifiers MUST be unambiguous within their defined scope
+
+Every semantic identifier MUST have a defined uniqueness scope.
+
+The system MUST be capable of determining whether the identifier is:
+
+* project-local,
+* workspace-local,
+* globally scoped,
+* namespace-qualified,
+* or governed by another defined identity domain.
+
+Monad MUST NOT rely on undocumented assumptions about identifier uniqueness.
+
+---
+
+## REQ-ID-029 — Identifier encoding MUST NOT carry unnecessary semantic meaning
+
+The identifier representation SHOULD minimize coupling between identity and mutable domain attributes.
+
+For example, identity SHOULD NOT ordinarily depend on:
+
+* filename,
+* current title,
+* directory,
+* lifecycle state,
+* owner,
+* package,
+* implementation language,
+* or current classification.
+
+Such data may change while Subject identity remains stable.
+
+The exact identifier format remains a specification and architecture concern.
+
+---
+
+## REQ-ID-030 — Human-readable labels MUST be distinguishable from canonical identifiers
+
+Monad MUST distinguish:
+
+```text
+canonical identity
+```
+
+from:
+
+```text
+human-readable name
+```
+
+A Subject MAY have:
+
+* a canonical identifier,
+* a current title,
+* previous titles,
+* short names,
+* aliases,
+* native names,
+* and display labels.
+
+Changing a display label MUST NOT inherently change canonical identity.
+
+---
+
+# Aliases and alternate identifiers
+
+## REQ-ID-031 — A Subject MAY have aliases
+
+Monad MUST support alternate identifiers or names that resolve to the same Subject when useful.
+
+Aliases MAY originate from:
+
+* previous names,
+* migrated identifiers,
+* native systems,
+* legacy systems,
+* user-facing labels,
+* imported artifacts,
+* or compatibility requirements.
+
+An alias MUST remain distinguishable from the canonical identifier.
+
+---
+
+## REQ-ID-032 — Alias relationships MUST NOT erase provenance
+
+When an alias is introduced, Monad SHOULD preserve enough information to determine:
+
+* the alias value,
+* its namespace or scope,
+* its source,
+* when it became valid,
+* whether it remains active,
+* and how it relates to the canonical Subject.
+
+---
+
+## REQ-ID-033 — Alias collisions MUST be detectable
+
+If the same alias could resolve to multiple Subjects within the relevant scope, Monad MUST be capable of detecting and representing the ambiguity.
+
+The system MUST NOT silently select an arbitrary Subject where doing so could materially alter engineering behavior.
+
+---
+
+# Identity and time
+
+## REQ-ID-034 — Monad MUST distinguish current identity bindings from historical identity bindings
+
+A native reference that once represented a Subject may later:
+
+* disappear,
+* refer to something else,
+* become stale,
+* be superseded,
+* or be replaced.
+
+Monad MUST therefore be capable of distinguishing:
+
+```text
+currently binds to
+```
+
+from:
+
+```text
+historically bound to
+```
+
+where temporal identity matters.
+
+---
+
+## REQ-ID-035 — Identity assertions SHOULD support meaningful temporal interpretation
+
+Where required by the domain, Monad SHOULD be able to represent when an identity assertion was:
+
+* valid,
+* observed,
+* recorded,
+* confirmed,
+* or superseded.
+
+These times MUST NOT be assumed to be identical.
+
+The precise temporal model is specified elsewhere.
+
+---
+
+# Identity authority
+
+## REQ-ID-036 — Identity assertions MUST be subject to authority rules
+
+The ability to observe or propose an identity relationship MUST NOT automatically imply authority to establish canonical identity.
+
+For example:
+
+```text
+AI agent can infer likely equivalence
+```
+
+does not imply:
+
+```text
+AI agent may authoritatively merge Subjects
+```
+
+Monad MUST support identity operations under the same broader principle used throughout the system:
+
+> **Capability does not imply authority.**
+
+---
+
+## REQ-ID-037 — Identity-changing operations MUST support governance proportional to consequence
+
+Operations that materially change semantic identity SHOULD be governable according to their consequence.
+
+Examples include:
+
+* merging Subjects,
+* splitting a Subject,
+* replacing canonical identity,
+* reassigning a native binding,
+* declaring two previously distinct Subjects equivalent,
+* and invalidating a long-standing identity mapping.
+
+Low-risk identity updates may require little or no approval.
+
+High-impact identity changes MAY require:
+
+* explicit authorization,
+* review,
+* supporting evidence,
+* or other governance controls.
+
+---
+
+## REQ-ID-038 — Identity authority SHOULD be scoped
+
+Monad SHOULD support authority that is limited by relevant scope rather than assuming a single universal identity authority.
+
+Possible scopes include:
+
+* project,
+* domain,
+* Subject type,
+* native system,
+* property,
+* relationship type,
+* repository,
+* or operation type.
+
+The final authority model is defined separately.
+
+---
+
+# Identity provenance
+
+## REQ-ID-039 — Material identity assertions MUST be attributable
+
+When an identity assertion materially affects system behavior, Monad MUST be capable of recording where that assertion came from.
+
+The producer may be:
+
+* a human,
+* an imported artifact,
+* a native system,
+* deterministic automation,
+* a reconciliation engine,
+* or an AI system.
+
+---
+
+## REQ-ID-040 — Identity derivation MUST be distinguishable from identity origin
+
+If Monad derives an identity relationship from another source, it SHOULD preserve the difference between:
+
+```text
+source identity information
+```
+
+and:
+
+```text
+Monad-derived identity conclusion
+```
+
+This prevents derived conclusions from appearing to have originated directly from their evidence sources.
+
+---
+
+# Reconciliation
+
+## REQ-ID-041 — Monad MUST support reconciliation of semantic identity with native reality
+
+Because native systems may change independently of Monad, identity bindings MUST be reconcilable.
+
+Reconciliation MAY detect:
+
+* moved entities,
+* renamed entities,
+* missing Representations,
+* new native objects,
+* conflicting bindings,
+* stale references,
+* duplicate candidates,
+* changed native identifiers,
+* or suspected identity discontinuities.
+
+---
+
+## REQ-ID-042 — Reconciliation MUST preserve uncertainty
+
+If reconciliation cannot determine whether an observed change represents:
+
+* a move,
+* a rename,
+* replacement,
+* duplication,
+* deletion,
+* split,
+* merge,
+* or unrelated creation,
+
+the system MUST preserve the uncertainty rather than fabricate certainty.
+
+---
+
+## REQ-ID-043 — Reconciliation MUST NOT silently override higher-authority identity information
+
+An automated reconciliation result MUST NOT automatically displace a more authoritative identity assertion unless the governing policy explicitly permits that behavior.
+
+---
+
+# Portability
+
+## REQ-ID-044 — Core semantic identity MUST NOT require continuous access to a remote service
+
+Monad's core identity model MUST remain inspectable and usable in supported local-first operation without requiring continuous availability of:
+
+* GitHub,
+* hosted databases,
+* remote AI services,
+* cloud control planes,
+* or other external services.
+
+External systems may provide native identifiers and supporting information, but the semantic identity system itself MUST support local inspection.
+
+---
+
+## REQ-ID-045 — Semantic identity MUST survive supported repository migration
+
+A supported migration of a repository between locations, hosts, organizations, or equivalent native containers SHOULD NOT inherently require replacement of every Subject identity contained within it.
+
+The system SHOULD preserve semantic identity wherever the underlying Subjects remain semantically continuous.
+
+---
+
+# Identity minimality
+
+## REQ-ID-046 — Monad MUST NOT create distinct Subjects without semantic justification
+
+The existence of multiple files, records, database rows, URLs, or projections MUST NOT by itself require multiple semantic Subjects.
+
+Subject creation SHOULD correspond to a meaningful semantic distinction.
+
+This prevents the semantic model from degenerating into a mirror of storage objects.
+
+---
+
+## REQ-ID-047 — Monad MUST NOT collapse distinct Subjects merely because their content is equivalent
+
+Two Subjects MAY contain equivalent or identical content while remaining semantically distinct.
+
+Examples include:
+
+* copied specifications,
+* independent decisions reaching the same conclusion,
+* duplicated files,
+* mirrored repositories,
+* two requirements with identical wording but different scope,
+* or intentionally forked artifacts.
+
+Content equality MUST NOT automatically imply identity equality.
+
+---
+
+## REQ-ID-048 — Identity formalization MUST earn its complexity
+
+Monad SHOULD introduce identity distinctions only when they provide material value such as:
+
+* continuity,
+* traceability,
+* provenance,
+* governance,
+* impact analysis,
+* reconciliation,
+* queryability,
+* automation,
+* or historical understanding.
+
+Identity machinery SHOULD NOT expand merely to model hypothetical future distinctions with no demonstrated engineering value.
+
+---
+
+# Non-requirements
+
+The following are **not** implied by this requirement family.
+
+## Monad does not require a graph database
+
+The semantic model may be graph-shaped without requiring a graph database.
+
+Persistence technology is a separate architectural choice.
+
+---
+
+## Monad does not require globally unique identifiers for every object
+
+Whether identifiers are:
+
+* globally unique,
+* project-local,
+* namespace-qualified,
+* URI-like,
+* content-derived,
+* random,
+* sequential,
+* or layered
+
+remains subject to specification and architecture decisions.
+
+The requirement is durable, unambiguous identity within a defined scope.
+
+---
+
+## Monad does not require every native object to become a Subject
+
+A native file or tool object may remain only:
+
+* a native reference,
+* a Representation,
+* transient data,
+* incidental implementation detail,
+* or another non-Subject construct.
+
+Formal semantic identity should be introduced when it provides engineering value.
+
+---
+
+## Monad does not require automatic identity inference
+
+Automatic matching MAY improve reconciliation and capture efficiency.
+
+It is not a prerequisite for the semantic identity model.
+
+Explicit bindings alone may be sufficient for some supported workflows.
+
+---
+
+# Illustrative identity scenario
+
+The following example is explanatory, not a canonical serialization.
+
+A project initially contains:
+
+```text
+docs/architecture/authority.md
+```
+
+Monad knows:
+
+```text
+Subject:
+  identifier: subject:authority-model
+
+Representation:
+  kind: markdown-document
+  native-reference: docs/architecture/authority.md
+
+Relationship:
+  subject:authority-model
+    represented-by
+  docs/architecture/authority.md
+```
+
+The file is later moved:
+
+```text
+docs/system/governance/authority.mdx
+```
+
+The desired semantic interpretation is:
+
+```text
+Subject remains:
+  subject:authority-model
+
+Old representation:
+  docs/architecture/authority.md
+  status: historical
+
+Current representation:
+  docs/system/governance/authority.mdx
+
+Identity:
+  unchanged
+```
+
+Not:
+
+```text
+delete subject:authority-model
+
+create subject:some-new-thing
+```
+
+solely because the path changed.
+
+---
+
+# Illustrative ambiguous scenario
+
+Suppose a repository contains two new files:
+
+```text
+authority-model.mdx
+authority-system.mdx
+```
+
+Both resemble a previously deleted document.
+
+Monad may infer:
+
+```text
+Candidate A:
+  likely continuation of Subject S
+  confidence: high
+
+Candidate B:
+  possibly related
+  confidence: medium
+```
+
+That does **not** justify silently assigning Subject S to Candidate A.
+
+The system may instead retain:
+
+```text
+Inference:
+  Candidate A may represent Subject S
+
+Status:
+  awaiting confirmation
+```
+
+until the appropriate authority or reconciliation rule confirms it.
+
+---
+
+# Illustrative split scenario
+
+A single specification originally defines both:
+
+```text
+identity semantics
+```
+
+and:
+
+```text
+native binding semantics
+```
+
+The project later separates those concerns.
+
+The correct semantic history may be:
+
+```text
+Original Subject
+      │
+      ├── split-into → Identity Specification
+      │
+      └── split-into → Native Binding Specification
+```
+
+rather than pretending one successor was always the original Subject or deleting the history of the original artifact.
+
+---
+
+# Illustrative merge scenario
+
+Two historically independent concepts:
+
+```text
+Native Object Mapping
+Native Reference Binding
+```
+
+may later be found to represent one concept badly duplicated across the system.
+
+A governed merge could produce:
+
+```text
+Native Binding
+```
+
+while retaining the historical fact that two distinct Subjects previously existed.
+
+---
+
+# Verification themes
+
+The identity requirement family should eventually be exercised through conformance scenarios covering at least:
+
+### Location continuity
+
+```text
+create → move → resolve
+```
+
+Expected:
+
+```text
+same Subject
+```
+
+### Rename continuity
+
+```text
+create → rename → resolve
+```
+
+Expected:
+
+```text
+same Subject
+```
+
+### Representation replacement
+
+```text
+Markdown → generated MDX
+```
+
+Expected:
+
+```text
+same Subject where semantically appropriate
+different Representations
+```
+
+### Native migration
+
+```text
+old repository → new repository
+```
+
+Expected:
+
+```text
+semantic identities preserved where continuity is established
+native references updated or historical
+```
+
+### Ambiguous matching
+
+```text
+one historical Subject
+two plausible replacements
+```
+
+Expected:
+
+```text
+uncertainty retained
+no arbitrary canonical reassignment
+```
+
+### Conflicting identity assertions
+
+Expected:
+
+```text
+conflict represented
+authority evaluated
+history preserved
+```
+
+### Split
+
+Expected:
+
+```text
+old identity preserved historically
+new identities created
+transition inspectable
+```
+
+### Merge
+
+Expected:
+
+```text
+participating identities preserved historically
+resulting identity explicit
+transition inspectable
+```
+
+### Unauthorized inference
+
+Expected:
+
+```text
+proposal/inference may exist
+canonical identity unchanged
+```
+
+---
+
+# Open specification questions
+
+The following matters remain intentionally unresolved at this layer.
+
+## Identifier format
+
+What concrete format should canonical Subject identifiers use?
+
+Possibilities include:
+
+* UUID-family identifiers,
+* ULIDs,
+* URI-like names,
+* namespaced opaque identifiers,
+* local identifiers plus project identity,
+* or another deliberately designed structure.
+
+The requirement set does not select one.
+
+---
+
+## Identity scope
+
+Should Subject identity be:
+
+* project-local,
+* workspace-local,
+* globally portable,
+* hierarchically namespaced,
+* or layered?
+
+That decision requires evaluation of portability, collision risk, local-first operation, ergonomics, federation, and migration.
+
+---
+
+## Native-ID reuse
+
+When a native system already has a durable identifier, should Monad:
+
+* adopt it,
+* alias it,
+* wrap it,
+* bind to it,
+* derive from it,
+* or create an independent semantic identifier?
+
+The correct answer may differ by native system.
+
+---
+
+## Confirmation policy
+
+Which identity inferences may become canonical automatically?
+
+Which require:
+
+* deterministic evidence,
+* policy,
+* human review,
+* owner confirmation,
+* multiple corroborating sources,
+* or other authority?
+
+---
+
+## Split semantics
+
+When a Subject splits:
+
+* which relationships propagate?
+* which claims remain attached to the historical parent?
+* can one successor be designated a continuation?
+* what happens to native bindings?
+* how are historical queries resolved?
+
+---
+
+## Merge semantics
+
+When Subjects merge:
+
+* is a new identity always created?
+* may one existing Subject continue?
+* what determines canonical succession?
+* how are conflicts preserved?
+* how are aliases and historical references resolved?
+
+---
+
+## Temporal semantics
+
+Which identity relationships require:
+
+* valid time,
+* observation time,
+* recording time,
+* transaction time,
+* or another temporal model?
+
+---
+
+# Requirement relationships
+
+The identity requirements interact especially strongly with:
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/semantic-model" title="Semantic Model Requirements">
+    Defines the conceptual structure in which Subjects, Representations, Claims, relationships, and other semantic entities exist.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/provenance" title="Provenance Requirements">
+    Defines how the origin, derivation, production, observation, and recording of identity information remain inspectable.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/authority" title="Authority Requirements">
+    Defines who or what may establish, modify, confirm, merge, split, or supersede identity information.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/integrations" title="Integration Requirements">
+    Defines how native engineering systems remain first-class while binding their objects into Monad's semantic model.
+  </Card>
+</Cards>
+
+They also constrain:
+
+* models,
+* schemas,
+* persistence,
+* reconciliation,
+* execution,
+* governance,
+* AI behavior,
+* import/export,
+* migrations,
+* projections,
+* traceability,
+* and verification.
+
+---
+
+# Traceability expectations
+
+Each accepted identity requirement should eventually trace forward to one or more concrete engineering artifacts.
+
+For example:
+
+```text
+REQ-ID-001
+  ↓ refined-by
+Identity Model
+  ↓ specified-by
+Subject Identity Specification
+  ↓ represented-by
+Subject Schema
+  ↓ implemented-by
+Identity subsystem
+  ↓ verified-by
+Rename and Move Conformance Suite
+  ↓ evidenced-by
+Verification results
+```
+
+The exact artifact identifiers shown here are illustrative.
+
+Traceability should emerge from actual artifacts rather than fabricated completeness.
+
+---
+
+# Review questions
+
+An identity design should be challenged with questions such as:
+
+1. What exactly remains the same when this native object moves?
+2. Are we identifying a Subject or merely a Representation?
+3. Are we confusing a path with identity?
+4. Are we confusing a tool's native identifier with semantic identity?
+5. What evidence supports continuity?
+6. Is the continuity observed, inferred, confirmed, or authoritative?
+7. Could two Subjects accidentally collapse into one?
+8. Could one Subject accidentally fragment into several?
+9. What happens if the external system changes independently?
+10. Can the binding be reconciled?
+11. What happens when identity is ambiguous?
+12. Can conflicting assertions coexist?
+13. What authority is required to resolve them?
+14. What historical information would be destroyed by the proposed operation?
+15. Does this distinction provide enough engineering value to justify its complexity?
+16. Could the same outcome be achieved with a simpler mechanism?
+
+---
+
+# Governing principle
+
+Monad's identity model should preserve continuity where continuity is real, preserve distinction where distinction is real, and preserve uncertainty where the system does not yet know.
+
+The goal is not to assign identifiers to everything.
+
+The goal is to make this question answerable:
+
+> **What engineering thing are we actually talking about, regardless of where or how it happens to be represented right now?**
+
+That answer must remain stable enough for requirements, decisions, specifications, provenance, governance, execution, verification, evidence, and AI reasoning to refer to the same engineering reality over time.

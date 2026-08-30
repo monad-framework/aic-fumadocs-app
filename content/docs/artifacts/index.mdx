@@ -1,0 +1,1527 @@
+---
+title: "Artifacts"
+description: Inspect the requirements, decisions, specifications, models, experiments, evidence, verification records, and other engineering artifacts behind Monad.
+canonical: "/docs/artifacts/index.mdx"
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    The inspectable engineering record
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Monad is intended to be understandable not only through explanation, but through evidence. This section contains the durable engineering artifacts connecting questions and intent to decisions, implementation, verification, and release.
+  </p>
+</div>
+
+## What are artifacts?
+
+A software project produces far more than source code.
+
+It also produces:
+
+* problem statements,
+* goals,
+* requirements,
+* domain models,
+* architectural decisions,
+* specifications,
+* schemas,
+* policies,
+* experiments,
+* implementation plans,
+* reviews,
+* test results,
+* verification evidence,
+* release records,
+* and many other forms of engineering knowledge.
+
+These are **artifacts**.
+
+They are the durable records created as the project moves from uncertainty toward implementation and evidence.
+
+In Monad, artifacts are not treated merely as documentation surrounding the real work.
+
+They are part of the real work.
+
+---
+
+## Why this section exists
+
+The rest of the site serves different purposes.
+
+[Building Monad](/docs/building-monad) tells the story of how the project evolved.
+
+[System](/docs/system) explains the current authoritative understanding of Monad.
+
+[Project](/docs/project) explains how the engineering program is organized.
+
+Artifacts answers another question:
+
+> **What inspectable records support all of this?**
+
+If a System page says:
+
+> Monad uses a particular authority model.
+
+Artifacts should eventually make it possible to inspect:
+
+```text
+problem
+   ↓
+requirement
+   ↓
+alternatives
+   ↓
+decision
+   ↓
+ADR
+   ↓
+specification
+   ↓
+implementation
+   ↓
+verification
+   ↓
+evidence
+```
+
+The explanation and the evidence should remain connected.
+
+---
+
+## Evidence, not ceremony
+
+Monad deliberately produces engineering artifacts.
+
+That does not mean every action requires a document.
+
+The goal is not to maximize paperwork.
+
+The goal is to preserve enough information that important engineering claims can later be inspected.
+
+An artifact should exist because it answers a useful question.
+
+For example:
+
+| Artifact            | Question it helps answer                                  |
+| ------------------- | --------------------------------------------------------- |
+| Problem statement   | What problem are we solving?                              |
+| Goal                | What outcome are we trying to create?                     |
+| Requirement         | What must the system satisfy?                             |
+| Domain model        | What concepts exist in the problem space?                 |
+| ADR                 | Why was this architectural direction selected?            |
+| Specification       | What exactly must be implemented?                         |
+| Schema              | What structure must data satisfy?                         |
+| Policy              | What behavior or authority is permitted?                  |
+| Experiment          | What hypothesis did we test?                              |
+| Evidence            | What supports this claim?                                 |
+| Review              | What independent scrutiny occurred?                       |
+| Verification record | How do we know the implementation satisfies its contract? |
+| Release record      | What became part of a supported system state?             |
+
+Artifacts exist to reduce the amount of engineering history that must later be reconstructed from inference.
+
+---
+
+## The artifact chain
+
+The value of an artifact increases when its relationships are preserved.
+
+Consider a requirement.
+
+By itself:
+
+```text
+REQ-042
+```
+
+is useful.
+
+But its meaning becomes much stronger when we can establish:
+
+```text
+Problem
+   │
+   ▼
+Goal
+   │
+   ▼
+REQ-042
+   │
+   ├──── motivated by ──── Evidence
+   │
+   ├──── constrained by ── Policy
+   │
+   ▼
+ADR-017
+   │
+   ▼
+SPEC-008
+   │
+   ▼
+Implementation
+   │
+   ▼
+Acceptance Test
+   │
+   ▼
+Verification Evidence
+```
+
+The artifact is not merely a document.
+
+It is one node in an engineering argument.
+
+Monad is particularly interested in preserving that argument.
+
+---
+
+## Explore the artifact record
+
+<Cards>
+  <Card
+    title="Requirements"
+    href="/docs/artifacts/requirements"
+  >
+    Inspect the capabilities, constraints, invariants, and outcomes the system is required to satisfy.
+  </Card>
+
+<Card
+title="Architecture Decisions"
+href="/docs/artifacts/decisions"
+
+>
+
+Read the ADRs and other durable records explaining important architectural choices and their consequences.
+
+  </Card>
+
+<Card
+title="Specifications"
+href="/docs/artifacts/specifications"
+
+>
+
+Explore the precise behavioral, architectural, interface, lifecycle, and protocol contracts used to guide implementation.
+
+  </Card>
+
+<Card
+title="Models"
+href="/docs/artifacts/models"
+
+>
+
+Inspect domain models, system models, relationship models, lifecycle models, and other formal representations.
+
+  </Card>
+
+<Card
+title="Schemas"
+href="/docs/artifacts/schemas"
+
+>
+
+View the structural contracts governing persisted artifacts, manifests, messages, configuration, and other machine-readable data.
+
+  </Card>
+
+<Card
+title="Policies"
+href="/docs/artifacts/policies"
+
+>
+
+Examine the rules governing authority, capabilities, lifecycle transitions, automation, and system behavior.
+
+  </Card>
+
+<Card
+title="Experiments"
+href="/docs/artifacts/experiments"
+
+>
+
+Review hypotheses, methods, observations, results, and conclusions from experiments used to challenge the project.
+
+  </Card>
+
+<Card
+title="Evidence"
+href="/docs/artifacts/evidence"
+
+>
+
+Inspect the observations, measurements, test results, and other records used to support engineering claims.
+
+  </Card>
+
+<Card
+title="Verification"
+href="/docs/artifacts/verification"
+
+>
+
+See how requirements and specifications are tested and what evidence supports claims of correctness.
+
+  </Card>
+
+<Card
+title="Reviews"
+href="/docs/artifacts/reviews"
+
+>
+
+Explore architecture reviews, design reviews, implementation reviews, red-team findings, and other independent scrutiny.
+
+  </Card>
+
+<Card
+title="Releases"
+href="/docs/artifacts/releases"
+
+>
+
+Inspect the evidence and records associated with meaningful released states of the system.
+
+  </Card>
+
+<Card
+title="Traceability"
+href="/docs/artifacts/traceability"
+
+>
+
+Follow relationships across intent, decisions, specifications, implementation, verification, and releases.
+
+  </Card>
+</Cards>
+
+---
+
+## Requirements
+
+Requirements describe what the system must accomplish or preserve.
+
+They create the bridge between intent and verification.
+
+A requirement should ideally make it possible to trace:
+
+```text
+why it exists
+      ↓
+what it requires
+      ↓
+where it is specified
+      ↓
+where it is implemented
+      ↓
+how it is verified
+```
+
+Requirements can describe more than user-facing features.
+
+Monad may contain requirements concerning:
+
+* behavior,
+* architecture,
+* semantics,
+* identity,
+* authority,
+* provenance,
+* compatibility,
+* reproducibility,
+* observability,
+* performance,
+* portability,
+* security,
+* governance,
+* failure behavior,
+* lifecycle,
+* and interoperability.
+
+[Explore requirements →](/docs/artifacts/requirements)
+
+---
+
+## Architecture decisions
+
+Important architectural choices should leave durable records.
+
+An Architecture Decision Record should answer questions such as:
+
+* What decision was required?
+* What context produced the decision?
+* What alternatives were considered?
+* What constraints mattered?
+* What evidence was available?
+* What was selected?
+* Why?
+* What consequences follow?
+* What assumptions remain?
+* Under what conditions should the decision be revisited?
+
+An ADR is not proof that a decision can never change.
+
+It is evidence that the decision was deliberate.
+
+A later ADR may supersede it.
+
+The original record should remain part of the project's history.
+
+[Explore architecture decisions →](/docs/artifacts/decisions)
+
+---
+
+## Specifications
+
+Specifications turn intent into implementable contracts.
+
+Architecture might say:
+
+> The system has a policy engine.
+
+A specification must go further.
+
+It may need to define:
+
+* inputs,
+* outputs,
+* data structures,
+* command behavior,
+* state transitions,
+* validation,
+* error conditions,
+* compatibility guarantees,
+* security expectations,
+* authority boundaries,
+* side effects,
+* serialization,
+* and acceptance criteria.
+
+A good specification reduces the amount of important behavior an implementer must invent.
+
+That matters for human engineers.
+
+It matters even more when AI agents participate in implementation.
+
+[Explore specifications →](/docs/artifacts/specifications)
+
+---
+
+## Models
+
+Some engineering knowledge is most useful when represented as a model rather than prose.
+
+Monad may use models to describe:
+
+* domain concepts,
+* semantic relationships,
+* system boundaries,
+* authority structures,
+* provenance,
+* lifecycle,
+* capabilities,
+* dependency relationships,
+* execution,
+* and artifact relationships.
+
+A model is useful when it makes important structure explicit.
+
+It is harmful when it merely makes a simple idea complicated.
+
+Models therefore remain subject to the same rule as every other artifact:
+
+> **The structure must justify its maintenance cost.**
+
+[Explore models →](/docs/artifacts/models)
+
+---
+
+## Schemas
+
+Schemas define machine-readable structure.
+
+They can make artifact formats:
+
+* explicit,
+* validateable,
+* versionable,
+* interoperable,
+* and suitable for automated tooling.
+
+A schema may define:
+
+* required properties,
+* optional properties,
+* types,
+* identifiers,
+* enumerations,
+* relationships,
+* lifecycle fields,
+* versioning,
+* validation rules,
+* and extension points.
+
+Schemas are especially important when a representation becomes an interface between independent tools or agents.
+
+[Explore schemas →](/docs/artifacts/schemas)
+
+---
+
+## Policies
+
+Capabilities answer:
+
+> What can this actor or system do?
+
+Policies answer:
+
+> What may it do here, under these conditions?
+
+That distinction is increasingly important in AI-assisted engineering.
+
+Policies can govern:
+
+* authority,
+* permissions,
+* protected resources,
+* required reviews,
+* lifecycle transitions,
+* evidence requirements,
+* automated actions,
+* release gates,
+* security boundaries,
+* and exceptional conditions.
+
+Policy therefore belongs in the engineering system rather than existing only as unwritten organizational convention.
+
+[Explore policies →](/docs/artifacts/policies)
+
+---
+
+## Experiments
+
+Not every important engineering question can be answered through argument.
+
+Some require evidence.
+
+Experiments provide a structured way to challenge assumptions.
+
+A useful experiment should identify:
+
+1. the question,
+2. the hypothesis,
+3. the method,
+4. the conditions,
+5. the observations,
+6. the result,
+7. the interpretation,
+8. the limitations,
+9. and the consequence for the project.
+
+Experiments become particularly important when Monad asks whether additional structure actually produces enough value to justify its complexity.
+
+Examples might include testing whether:
+
+* semantic identity improves recovery after repository restructuring,
+* structured context improves AI engineering outcomes,
+* authority metadata prevents unsafe automated modifications,
+* richer provenance materially improves debugging,
+* graph traversal outperforms simpler indexing for important workflows,
+* or developers can maintain required metadata without excessive friction.
+
+[Explore experiments →](/docs/artifacts/experiments)
+
+---
+
+## Evidence
+
+Evidence supports claims.
+
+That sounds obvious.
+
+Software projects nevertheless make claims constantly without preserving the evidence behind them.
+
+For example:
+
+> This architecture is reproducible.
+
+> This change does not break compatibility.
+
+> This agent cannot modify protected resources.
+
+> This implementation satisfies the specification.
+
+> This model improves context retrieval.
+
+Each is a claim.
+
+Monad attempts to preserve the distinction between:
+
+```text
+CLAIM
+```
+
+and:
+
+```text
+EVIDENCE SUPPORTING THE CLAIM
+```
+
+Evidence may include:
+
+* test output,
+* benchmark results,
+* measurements,
+* observations,
+* experiment results,
+* static analysis,
+* logs,
+* generated reports,
+* reproductions,
+* review findings,
+* or external references.
+
+Evidence can also become obsolete.
+
+A test result proves something about a particular state under particular conditions.
+
+It should not silently become timeless truth.
+
+[Explore evidence →](/docs/artifacts/evidence)
+
+---
+
+## Verification
+
+Verification connects implementation back to intent.
+
+The relevant chain may look like:
+
+```text
+Requirement
+    │
+    ▼
+Specification
+    │
+    ▼
+Implementation
+    │
+    ▼
+Verification Method
+    │
+    ▼
+Evidence
+```
+
+Verification may include:
+
+* unit tests,
+* integration tests,
+* end-to-end tests,
+* acceptance tests,
+* architecture checks,
+* schema validation,
+* reproducibility tests,
+* security tests,
+* compatibility tests,
+* benchmarks,
+* manual review,
+* and operational evaluation.
+
+The important question is:
+
+> **What evidence justifies saying this work is done?**
+
+[Explore verification →](/docs/artifacts/verification)
+
+---
+
+## Reviews
+
+A review is evidence that work has been examined from another perspective.
+
+Reviews may challenge:
+
+* assumptions,
+* architectural coherence,
+* specification completeness,
+* security,
+* failure behavior,
+* maintainability,
+* scope,
+* implementation quality,
+* test sufficiency,
+* and evidence quality.
+
+Monad may preserve several kinds of review:
+
+```text
+domain review
+architecture review
+specification review
+implementation review
+security review
+verification review
+release review
+retrospective review
+```
+
+A review should not exist merely as a ceremonial approval.
+
+Its value comes from the scrutiny it contributes.
+
+[Explore reviews →](/docs/artifacts/reviews)
+
+---
+
+## Releases
+
+A release records a meaningful supported state of the system.
+
+Release artifacts may answer:
+
+* What changed?
+* Why did it change?
+* Which capabilities are included?
+* Which requirements are satisfied?
+* Which specifications govern the released behavior?
+* What verification occurred?
+* Which known limitations remain?
+* Which migrations are required?
+* Which compatibility guarantees apply?
+* What evidence justified release?
+
+This makes release another link in the engineering record rather than only a version number.
+
+[Explore releases →](/docs/artifacts/releases)
+
+---
+
+## Traceability
+
+Individual artifacts matter.
+
+Their relationships matter more.
+
+Traceability attempts to answer questions across the project rather than within one document.
+
+For example:
+
+> Which requirements depend on this domain concept?
+
+> Which specifications implement this architectural decision?
+
+> Which code implements this specification?
+
+> Which tests verify this requirement?
+
+> Which evidence supported this release?
+
+> What would be affected if this decision were superseded?
+
+> Why does this component exist?
+
+> Which artifact currently has authority for this claim?
+
+The long-term objective is not merely to maintain a large artifact archive.
+
+It is to make the engineering record **navigable as a connected system**.
+
+[Explore traceability →](/docs/artifacts/traceability)
+
+---
+
+## Artifact authority
+
+Not every artifact has equal authority.
+
+A project may contain:
+
+* exploratory notes,
+* hypotheses,
+* proposals,
+* accepted decisions,
+* authoritative specifications,
+* generated projections,
+* historical records,
+* external references,
+* verification results,
+* and obsolete documents.
+
+Without an authority model, simply finding an artifact does not tell you whether it should be trusted as current truth.
+
+For example:
+
+```text
+2026 exploration note
+        │
+        │ proposed
+        ▼
+architecture direction
+        │
+        │ formalized by
+        ▼
+ADR
+        │
+        │ expressed through
+        ▼
+specification
+        │
+        │ implemented by
+        ▼
+code
+```
+
+The exploration note still matters historically.
+
+It should not necessarily override the specification.
+
+Monad's artifact model therefore cares about both:
+
+* **what an artifact says**, and
+* **what authority that artifact has to say it**.
+
+---
+
+## Historical does not mean incorrect
+
+An old artifact can be historically correct while no longer being authoritative.
+
+Suppose an ADR says:
+
+> The system will use Architecture A.
+
+Months later, new evidence leads to Architecture B.
+
+The first ADR is not necessarily deleted.
+
+Instead:
+
+```text
+ADR-001
+Architecture A
+    │
+    │ superseded by
+    ▼
+ADR-019
+Architecture B
+```
+
+Both records remain useful.
+
+One explains a former state.
+
+The other governs the current state.
+
+Deleting the first artifact would remove part of the reasoning required to understand the project's evolution.
+
+---
+
+## Provisional artifacts
+
+Some artifacts exist before the project is ready to make a decision.
+
+They may be:
+
+* drafts,
+* hypotheses,
+* proposals,
+* experiments,
+* working models,
+* open questions,
+* or candidate specifications.
+
+These are useful precisely because uncertainty exists.
+
+They should not be mistaken for authority.
+
+A mature engineering record should be comfortable saying:
+
+```text
+status: hypothesis
+```
+
+instead of prematurely pretending:
+
+```text
+status: truth
+```
+
+---
+
+## Artifact lifecycle
+
+Artifacts themselves evolve.
+
+A simplified lifecycle might look like:
+
+```text
+draft
+  ↓
+proposed
+  ↓
+reviewed
+  ↓
+accepted
+  ↓
+active
+  ↓
+superseded
+  ↓
+historical
+```
+
+Not every artifact type needs this exact lifecycle.
+
+An experiment and a specification have very different meanings.
+
+But important lifecycle state should be explicit when it affects interpretation.
+
+---
+
+## Provenance
+
+An engineering artifact should ideally make it possible to determine where it came from.
+
+Depending on the artifact, provenance may answer:
+
+* Who created it?
+* What process produced it?
+* What source material was used?
+* Which earlier artifacts were inputs?
+* Was AI involved?
+* Which tool generated it?
+* When was it created?
+* When was it observed?
+* Which repository state did it describe?
+* Has it been modified?
+* What superseded it?
+
+Provenance does not automatically make information trustworthy.
+
+It makes the basis for trust inspectable.
+
+---
+
+## Native and canonical artifacts
+
+Monad may encounter the same engineering concept through multiple systems.
+
+For example, a requirement might appear as:
+
+* a canonical Monad record,
+* a Markdown document,
+* a GitHub issue,
+* a generated documentation page,
+* a database row,
+* or an external project-management item.
+
+Those representations should not automatically be treated as six different requirements.
+
+This is one of the deeper problems Monad investigates:
+
+> **What is the underlying subject, and which artifacts merely represent it?**
+
+The artifact system therefore eventually needs to distinguish between:
+
+```text
+subject
+     │
+     ├── canonical representation
+     ├── generated representation
+     ├── coordination representation
+     └── external representation
+```
+
+That distinction allows tools to integrate without requiring one storage system to become the entire engineering world.
+
+---
+
+## Human-readable and machine-readable
+
+Monad artifacts should remain useful to both humans and machines.
+
+Humans benefit from:
+
+* prose,
+* diagrams,
+* rationale,
+* examples,
+* explanations,
+* and narrative context.
+
+Machines benefit from:
+
+* identifiers,
+* schemas,
+* typed relationships,
+* explicit state,
+* stable fields,
+* references,
+* and validation.
+
+These goals do not need to conflict.
+
+A strong artifact system can provide:
+
+```text
+human explanation
+        +
+machine-readable structure
+        +
+stable identity
+        +
+explicit relationships
+```
+
+The challenge is preserving enough structure without making artifact creation intolerably expensive.
+
+That tradeoff remains one of the project's continuing experiments.
+
+---
+
+## Artifacts and AI
+
+Engineering agents make artifact quality more consequential.
+
+A human engineer may recognize that an old document is stale from context.
+
+An AI agent may not.
+
+A human may know that a particular architecture note was exploratory.
+
+An AI may interpret it as authoritative unless the distinction is explicit.
+
+A useful artifact system therefore helps an agent determine:
+
+* what exists,
+* what it means,
+* whether it is authoritative,
+* whether it is current,
+* what it relates to,
+* where it came from,
+* and what operations are permitted.
+
+This is part of the difference between giving AI **information** and giving it **engineering context**.
+
+---
+
+## An artifact should earn its existence
+
+Formalization has a cost.
+
+Every artifact introduces some combination of:
+
+* creation cost,
+* review cost,
+* maintenance cost,
+* synchronization cost,
+* migration cost,
+* cognitive load,
+* and risk of becoming stale.
+
+Monad should therefore resist the assumption that more metadata is always better.
+
+The correct question is:
+
+> **Does preserving this information cost less than repeatedly reconstructing it?**
+
+If not, the artifact may not deserve to exist.
+
+That principle applies throughout this section.
+
+---
+
+## A practical artifact doctrine
+
+The project can use several rules when deciding what deserves durable representation.
+
+### Preserve information that is expensive to reconstruct
+
+If losing something would require hours of forensic work later, preservation may be worthwhile.
+
+### Preserve decisions with meaningful consequences
+
+If a choice materially constrains future engineering, its rationale is likely valuable.
+
+### Preserve contracts relied upon by independent actors
+
+Interfaces, schemas, protocols, and policies become more valuable as more tools or teams depend on them.
+
+### Preserve evidence for important claims
+
+The more consequential the claim, the more valuable inspectable evidence becomes.
+
+### Preserve uncertainty when uncertainty matters
+
+Open questions, assumptions, and hypotheses can prevent provisional beliefs from becoming invisible architectural facts.
+
+### Avoid duplicating authority
+
+Multiple authoritative copies of the same truth create ambiguity.
+
+Prefer one authority with explicit projections when possible.
+
+---
+
+## Reading an artifact
+
+When inspecting an artifact, ask several questions.
+
+### What is it?
+
+Identify its artifact type and purpose.
+
+### Why does it exist?
+
+What problem, requirement, question, or decision produced it?
+
+### What does it claim?
+
+Separate the artifact itself from the claims contained within it.
+
+### What supports those claims?
+
+Look for evidence, rationale, tests, or references.
+
+### What authority does it have?
+
+Is it exploratory, proposed, authoritative, generated, or historical?
+
+### What state is it in?
+
+Draft? Active? Superseded?
+
+### What does it relate to?
+
+Requirements? ADRs? Specifications? Code? Tests? Releases?
+
+### Is it current?
+
+Historical information may remain useful without representing current system truth.
+
+---
+
+## From artifact archive to engineering graph
+
+A conventional documentation archive might provide:
+
+```text
+requirements/
+decisions/
+specifications/
+tests/
+```
+
+That is useful organization.
+
+But the deeper objective is the relationships between them.
+
+Monad ultimately wants to reason across a structure more like:
+
+```text
+                           ┌──────────── Evidence
+                           │
+Problem ──► Requirement ──► Decision
+               │              │
+               │              ▼
+               │         Specification
+               │              │
+               │              ▼
+               └────────► Implementation
+                              │
+                              ▼
+                          Verification
+                              │
+                              ▼
+                            Release
+```
+
+The folders help humans browse.
+
+The relationships help humans and machines understand.
+
+---
+
+## What belongs here
+
+The Artifacts section is appropriate for durable engineering records such as:
+
+### Discovery
+
+* problem statements,
+* research records,
+* hypotheses,
+* open-question registers,
+* domain findings,
+* and discovery reports.
+
+### Product
+
+* goals,
+* product requirements,
+* use cases,
+* capability definitions,
+* scope records,
+* and acceptance criteria.
+
+### Architecture
+
+* architecture descriptions,
+* ADRs,
+* system models,
+* interface decisions,
+* and boundary definitions.
+
+### Specification
+
+* technical specifications,
+* schemas,
+* CLI contracts,
+* protocols,
+* state machines,
+* policy definitions,
+* and capability contracts.
+
+### Execution
+
+* work-package definitions,
+* implementation plans,
+* migration plans,
+* and execution records where they provide durable engineering value.
+
+### Verification
+
+* test plans,
+* acceptance results,
+* reproducibility evidence,
+* security findings,
+* benchmark results,
+* architecture conformance reports,
+* and review records.
+
+### Release
+
+* release criteria,
+* release evidence,
+* compatibility records,
+* migration records,
+* and retrospectives.
+
+---
+
+## What does not necessarily belong here
+
+Not every piece of project activity deserves permanent publication.
+
+Artifacts should not become a dumping ground for:
+
+* ephemeral chat,
+* routine command output,
+* temporary scratch notes,
+* redundant generated data,
+* every individual task,
+* low-value execution noise,
+* or information that can be reconstructed more cheaply than it can be maintained.
+
+Some information may still exist internally or transiently.
+
+Publication and preservation should remain intentional.
+
+---
+
+## Artifact maturity
+
+The artifact corpus will grow alongside the project.
+
+Early in Monad's development, some categories may contain mostly:
+
+* hypotheses,
+* drafts,
+* models,
+* decisions,
+* and specifications.
+
+Later, the same structure should increasingly contain:
+
+* implementation evidence,
+* conformance reports,
+* benchmarks,
+* release records,
+* operational observations,
+* and supersession histories.
+
+The artifact system should therefore communicate maturity rather than pretending every section is equally complete.
+
+<Callout type="info" title="A missing artifact can itself be useful information">
+
+If a decision has not yet been made, the site should not invent an ADR merely to make the section look complete.
+
+If verification has not occurred, the project should say so.
+
+Absence is preferable to false certainty.
+
+</Callout>
+
+---
+
+## The relationship to Building Monad
+
+Building Monad may describe:
+
+> We tested three approaches and discovered that the original identity model failed under representation changes.
+
+Artifacts should allow a reader to go deeper.
+
+For example:
+
+```text
+Building Monad installment
+          │
+          ├──► EXP-004
+          │
+          ├──► EVID-013
+          │
+          ├──► ADR-022
+          │
+          └──► SPEC-011
+```
+
+The narrative explains why the event mattered.
+
+The artifacts preserve the inspectable engineering record.
+
+Neither replaces the other.
+
+---
+
+## The relationship to System
+
+System should describe the current state clearly.
+
+It should not need to reproduce every historical decision and experiment inline.
+
+For example:
+
+```text
+System:
+"Subjects retain semantic identity independently
+of individual representations."
+```
+
+That statement might be backed by:
+
+```text
+REQ-ID-001
+ADR-ID-003
+SPEC-ID-002
+EXP-ID-004
+TEST-ID-018
+```
+
+System gives readers the current answer.
+
+Artifacts let them inspect why that answer exists.
+
+---
+
+## The relationship to Project
+
+[Project](/docs/project) describes the operating model through which engineering work progresses.
+
+Artifacts are the durable outputs of that process.
+
+Conceptually:
+
+```text
+Project process
+      │
+      │ produces
+      ▼
+Artifacts
+      │
+      │ support
+      ▼
+System
+```
+
+And:
+
+```text
+Building Monad
+      │
+      │ narrates
+      ▼
+the evolution of all three
+```
+
+Together they form different views over the same engineering reality.
+
+---
+
+## The relationship to source code
+
+Source code is an engineering artifact too.
+
+But this section is not intended to duplicate the source repository.
+
+Instead, it should connect implementation to the engineering knowledge surrounding it.
+
+The repository remains the best place to inspect:
+
+* source files,
+* tests,
+* build configuration,
+* package definitions,
+* CI workflows,
+* and implementation history.
+
+This site should make it easier to understand **why those things exist and what contracts they satisfy**.
+
+<div className="not-prose mt-6">
+  <a
+    href="https://github.com/monad-framework"
+    target="_blank"
+    rel="noreferrer noopener"
+    className="inline-flex items-center rounded-lg border border-fd-border px-4 py-2 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
+  >
+    Inspect the Monad repositories on GitHub →
+  </a>
+</div>
+
+---
+
+## A living record
+
+Artifacts should not create the illusion that Monad is finished.
+
+Some records will be authoritative.
+
+Others will be provisional.
+
+Some will be superseded.
+
+Some categories will remain incomplete.
+
+Some experiments will fail.
+
+Some specifications will change after implementation reveals flaws.
+
+That is expected.
+
+The important thing is that the state of the engineering record remains visible.
+
+---
+
+## Start exploring
+
+If you want the deepest view into how Monad is being engineered, this is the place to look.
+
+<Cards>
+  <Card
+    title="Requirements"
+    href="/docs/artifacts/requirements"
+  >
+    Start with what the system is expected to accomplish and preserve.
+  </Card>
+
+<Card
+title="Decisions"
+href="/docs/artifacts/decisions"
+
+>
+
+Understand why important architectural directions were chosen.
+
+  </Card>
+
+<Card
+title="Specifications"
+href="/docs/artifacts/specifications"
+
+>
+
+Inspect the contracts that translate architecture into implementable behavior.
+
+  </Card>
+
+<Card
+title="Experiments"
+href="/docs/artifacts/experiments"
+
+>
+
+See where assumptions have been tested rather than merely asserted.
+
+  </Card>
+
+<Card
+title="Verification"
+href="/docs/artifacts/verification"
+
+>
+
+Examine how implementation claims are evaluated and supported.
+
+  </Card>
+
+<Card
+title="Traceability"
+href="/docs/artifacts/traceability"
+
+>
+
+Follow the relationships from intent through implementation and evidence.
+
+  </Card>
+</Cards>
+
+---
+
+## Continue through the project
+
+Artifacts are one view of Monad.
+
+Use the surrounding sections when you need a different perspective.
+
+<Cards>
+  <Card
+    title="Building Monad"
+    href="/docs/building-monad"
+  >
+    Follow the narrative of how these artifacts and decisions came to exist.
+  </Card>
+
+<Card
+title="Project"
+href="/docs/project"
+
+>
+
+Understand the engineering process that produces and governs the artifact record.
+
+  </Card>
+
+<Card
+title="System"
+href="/docs/system"
+
+>
+
+Read the current authoritative explanation of the system these artifacts describe.
+
+  </Card>
+
+<Card
+title="About Monad"
+href="/docs/about"
+
+>
+
+Understand the larger purpose, principles, boundaries, and direction behind the work.
+
+  </Card>
+</Cards>

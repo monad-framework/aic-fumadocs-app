@@ -1,0 +1,2838 @@
+---
+title: Interfaces
+description: The contract boundaries through which Monad components, native engineering systems, humans, agents, extensions, and external tools communicate.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    System interfaces
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Components establish responsibility. Interfaces establish communication. Monad uses explicit contracts so that semantic meaning, authority, execution, and integration do not depend on hidden assumptions between implementations.
+  </p>
+</div>
+
+## What this page defines
+
+[Components](/docs/system/components) identifies the logical units that make up Monad.
+
+This page defines the boundaries between them.
+
+It answers:
+
+> **How do Monad components communicate without leaking implementation details, duplicating semantics, or allowing one interface to bypass the governance rules enforced by another?**
+
+The interface layer includes more than APIs.
+
+Monad may expose contracts through:
+
+* function calls,
+* library APIs,
+* CLI commands,
+* structured files,
+* events,
+* HTTP APIs,
+* agent tools,
+* plugin contracts,
+* native-system adapters,
+* schemas,
+* and generated projections.
+
+The transport can vary.
+
+The semantics should remain consistent.
+
+---
+
+# Interfaces are contracts
+
+An interface is not merely:
+
+```text
+a function that can be called
+```
+
+It is a contract defining things such as:
+
+```text
+operation
+input
+output
+preconditions
+postconditions
+errors
+side effects
+authority requirements
+consistency expectations
+versioning
+```
+
+For governed operations, it may also define:
+
+```text
+required Actor
+required Capability
+required Scope
+required Evidence
+required Approval
+```
+
+The purpose is to make the boundary understandable independently of its implementation.
+
+---
+
+# Why interfaces matter
+
+Without explicit contracts, components tend to accumulate implicit assumptions.
+
+For example:
+
+```text
+Execution assumes Policy returns a Boolean.
+
+Policy assumes Execution already checked Actor scope.
+
+CLI assumes "not found" means the Subject does not exist.
+
+Adapter assumes a file path is a Subject identifier.
+```
+
+Each assumption may appear reasonable locally.
+
+Together they produce semantic drift.
+
+Monad instead aims for:
+
+```text
+Component A
+     │
+     ▼
+Explicit Interface
+     │
+     ▼
+Component B
+```
+
+where both sides agree on the meaning of the exchange.
+
+---
+
+# Interface principles
+
+Several principles govern the interface model.
+
+## Semantics before transport
+
+An operation should be defined independently of whether it is invoked through:
+
+```text
+function call
+CLI
+HTTP
+MCP
+event
+```
+
+For example:
+
+```text
+AnalyzeImpact
+```
+
+should have one conceptual meaning even if it is available through several interaction surfaces.
+
+---
+
+## Commands and queries remain distinct
+
+Queries inspect state.
+
+Commands request change.
+
+```text
+Query
+  → asks what is true
+
+Command
+  → requests that something change
+```
+
+The distinction affects:
+
+* side effects,
+* authorization,
+* idempotency,
+* retries,
+* auditing,
+* and failure semantics.
+
+---
+
+## Interfaces do not invent authority
+
+An interface can expose a capability.
+
+It does not grant the caller permission to use that capability.
+
+For example:
+
+```text
+CLI command exists
+      ≠
+caller is authorized
+```
+
+or:
+
+```text
+HTTP endpoint exists
+      ≠
+operation is permitted
+```
+
+Authority remains a governance concern.
+
+---
+
+## Explicit errors are part of the contract
+
+A component contract is incomplete if callers cannot distinguish:
+
+```text
+not found
+```
+
+from:
+
+```text
+not authorized
+```
+
+from:
+
+```text
+stale state
+```
+
+from:
+
+```text
+conflicting identity
+```
+
+from:
+
+```text
+native system unavailable
+```
+
+Failure semantics are part of the interface.
+
+---
+
+## Structured output should preserve meaning
+
+Machine-facing output should not require parsing human prose to discover system state.
+
+Where appropriate, interfaces should expose structured fields for:
+
+* identity,
+* state,
+* authority,
+* provenance,
+* evidence,
+* uncertainty,
+* diagnostics,
+* and relationships.
+
+Human-readable rendering can be layered on top.
+
+---
+
+## Interfaces should expose uncertainty
+
+If Monad does not know something, the interface should not manufacture a definite answer.
+
+For example:
+
+```text
+impact:
+  known: [...]
+  probable: [...]
+  unresolved: [...]
+```
+
+is preferable to:
+
+```text
+affected: [...]
+```
+
+when the model is incomplete.
+
+---
+
+# Interface families
+
+Monad's interface surface can be organized into several major families.
+
+```text
+Query Interfaces
+Command Interfaces
+Identity Interfaces
+Policy Interfaces
+Impact Interfaces
+Context Interfaces
+Planning Interfaces
+Execution Interfaces
+Verification Interfaces
+Lifecycle Interfaces
+Projection Interfaces
+Reconciliation Interfaces
+Event Interfaces
+Native Adapter Interfaces
+AI Capability Interfaces
+Extension Interfaces
+Human Interfaces
+Agent Interfaces
+```
+
+Each family corresponds to a distinct architectural responsibility.
+
+---
+
+# 01 — Query interfaces
+
+Query interfaces expose read-only inspection of the semantic system.
+
+Examples include:
+
+```text
+get_subject
+find_subject
+resolve_subject
+list_representations
+get_relationships
+trace_relationships
+get_claims
+resolve_authority
+get_evidence
+get_provenance
+```
+
+A query should not create governed side effects.
+
+---
+
+## Query request
+
+A conceptual query request may contain:
+
+```text
+query type
+target
+scope
+filters
+time context
+authority context
+projection options
+```
+
+For example:
+
+```text
+Query:
+  relationships
+
+Subject:
+  auth-api
+
+Relationship:
+  depends-on
+
+Time:
+  current
+```
+
+---
+
+## Query result
+
+A useful result may contain:
+
+```text
+result
+authority
+provenance
+freshness
+uncertainty
+diagnostics
+```
+
+For example:
+
+```text
+Subject:
+  auth-api
+
+Depends on:
+  identity-provider
+  session-store
+
+Authority:
+  current system model
+
+Freshness:
+  synchronized with repository abc123
+
+Unresolved:
+  external runtime dependencies may exist
+```
+
+The interface should communicate what Monad knows and what it does not.
+
+---
+
+# 02 — Command interfaces
+
+Command interfaces request change.
+
+Examples might include:
+
+```text
+create_subject
+bind_representation
+supersede_artifact
+transition_lifecycle
+apply_plan
+publish_projection
+release
+```
+
+A command usually carries more obligations than a query.
+
+It may require:
+
+```text
+Actor
+Capability
+Authority
+Scope
+Expected Revision
+Policy Evaluation
+```
+
+---
+
+## Command envelope
+
+A conceptual command may look like:
+
+```text
+Command
+  operation
+  target
+  parameters
+
+Actor
+  identity
+  role
+
+Scope
+  authorized boundary
+
+Preconditions
+  expected revision
+
+Request Context
+  work package
+  originating task
+```
+
+The command does not prove it is authorized.
+
+It provides enough information for the system to evaluate authorization.
+
+---
+
+## Command result
+
+A command result should distinguish between:
+
+```text
+accepted
+rejected
+executed
+partially executed
+failed
+deferred
+requires approval
+```
+
+These states are semantically different.
+
+---
+
+# 03 — Identity interfaces
+
+Identity interfaces expose semantic identity resolution.
+
+Example operations:
+
+```text
+resolve_native_reference
+resolve_representation
+get_subject_identity
+propose_binding
+confirm_binding
+split_subject
+merge_subjects
+```
+
+---
+
+## Identity resolution result
+
+Resolution should not be forced into:
+
+```text
+found / not found
+```
+
+Useful outcomes include:
+
+```text
+confirmed
+probable
+ambiguous
+unresolved
+conflicting
+```
+
+For example:
+
+```text
+Native Reference:
+  packages/auth/src/api.ts
+
+Resolution:
+  probable
+
+Candidate Subject:
+  auth-api
+
+Confidence:
+  0.91
+
+Reason:
+  file rename detected from known representation
+
+Authority:
+  inferred only
+```
+
+The precise fields belong in specification, but the interface must preserve uncertainty.
+
+---
+
+# 04 — Policy interfaces
+
+Policy interfaces determine whether an operation is permitted.
+
+A conceptual operation is:
+
+```text
+evaluate_policy(request)
+  → PolicyDecision
+```
+
+The request may include:
+
+```text
+Actor
+Capability
+Operation
+Target
+Scope
+Current State
+Policy Context
+```
+
+---
+
+## Policy decision
+
+The response should support more than:
+
+```text
+true
+false
+```
+
+Useful decisions include:
+
+```text
+permit
+deny
+permit-with-obligations
+require-approval
+require-evidence
+require-escalation
+```
+
+For example:
+
+```text
+Decision:
+  permit-with-obligations
+
+Required:
+  - architecture-review
+  - compatibility-verification
+
+Reason:
+  target is a public interface
+```
+
+Policy decisions should be explainable.
+
+---
+
+# 05 — Impact interfaces
+
+Impact interfaces analyze consequences of proposed change.
+
+A conceptual request may include:
+
+```text
+target Subjects
+proposed operation
+change description
+scope
+current system revision
+```
+
+The result may separate:
+
+```text
+known impact
+probable impact
+inferred impact
+unknown impact
+```
+
+For example:
+
+```text
+Known:
+  auth-service
+  web-client
+  SPEC-AUTH-003
+  TEST-AUTH-009
+
+Probable:
+  public documentation
+
+Unknown:
+  external consumers outside current workspace model
+```
+
+This distinction is central to avoiding false certainty.
+
+---
+
+# 06 — Context interfaces
+
+Context interfaces request purpose-specific engineering context.
+
+A conceptual request may include:
+
+```text
+Task
+Actor
+Target
+Scope
+Operation
+Context Budget
+Policy
+```
+
+and produce a:
+
+```text
+Context Projection
+```
+
+containing relevant engineering state.
+
+---
+
+## Context response
+
+A context response may include grouped information such as:
+
+```text
+targets
+requirements
+specifications
+decisions
+dependencies
+policies
+tests
+implementation
+history
+known risks
+unresolved questions
+```
+
+Each included item should ideally preserve:
+
+```text
+identity
+source
+authority
+provenance
+freshness
+reason for inclusion
+```
+
+This makes context inspectable rather than opaque.
+
+---
+
+# 07 — Planning interfaces
+
+Planning interfaces convert intent into proposed operations.
+
+Conceptually:
+
+```text
+create_plan(request)
+  → ProposedPlan
+```
+
+A request may contain:
+
+```text
+desired outcome
+target Subjects
+constraints
+scope
+available capabilities
+impact result
+```
+
+A plan may contain:
+
+```text
+operations
+ordering
+dependencies
+affected Subjects
+required tools
+required approvals
+verification obligations
+expected outputs
+```
+
+---
+
+## Plans are immutable proposals where practical
+
+Once a plan is authorized, changes to the plan should be distinguishable from execution of the original plan.
+
+For example:
+
+```text
+Plan v1
+  authorized
+
+Plan v2
+  modified
+
+Plan v2
+  requires new authorization
+```
+
+This prevents authorization from silently applying to work that was never reviewed.
+
+---
+
+# 08 — Execution interfaces
+
+Execution interfaces cross the side-effect boundary.
+
+Conceptually:
+
+```text
+execute(operation)
+  → ExecutionResult
+```
+
+An execution request should carry enough state to validate:
+
+```text
+authorization
+preconditions
+expected system revision
+required environment
+operation scope
+```
+
+---
+
+## Execution result
+
+A result may include:
+
+```text
+execution ID
+status
+started at
+completed at
+native operations
+outputs
+errors
+side effects
+provenance
+evidence references
+```
+
+Execution status should distinguish:
+
+```text
+completed
+failed
+partially-completed
+cancelled
+compensated
+```
+
+because recovery behavior differs.
+
+---
+
+# 09 — Verification interfaces
+
+Verification interfaces answer:
+
+> **Does this state satisfy the contract that governs it?**
+
+Conceptually:
+
+```text
+verify(request)
+  → VerificationResult
+```
+
+A request may reference:
+
+```text
+Requirement
+Specification
+Implementation
+System Revision
+Verification Method
+```
+
+---
+
+## Verification result
+
+Useful states include:
+
+```text
+passed
+failed
+incomplete
+blocked
+not-applicable
+requires-review
+```
+
+The result may reference:
+
+```text
+Evidence
+Method
+Environment
+Input Revision
+Observed Result
+Diagnostics
+```
+
+Verification must remain traceable to conditions.
+
+---
+
+# 10 — Provenance interfaces
+
+Provenance interfaces allow components to record and retrieve meaningful origin information.
+
+Operations may include:
+
+```text
+record_provenance
+get_provenance
+trace_derivation
+list_inputs
+list_outputs
+```
+
+A provenance record might connect:
+
+```text
+Output Artifact
+      │
+      ├── produced-by
+      ├── generated-with
+      ├── derived-from
+      └── based-on
+```
+
+The exact provenance depth should depend on engineering value.
+
+---
+
+# 11 — Lifecycle interfaces
+
+Lifecycle interfaces manage valid semantic state transitions.
+
+Conceptually:
+
+```text
+get_allowed_transitions(subject)
+```
+
+and:
+
+```text
+transition(subject, target_state)
+```
+
+A transition request may require:
+
+```text
+Actor
+Authority
+Current State
+Target State
+Evidence
+Reason
+Expected Revision
+```
+
+---
+
+## Transition result
+
+The system should distinguish:
+
+```text
+transition accepted
+transition denied
+invalid transition
+missing authority
+missing evidence
+stale source state
+```
+
+These failures are not interchangeable.
+
+---
+
+# 12 — Projection interfaces
+
+Projection interfaces create derived representations of system state.
+
+Conceptually:
+
+```text
+generate_projection(definition)
+```
+
+or:
+
+```text
+refresh_projection(id)
+```
+
+A projection definition may specify:
+
+```text
+source
+selection
+transformation
+format
+destination
+freshness policy
+```
+
+---
+
+## Projection metadata
+
+A generated projection should ideally expose:
+
+```text
+projection identity
+definition version
+source revision
+generation time
+generator version
+freshness state
+```
+
+This allows consumers to understand whether the derived representation remains trustworthy.
+
+---
+
+# 13 — Reconciliation interfaces
+
+Reconciliation interfaces compare semantic state with native reality.
+
+Conceptually:
+
+```text
+reconcile(scope)
+  → ReconciliationResult
+```
+
+A result may include:
+
+```text
+confirmed state
+detected changes
+conflicts
+identity candidates
+stale bindings
+unknown changes
+automatic corrections
+required review
+```
+
+---
+
+## Reconciliation is not blind synchronization
+
+The interface must not assume:
+
+```text
+native wins
+```
+
+or:
+
+```text
+Monad wins
+```
+
+for every discrepancy.
+
+Resolution depends on declared authority.
+
+For example:
+
+```text
+source content changed
+  → filesystem may govern
+
+semantic identity changed
+  → Monad identity record may govern
+
+generated projection changed manually
+  → projection may be invalid
+```
+
+The interface should expose enough information for the appropriate policy or authority rule to resolve the disagreement.
+
+---
+
+# 14 — Event interfaces
+
+Event interfaces communicate changes without tightly coupling producers and consumers.
+
+Potential events include:
+
+```text
+subject.created
+representation.changed
+identity.proposed
+policy.denied
+execution.completed
+verification.failed
+projection.stale
+reconciliation.conflict
+release.published
+```
+
+Event names are illustrative.
+
+The event taxonomy belongs in specification.
+
+---
+
+## Event envelope
+
+A normalized event may contain:
+
+```text
+event ID
+event type
+source
+target
+actor
+timestamp
+system revision
+payload reference
+correlation ID
+causation ID
+```
+
+Where meaningful, correlation and causation allow Monad to reconstruct workflows.
+
+---
+
+## Event is not automatically artifact
+
+An event may be transient operational information.
+
+Only events with durable engineering significance should be promoted into long-lived artifact or provenance records.
+
+---
+
+# 15 — Native adapter interfaces
+
+Native adapters expose external engineering systems through normalized contracts.
+
+A generic adapter may support capabilities such as:
+
+```text
+discover
+read
+observe
+write
+execute
+resolve
+subscribe
+```
+
+Not every adapter supports every capability.
+
+---
+
+## Adapter capability declaration
+
+An adapter should declare what it can do.
+
+For example:
+
+```text
+Filesystem Adapter
+
+Capabilities:
+  discover
+  read
+  write
+  observe
+```
+
+versus:
+
+```text
+Read-only External Docs Adapter
+
+Capabilities:
+  discover
+  read
+```
+
+Higher-level components should not assume unsupported operations.
+
+---
+
+## Adapter contract
+
+A native adapter should translate:
+
+```text
+Monad request
+      ↓
+native operation
+      ↓
+native result
+      ↓
+normalized Monad result
+```
+
+while preserving native identity and provenance.
+
+---
+
+## Adapter rule
+
+An adapter should know:
+
+```text
+how to interact with the native system
+```
+
+but should not independently decide:
+
+```text
+what the Subject means
+what authority it has
+whether the operation is permitted
+```
+
+Those responsibilities remain elsewhere.
+
+---
+
+# 16 — Filesystem interface
+
+The filesystem is a particularly important native interface.
+
+Capabilities may include:
+
+```text
+discover path
+read file
+write file
+move file
+delete file
+stat path
+watch changes
+```
+
+The filesystem interface should preserve distinctions between:
+
+```text
+path
+content
+revision
+representation
+Subject
+```
+
+A path identifies a native location.
+
+It does not define semantic identity.
+
+---
+
+# 17 — Git interface
+
+The Git interface provides repository and history operations.
+
+Potential capabilities include:
+
+```text
+resolve commit
+read tree
+read diff
+inspect status
+create commit
+inspect history
+resolve branch
+```
+
+Git remains authoritative for Git history.
+
+Monad may attach semantic interpretation to Git state without replacing Git's native model.
+
+---
+
+# 18 — GitHub interface
+
+The GitHub adapter may expose:
+
+```text
+issues
+pull requests
+projects
+reviews
+workflows
+releases
+repository metadata
+```
+
+A GitHub issue may act as a coordination representation of a Monad Subject.
+
+It should not automatically become the Subject's semantic identity.
+
+---
+
+# 19 — Build and test interfaces
+
+Monad should interact with build and test systems through normalized execution contracts.
+
+For example:
+
+```text
+run_build
+run_test
+run_acceptance_suite
+```
+
+The adapter may return:
+
+```text
+native exit status
+structured result
+logs
+artifacts
+environment
+duration
+native execution ID
+```
+
+Verification then determines what those results mean relative to requirements and specifications.
+
+---
+
+# 20 — AI capability interfaces
+
+The AI interface should be provider-neutral where practical.
+
+Monad should request capabilities such as:
+
+```text
+generate text
+generate structured data
+classify
+embed
+rerank
+use tools
+analyze code
+```
+
+instead of making the rest of the system depend directly on one vendor.
+
+---
+
+## Capability request
+
+A conceptual request may describe:
+
+```text
+capability
+input
+expected schema
+context
+privacy requirements
+cost constraints
+latency constraints
+tool permissions
+```
+
+The AI capability layer can select a suitable provider.
+
+---
+
+## Provider capability declaration
+
+A provider may declare:
+
+```text
+structured output
+tool use
+streaming
+embeddings
+multimodal input
+context capacity
+local execution
+```
+
+Monad can then select compatible behavior.
+
+---
+
+## AI output remains ordinary system information
+
+AI-generated output should carry provenance and uncertainty like other derived information.
+
+For example:
+
+```text
+Generated Relationship Candidate
+
+Source:
+  AI provider
+
+Status:
+  inferred
+
+Authority:
+  none
+
+Next step:
+  confirmation required
+```
+
+AI does not get a privileged semantic lane.
+
+---
+
+# 21 — Extension interfaces
+
+Extensions interact with Monad through controlled contracts.
+
+An extension may contribute:
+
+```text
+adapter
+validator
+projection
+policy evaluator
+Subject type
+relationship type
+lifecycle definition
+AI provider
+interface provider
+```
+
+An extension manifest should identify:
+
+```text
+extension ID
+version
+compatibility
+capabilities
+permissions
+dependencies
+schema contributions
+```
+
+---
+
+## Extension isolation
+
+Extensions should not rely on undocumented internal implementation details.
+
+The preferred relationship is:
+
+```text
+Extension
+   │
+   ▼
+Stable Extension Interface
+   │
+   ▼
+Monad Core
+```
+
+rather than:
+
+```text
+Extension imports random internal module
+```
+
+This makes compatibility governable.
+
+---
+
+# 22 — CLI interface
+
+The CLI is the primary local interaction surface.
+
+It should adapt component contracts into human- and machine-friendly commands.
+
+Potential command families include:
+
+```text
+monad inspect
+monad query
+monad trace
+monad impact
+monad plan
+monad execute
+monad verify
+monad reconcile
+monad release
+```
+
+The exact command grammar belongs in the CLI specification.
+
+---
+
+## CLI output modes
+
+The CLI should support human-readable output such as:
+
+```text
+3 affected components
+1 required review
+2 verification obligations
+```
+
+and structured output such as:
+
+```json
+{
+  "knownImpact": 3,
+  "requiredReviews": 1,
+  "verificationObligations": 2
+}
+```
+
+Both should represent the same underlying result.
+
+---
+
+## Exit behavior
+
+Machine use requires stable exit semantics.
+
+For example, commands should distinguish:
+
+```text
+success
+validation failure
+policy denial
+execution failure
+verification failure
+invalid input
+```
+
+The exact exit codes belong in specification.
+
+---
+
+# 23 — Library interface
+
+A programmatic library interface allows applications to embed Monad capabilities without shelling out to the CLI.
+
+For example:
+
+```text
+query(subject)
+impact(change)
+evaluatePolicy(request)
+verify(target)
+```
+
+The library should expose the same application semantics as the CLI.
+
+The CLI should ideally consume these capabilities rather than implement parallel logic.
+
+---
+
+# 24 — Local service interface
+
+Some capabilities may eventually benefit from a long-lived local process.
+
+A local daemon might provide:
+
+* cached read models,
+* filesystem observation,
+* incremental indexing,
+* event distribution,
+* agent connections,
+* and shared workspace state.
+
+The existence of a daemon should remain an implementation choice.
+
+Its interfaces should preserve the same semantic contracts used elsewhere.
+
+---
+
+# 25 — HTTP API
+
+A remote or local HTTP API may expose Monad capabilities across process boundaries.
+
+The API should not create a second semantic model.
+
+For example:
+
+```text
+CLI
+HTTP
+Agent
+```
+
+should all ultimately invoke the same underlying:
+
+```text
+Query
+Impact
+Policy
+Execution
+Verification
+```
+
+capabilities.
+
+Transport-specific concerns include:
+
+* authentication,
+* authorization context,
+* pagination,
+* request identifiers,
+* rate limits,
+* serialization,
+* retries,
+* and compatibility.
+
+---
+
+# 26 — Agent interface
+
+AI agents need a deliberately constrained interaction surface.
+
+An agent should not need unrestricted shell access merely to use Monad.
+
+A useful agent interface may expose tools such as:
+
+```text
+inspect_subject
+query_relationships
+get_context
+analyze_impact
+propose_plan
+request_execution
+run_verification
+```
+
+The exact tools should map to existing application capabilities.
+
+---
+
+## Agent tools should be narrow
+
+Prefer:
+
+```text
+request_change(plan_id)
+```
+
+over:
+
+```text
+execute arbitrary shell command as root
+```
+
+where the narrower capability satisfies the task.
+
+This supports least authority.
+
+---
+
+## Agent context
+
+Agent interfaces should provide structured system context rather than assuming the agent will reconstruct authority from prose.
+
+For example:
+
+```text
+Task
+Target
+Allowed Scope
+Applicable Requirements
+Governing Specification
+Relevant Dependencies
+Required Verification
+Prohibited Operations
+```
+
+This creates a more reliable engineering environment.
+
+---
+
+# 27 — Human interface
+
+Human interfaces include more than the CLI.
+
+Potential surfaces include:
+
+* documentation,
+* terminal interfaces,
+* IDE integrations,
+* web dashboards,
+* review interfaces,
+* graphical relationship views,
+* and approval workflows.
+
+These should present the same semantic system through different projections.
+
+---
+
+## Human explainability
+
+Whenever possible, important system decisions should be explainable.
+
+Instead of:
+
+```text
+Denied
+```
+
+prefer:
+
+```text
+Change denied.
+
+Reason:
+  Public interface modification requires architecture review.
+
+Policy:
+  POL-API-004
+
+Current Actor:
+  implementation-agent
+
+Missing Authority:
+  architecture-review
+```
+
+Explainability is a user-interface property built on structured system semantics.
+
+---
+
+# 28 — Machine-readable file interfaces
+
+Some Monad interfaces may intentionally be file-based.
+
+Examples include:
+
+```text
+manifest
+configuration
+artifact serialization
+policy definitions
+schema files
+lock files
+projection definitions
+```
+
+File-based contracts offer advantages such as:
+
+* portability,
+* version control,
+* local inspectability,
+* simple tooling,
+* and reproducibility.
+
+They should still have explicit schemas and versioning.
+
+---
+
+# 29 — Schema interfaces
+
+Schemas form contracts between systems.
+
+A schema may govern:
+
+```text
+artifact
+event
+command
+query result
+policy
+projection
+plugin manifest
+configuration
+```
+
+Schemas should identify their version explicitly when compatibility matters.
+
+For example:
+
+```text
+schema:
+  monad.example/v1
+```
+
+is preferable to relying on undocumented structural inference.
+
+The exact schema conventions belong under [Artifacts](/docs/artifacts/schemas).
+
+---
+
+# Interface layering
+
+The interface architecture can be visualized as:
+
+```text
+┌──────────────────────────────────────────────────────┐
+│                Interaction Surfaces                  │
+│                                                      │
+│ CLI · HTTP · Library · Agent · UI · Files            │
+└────────────────────────┬─────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────┐
+│              Application Interfaces                  │
+│                                                      │
+│ Query · Impact · Context · Planning · Policy         │
+│ Execution · Verification · Reconciliation            │
+└────────────────────────┬─────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────┐
+│                 Domain Interfaces                    │
+│                                                      │
+│ Identity · Lifecycle · Semantic Model                │
+└────────────────────────┬─────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────┐
+│              Infrastructure Interfaces               │
+│                                                      │
+│ Persistence · Read Model · Adapters · AI · Events    │
+└──────────────────────────────────────────────────────┘
+```
+
+Upper layers should depend on abstractions exposed by lower responsibilities rather than reaching directly into implementation internals.
+
+---
+
+# Ports and adapters
+
+A useful architectural interpretation is:
+
+```text
+Monad Core
+    │
+    ├── defines required ports
+    │
+    ▼
+Infrastructure implements ports
+```
+
+For example:
+
+```text
+Core requires:
+  SubjectRepository
+
+Persistence implements:
+  SQLiteSubjectRepository
+```
+
+or:
+
+```text
+Execution requires:
+  GitOperations
+
+Git adapter implements:
+  NativeGitOperations
+```
+
+This prevents domain behavior from becoming tightly coupled to one infrastructure implementation.
+
+---
+
+# Interface ownership
+
+Every interface should have a clear owner.
+
+For example:
+
+| Interface                   | Owner                           |
+| --------------------------- | ------------------------------- |
+| Subject identity resolution | Identity Component              |
+| Semantic queries            | Query Component                 |
+| Policy evaluation           | Policy Component                |
+| Impact analysis             | Impact Component                |
+| Context construction        | Context Component               |
+| Plan creation               | Planning Component              |
+| Governed execution          | Execution Component             |
+| Verification                | Verification Component          |
+| Lifecycle transitions       | Lifecycle Component             |
+| Projection generation       | Projection Component            |
+| Native operations           | Integration Component / adapter |
+| AI provider capabilities    | AI Capability Component         |
+| Extension registration      | Extension Component             |
+| CLI rendering               | CLI Component                   |
+
+Ownership prevents two components from publishing incompatible definitions of the same operation.
+
+---
+
+# Request identity
+
+Significant commands should have stable request or operation identities.
+
+This supports:
+
+* retries,
+* idempotency,
+* correlation,
+* provenance,
+* distributed execution,
+* and debugging.
+
+For example:
+
+```text
+operation_id:
+  op_01H...
+```
+
+The exact identifier format remains a specification detail.
+
+The architectural requirement is that important operations can be distinguished reliably.
+
+---
+
+# Correlation and causation
+
+Complex workflows may produce several related operations.
+
+For example:
+
+```text
+User request
+     ↓
+Plan
+     ↓
+Execution
+     ↓
+Test run
+     ↓
+Verification
+     ↓
+Projection refresh
+```
+
+Interfaces should support distinguishing:
+
+```text
+correlation
+```
+
+from:
+
+```text
+causation
+```
+
+where this relationship materially improves traceability.
+
+This helps reconstruct:
+
+> What broader operation did this belong to?
+
+and:
+
+> What directly caused this event?
+
+---
+
+# Revision-aware interfaces
+
+Commands that depend on mutable state should usually be revision-aware.
+
+For example:
+
+```text
+Modify Subject A
+expected_revision: abc123
+```
+
+If the current revision is:
+
+```text
+def456
+```
+
+the interface may return:
+
+```text
+stale-state
+```
+
+rather than applying the old plan blindly.
+
+This is especially important for agent and automated execution.
+
+---
+
+# Idempotency
+
+Some commands may be retried safely.
+
+Where appropriate, interfaces should support idempotent semantics.
+
+Prefer:
+
+```text
+ensure binding exists
+```
+
+over:
+
+```text
+append binding
+```
+
+when retries are expected.
+
+An interface may use:
+
+```text
+operation identity
+idempotency key
+expected revision
+```
+
+to prevent accidental duplication.
+
+---
+
+# Pagination and large result sets
+
+Some graph and artifact queries may return very large result sets.
+
+Interfaces should support bounded traversal through mechanisms such as:
+
+```text
+limit
+cursor
+depth
+scope
+relationship filter
+```
+
+without altering the semantics of the query.
+
+For example:
+
+```text
+trace dependencies
+depth: 3
+scope: workspace
+```
+
+is preferable to implicitly traversing the entire known engineering universe.
+
+---
+
+# Streaming
+
+Some operations may be long-running.
+
+Potential examples include:
+
+* indexing,
+* reconciliation,
+* verification,
+* builds,
+* impact analysis,
+* remote execution,
+* and AI generation.
+
+Interfaces may support streamed progress.
+
+A streaming interface should distinguish:
+
+```text
+progress update
+diagnostic
+partial result
+final result
+```
+
+and should not make partial output appear final.
+
+---
+
+# Cancellation
+
+Long-running operations may need cancellation.
+
+A cancellation request should be semantically distinct from failure.
+
+For example:
+
+```text
+execution status:
+  cancelled
+```
+
+is different from:
+
+```text
+execution status:
+  failed
+```
+
+Cancellation semantics matter especially when native side effects may already have occurred.
+
+---
+
+# Partial failure
+
+Distributed engineering operations can fail partway through.
+
+Interfaces must be able to represent:
+
+```text
+operation partially completed
+```
+
+rather than forcing a binary result.
+
+For example:
+
+```text
+file updated
+Git commit created
+GitHub update failed
+```
+
+The resulting state needs reconciliation.
+
+---
+
+# Diagnostics
+
+Interfaces should return machine-readable diagnostics.
+
+A diagnostic may contain:
+
+```text
+code
+severity
+message
+target
+source
+recommended action
+related evidence
+```
+
+Human-readable text remains useful.
+
+Stable codes allow automation to react reliably.
+
+---
+
+# Error taxonomy
+
+The system should converge on a shared error vocabulary.
+
+Examples include:
+
+```text
+InvalidInput
+NotFound
+AmbiguousIdentity
+Conflict
+Unauthorized
+PolicyDenied
+StaleState
+InvalidTransition
+NativeSystemUnavailable
+NativeOperationFailed
+VerificationFailed
+UnsupportedVersion
+MigrationRequired
+PartialExecution
+```
+
+The exact taxonomy belongs in specification.
+
+The important rule is:
+
+> **Errors with different engineering meanings should remain distinguishable across interface surfaces.**
+
+---
+
+# Interface consistency
+
+Different transports should preserve equivalent meaning.
+
+For example:
+
+```text
+CLI
+  exit + structured output
+
+HTTP
+  status + response body
+
+Library
+  result / typed error
+
+Agent tool
+  structured tool result
+```
+
+may express the same:
+
+```text
+PolicyDenied
+```
+
+condition differently at transport level.
+
+The underlying semantic error remains the same.
+
+---
+
+# Versioning
+
+Interfaces evolve.
+
+Monad therefore needs explicit interface versioning where compatibility matters.
+
+Versioned concerns may include:
+
+```text
+HTTP API
+event schema
+plugin API
+artifact schema
+agent tools
+provider contract
+```
+
+Not every internal function requires public semantic versioning.
+
+Version only boundaries whose independent evolution requires compatibility guarantees.
+
+---
+
+# Compatibility
+
+An interface version should communicate what consumers may rely upon.
+
+Compatibility may include:
+
+```text
+backward compatible
+forward compatible
+requires migration
+deprecated
+unsupported
+```
+
+Deprecation should be explicit rather than silent.
+
+For example:
+
+```text
+v1 supported
+v2 preferred
+v1 removal scheduled after compatibility window
+```
+
+The exact support policy belongs in release and compatibility specifications.
+
+---
+
+# Extensibility versus interface stability
+
+The extension model creates tension:
+
+```text
+stable core interfaces
+       +
+evolving extension capability
+```
+
+Monad should keep its stable extension contract relatively small.
+
+Extensions should not require access to every internal data structure.
+
+A narrow stable interface makes the ecosystem more durable.
+
+---
+
+# Security at interfaces
+
+Interfaces are trust boundaries.
+
+They must account for:
+
+* authentication,
+* actor identity,
+* authorization,
+* input validation,
+* credential isolation,
+* secret handling,
+* untrusted payloads,
+* command injection,
+* extension permissions,
+* and native-system authority.
+
+An interface should never infer authorization merely from:
+
+```text
+request successfully reached component
+```
+
+---
+
+# Least authority
+
+Interfaces should expose the narrowest useful operation.
+
+For example:
+
+```text
+update GitHub issue title
+```
+
+may be safer than:
+
+```text
+arbitrary GitHub API request
+```
+
+and:
+
+```text
+apply authorized plan
+```
+
+may be safer than:
+
+```text
+arbitrary shell execution
+```
+
+where the narrower operation is sufficient.
+
+This is particularly important for AI agents and extensions.
+
+---
+
+# Secrets
+
+Secrets should cross as few interfaces as possible.
+
+For example:
+
+```text
+Agent
+  requests GitHub operation
+
+GitHub Adapter
+  holds credential
+```
+
+is preferable to:
+
+```text
+Agent
+  receives raw GitHub token
+  performs arbitrary requests
+```
+
+Capabilities should be delegated without unnecessarily delegating credentials.
+
+---
+
+# Trustworthy interface responses
+
+An answer from Monad should increasingly include enough information to understand why it should be trusted.
+
+A mature query response may conceptually provide:
+
+```text
+Answer
+Authority
+Source
+Provenance
+Freshness
+Uncertainty
+Evidence
+```
+
+Not every interface needs to surface all of this by default.
+
+But the information should remain accessible when relevant.
+
+---
+
+# Example: querying a Subject
+
+A human asks:
+
+```text
+monad inspect auth-api
+```
+
+The CLI adapts the request:
+
+```text
+CLI
+  ↓
+Query Interface
+  ↓
+Identity Interface
+  ↓
+Read Model
+```
+
+The result may conceptually contain:
+
+```text
+Subject:
+  auth-api
+
+Type:
+  interface
+
+Representations:
+  packages/auth/src/api.ts
+  docs/api/authentication.mdx
+
+Governed by:
+  SPEC-AUTH-003
+
+Authority:
+  active system model
+
+Repository revision:
+  abc123
+
+Known dependents:
+  web-client
+  session-service
+```
+
+The CLI renders this for a human.
+
+The same underlying result could be returned as JSON or through an agent tool.
+
+---
+
+# Example: governed change
+
+An agent requests:
+
+```text
+Add credential type X to auth-api.
+```
+
+The interface flow may look like:
+
+```text
+Agent Interface
+      │
+      ▼
+Context Interface
+      │
+      ▼
+Impact Interface
+      │
+      ▼
+Planning Interface
+      │
+      ▼
+Policy Interface
+      │
+      ▼
+Execution Interface
+      │
+      ▼
+Native Adapter Interfaces
+      │
+      ▼
+Verification Interface
+      │
+      ▼
+Provenance + Reconciliation
+```
+
+At every stage, the interface communicates one kind of responsibility.
+
+No stage needs to infer the private state of the next.
+
+---
+
+# Interface anti-patterns
+
+Monad should guard against several failure modes.
+
+## Transport-defined semantics
+
+The CLI and HTTP API behave differently because each reimplements business rules.
+
+## Boolean policy
+
+Complex policy decisions collapse into:
+
+```text
+true / false
+```
+
+and lose obligations and explanation.
+
+## Stringly typed everything
+
+Identifiers, states, operations, and relationships are represented by arbitrary strings without validation.
+
+## Hidden mutation
+
+A query silently changes state.
+
+## Arbitrary agent shell
+
+Agents receive unrestricted side-effect capability when narrower tools would suffice.
+
+## Adapter semantic ownership
+
+GitHub adapter decides what constitutes semantic identity.
+
+## Error flattening
+
+Every failure becomes:
+
+```text
+500 internal error
+```
+
+or:
+
+```text
+command failed
+```
+
+## Silent version drift
+
+Consumers continue sending old structures that are interpreted differently by newer implementations.
+
+## Derived-output authority
+
+Generated API responses become treated as canonical state without provenance.
+
+---
+
+# Interface quality criteria
+
+A strong Monad interface should be:
+
+## Explicit
+
+Its meaning and side effects are understandable.
+
+## Stable where necessary
+
+Independent consumers can rely on it.
+
+## Versioned where necessary
+
+Compatibility is deliberate.
+
+## Typed
+
+Important concepts are structurally distinct.
+
+## Explainable
+
+Results and failures can expose relevant reasoning.
+
+## Governed
+
+Side effects respect authority and policy.
+
+## Revision-aware
+
+Mutable-state assumptions can be validated.
+
+## Idempotent where practical
+
+Retries do not create accidental duplication.
+
+## Transport-neutral
+
+Core semantics survive different delivery mechanisms.
+
+## Observable
+
+Important failures and latency can be diagnosed.
+
+## Secure
+
+Capabilities and credentials are appropriately bounded.
+
+---
+
+# What belongs in System versus Artifacts
+
+This page defines the authoritative interface architecture.
+
+It says, for example:
+
+```text
+Monad has a Policy Evaluation Interface.
+```
+
+The exact specification belongs in [Artifacts](/docs/artifacts).
+
+That specification may define:
+
+```text
+request schema
+response schema
+field semantics
+error codes
+compatibility guarantees
+versioning
+examples
+acceptance tests
+```
+
+Conceptually:
+
+```text
+System
+  → what interface exists and why
+
+Artifacts
+  → exact contract
+```
+
+This separation keeps System readable without sacrificing precision.
+
+---
+
+# Interface traceability
+
+Important public interfaces should eventually be traceable to:
+
+```text
+Requirement
+     ↓
+Architecture
+     ↓
+Component
+     ↓
+Interface
+     ↓
+Specification
+     ↓
+Implementation
+     ↓
+Verification
+```
+
+This creates a durable answer to:
+
+> **Why does this interface exist, what behavior may consumers rely upon, and how do we know the implementation satisfies that contract?**
+
+---
+
+# Current interface model
+
+The authoritative interface families can be summarized as:
+
+```text
+READ
+  Query
+  Identity
+  Trace
+  Impact
+  Context
+
+GOVERNANCE
+  Policy
+  Lifecycle
+  Approval
+
+CHANGE
+  Planning
+  Execution
+  Reconciliation
+  Release
+
+ASSURANCE
+  Verification
+  Provenance
+  Evidence
+
+DERIVED
+  Projection
+  Events
+
+INFRASTRUCTURE
+  Persistence
+  Read Model
+  Native Adapters
+  AI Providers
+
+EXTENSION
+  Plugin / Extension Contract
+
+ACCESS SURFACES
+  CLI
+  Library
+  HTTP
+  Agent
+  Human UI
+  Structured Files
+```
+
+These interface families can evolve independently in implementation while preserving their architectural meaning.
+
+---
+
+# The interface rule of thumb
+
+When defining an interface, ask:
+
+> **What responsibility crosses this boundary?**
+
+Then:
+
+> **What information must cross with it so the receiver does not have to guess?**
+
+Then:
+
+> **Does the operation inspect state or change state?**
+
+Then:
+
+> **What authority is required?**
+
+Then:
+
+> **What failures must remain distinguishable?**
+
+Then:
+
+> **What compatibility obligations exist for consumers?**
+
+If those questions cannot be answered, the interface is probably not yet well-defined.
+
+---
+
+# Relationship to Components
+
+[Components](/docs/system/components) defines who owns behavior.
+
+Interfaces define how that behavior is accessed.
+
+For example:
+
+```text
+Component:
+  Impact Component
+
+Interface:
+  analyzeImpact(change)
+    → ImpactResult
+```
+
+The component owns the meaning.
+
+The interface exposes it.
+
+---
+
+# Relationship to Architecture
+
+[Architecture](/docs/system/architecture) establishes boundaries such as:
+
+```text
+execution boundary
+native-system boundary
+canonical / derived boundary
+authority boundary
+```
+
+Interfaces are the controlled crossings of those boundaries.
+
+A good interface preserves the reason the boundary exists.
+
+---
+
+# Relationship to Governance
+
+[Governance](/docs/system/governance) defines who may perform operations and under what rules.
+
+Interfaces carry the information required to evaluate those rules.
+
+They must not bypass them.
+
+---
+
+# Relationship to Execution
+
+[Execution](/docs/system/execution) describes the workflow through which work becomes governed change.
+
+Interfaces connect each stage of that workflow.
+
+---
+
+# Relationship to Integrations
+
+[Integrations](/docs/system/integrations) defines how Monad connects to native systems.
+
+Adapter interfaces provide the contracts used at that boundary.
+
+---
+
+## Where to go next
+
+Once the component and interface boundaries are clear, the next important question is how those boundaries are governed.
+
+<Cards>
+  <Card
+    title="Governance"
+    href="/docs/system/governance"
+  >
+    Understand authority, policy, capability boundaries, approvals, protected invariants, and controlled system evolution.
+  </Card>
+
+<Card
+title="Execution"
+href="/docs/system/execution"
+>
+See how these interfaces compose into an end-to-end governed engineering workflow.
+</Card>
+
+<Card
+title="Integrations"
+href="/docs/system/integrations"
+>
+Explore the native adapter contracts connecting Monad to files, Git, GitHub, build tools, CI, and external systems.
+</Card>
+
+<Card
+title="Artifacts"
+href="/docs/artifacts"
+>
+Inspect the formal interface specifications, schemas, compatibility rules, and acceptance tests behind these contracts.
+</Card>
+</Cards>
+
+---
+
+## Related system views
+
+<Cards>
+  <Card
+    title="Components"
+    href="/docs/system/components"
+  >
+    Review the logical components that own the behaviors exposed through these interfaces.
+  </Card>
+
+<Card
+title="Architecture"
+href="/docs/system/architecture"
+>
+Return to the architectural boundaries these interfaces cross.
+</Card>
+
+<Card
+title="Concepts & Principles"
+href="/docs/system/concepts"
+>
+Review the semantic vocabulary that must remain consistent across every interface.
+</Card>
+
+<Card
+title="System Overview"
+href="/docs/system"
+>
+Return to the current authoritative overview of Monad.
+</Card>
+</Cards>

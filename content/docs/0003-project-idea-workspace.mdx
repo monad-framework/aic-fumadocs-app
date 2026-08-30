@@ -1,0 +1,57 @@
+---
+title: Project.md, Idea.md, Workspace.md
+description: Explaining the differences betwwen project.md, idea.md, and workspace.md
+---
+
+Maybe you are familiar with files like `project.md`, `idea.md`, and `workspace.md` to name a few. The three are all similar but not exactly the same. They overlap, but they serve different purposes.
+
+`idea.md` is the **why and what might be**. It captures the original concept, motivation, problem, vision, hypotheses, possibilities, and unresolved thinking. It can be exploratory and messy.
+
+`project.md` is the **current authoritative definition of the project**. It answers: what are we building, for whom, what outcome are we pursuing, what is in/out of scope, what constraints exist, and what counts as success.
+
+`workspace.md` is usually about the **engineering workspace itself**: repository/repositories, apps, packages, languages, tooling, ownership boundaries, build/test structure, dependency rules, and how development is organized.
+
+A useful relationship is:
+
+```text
+`idea.md` gets **refined into** `project.md` gets **implemented through** `architecture.md` gets **physically organized by** `workspace.md`
+```
+
+For a serious greenfield project, like this, we will keep them separate:
+
+```text
+docs/
+├── idea.md          # concept, motivation, vision, possibilities
+├── project.md       # authoritative project definition
+├── architecture.md  # system design and major technical decisions
+└── workspace.md     # repository/workspace organization
+```
+
+Their responsibilities would be roughly:
+
+| File              | Core question                                                   |
+| ----------------- | --------------------------------------------------------------- |
+| `idea.md`         | Why should this exist, and what could it become?                |
+| `project.md`      | What exactly have we decided to build?                          |
+| `architecture.md` | How will the system work?                                       |
+| `workspace.md`    | How will the codebase and engineering environment be organized? |
+
+So the `project.md` we just created should **not** become a dumping ground for all three concerns.
+
+At this very early stage, we will make one small correction to our bootstrap: 
+
+create `idea.md` now and move the exploratory thinking there, while keeping `project.md` concise and increasingly authoritative.
+
+The next repository state is:
+
+```text
+.
+├── README.md
+└── docs/
+    ├── idea.md
+    └── project.md
+```
+
+**Don't create `workspace.md` or `architecture.md` yet**. We haven't earned those decisions yet.
+
+Next, we will write `idea.md` from our raw project concept, then derive `project.md` from it.

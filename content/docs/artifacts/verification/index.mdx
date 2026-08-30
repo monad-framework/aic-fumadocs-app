@@ -1,0 +1,4285 @@
+---
+title: Verification
+description: How Monad determines whether Requirements, Specifications, invariants, implementations, migrations, releases, and other engineering Claims are actually satisfied by inspectable Evidence.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Engineering assurance
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Verification is the disciplined process of determining whether an engineering expectation is satisfied by observed reality. It connects Requirements, Specifications, policies, invariants, and implementation Claims to explicit methods, results, and Evidence.
+  </p>
+</div>
+
+# What is verification?
+
+**Verification** answers a specific question:
+
+> **Does the observed system satisfy the expectation we said it should satisfy?**
+
+The expectation may come from:
+
+```text
+Requirement
+
+Specification
+
+schema
+
+interface contract
+
+Policy
+
+invariant
+
+acceptance criterion
+
+migration contract
+
+release criterion
+
+security requirement
+
+performance objective
+```
+
+Verification then establishes:
+
+```text
+what must be true
+
+how it will be checked
+
+what was actually observed
+
+what Evidence supports the observation
+
+whether the expectation was satisfied
+```
+
+A useful conceptual flow is:
+
+```text
+Expectation
+    ↓
+Verification Method
+    ↓
+Execution / Inspection
+    ↓
+Observation
+    ↓
+Evidence
+    ↓
+Verification Result
+```
+
+---
+
+# Verification is not testing
+
+Testing is one verification technique.
+
+Verification is broader.
+
+Possible verification methods include:
+
+```text
+automated tests
+
+static analysis
+
+schema validation
+
+type checking
+
+formal analysis
+
+benchmarking
+
+manual inspection
+
+architecture review
+
+security review
+
+migration reconciliation
+
+runtime observation
+
+reproducibility checks
+
+compatibility checks
+
+artifact inspection
+```
+
+A test suite may participate in Verification.
+
+It is not the definition of Verification itself.
+
+---
+
+# Verification is not evidence
+
+These concepts are related but distinct.
+
+**Verification** is the evaluation.
+
+[**Evidence**](/docs/artifacts/evidence) is the inspectable support used to justify that evaluation.
+
+For example:
+
+```text
+Requirement:
+API latency must remain below 100 ms at p95.
+
+Verification:
+run benchmark workload against release candidate.
+
+Evidence:
+benchmark report.
+
+Result:
+p95 = 73 ms.
+
+Conclusion:
+Requirement verified under tested conditions.
+```
+
+Therefore:
+
+```text
+Verification ≠ Evidence
+```
+
+and:
+
+```text
+Evidence ≠ Verification Result
+```
+
+---
+
+# Verification is not approval
+
+A Verification Result answers:
+
+```text
+Did this satisfy the defined expectation?
+```
+
+An Approval answers:
+
+```text
+Is an authorized Actor permitting the next governed action?
+```
+
+A release reviewer may approve a release because its required Verifications passed.
+
+But:
+
+```text
+verified ≠ approved
+```
+
+and:
+
+```text
+approved ≠ verified
+```
+
+A governance system should preserve that distinction.
+
+---
+
+# Verification is not review
+
+A Review is an engineering activity that examines some Subject.
+
+A Review may itself be a Verification method when human judgment is appropriate.
+
+For example:
+
+```text
+Expectation:
+architecture must preserve domain/infrastructure separation.
+
+Method:
+architecture review.
+
+Evidence:
+review findings.
+
+Result:
+failed.
+```
+
+But many Reviews are exploratory rather than conformance-oriented.
+
+Therefore:
+
+```text
+review ≠ verification
+```
+
+unless an explicit expectation is being evaluated.
+
+---
+
+# Verification is not execution success
+
+One of the most important distinctions in Monad is:
+
+> **A change is not complete merely because a command succeeded.**
+
+Suppose an operation returns:
+
+```text
+exit code: 0
+```
+
+That tells us something about the process invocation.
+
+It does not necessarily establish:
+
+```text
+the intended files changed correctly
+
+the migration preserved data
+
+the generated artifact is valid
+
+the deployment is healthy
+
+the Requirement is satisfied
+
+the system remains within Policy
+
+the resulting state matches the plan
+```
+
+Execution reports what happened.
+
+Verification determines whether what happened was acceptable.
+
+---
+
+# Verification begins before implementation
+
+Verification should not be invented after engineering work is complete.
+
+A strong Requirement should make it possible to ask:
+
+```text
+How will we know this is satisfied?
+```
+
+before implementation begins.
+
+A useful engineering chain is:
+
+```text
+Requirement
+    ↓
+Acceptance Criteria
+    ↓
+Verification Method
+    ↓
+Implementation
+    ↓
+Evidence
+    ↓
+Verification Result
+```
+
+This prevents vague completion criteria such as:
+
+```text
+looks good
+
+seems to work
+
+implemented
+
+done
+```
+
+---
+
+# Verifiability is a requirement-quality property
+
+Consider:
+
+```text
+Monad should be fast.
+```
+
+This is difficult to verify.
+
+A stronger statement might be:
+
+```text
+Impact analysis over the reference corpus
+must complete in ≤100 ms at p95
+under the defined benchmark workload.
+```
+
+Now verification can be designed.
+
+Good Requirements make success observable.
+
+---
+
+# What can be verified?
+
+Verification may target many kinds of engineering Subjects.
+
+Examples include:
+
+```text
+Requirement
+
+Specification
+
+implementation
+
+component
+
+interface
+
+schema
+
+Policy
+
+invariant
+
+migration
+
+release candidate
+
+artifact
+
+projection
+
+generated output
+
+system configuration
+
+runtime behavior
+
+integration
+
+reconciliation result
+```
+
+The appropriate method depends on the Claim being evaluated.
+
+---
+
+# Verification targets Claims
+
+At its core, Verification evaluates Claims.
+
+For example:
+
+```text
+Claim:
+the parser preserves comments.
+```
+
+Verification asks:
+
+```text
+Under what conditions?
+
+For which inputs?
+
+According to what expectation?
+
+Using what method?
+
+What Evidence exists?
+
+Did the result satisfy the expectation?
+```
+
+That framing avoids treating vague confidence as engineering assurance.
+
+---
+
+# Verification scope
+
+Every Verification has scope.
+
+Scope may include:
+
+```text
+Subject
+
+Requirement
+
+revision
+
+environment
+
+platform
+
+dataset
+
+configuration
+
+dependency state
+
+input class
+
+time
+
+risk boundary
+```
+
+A result should not silently escape its scope.
+
+<Callout type="info" title="Verification is scoped">
+
+Passing Verification for one revision, platform, fixture set, or environment does not automatically establish correctness outside that scope.
+
+</Callout>
+
+---
+
+# Verification against revisions
+
+Where relevant, Verification should bind to the exact state evaluated.
+
+For example:
+
+```text
+Subject:
+identity resolver
+
+Revision:
+abc123
+
+Verification:
+identity fixture suite
+
+Result:
+passed
+```
+
+If the resolver later changes:
+
+```text
+Revision:
+def456
+```
+
+the earlier result may no longer establish current correctness.
+
+This is why Verification and Evidence should be revision-aware.
+
+---
+
+# Verification methods
+
+A Verification method explains how an expectation will be evaluated.
+
+It should be precise enough to answer:
+
+```text
+What is being checked?
+
+Against what criteria?
+
+Using what inputs?
+
+Under what environment?
+
+What constitutes pass?
+
+What constitutes fail?
+
+What constitutes inconclusive?
+
+What Evidence must be retained?
+```
+
+The final schema belongs in [Schemas](/docs/artifacts/schemas).
+
+---
+
+# Automated verification
+
+Automated methods are appropriate when evaluation is:
+
+```text
+repeatable
+
+machine-observable
+
+frequent
+
+structured
+
+deterministic enough to automate
+```
+
+Examples:
+
+```text
+unit tests
+
+integration tests
+
+contract tests
+
+schema validators
+
+type checks
+
+lint rules
+
+security scanners
+
+reproducibility checks
+
+benchmark thresholds
+```
+
+Automation can improve consistency.
+
+It does not automatically improve the quality of the underlying criterion.
+
+---
+
+# Manual verification
+
+Some expectations require human judgment.
+
+Examples:
+
+```text
+architectural coherence
+
+usability
+
+documentation clarity
+
+threat-model completeness
+
+design quality
+
+migration inspection
+
+incident reconstruction
+```
+
+Manual Verification should still preserve:
+
+```text
+Subject
+
+criterion
+
+reviewer
+
+method
+
+findings
+
+result
+
+Evidence
+
+time
+
+revision
+```
+
+Human judgment should be explicit rather than disguised as deterministic fact.
+
+---
+
+# Hybrid verification
+
+Many important engineering questions benefit from both automated and human Verification.
+
+For example:
+
+```text
+Public API change
+    │
+    ├── schema compatibility check
+    ├── automated contract tests
+    ├── documentation validation
+    └── architecture review
+```
+
+No single method necessarily establishes the full Claim.
+
+---
+
+# Verification criteria
+
+A Verification criterion defines what must be observed for the expectation to be considered satisfied.
+
+Examples:
+
+```text
+all required fixtures pass
+
+no schema violations
+
+zero unauthorized dependency edges
+
+p95 latency ≤ 100 ms
+
+all migrated records reconcile
+
+public API remains backward compatible
+
+required approval exists
+
+artifact checksum matches manifest
+```
+
+Criteria should be explicit enough that two competent evaluators are unlikely to reach different results accidentally.
+
+---
+
+# Pass
+
+A Verification passes when the relevant Evidence establishes that the defined criterion was satisfied within scope.
+
+Example:
+
+```text
+Criterion:
+all 250 round-trip fixtures preserve comments.
+
+Observed:
+250 passed
+0 failed
+
+Result:
+passed
+```
+
+---
+
+# Fail
+
+A Verification fails when Evidence demonstrates that the criterion was not satisfied.
+
+Example:
+
+```text
+Criterion:
+0 invalid identity merges.
+
+Observed:
+2 invalid merges.
+
+Result:
+failed
+```
+
+A failure is useful engineering information.
+
+It should not be hidden merely because the implementation is otherwise close to completion.
+
+---
+
+# Incomplete
+
+A Verification is incomplete when evaluation has started but required checks remain unresolved.
+
+Example:
+
+```text
+Linux:
+passed
+
+macOS:
+passed
+
+Windows:
+not executed
+
+Result:
+incomplete
+```
+
+Incomplete should not be silently promoted to pass.
+
+---
+
+# Blocked
+
+Verification may be blocked when it cannot currently proceed.
+
+Examples:
+
+```text
+required environment unavailable
+
+dependency service unavailable
+
+fixture missing
+
+credential unavailable
+
+upstream migration incomplete
+```
+
+Blocked means the result is not yet known.
+
+---
+
+# Inconclusive
+
+Some methods produce insufficient Evidence for either pass or fail.
+
+Example:
+
+```text
+benchmark variance too high
+to determine whether threshold is satisfied
+```
+
+Result:
+
+```text
+inconclusive
+```
+
+This is different from failure.
+
+---
+
+# Conditional result
+
+In some cases an expectation may pass only under explicit conditions.
+
+For example:
+
+```text
+verified:
+Linux and macOS
+
+not verified:
+Windows
+```
+
+A system should preserve the condition instead of reporting a universal pass.
+
+---
+
+# Illustrative verification states
+
+A useful conceptual result vocabulary may include:
+
+```text
+passed
+
+failed
+
+incomplete
+
+blocked
+
+inconclusive
+
+superseded
+```
+
+The final canonical lifecycle should remain minimal and belong in the appropriate Specification or Schema.
+
+---
+
+# Verification identity
+
+Important Verification activities should have durable identity.
+
+Conceptually:
+
+```text
+Verification
+   │
+   ├── identity
+   ├── target
+   ├── expectation
+   ├── method
+   ├── scope
+   ├── revision
+   ├── result
+   ├── Evidence
+   ├── producer
+   └── provenance
+```
+
+This allows Verification itself to participate in traceability.
+
+---
+
+# Verification provenance
+
+A Verification should normally make it possible to determine:
+
+```text
+Who performed it?
+
+What tool performed it?
+
+Which method was used?
+
+Against which revision?
+
+With which inputs?
+
+Under which environment?
+
+Which Evidence was produced?
+
+When did it occur?
+```
+
+Without provenance, later engineers may know a result but not whether it should still be trusted.
+
+---
+
+# Verification and Requirements
+
+Requirements are among the most important Verification targets.
+
+A useful chain is:
+
+```text
+Requirement
+    ↓ verified-by
+Verification
+    ↓ supported-by
+Evidence
+```
+
+For example:
+
+```text
+REQ-017
+    ↓
+VER-044
+    ↓
+EV-203
+```
+
+This permits queries such as:
+
+```text
+Which Requirements are verified?
+
+Which remain unverified?
+
+Which have failing Evidence?
+
+Which have only stale Verification?
+```
+
+---
+
+# Verification and Specifications
+
+A Specification should define the behavior or contract to be implemented.
+
+Verification determines whether the implementation conforms.
+
+Conceptually:
+
+```text
+Specification
+    ↓ implemented-by
+Implementation
+    ↓ verified-by
+Verification
+```
+
+A complete Specification often includes or references:
+
+```text
+acceptance criteria
+
+invariants
+
+error behavior
+
+compatibility expectations
+
+performance bounds
+
+required verification methods
+```
+
+---
+
+# Verification and invariants
+
+An invariant states something that must remain true across permitted system states.
+
+Examples:
+
+```text
+Subject identity must not change because its file moved.
+
+Capability must not imply Authority.
+
+A derived Projection must not become canonical merely by existing.
+
+A migration must not silently discard authoritative records.
+```
+
+Invariant Verification may occur:
+
+```text
+continuously
+
+at lifecycle boundaries
+
+during migration
+
+before release
+
+after reconciliation
+```
+
+depending on cost and consequence.
+
+---
+
+# Verification and schemas
+
+Schema Verification may establish:
+
+```text
+document structure is valid
+
+required fields exist
+
+types are correct
+
+references are resolvable
+
+version constraints are satisfied
+```
+
+Schema validity does not necessarily establish semantic correctness.
+
+For example:
+
+```text
+valid JSON
+```
+
+does not imply:
+
+```text
+correct Requirement
+```
+
+---
+
+# Verification and interfaces
+
+Interfaces may have verifiable properties such as:
+
+```text
+input validation
+
+output contract
+
+error semantics
+
+idempotency behavior
+
+side-effect boundaries
+
+authorization behavior
+
+compatibility
+
+version negotiation
+```
+
+Contract tests are one useful method.
+
+---
+
+# Verification and policies
+
+Policies themselves can be verified.
+
+Examples:
+
+```text
+all release operations require Approval
+
+AI Actors cannot modify constitutional rules
+
+Production deletion requires elevated Authority
+
+credential values never appear in Evidence records
+```
+
+Policy Verification may inspect both configuration and observed behavior.
+
+---
+
+# Verification and governance
+
+[Governance](/docs/system/governance) can require Verification before permitting lifecycle transitions or high-risk actions.
+
+For example:
+
+```text
+Implementation
+    ↓
+required Verification
+    ↓
+Evidence
+    ↓
+Approval
+    ↓
+Release
+```
+
+Verification answers whether criteria are satisfied.
+
+Governance decides what may happen next.
+
+---
+
+# Verification obligations
+
+Governance may create explicit Verification obligations.
+
+Example:
+
+```text
+Before Release:
+
+- acceptance Verification must pass
+- migration Verification must pass
+- security Verification must pass
+- compatibility Verification must pass
+```
+
+An unresolved obligation remains visible.
+
+---
+
+# Verification and planning
+
+Planning should identify required Verification.
+
+A Work Package might contain:
+
+```text
+Objective
+
+implementation tasks
+
+expected artifacts
+
+acceptance criteria
+
+Verification methods
+
+required Evidence
+```
+
+This makes assurance part of the work rather than a final administrative step.
+
+---
+
+# Verification and Definition of Done
+
+A useful Definition of Done is not:
+
+```text
+code written
+```
+
+It may instead require:
+
+```text
+implementation complete
+
+tests passing
+
+Specification satisfied
+
+required Evidence recorded
+
+reviews complete
+
+no unresolved critical findings
+```
+
+The exact gates depend on the work.
+
+---
+
+# Verification and execution
+
+Execution changes native engineering reality.
+
+Verification evaluates the resulting state.
+
+A controlled flow is:
+
+```text
+Plan
+   ↓
+Authorization
+   ↓
+Execution
+   ↓
+Observation
+   ↓
+Verification
+   ↓
+Reconciliation
+```
+
+Execution success should not bypass Verification merely because no tool reported an error.
+
+---
+
+# Verification before execution
+
+Some checks occur before mutation.
+
+Examples:
+
+```text
+preconditions satisfied
+
+plan targets current revision
+
+required approvals exist
+
+dependencies available
+
+migration assumptions hold
+
+Policy allows action
+```
+
+These may be called preflight checks.
+
+They are a form of Verification against preconditions.
+
+---
+
+# Verification after execution
+
+Post-execution Verification may check:
+
+```text
+expected files exist
+
+tests pass
+
+schema remains valid
+
+native state matches plan
+
+migration reconciles
+
+deployment is healthy
+
+no unexpected side effects occurred
+```
+
+This is especially important when native tools can partially succeed.
+
+---
+
+# Verification failure after successful mutation
+
+Consider:
+
+```text
+native operation:
+succeeded
+
+postcondition verification:
+failed
+```
+
+The truthful system state is not:
+
+```text
+operation failed
+```
+
+nor:
+
+```text
+operation succeeded completely
+```
+
+It is closer to:
+
+```text
+Native State:
+changed
+
+Execution:
+completed
+
+Verification:
+failed
+
+Overall:
+changed but unverified
+```
+
+This distinction is critical for recovery.
+
+---
+
+# Verification and reconciliation
+
+[Reconciliation](/docs/system/execution) determines whether Monad's model agrees with native reality.
+
+Verification asks whether that resulting state satisfies expectations.
+
+These can overlap, but they answer different questions.
+
+For example:
+
+```text
+Reconciliation:
+all 10,000 migrated records are represented.
+
+Verification:
+all migrated records preserve required semantics.
+```
+
+The first concerns agreement.
+
+The second concerns correctness.
+
+---
+
+# Verification and experiments
+
+[Experiments](/docs/artifacts/experiments) explore uncertainty.
+
+Verification evaluates established expectations.
+
+A useful distinction is:
+
+```text
+Experiment:
+Is this hypothesis likely true?
+
+Verification:
+Did this implementation satisfy the defined requirement?
+```
+
+An Experiment may eventually produce the basis for a formal Verification method.
+
+---
+
+# Verification and Evidence
+
+Every consequential Verification Result should be connected to sufficient [Evidence](/docs/artifacts/evidence).
+
+For example:
+
+```text
+VER-044
+Result:
+passed
+
+Evidence:
+EV-203
+EV-204
+EV-205
+```
+
+The Verification Result summarizes the conclusion.
+
+The Evidence allows inspection.
+
+---
+
+# Verification Evidence bundles
+
+Complex Verification may depend on several Evidence items.
+
+Example:
+
+```text
+Release Verification
+    │
+    ├── build Evidence
+    ├── test Evidence
+    ├── migration Evidence
+    ├── security Evidence
+    └── compatibility Evidence
+```
+
+The bundle should not erase the individual Evidence records.
+
+---
+
+# Verification and reviews
+
+A Review may identify:
+
+```text
+Requirement mismatch
+
+architecture violation
+
+security risk
+
+missing acceptance criterion
+
+unverified assumption
+
+incorrect Evidence interpretation
+```
+
+Those findings may trigger new or repeated Verification.
+
+---
+
+# Verification findings
+
+A Verification process may produce findings in addition to a final result.
+
+Examples:
+
+```text
+failure
+
+warning
+
+gap
+
+risk
+
+observation
+
+limitation
+```
+
+Important findings should have identity and lifecycle if they require follow-up.
+
+---
+
+# Verification gaps
+
+Useful queries include:
+
+```text
+Which Requirements have no Verification?
+
+Which Verification methods have never been executed?
+
+Which high-risk areas rely only on manual checks?
+
+Which Verifications are stale?
+
+Which Releases depended on waived Verification?
+
+Which Claims have contradictory results?
+```
+
+These gaps are part of engineering state.
+
+---
+
+# Coverage
+
+Verification should describe coverage where relevant.
+
+Examples:
+
+```text
+platform coverage
+
+Requirement coverage
+
+input-space coverage
+
+schema coverage
+
+dependency coverage
+
+API coverage
+
+migration coverage
+
+security-control coverage
+```
+
+A passing result with 20% coverage should not look identical to one with 100% required coverage.
+
+---
+
+# Verification matrix
+
+For multi-dimensional Requirements, a matrix can expose gaps clearly.
+
+| Target       | Linux | macOS | Windows    |
+| ------------ | ----- | ----- | ---------- |
+| CLI install  | Pass  | Pass  | Unverified |
+| Project init | Pass  | Pass  | Unverified |
+| Build        | Pass  | Pass  | Blocked    |
+
+The aggregate result might therefore be:
+
+```text
+incomplete
+```
+
+not:
+
+```text
+passed
+```
+
+---
+
+# Verification freshness
+
+Verification can become stale when its underlying assumptions change.
+
+Potential invalidators include:
+
+```text
+Subject revision changed
+
+dependency changed
+
+configuration changed
+
+environment changed
+
+Requirement changed
+
+Specification changed
+
+Policy changed
+
+verification method changed
+```
+
+A stale result may remain historically useful.
+
+It should not automatically support current state.
+
+---
+
+# Dependency-aware invalidation
+
+Not every change invalidates every Verification.
+
+Suppose:
+
+```text
+VER-101 verifies parser behavior.
+```
+
+Then:
+
+```text
+documentation typo changed
+```
+
+should probably not invalidate it.
+
+But:
+
+```text
+parser implementation changed
+```
+
+probably should.
+
+Explicit dependency and impact relationships can support smarter invalidation.
+
+---
+
+# Verification invalidation
+
+A Verification Result may become invalid because:
+
+```text
+the test harness was broken
+
+the wrong revision was tested
+
+the fixture was incorrect
+
+the environment was misconfigured
+
+the acceptance criterion was misunderstood
+```
+
+Invalidation should preserve history.
+
+Do not silently delete the earlier result.
+
+---
+
+# Reverification
+
+When relevant state changes:
+
+```text
+previous Verification
+      ↓
+becomes stale
+      ↓
+reverification scheduled
+      ↓
+new Evidence
+      ↓
+new Verification Result
+```
+
+The prior result remains part of the historical engineering record.
+
+---
+
+# Verification history
+
+A system may have:
+
+```text
+VER-017@revA → passed
+
+VER-017@revB → failed
+
+VER-017@revC → passed
+```
+
+This history can explain:
+
+```text
+when a regression appeared
+
+when it was repaired
+
+which Release contained it
+```
+
+---
+
+# Verification against historical state
+
+Historical Verification remains important.
+
+For example:
+
+```text
+Why did release 1.2 ship?
+```
+
+should be answerable using the Verifications and Evidence available at that time.
+
+Current Verification does not rewrite historical assurance.
+
+---
+
+# Verification reproducibility
+
+Where practical, another Actor should be able to reproduce a Verification.
+
+This may require preserving:
+
+```text
+method
+
+inputs
+
+fixtures
+
+tool versions
+
+revision
+
+environment
+
+configuration
+
+commands
+
+expected outputs
+```
+
+Not all Verification can be perfectly reproducible.
+
+The degree of reproducibility should match the consequence.
+
+---
+
+# Deterministic verification
+
+Some methods should ideally be deterministic.
+
+Example:
+
+```text
+schema validation
+```
+
+Given identical:
+
+```text
+schema
+
+document
+
+validator version
+```
+
+the result should be identical.
+
+Non-deterministic results should be identified as such.
+
+---
+
+# Statistical verification
+
+Performance and reliability Verification may require statistical treatment.
+
+For example:
+
+```text
+50 benchmark iterations
+
+median
+
+p95
+
+p99
+
+variance
+```
+
+A single run may not be sufficient Evidence.
+
+The methodology should define acceptable variation.
+
+---
+
+# Probabilistic systems
+
+AI and other probabilistic systems complicate Verification.
+
+For example:
+
+```text
+one model response was correct
+```
+
+does not establish:
+
+```text
+the capability is reliably correct
+```
+
+Verification may instead require:
+
+```text
+evaluation corpus
+
+multiple runs
+
+success threshold
+
+failure taxonomy
+
+model/version identity
+
+prompt/context control
+
+human review
+```
+
+---
+
+# AI output verification
+
+AI-generated engineering changes should be verified according to their effect, not according to their origin.
+
+For example:
+
+```text
+AI-generated code
+```
+
+should face the same relevant:
+
+```text
+tests
+
+type checks
+
+security checks
+
+Specification checks
+
+reviews
+
+Policy gates
+```
+
+as human-generated code.
+
+---
+
+# AI is not a verifier by default
+
+An AI system can assist Verification.
+
+It may:
+
+```text
+inspect output
+
+compare implementation to Specification
+
+classify failures
+
+summarize Evidence
+
+identify suspicious gaps
+```
+
+But:
+
+```text
+AI says it is correct
+```
+
+should not be treated as sufficient Evidence for consequential Claims without an appropriate validation method.
+
+---
+
+# AI-assisted review
+
+When an AI reviewer participates:
+
+```text
+Actor:
+AI reviewer
+
+Method:
+Specification comparison
+
+Evidence:
+identified mismatches
+
+Result:
+candidate findings
+```
+
+Higher-risk findings may require deterministic or human confirmation.
+
+---
+
+# Human verification
+
+Human Verification remains essential where criteria depend on:
+
+```text
+judgment
+
+meaning
+
+architecture
+
+usability
+
+threat modeling
+
+organizational constraints
+
+semantic interpretation
+```
+
+Human does not mean informal.
+
+The evaluation can still be structured and traceable.
+
+---
+
+# Independent verification
+
+High-risk work may require independent Verification.
+
+For example:
+
+```text
+implementer:
+Actor A
+
+verifier:
+Actor B
+```
+
+This may reduce confirmation bias and self-approval risk.
+
+The requirement for independence belongs in Governance Policy.
+
+---
+
+# Separation of duties
+
+For critical changes:
+
+```text
+Author
+  ≠
+Verifier
+  ≠
+Approver
+```
+
+may be appropriate.
+
+For low-risk local development:
+
+```text
+Author = Verifier
+```
+
+may be perfectly reasonable.
+
+Controls should remain proportional.
+
+---
+
+# Risk-proportional verification
+
+Verification cost should scale with consequence.
+
+A useful conceptual model:
+
+```text
+LOW
+→ local automated checks
+
+MODERATE
+→ tests + review
+
+HIGH
+→ broader verification + independent review
+
+CRITICAL
+→ multiple methods + independent evidence + explicit approval
+```
+
+The exact model belongs in Governance Policy.
+
+---
+
+# Verification depth
+
+Different work deserves different assurance depth.
+
+Consider:
+
+```text
+documentation typo
+```
+
+versus:
+
+```text
+authentication protocol change
+```
+
+Treating them identically would create either:
+
+```text
+insufficient assurance
+```
+
+or:
+
+```text
+unnecessary bureaucracy
+```
+
+Monad should support proportional assurance.
+
+---
+
+# Verification contracts
+
+A Specification may define a Verification contract such as:
+
+```text
+Target:
+Identity Resolver
+
+Expectation:
+rename preserves Subject identity
+
+Method:
+fixture-based reconciliation test
+
+Acceptance:
+100% expected identity preservation
+0 false merges
+
+Required Evidence:
+machine-readable result
+fixture revision
+resolver revision
+```
+
+This creates a repeatable assurance boundary.
+
+---
+
+# Acceptance tests
+
+Acceptance tests evaluate externally meaningful behavior.
+
+They are especially valuable when tied directly to Requirements.
+
+Example:
+
+```text
+REQ-031
+    ↓
+acceptance test
+    ↓
+EV-188
+    ↓
+verified
+```
+
+This is stronger than an unlinked test suite whose engineering purpose is unclear.
+
+---
+
+# Unit verification
+
+Unit tests help establish local behavioral properties.
+
+They are useful but generally insufficient to verify system-level Requirements alone.
+
+---
+
+# Integration verification
+
+Integration tests evaluate interactions between components or native systems.
+
+Examples:
+
+```text
+Identity Resolver ↔ Git
+
+Execution Engine ↔ filesystem
+
+Release Component ↔ GitHub
+
+Projection Engine ↔ canonical model
+```
+
+---
+
+# End-to-end verification
+
+End-to-end methods verify complete workflows.
+
+For example:
+
+```text
+intent
+→ plan
+→ authorization
+→ native change
+→ reconciliation
+→ verification
+→ Evidence
+```
+
+These are valuable for system behavior that emerges across component boundaries.
+
+---
+
+# Contract verification
+
+Contract Verification checks interface assumptions.
+
+Examples:
+
+```text
+request shape
+
+response shape
+
+error behavior
+
+version compatibility
+
+idempotency
+
+side effects
+```
+
+It can prevent integration failures even when each component passes its own tests.
+
+---
+
+# Property verification
+
+Property-based tests may verify general properties over many generated inputs.
+
+Useful examples for Monad might include:
+
+```text
+identity remains stable across permitted location changes
+
+serialization round-trip preserves semantic meaning
+
+projection rebuild is deterministic
+
+reconciliation never silently merges ambiguous Subjects
+```
+
+These may expose edge cases fixture-based testing misses.
+
+---
+
+# Invariant checks
+
+Some invariants may be inexpensive enough to evaluate continuously.
+
+For example:
+
+```text
+no duplicate canonical Subject ID
+
+all required authority references resolve
+
+no derived artifact marked canonical without explicit authority
+```
+
+Continuous checks can detect model corruption early.
+
+---
+
+# Architecture verification
+
+Architecture can be verified through:
+
+```text
+dependency rules
+
+module boundaries
+
+interface checks
+
+review
+
+static graph constraints
+
+forbidden dependency tests
+```
+
+Some architecture rules are machine-checkable.
+
+Others require judgment.
+
+---
+
+# Security verification
+
+Security Verification may include:
+
+```text
+threat-model review
+
+dependency scanning
+
+static analysis
+
+dynamic testing
+
+credential scanning
+
+authorization tests
+
+permission review
+
+attack simulation
+
+manual security review
+```
+
+Security assurance should rarely depend on one method.
+
+---
+
+# Performance verification
+
+Performance Verification requires a defined workload.
+
+Example:
+
+```text
+Requirement:
+query p95 ≤ 50 ms
+
+Dataset:
+100,000 Subjects
+
+Hardware:
+reference development profile
+
+Method:
+100 warm runs after 10 warmup runs
+
+Result:
+p95 = 42 ms
+```
+
+Without workload and environment, the number has little engineering meaning.
+
+---
+
+# Migration verification
+
+Migrations deserve explicit Verification because success often cannot be inferred from command completion.
+
+Potential checks:
+
+```text
+source record count
+
+destination record count
+
+identity preservation
+
+referential integrity
+
+schema version
+
+semantic invariants
+
+failed records
+
+reconciliation
+
+rollback/compensation readiness
+```
+
+---
+
+# Data migration example
+
+```text
+Before:
+12,410 Subjects
+
+After:
+12,410 Subjects
+
+Identity preserved:
+12,408
+
+Manual review required:
+2
+
+Lost:
+0
+```
+
+The correct aggregate result may be:
+
+```text
+incomplete pending review
+```
+
+rather than blindly:
+
+```text
+passed
+```
+
+---
+
+# Projection verification
+
+Derived projections should be verifiable against canonical state.
+
+Possible checks:
+
+```text
+all projected Subjects originate from canonical records
+
+projection revision matches model revision
+
+rebuild is deterministic
+
+stale items are identified
+
+no projection writes become canonical accidentally
+```
+
+---
+
+# Reconciliation verification
+
+Reconciliation should establish:
+
+```text
+native state observed
+
+identity resolved
+
+expected changes recognized
+
+unexpected changes surfaced
+
+model updated appropriately
+
+ambiguity preserved where unresolved
+```
+
+A reconciliation process that silently guesses may pass mechanically while failing semantically.
+
+---
+
+# Build verification
+
+A successful build may establish:
+
+```text
+source compiles
+
+dependencies resolve
+
+expected artifact produced
+```
+
+It does not establish:
+
+```text
+behavior correct
+
+security acceptable
+
+release ready
+```
+
+Build Verification is one layer.
+
+---
+
+# Release verification
+
+A release candidate may require a bundle of Verifications:
+
+```text
+build
+
+acceptance
+
+compatibility
+
+security
+
+migration
+
+packaging
+
+documentation
+
+reproducibility
+```
+
+The [Release](/docs/artifacts/releases) process can use these results as lifecycle gates.
+
+---
+
+# Release readiness
+
+A useful projection might show:
+
+```text
+Build Verification             PASS
+Acceptance Verification        PASS
+Security Verification          PASS
+Migration Verification         PASS
+Compatibility Verification     INCOMPLETE
+Release Approval               PENDING
+
+Overall:
+NOT READY
+```
+
+This preserves the actual reason release is blocked.
+
+---
+
+# Verification waivers
+
+Sometimes required Verification cannot be completed.
+
+A waiver should identify:
+
+```text
+which Verification was waived
+
+why
+
+scope
+
+risk
+
+approving Authority
+
+expiration
+
+mitigation
+```
+
+Waiver does not mean:
+
+```text
+verification passed
+```
+
+It means:
+
+```text
+proceeding despite missing assurance
+```
+
+That distinction should remain visible.
+
+---
+
+# Verification exceptions
+
+Exceptions should be explicit and bounded.
+
+For example:
+
+```text
+Windows compatibility verification waived
+for internal Linux-only preview release.
+```
+
+The exception should not silently transfer to the public release.
+
+---
+
+# Verification failures
+
+Failure should trigger diagnosis appropriate to the failure class.
+
+Potential causes include:
+
+```text
+implementation defect
+
+incorrect Requirement
+
+incorrect Specification
+
+broken test
+
+stale fixture
+
+invalid environment
+
+tool defect
+
+incorrect assumption
+
+unsupported condition
+```
+
+The system should not assume every failed Verification means the implementation is wrong.
+
+---
+
+# Failure classification
+
+Useful classifications might include:
+
+```text
+product failure
+
+verification-method failure
+
+environment failure
+
+dependency failure
+
+configuration failure
+
+Evidence failure
+
+expectation failure
+```
+
+The final taxonomy should remain purpose-driven.
+
+---
+
+# False positive
+
+A method may report failure where the expectation is actually satisfied.
+
+Example:
+
+```text
+test fixture outdated
+```
+
+The Verification method itself needs correction.
+
+---
+
+# False negative
+
+A method may report success while the system is actually wrong.
+
+This is especially dangerous.
+
+Examples:
+
+```text
+insufficient coverage
+
+incorrect assertion
+
+mock differs from real dependency
+
+misconfigured scanner
+```
+
+Verification methods themselves therefore require validation.
+
+---
+
+# Verify the verifier
+
+Important Verification infrastructure may itself require assurance.
+
+For example:
+
+```text
+migration verification script
+
+release-checking tool
+
+schema validator
+
+custom security rule
+```
+
+Useful questions include:
+
+```text
+Has the verifier been tested?
+
+Can it detect known failures?
+
+Is its version recorded?
+
+Is its output reproducible?
+
+What are its limitations?
+```
+
+---
+
+# Golden fixtures
+
+Known-good and known-bad fixtures can validate Verification tooling.
+
+Example:
+
+```text
+fixture A:
+must pass
+
+fixture B:
+must fail
+
+fixture C:
+must report ambiguity
+```
+
+This ensures the verification harness is actually exercising meaningful behavior.
+
+---
+
+# Mutation testing
+
+Some domains may benefit from deliberately introducing defects and ensuring tests detect them.
+
+This can provide Evidence about test-suite sensitivity.
+
+It should be adopted only where the benefit justifies the cost.
+
+---
+
+# Verification environments
+
+Environment can materially affect results.
+
+Examples:
+
+```text
+operating system
+
+architecture
+
+toolchain versions
+
+database version
+
+network conditions
+
+environment variables
+
+dependency versions
+
+hardware
+```
+
+Record environment details proportional to the Claim being verified.
+
+---
+
+# Environment equivalence
+
+It is often impossible to reproduce an environment byte-for-byte.
+
+What matters is preserving the characteristics relevant to the Verification.
+
+For example:
+
+```text
+performance benchmark
+```
+
+may require hardware detail.
+
+A parser unit test may not.
+
+---
+
+# Local-first verification
+
+Monad's local-first orientation means important Verification should work locally where practical.
+
+This supports:
+
+```text
+fast feedback
+
+offline operation
+
+developer control
+
+reproducibility
+
+reduced infrastructure dependency
+```
+
+CI can then provide independent or standardized Verification rather than becoming the only place assurance exists.
+
+---
+
+# Local and CI verification
+
+A useful model is:
+
+```text
+Local
+→ fast, developer-facing Verification
+
+CI
+→ standardized independent Verification
+```
+
+The same logical Verification contract may be exposed through both surfaces.
+
+---
+
+# Native tools remain first-class
+
+Monad should use strong native tools rather than reimplement them unnecessarily.
+
+Examples:
+
+```text
+cargo test
+
+pytest
+
+Vitest
+
+Biome
+
+Ruff
+
+TypeScript compiler
+
+database integrity checks
+
+GitHub Actions
+```
+
+Monad's role is to connect results to engineering meaning.
+
+---
+
+# Tool output normalization
+
+Different native tools expose different result formats.
+
+Monad may normalize shared concepts:
+
+```text
+Verification ID
+
+status
+
+Subject
+
+revision
+
+method
+
+Evidence references
+```
+
+while preserving native reports.
+
+---
+
+# Preserve native reports
+
+A normalized result might say:
+
+```text
+status:
+failed
+
+failed_checks:
+3
+```
+
+The original native report should remain retrievable when useful.
+
+Normalization should add semantic interoperability, not erase diagnostic detail.
+
+---
+
+# Verification adapters
+
+Adapters may translate native tool behavior into Monad's Verification model.
+
+Conceptually:
+
+```text
+Native Tool
+    ↓
+Integration Adapter
+    ↓
+Evidence
+    ↓
+Verification Evaluation
+```
+
+The adapter must not exaggerate what the native tool established.
+
+---
+
+# Verification and command/query separation
+
+A Verification may be:
+
+```text
+pure inspection
+```
+
+or it may require:
+
+```text
+execution
+```
+
+For example:
+
+```text
+inspect schema version
+```
+
+may be a Query.
+
+```text
+run full migration fixture
+```
+
+requires Execution.
+
+The interface should make side effects explicit.
+
+---
+
+# Side-effecting verification
+
+Some Verification methods may alter temporary state.
+
+Examples:
+
+```text
+integration test database
+
+temporary deployment
+
+migration rehearsal
+
+generated fixture workspace
+```
+
+These should be governed appropriately.
+
+---
+
+# Destructive verification
+
+High-risk Verification may intentionally exercise destructive behavior.
+
+Examples:
+
+```text
+disaster recovery test
+
+backup restoration
+
+failover test
+```
+
+The Verification method itself therefore needs authorization and containment.
+
+---
+
+# Verification operation identity
+
+A significant Verification execution should have an operation identity.
+
+This supports:
+
+```text
+correlation
+
+retry analysis
+
+Evidence linkage
+
+cancellation
+
+audit
+
+failure recovery
+```
+
+especially for long-running or remote Verification.
+
+---
+
+# Idempotency
+
+Verification should be repeatable without corrupting the Subject wherever possible.
+
+Pure checks are naturally idempotent.
+
+Side-effecting Verification may require:
+
+```text
+isolated fixtures
+
+temporary environments
+
+cleanup
+
+explicit operation semantics
+```
+
+---
+
+# Retry
+
+A failed Verification run should not always be blindly retried.
+
+If:
+
+```text
+test failed because implementation is wrong
+```
+
+retrying changes nothing.
+
+If:
+
+```text
+remote dependency timed out
+```
+
+retry may be sensible.
+
+Failure classification informs retry policy.
+
+---
+
+# Flaky verification
+
+A flaky Verification method reduces trust.
+
+Monad should make recurring instability visible.
+
+Potential signals:
+
+```text
+passes and fails against same revision
+
+environment-sensitive result
+
+timing instability
+
+intermittent external dependency
+```
+
+A flaky test should not silently provide the same assurance as a deterministic one.
+
+---
+
+# Flakiness is evidence
+
+Repeated flakiness is itself Evidence about the Verification system or product.
+
+For example:
+
+```text
+20 runs
+
+16 pass
+
+4 fail
+```
+
+This may indicate:
+
+```text
+race condition
+
+environment issue
+
+test defect
+
+non-deterministic implementation
+```
+
+Suppressing the failures loses useful information.
+
+---
+
+# Verification duration
+
+Verification cost matters.
+
+Useful metadata may include:
+
+```text
+duration
+
+resource use
+
+queue time
+
+environment startup
+```
+
+This enables engineering trade-offs around assurance speed.
+
+---
+
+# Verification tiers
+
+A project may eventually define tiers such as:
+
+```text
+fast checks
+
+commit checks
+
+integration checks
+
+release checks
+
+deep assurance
+```
+
+These should reflect actual workflow needs rather than arbitrary ceremony.
+
+---
+
+# Continuous verification
+
+Some conditions can be verified continuously.
+
+Examples:
+
+```text
+schema validity
+
+repository invariants
+
+Policy conformance
+
+dependency constraints
+```
+
+Others should run only when relevant.
+
+Continuous Verification should not become continuous waste.
+
+---
+
+# Impact-aware verification
+
+Monad's impact model may eventually help determine:
+
+```text
+which Verifications became relevant because of this change?
+```
+
+For example:
+
+```text
+change:
+CLI help text
+
+impact:
+documentation verification
+```
+
+versus:
+
+```text
+change:
+identity resolver
+
+impact:
+identity fixtures
+reconciliation tests
+migration compatibility
+projection rebuild verification
+```
+
+This is more useful than running everything indiscriminately.
+
+---
+
+# Selective verification
+
+Selective Verification is safe only when dependency reasoning is trustworthy.
+
+If impact analysis is uncertain:
+
+```text
+expand verification scope
+```
+
+rather than silently assume unaffected behavior.
+
+---
+
+# Confidence and verification
+
+Verification increases confidence.
+
+It does not create certainty beyond its scope.
+
+A result may support:
+
+```text
+high confidence under tested conditions
+```
+
+while leaving:
+
+```text
+untested edge cases
+```
+
+explicit.
+
+---
+
+# No universal confidence score
+
+Avoid reducing assurance to:
+
+```text
+verification confidence = 93
+```
+
+unless the meaning is rigorously defined.
+
+Better to expose:
+
+```text
+methods
+
+coverage
+
+results
+
+freshness
+
+Evidence
+
+limitations
+```
+
+and let relevant decisions reason from them.
+
+---
+
+# Contradictory verification
+
+Two Verification results may conflict.
+
+Example:
+
+```text
+local:
+pass
+
+CI:
+fail
+```
+
+or:
+
+```text
+unit tests:
+pass
+
+end-to-end:
+fail
+```
+
+The correct response is not arbitrary precedence.
+
+Investigate:
+
+```text
+scope
+
+environment
+
+revision
+
+method
+
+coverage
+
+fixture
+
+dependency state
+```
+
+Both results may be valid within different conditions.
+
+---
+
+# Verification precedence
+
+Some Governance contexts may define preferred assurance sources.
+
+For example:
+
+```text
+release requires standardized CI result
+```
+
+That does not make local Verification meaningless.
+
+It means CI is the required authoritative source for that particular gate.
+
+---
+
+# Verification correction
+
+If a Verification was recorded incorrectly:
+
+```text
+preserve original result
+
+record correction
+
+identify reason
+
+re-evaluate affected conclusions
+```
+
+Do not rewrite history invisibly.
+
+---
+
+# Verification invalidates downstream state
+
+Suppose:
+
+```text
+VER-044
+previously: passed
+
+later determined:
+invalid
+```
+
+Then dependent state may need reconsideration:
+
+```text
+Requirement status
+
+release assurance
+
+decision confidence
+
+Evidence bundles
+
+compliance reports
+```
+
+The graph should make that impact discoverable.
+
+---
+
+# Verification traceability
+
+A mature chain might be:
+
+```text
+Problem
+  ↓
+Requirement
+  ↓
+Specification
+  ↓
+Implementation
+  ↓
+Verification
+  ↓
+Evidence
+  ↓
+Release
+```
+
+For example:
+
+```text
+REQ-017
+  ↓ implemented-by
+SPEC-008
+  ↓ realized-by
+commit abc123
+  ↓ verified-by
+VER-044
+  ↓ supported-by
+EV-203
+```
+
+Traceability turns assurance into something inspectable.
+
+---
+
+# Verification records
+
+A conceptual Verification record might include:
+
+```text
+id
+
+target
+
+expectation
+
+method
+
+scope
+
+revision
+
+environment
+
+producer
+
+started_at
+
+completed_at
+
+result
+
+findings
+
+Evidence
+
+limitations
+
+provenance
+```
+
+This is intentionally conceptual.
+
+Exact fields belong in the relevant [Schemas](/docs/artifacts/schemas).
+
+---
+
+# Verification method identity
+
+Reusable methods may deserve their own identity.
+
+For example:
+
+```text
+VER-METHOD-IDENTITY-RENAME
+```
+
+could be executed against many revisions.
+
+This separates:
+
+```text
+what procedure defines the check
+```
+
+from:
+
+```text
+a specific execution of that procedure
+```
+
+---
+
+# Method versus run
+
+Conceptually:
+
+```text
+Verification Method
+      ↓ executed-as
+Verification Run
+      ↓ produces
+Evidence
+      ↓ yields
+Verification Result
+```
+
+This distinction becomes useful for repeatability and history.
+
+---
+
+# Verification plans
+
+Complex work may define a Verification Plan.
+
+For example:
+
+```text
+Feature F-024
+
+Required Verification:
+1. unit behavior
+2. schema compatibility
+3. migration
+4. end-to-end workflow
+5. architecture review
+```
+
+A Verification Plan is useful when several independent checks jointly establish acceptance.
+
+---
+
+# Verification plan versus test plan
+
+A test plan is usually focused on testing.
+
+A Verification Plan may also include:
+
+```text
+review
+
+analysis
+
+benchmarking
+
+inspection
+
+reconciliation
+
+security evaluation
+```
+
+This broader framing better matches engineering assurance.
+
+---
+
+# Verification reports
+
+Human-facing reports may summarize:
+
+```text
+scope
+
+methods
+
+results
+
+Evidence
+
+failures
+
+limitations
+
+remaining gaps
+```
+
+The report is a projection over underlying Verification state.
+
+It should not become the only source of truth.
+
+---
+
+# Verification dashboards
+
+Derived views may expose:
+
+```text
+Requirement coverage
+
+current failures
+
+stale results
+
+release readiness
+
+unverified critical Subjects
+
+waived checks
+
+Verification duration trends
+```
+
+These are useful [Projections](/docs/system/concepts), not canonical state themselves.
+
+---
+
+# Verification indexes
+
+An index may support queries by:
+
+```text
+Requirement
+
+Specification
+
+Subject
+
+result
+
+method
+
+revision
+
+freshness
+
+risk
+
+release
+
+producer
+```
+
+As assurance data grows, discoverability matters.
+
+---
+
+# Verification and observability
+
+Operational observability may provide data used for Verification.
+
+For example:
+
+```text
+Requirement:
+error rate < 0.1%
+```
+
+Runtime metrics may provide Evidence.
+
+But telemetry collection itself is not automatically Verification.
+
+An explicit criterion still needs to be evaluated.
+
+---
+
+# Runtime verification
+
+Some Requirements can only be meaningfully evaluated under real operation.
+
+Examples:
+
+```text
+availability
+
+latency
+
+resource usage
+
+real-world compatibility
+
+long-duration stability
+```
+
+Verification therefore does not always end at release.
+
+---
+
+# Post-release verification
+
+A release may be conditionally accepted with follow-up checks.
+
+Example:
+
+```text
+release
+   ↓
+24-hour operational verification
+   ↓
+full promotion
+```
+
+This is especially useful for progressive delivery.
+
+---
+
+# Verification and rollback
+
+Failed Verification may justify rollback.
+
+But rollback is an Execution decision governed separately.
+
+Verification should report:
+
+```text
+what failed
+
+what changed
+
+what Evidence exists
+```
+
+Governance and execution then determine:
+
+```text
+repair
+
+retry
+
+rollback
+
+compensate
+
+escalate
+```
+
+---
+
+# Verification and compensation
+
+If an operation cannot be rolled back atomically, failed Verification may lead to compensating actions.
+
+Those actions must themselves be:
+
+```text
+planned
+
+authorized
+
+executed
+
+verified
+```
+
+Compensation is not magic reversal.
+
+---
+
+# Verification and partial failure
+
+Consider:
+
+```text
+file update:
+success
+
+Git commit:
+success
+
+GitHub issue update:
+failed
+```
+
+Verification may conclude:
+
+```text
+planned operation:
+partially realized
+```
+
+The system can then:
+
+```text
+reconcile
+
+resume
+
+compensate
+
+escalate
+```
+
+rather than pretending the whole operation either succeeded or failed atomically.
+
+---
+
+# Verification and uncertainty
+
+A mature engineering system is allowed to say:
+
+```text
+unknown
+```
+
+Verification should preserve uncertainty where Evidence does not justify stronger conclusions.
+
+That is better than false certainty.
+
+---
+
+# Verification and assumptions
+
+Some engineering work depends on assumptions.
+
+Verification can turn assumptions into tested Claims.
+
+Example:
+
+```text
+Assumption:
+filesystem rename events are sufficient
+for identity continuity.
+```
+
+Verification:
+
+```text
+exercise rename/move/recovery scenarios.
+```
+
+Evidence may:
+
+```text
+support
+
+weaken
+
+falsify
+```
+
+the assumption.
+
+---
+
+# Verification and falsification
+
+Verification should be capable of proving us wrong.
+
+A process that can only produce success is not meaningful Verification.
+
+Strong Verification asks:
+
+> **What result would demonstrate that this Claim is false?**
+
+This principle is especially important for Monad's own architectural assumptions.
+
+---
+
+# Verify Monad itself
+
+Monad should use the same assurance model against its own Claims.
+
+Important questions include:
+
+```text
+Does semantic identity actually survive native change?
+
+Does graph-based impact analysis outperform simpler mechanisms?
+
+Does explicit provenance materially improve reconstruction?
+
+Does governance reduce unsafe automation?
+
+Does context construction improve AI engineering outcomes?
+
+Does the metadata burden remain acceptable?
+
+Do projections remain trustworthy?
+
+Can native changes be reconciled accurately?
+```
+
+If Evidence contradicts the architecture, Monad should change.
+
+---
+
+# Verification should challenge complexity
+
+Every complex subsystem should eventually answer:
+
+```text
+What Evidence demonstrates
+that this complexity earns its cost?
+```
+
+Verification is therefore not merely about correctness.
+
+It can also test whether architectural assumptions remain worthwhile.
+
+---
+
+# Minimum viable verification
+
+The first useful Monad Verification model does not require an enterprise assurance platform.
+
+A minimal form may be:
+
+```text
+Verification ID
+
+Target
+
+Expectation
+
+Method
+
+Revision
+
+Result
+
+Evidence Reference
+```
+
+plus enough provenance to interpret the result.
+
+That is sufficient to establish a strong semantic foundation.
+
+---
+
+# Verification maturity
+
+A reasonable progression is:
+
+```text
+Stage 1
+native test/report links
+
+Stage 2
+structured Verification identities
+
+Stage 3
+Requirement and Specification linkage
+
+Stage 4
+freshness and invalidation
+
+Stage 5
+risk-aware gates and Evidence obligations
+
+Stage 6
+impact-aware selective Verification
+
+Stage 7
+cross-system continuous assurance
+```
+
+Each stage should be justified by demonstrated need.
+
+---
+
+# Verification invariants
+
+The Verification system should preserve several foundational rules:
+
+```text
+Verification ≠ Evidence
+
+Verification ≠ Approval
+
+Verification ≠ Review
+
+Execution success ≠ Verification success
+
+Passed ≠ universally correct
+
+Historical pass ≠ current pass
+
+Incomplete ≠ passed
+
+Blocked ≠ failed
+
+Waived ≠ passed
+
+AI opinion ≠ deterministic verification
+
+Native tool result ≠ broader Claim automatically
+
+Verification must remain scoped
+
+Consequential results must remain traceable to Evidence
+
+Corrections must preserve history
+```
+
+---
+
+# Verification quality criteria
+
+High-quality Verification should be:
+
+```text
+specific
+
+scoped
+
+repeatable where practical
+
+Evidence-backed
+
+revision-aware
+
+provenance-aware
+
+honest about limitations
+
+capable of failure
+
+capable of becoming stale
+
+proportional to risk
+
+connected to engineering intent
+```
+
+---
+
+# Verification anti-patterns
+
+Avoid:
+
+```text
+"tests pass" with no Requirement linkage
+
+green CI treated as universal correctness
+
+manual review presented as deterministic proof
+
+stale results treated as current
+
+verification against unknown revision
+
+tests written only after implementation to mirror behavior
+
+waived checks displayed as passes
+
+flaky checks silently retried until green
+
+AI self-review treated as sufficient assurance
+
+coverage percentage treated as correctness
+
+tool exit code treated as engineering success
+
+failed Evidence deleted after a later successful run
+```
+
+---
+
+# Verification should answer a question
+
+Before creating a Verification activity, ask:
+
+> **What precise engineering question will this answer?**
+
+Examples:
+
+```text
+Does this implementation satisfy REQ-017?
+
+Did this migration preserve every Subject?
+
+Is this release candidate backward compatible?
+
+Does the current architecture obey the dependency rule?
+
+Can this Projection be reconstructed deterministically?
+
+Does this AI capability remain inside its authorized scope?
+```
+
+If the question is vague, the Verification will probably be vague too.
+
+---
+
+# Definition of Ready
+
+Verification is ready to execute when:
+
+```text
+the target is identifiable
+
+the expectation is explicit
+
+the applicable revision is known
+
+the method is defined
+
+the acceptance criterion is known
+
+required inputs exist
+
+required environment is available
+
+required Authority exists
+
+required Evidence format is understood
+```
+
+---
+
+# Definition of Done
+
+Verification is complete when:
+
+```text
+the method was executed or performed
+
+the relevant observations were captured
+
+required Evidence exists
+
+the result is explicit
+
+scope is recorded
+
+revision is recorded
+
+limitations are visible
+
+findings are recorded
+
+provenance is sufficient
+
+downstream state reflects the result where appropriate
+```
+
+---
+
+# Example: requirement verification
+
+```text
+Requirement:
+REQ-042
+
+Expectation:
+Round-trip transformation preserves comments.
+
+Method:
+250-fixture acceptance suite.
+
+Revision:
+abc123
+
+Observed:
+250 passed
+0 failed
+
+Evidence:
+EV-128
+
+Verification Result:
+PASS
+```
+
+---
+
+# Example: incomplete platform verification
+
+```text
+Requirement:
+CLI must operate on Linux,
+macOS, and Windows.
+
+Linux:
+PASS
+
+macOS:
+PASS
+
+Windows:
+NOT EXECUTED
+
+Overall:
+INCOMPLETE
+```
+
+No amount of formatting should turn that into a full pass.
+
+---
+
+# Example: successful execution, failed verification
+
+```text
+Operation:
+database migration
+
+Execution:
+SUCCESS
+
+Records before:
+12,410
+
+Records after:
+12,389
+
+Integrity Verification:
+FAILED
+
+Overall:
+CHANGED BUT UNVERIFIED
+```
+
+This state requires reconciliation or corrective action.
+
+---
+
+# Example: stale verification
+
+```text
+Verification:
+VER-211
+
+Target revision:
+abc123
+
+Result:
+PASS
+
+Current revision:
+def456
+
+Affected component changed:
+yes
+
+Current status:
+STALE
+```
+
+The historical result remains valid for `abc123`.
+
+It no longer establishes correctness for `def456`.
+
+---
+
+# Example: human architecture verification
+
+```text
+Expectation:
+Domain layer must not depend on
+infrastructure-specific types.
+
+Method:
+Architecture review
+
+Subject:
+SPEC-017 implementation
+
+Reviewer:
+authorized architecture reviewer
+
+Finding:
+database-specific identifier type
+leaks through domain interface.
+
+Result:
+FAIL
+```
+
+Human judgment can be rigorous when its criteria are explicit.
+
+---
+
+# Example: probabilistic capability verification
+
+```text
+Capability:
+AI requirement classifier
+
+Evaluation corpus:
+500 labeled examples
+
+Runs:
+3 per example
+
+Required:
+≥ 95% classification accuracy
+and 0 critical-category omissions
+
+Observed:
+96.2% accuracy
+2 critical omissions
+
+Result:
+FAIL
+```
+
+The average score does not override the explicit critical-failure criterion.
+
+---
+
+# Example: verification bundle
+
+```text
+Release Candidate rc-4
+        │
+        ├── VER-410 Build              PASS
+        ├── VER-411 Unit               PASS
+        ├── VER-412 Integration        PASS
+        ├── VER-413 Security           PASS
+        ├── VER-414 Migration          PASS
+        └── VER-415 Compatibility      INCOMPLETE
+
+Release Verification:
+INCOMPLETE
+```
+
+The aggregate conclusion follows from explicit gates.
+
+---
+
+# Example: impact-aware reverification
+
+```text
+Change:
+Identity Resolver modified
+
+Potentially affected:
+- rename continuity
+- move continuity
+- reconciliation
+- migration binding
+- projections using Subject identity
+
+Required reverification:
+VER-IDENTITY-RENAME
+VER-IDENTITY-MOVE
+VER-RECONCILIATION
+VER-MIGRATION-BINDING
+```
+
+This is more meaningful than rerunning unrelated checks simply because a commit occurred.
+
+---
+
+# Verification trace example
+
+```text
+Problem
+  ↓
+P-004:
+Engineering identity breaks when files move
+  ↓
+Requirement
+  ↓
+REQ-017:
+Subject identity survives Representation relocation
+  ↓
+Specification
+  ↓
+SPEC-008:
+Identity reconciliation contract
+  ↓
+Implementation
+  ↓
+commit abc123
+  ↓
+Verification
+  ↓
+VER-044:
+rename/move fixture suite
+  ↓
+Evidence
+  ↓
+EV-203:
+500 scenarios, 500 passed
+```
+
+The result is an inspectable engineering argument.
+
+---
+
+# Verification as part of the control loop
+
+Monad's larger operational loop is:
+
+```text
+Intent
+   ↓
+Plan
+   ↓
+Governance
+   ↓
+Execution
+   ↓
+Observation
+   ↓
+Verification
+   ↓
+Evidence
+   ↓
+Reconciliation
+   ↓
+Lifecycle
+   ↓
+Updated System Understanding
+```
+
+Verification is where intended engineering meaning confronts observed reality.
+
+---
+
+# The governing principle
+
+> **An engineering state should be considered verified only when an explicit expectation has been evaluated against appropriate, inspectable Evidence within a known scope.**
+
+That principle prevents Monad from confusing:
+
+```text
+activity with progress
+
+execution with correctness
+
+confidence with Evidence
+
+approval with assurance
+
+tests with complete Verification
+
+historical truth with current truth
+```
+
+Verification exists so the system can explain not merely what was built, but why anyone should believe it satisfies what was required.
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Reviews"
+    href="/docs/artifacts/reviews"
+  >
+    See how structured human and machine examination produces findings, assurance, and additional Evidence.
+  </Card>
+
+<Card
+title="Evidence"
+href="/docs/artifacts/evidence"
+>
+Inspect the observations and records that support Verification Results.
+</Card>
+
+<Card
+title="Releases"
+href="/docs/artifacts/releases"
+>
+See how verified engineering state becomes an explicitly supported release.
+</Card>
+
+<Card
+title="Traceability"
+href="/docs/artifacts/traceability"
+>
+Follow Requirements through Specifications, implementation, Verification, Evidence, and Release.
+</Card>
+</Cards>
+
+---
+
+## Related artifact views
+
+<Cards>
+  <Card
+    title="Requirements"
+    href="/docs/artifacts/requirements"
+  >
+    Inspect the expectations that Verification ultimately evaluates.
+  </Card>
+
+<Card
+title="Specifications"
+href="/docs/artifacts/specifications"
+>
+See how precise engineering contracts define behavior that can be verified.
+</Card>
+
+<Card
+title="Experiments"
+href="/docs/artifacts/experiments"
+>
+Explore how uncertain hypotheses are investigated before becoming settled expectations.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

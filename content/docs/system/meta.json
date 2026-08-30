@@ -1,0 +1,15 @@
+{
+  "title": "System",
+  "description": "The current authoritative explanation of Monad.",
+  "pages": [
+    "index",
+    "architecture",
+    "components",
+    "concepts",
+    "execution",
+    "glossary",
+    "governance",
+    "integrations",
+    "interfaces"
+  ]
+}

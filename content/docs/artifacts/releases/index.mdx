@@ -1,0 +1,3863 @@
+---
+title: Releases
+description: How Monad identifies, evaluates, records, and communicates supported system states, connecting implementation, verification, evidence, governance, migration, compatibility, and operational readiness.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Supported system states
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    A release is more than a tag, build artifact, or deployment. It is an explicitly identified system state that Monad is prepared to describe, support, verify, trace, and evolve.
+  </p>
+</div>
+
+# What is a release?
+
+A **Release** identifies a particular supported state of the system and preserves the engineering record necessary to understand what that state contains, how it was produced, what it satisfies, which risks remain, and how it relates to surrounding versions.
+
+The central question is:
+
+> **What exactly are we releasing, under what authority, against which requirements and specifications, with what evidence, compatibility guarantees, known risks, and recovery path?**
+
+A release may correspond to:
+
+```text
+software binaries
+
+packages
+
+container images
+
+CLI versions
+
+libraries
+
+schemas
+
+protocol versions
+
+documentation sets
+
+configuration contracts
+
+migration bundles
+
+system-model versions
+
+policy packages
+
+combinations of these
+```
+
+The release artifact connects those concrete outputs to their engineering meaning.
+
+---
+
+# Release is not deployment
+
+A release may be deployed.
+
+But:
+
+```text
+Release ≠ Deployment
+```
+
+A release answers:
+
+```text
+What system state has been declared supportable?
+```
+
+A deployment answers:
+
+```text
+Where is some system state currently running?
+```
+
+The same release may be:
+
+```text
+not deployed
+
+deployed locally
+
+deployed to staging
+
+deployed to production
+
+deployed to several environments simultaneously
+```
+
+Deployment belongs to execution and operations.
+
+Release records the supported product or system state.
+
+---
+
+# Release is not a Git tag
+
+A Git tag is useful.
+
+It may act as a Native Reference for a release.
+
+But:
+
+```text
+Git tag ≠ Release
+```
+
+A tag alone does not necessarily tell us:
+
+```text
+which Requirements are satisfied
+
+which Specifications govern behavior
+
+what Verification occurred
+
+which artifacts were produced
+
+what risks remain
+
+which migrations are required
+
+what compatibility is promised
+
+whether the release was approved
+```
+
+Monad should preserve the tag while modeling the larger release meaning around it.
+
+---
+
+# Release is not a build
+
+Likewise:
+
+```text
+Build ≠ Release
+```
+
+A build is an execution result.
+
+Thousands of builds may occur without any of them becoming releases.
+
+A release may reference one or more validated builds:
+
+```text
+source revision
+   ↓
+build
+   ↓
+Verification
+   ↓
+release candidate
+   ↓
+Approval
+   ↓
+Release
+```
+
+---
+
+# Release is not a version number
+
+A version number is an identifier or label.
+
+For example:
+
+```text
+1.4.0
+```
+
+may identify a release.
+
+But the release itself includes substantially more meaning:
+
+```text
+identity
+
+contents
+
+source revision
+
+artifacts
+
+compatibility
+
+Verification
+
+Evidence
+
+known issues
+
+governance
+
+provenance
+
+lifecycle
+```
+
+---
+
+# Release is a commitment
+
+Publishing a release creates an engineering commitment.
+
+Depending on its maturity and policy, that commitment may include:
+
+```text
+documented behavior
+
+supported interfaces
+
+compatibility expectations
+
+migration paths
+
+security response
+
+defect handling
+
+reproducible artifacts
+
+known limitations
+```
+
+The stronger the commitment, the more explicit the release record should become.
+
+---
+
+# Releases connect engineering work to supported reality
+
+A release sits near the end of a longer chain:
+
+```text
+Problem
+   ↓
+Goal
+   ↓
+Requirement
+   ↓
+Decision
+   ↓
+Specification
+   ↓
+Work Package
+   ↓
+Implementation
+   ↓
+Review
+   ↓
+Verification
+   ↓
+Evidence
+   ↓
+Release
+```
+
+The release should not erase that chain.
+
+It should make the relevant parts of it inspectable.
+
+---
+
+# What a release should identify
+
+A consequential release should make it possible to determine:
+
+```text
+What is this release?
+
+What revision produced it?
+
+Which artifacts belong to it?
+
+Which Requirements does it claim to satisfy?
+
+Which Verification results apply?
+
+What Evidence supports those claims?
+
+Which changes are included?
+
+Which changes are excluded?
+
+What compatibility expectations exist?
+
+Are migrations required?
+
+What known issues remain?
+
+What risks were accepted?
+
+Who authorized publication?
+
+What lifecycle status does it have?
+```
+
+Not every release needs every field.
+
+The model should scale with consequence.
+
+---
+
+# Release identity
+
+A release should have stable semantic identity independent of any single Representation.
+
+For example:
+
+```text
+Release
+  semantic identity:
+  REL-0007
+
+Representations:
+  Git tag v0.7.0
+  GitHub Release
+  package registry entry
+  container image
+  release notes page
+```
+
+These are connected views or outputs of the same release.
+
+They are not necessarily the release itself.
+
+---
+
+# Release identity and version identity
+
+A semantic Release identity and a product version may be related but distinct.
+
+For example:
+
+```text
+Release ID:
+REL-0042
+
+Version:
+0.8.0
+```
+
+The internal durable identifier can survive changes in presentation or tooling.
+
+The public version communicates compatibility and progression.
+
+---
+
+# Release scope
+
+A release may cover:
+
+```text
+one package
+
+one repository
+
+one CLI
+
+a coordinated package set
+
+a service
+
+an entire platform
+
+a schema family
+
+a documentation corpus
+
+a multi-repository system
+```
+
+The release record should make the scope explicit.
+
+Otherwise statements such as:
+
+```text
+Monad 1.0 released
+```
+
+may hide which components actually participate.
+
+---
+
+# Coordinated releases
+
+Some systems require several components to move together.
+
+For example:
+
+```text
+CLI
+Core library
+Schema package
+Policy library
+Documentation
+```
+
+A coordinated release may define a compatibility set:
+
+```text
+Release REL-0100
+
+CLI:
+1.0.0
+
+Core:
+1.0.0
+
+Schema:
+3
+
+Policy:
+1.0
+
+Docs:
+revision 87
+```
+
+This can be more informative than assuming all components share one version.
+
+---
+
+# Independent component releases
+
+Other components may evolve independently.
+
+Monad should not force lockstep versioning merely because components live in the same repository.
+
+The release model should describe actual compatibility boundaries rather than impose artificial ones.
+
+---
+
+# Release lifecycle
+
+An illustrative release lifecycle might be:
+
+```text
+Planned
+   ↓
+Candidate
+   ↓
+Approved
+   ↓
+Published
+   ↓
+Supported
+   ↓
+Deprecated
+   ↓
+End of Support
+   ↓
+Archived
+```
+
+Not every project needs every state.
+
+The important point is that release status should be explicit.
+
+---
+
+# Release candidate
+
+A **Release Candidate** identifies a state believed to be potentially releasable but not yet declared final.
+
+Conceptually:
+
+```text
+Implementation Complete
+        ↓
+Release Candidate
+        ↓
+Review + Verification
+        ↓
+Approve or Reject
+        ↓
+Release
+```
+
+A candidate gives Verification and Review a stable target.
+
+---
+
+# Candidate identity matters
+
+Verification should ideally evaluate:
+
+```text
+RC-4
+```
+
+not an unstable branch that continues changing underneath the process.
+
+If the candidate changes materially:
+
+```text
+RC-4
+→ invalidated
+RC-5
+→ new candidate
+```
+
+This preserves revision integrity.
+
+---
+
+# Release approval
+
+A release may require explicit governance Approval.
+
+The Approval should bind to a specific candidate or revision.
+
+For example:
+
+```text
+Approved:
+REL-008 candidate revision 4
+
+not:
+
+whatever happens to be on main later
+```
+
+This prevents stale authorization from silently carrying forward.
+
+---
+
+# Release publication
+
+Publication is the act of making the release available through one or more channels.
+
+Examples:
+
+```text
+GitHub Release
+
+package registry
+
+container registry
+
+download server
+
+documentation site
+
+operating-system package repository
+```
+
+Publication itself is an execution operation.
+
+The release record preserves what was intended to be published and what actually was.
+
+---
+
+# Publication should be observable
+
+After publication, Monad should be able to observe:
+
+```text
+Did the expected artifact appear?
+
+Does its digest match?
+
+Is the version correct?
+
+Is the package metadata correct?
+
+Is the release discoverable?
+
+Were all intended channels updated?
+```
+
+This closes the gap between:
+
+```text
+publication requested
+```
+
+and:
+
+```text
+publication actually occurred
+```
+
+---
+
+# Release artifacts
+
+A release may contain many distributable artifacts.
+
+Example:
+
+```text
+monad-linux-x86_64.tar.gz
+
+monad-linux-aarch64.tar.gz
+
+monad-darwin-arm64.tar.gz
+
+npm package
+
+container image
+
+SBOM
+
+checksums
+
+signatures
+
+release notes
+```
+
+Each artifact should be traceable to the release and source state that produced it.
+
+---
+
+# Artifact digests
+
+Cryptographic digests help identify exact outputs.
+
+For example:
+
+```text
+SHA-256:
+...
+```
+
+A digest can answer:
+
+```text
+Is this file exactly the artifact that was released?
+```
+
+It does not by itself answer:
+
+```text
+Was the artifact built correctly?
+
+Was it authorized?
+
+Is it safe?
+
+Does it satisfy Requirements?
+```
+
+Those are separate concerns.
+
+---
+
+# Build provenance
+
+A mature release should be able to explain:
+
+```text
+source revision
+
+build environment
+
+toolchain versions
+
+dependencies
+
+build command
+
+builder identity
+
+generated outputs
+
+artifact digests
+```
+
+This supports reproducibility and supply-chain assurance.
+
+---
+
+# Reproducible releases
+
+A reproducible release aims to make it possible to rebuild an artifact from the same declared inputs and obtain an equivalent—or ideally identical—output.
+
+Conceptually:
+
+```text
+Source Revision
++ Toolchain
++ Dependency Set
++ Build Configuration
++ Environment
+        ↓
+      Build
+        ↓
+Released Artifact
+```
+
+The stronger the reproducibility claim, the stronger the supporting Evidence should be.
+
+---
+
+# Reproducibility is a claim
+
+Statements such as:
+
+```text
+this release is reproducible
+```
+
+should not be treated as self-evident.
+
+They should be verified.
+
+Potential Evidence includes:
+
+```text
+independent rebuild
+
+matching artifact digest
+
+recorded environment
+
+locked dependencies
+
+reproducibility harness result
+```
+
+---
+
+# Release requirements
+
+A release may claim satisfaction of particular Requirements.
+
+Example:
+
+```text
+REL-012
+
+Satisfies:
+REQ-014
+REQ-019
+REQ-022
+```
+
+This should mean more than:
+
+```text
+the implementation seems related to these Requirements.
+```
+
+There should be traceable Verification and Evidence where appropriate.
+
+---
+
+# Partial requirement satisfaction
+
+Not every release satisfies every planned Requirement.
+
+A release might explicitly state:
+
+```text
+Satisfied:
+REQ-001
+REQ-002
+REQ-004
+
+Partially satisfied:
+REQ-006
+
+Not targeted:
+REQ-008
+REQ-009
+```
+
+This is far clearer than implying universal completeness.
+
+---
+
+# Release and specifications
+
+The release should identify the Specification revisions that govern its behavior.
+
+Example:
+
+```text
+CLI behavior:
+SPEC-CLI-003@v7
+
+Schema behavior:
+SPEC-SCHEMA-004@v2
+```
+
+This helps answer:
+
+```text
+Which contract applies to this release?
+```
+
+---
+
+# Release and decisions
+
+Architecture Decisions may define constraints affecting the release.
+
+For example:
+
+```text
+ADR-014
+SQLite selected for local persistence.
+
+ADR-021
+Schema compatibility maintained for one major version.
+```
+
+The release record should link relevant decisions rather than duplicate their full reasoning.
+
+---
+
+# Release and implementation
+
+Implementation traceability may identify:
+
+```text
+commits
+
+pull requests
+
+Work Packages
+
+source revision
+
+generated artifacts
+```
+
+A release is usually associated with a specific immutable or sufficiently stable source state.
+
+---
+
+# Release and Reviews
+
+Relevant [Reviews](/docs/artifacts/reviews) may include:
+
+```text
+Architecture Review
+
+Security Review
+
+Migration Review
+
+Operational Readiness Review
+
+Release Review
+```
+
+Review completion can be one input into release governance.
+
+It is not automatically equivalent to release Approval.
+
+---
+
+# Release and verification
+
+A release candidate should undergo the Verification necessary to justify its claims.
+
+Possible Verification includes:
+
+```text
+unit tests
+
+integration tests
+
+end-to-end tests
+
+compatibility tests
+
+migration tests
+
+security checks
+
+performance tests
+
+reproducibility checks
+
+manual acceptance scenarios
+```
+
+The release record should identify which results apply to the released candidate.
+
+---
+
+# Verification must bind to the candidate
+
+Suppose:
+
+```text
+commit A
+→ tests pass
+```
+
+and then:
+
+```text
+commit B
+→ release
+```
+
+The passing tests for A do not automatically verify B.
+
+A strong release process preserves the relationship:
+
+```text
+Candidate Revision
+        │
+        ├── Verification Result 1
+        ├── Verification Result 2
+        └── Verification Result 3
+```
+
+---
+
+# Evidence bundle
+
+A release may aggregate Evidence into a release evidence bundle.
+
+Conceptually:
+
+```text
+REL-020
+   │
+   ├── build evidence
+   ├── test evidence
+   ├── review evidence
+   ├── security evidence
+   ├── compatibility evidence
+   └── approval evidence
+```
+
+This does not require copying every artifact into one file.
+
+The bundle may be a graph of references.
+
+---
+
+# Release confidence
+
+A release is rarely known with absolute certainty to contain no defects.
+
+Instead, confidence comes from:
+
+```text
+defined Requirements
+
+explicit Specifications
+
+Review
+
+Verification
+
+Evidence
+
+known-risk analysis
+
+operational observation
+```
+
+The release record should preserve uncertainty where material.
+
+---
+
+# Known issues
+
+A responsible release should expose important known issues.
+
+Examples:
+
+```text
+Windows not yet supported
+
+migration cannot be rolled back
+
+performance degradation above known scale
+
+API behavior differs from previous version
+
+specific feature remains experimental
+```
+
+Known issues are not evidence of failure in the release process.
+
+Hiding them is.
+
+---
+
+# Known risks
+
+A known issue and a known risk are not identical.
+
+An issue may already exist.
+
+A risk describes a possible undesirable outcome.
+
+Example:
+
+```text
+Issue:
+Large repositories produce slow initial indexing.
+
+Risk:
+Initial indexing may exceed acceptable startup time
+for repositories above a certain scale.
+```
+
+Both may matter to release readiness.
+
+---
+
+# Accepted risks
+
+A release may intentionally ship with accepted risk.
+
+For example:
+
+```text
+Risk:
+Windows filesystem semantics unverified.
+
+Disposition:
+Accepted.
+
+Scope:
+Preview release.
+
+Mitigation:
+Windows marked unsupported.
+```
+
+The record should identify who had Authority to accept that risk.
+
+---
+
+# Blockers
+
+Some findings should prevent release.
+
+Examples may include:
+
+```text
+critical security vulnerability
+
+data-loss defect
+
+failed required migration test
+
+unsatisfied mandatory Requirement
+
+invalidated release Verification
+
+missing required Approval
+```
+
+Whether something is a blocker is a Policy decision, not a universal property of all projects.
+
+---
+
+# Release policy
+
+A release Policy may define:
+
+```text
+required Reviews
+
+required Verification
+
+minimum Evidence
+
+allowed open findings
+
+supported environments
+
+versioning rules
+
+approval Authority
+
+publication channels
+
+rollback requirements
+```
+
+This turns release readiness into an inspectable governance question.
+
+---
+
+# Release readiness
+
+A release-readiness evaluation might conceptually ask:
+
+```text
+Candidate identified?
+
+Source revision immutable?
+
+Required Requirements satisfied?
+
+Required Specifications implemented?
+
+Required Reviews complete?
+
+Required Verification passing?
+
+Evidence available?
+
+Known risks dispositioned?
+
+Migration ready?
+
+Compatibility understood?
+
+Rollback or recovery understood?
+
+Approval available?
+```
+
+The checklist assists judgment.
+
+It does not replace it.
+
+---
+
+# Release decision
+
+A release decision might produce:
+
+```text
+Release
+
+Release with accepted risk
+
+Delay
+
+Reject candidate
+
+Require additional Verification
+
+Require remediation
+
+Escalate
+```
+
+The decision should preserve rationale when consequence justifies it.
+
+---
+
+# Release authority
+
+Not every Actor capable of publishing an artifact should automatically have Authority to declare a release.
+
+For example:
+
+```text
+Actor can push npm package
+```
+
+does not necessarily imply:
+
+```text
+Actor may declare supported Monad version
+```
+
+Native capability and semantic Authority remain distinct.
+
+---
+
+# Release and native systems
+
+Native systems may include:
+
+```text
+GitHub Releases
+
+npm
+
+crates.io
+
+PyPI
+
+container registries
+
+OS package repositories
+```
+
+These remain legitimate owners of their native publication state.
+
+Monad should bind to them rather than pretending they do not exist.
+
+---
+
+# Native publication state
+
+A registry may report:
+
+```text
+package monad@0.8.0 exists
+```
+
+That is a native observation.
+
+Monad may additionally know:
+
+```text
+release identity
+
+governance Approval
+
+source revision
+
+artifact provenance
+
+supported status
+
+known issues
+```
+
+These layers complement one another.
+
+---
+
+# Native deletion
+
+If an artifact is removed from a registry, the semantic Release should not necessarily disappear from history.
+
+Instead:
+
+```text
+Release:
+REL-008
+
+Historical publication:
+npm monad@0.8.0
+
+Current native state:
+removed
+```
+
+This preserves historical truth without pretending the package is still available.
+
+---
+
+# Release channels
+
+Projects often have multiple release channels.
+
+Examples:
+
+```text
+nightly
+
+canary
+
+preview
+
+beta
+
+release candidate
+
+stable
+
+LTS
+```
+
+Channel affects the strength of the support commitment.
+
+---
+
+# Experimental releases
+
+An experimental release may intentionally provide weaker guarantees.
+
+For example:
+
+```text
+APIs may change
+
+data formats may change
+
+migration support is limited
+
+compatibility is not guaranteed
+```
+
+The reduced commitment should be explicit.
+
+Experimental should not mean undocumented.
+
+---
+
+# Stable releases
+
+A stable release generally implies stronger expectations around:
+
+```text
+compatibility
+
+support
+
+migration
+
+documentation
+
+defect handling
+
+upgrade safety
+```
+
+The exact commitment should be defined by project Policy.
+
+---
+
+# Long-term support
+
+If Monad eventually defines LTS releases, the release record may include:
+
+```text
+support start
+
+support end
+
+security support
+
+upgrade path
+
+supported environments
+```
+
+LTS should be a real support promise, not merely a marketing label.
+
+---
+
+# Versioning
+
+Version numbers communicate change.
+
+A project might use:
+
+```text
+semantic versioning
+
+calendar versioning
+
+increment identifiers
+
+commit-derived versions
+
+custom maturity schemes
+```
+
+The versioning scheme should fit the actual compatibility contract.
+
+---
+
+# Semantic versioning
+
+If semantic versioning is adopted, the familiar model is:
+
+```text
+MAJOR.MINOR.PATCH
+```
+
+where changes communicate compatibility expectations.
+
+But version numbers are only useful if the compatibility boundary is itself clear.
+
+For example:
+
+```text
+What counts as public API?
+
+Does schema compatibility count?
+
+What about CLI output?
+
+Configuration files?
+
+Plugin interfaces?
+
+Machine-readable JSON?
+```
+
+Without that definition, versioning becomes ambiguous.
+
+---
+
+# Compatibility surface
+
+Monad may eventually expose several compatibility surfaces:
+
+```text
+CLI syntax
+
+CLI machine-readable output
+
+library API
+
+schema formats
+
+configuration files
+
+plugin contracts
+
+network APIs
+
+event formats
+
+database migrations
+
+stored semantic records
+```
+
+Each may require its own compatibility rules.
+
+---
+
+# Compatibility matrix
+
+A release may publish a matrix such as:
+
+```text
+CLI 0.8
+  ↔ Schema 3
+  ↔ Core 0.8
+  ↔ Plugin Contract 2
+```
+
+This becomes especially valuable if components version independently.
+
+---
+
+# Backward compatibility
+
+Backward compatibility asks whether newer software continues to accept or support older inputs, clients, formats, or behaviors as promised.
+
+Examples:
+
+```text
+new CLI reads old config
+
+new runtime reads previous schema
+
+new library supports prior API caller
+```
+
+The exact promise must be defined before it can be verified.
+
+---
+
+# Forward compatibility
+
+Forward compatibility asks whether older components can tolerate some newer data or behavior.
+
+Examples:
+
+```text
+unknown optional fields ignored safely
+
+old reader preserves unrecognized extensions
+
+new records do not corrupt older tooling
+```
+
+This is often important in distributed or incrementally upgraded systems.
+
+---
+
+# Compatibility is multidimensional
+
+A release may be:
+
+```text
+API compatible
+
+but schema incompatible
+
+and data migration compatible
+
+but CLI-output incompatible
+```
+
+A single boolean:
+
+```text
+compatible: true
+```
+
+can hide too much.
+
+---
+
+# Breaking changes
+
+A breaking change should be explicit.
+
+Examples:
+
+```text
+removed command
+
+changed schema meaning
+
+renamed required configuration field
+
+incompatible database migration
+
+removed plugin capability
+
+changed machine-readable output contract
+```
+
+Breaking changes should usually include:
+
+```text
+rationale
+
+migration guidance
+
+affected scope
+
+version impact
+```
+
+---
+
+# Migration
+
+Some releases require migration.
+
+Migration may affect:
+
+```text
+database state
+
+semantic records
+
+configuration
+
+schema versions
+
+filesystem layout
+
+plugin state
+
+stored projections
+```
+
+The release record should state whether migration is required.
+
+---
+
+# Migration identity
+
+A migration should be treated as an explicit engineering operation rather than hidden inside startup logic when consequence warrants it.
+
+Conceptually:
+
+```text
+Release A
+   ↓
+Migration M
+   ↓
+Release B state
+```
+
+This makes upgrade behavior inspectable.
+
+---
+
+# Migration verification
+
+Before release, migration Verification may ask:
+
+```text
+Can supported prior states upgrade?
+
+Are identities preserved?
+
+Are invariants maintained?
+
+Can the process resume after interruption?
+
+What happens on failure?
+
+Can rollback occur?
+
+Is data lost?
+```
+
+Migration success is often one of the strongest determinants of real release safety.
+
+---
+
+# Rollback
+
+Rollback means restoring a previous operational state.
+
+It may involve:
+
+```text
+deploying old binaries
+
+restoring data
+
+reversing configuration
+
+running reverse migrations
+
+switching traffic
+
+reconciling semantic state
+```
+
+Rollback should not be assumed possible merely because a prior binary exists.
+
+---
+
+# Rollback versus compensation
+
+Some operations are irreversible.
+
+In those cases recovery may require compensation rather than literal rollback.
+
+For example:
+
+```text
+Migration creates externally visible resources.
+
+Rollback cannot erase all consequences.
+
+Compensation performs explicit corrective actions.
+```
+
+Release planning should distinguish these.
+
+---
+
+# Upgrade path
+
+A release may define supported upgrade paths.
+
+Example:
+
+```text
+0.6 → 0.7 → 0.8
+```
+
+while direct:
+
+```text
+0.6 → 0.8
+```
+
+may be unsupported.
+
+This should be machine-readable where practical.
+
+---
+
+# Downgrade path
+
+Downgrading may be:
+
+```text
+supported
+
+supported with migration
+
+unsupported
+
+safe only before data conversion
+```
+
+The release should communicate this explicitly.
+
+---
+
+# Release notes
+
+Release notes explain meaningful change to users and engineers.
+
+They may include:
+
+```text
+new capabilities
+
+behavior changes
+
+breaking changes
+
+bug fixes
+
+known issues
+
+migration instructions
+
+deprecations
+
+security changes
+```
+
+Release notes are a Representation of release information.
+
+They should derive from the engineering record where possible.
+
+---
+
+# Generated release notes
+
+Monad may eventually generate draft release notes from:
+
+```text
+Work Packages
+
+Requirements
+
+ADRs
+
+pull requests
+
+commits
+
+resolved findings
+
+migration records
+```
+
+Generated notes should preserve links to the source artifacts.
+
+Human editing may still be needed to communicate significance clearly.
+
+---
+
+# Changelog
+
+A changelog records meaningful changes over time.
+
+It may organize change by:
+
+```text
+Added
+
+Changed
+
+Deprecated
+
+Removed
+
+Fixed
+
+Security
+```
+
+A changelog is useful.
+
+But:
+
+```text
+Changelog ≠ Release model
+```
+
+It is one projection over release history.
+
+---
+
+# Release diff
+
+A Release Diff should answer:
+
+```text
+What changed between release A and release B?
+```
+
+Potential dimensions include:
+
+```text
+Requirements
+
+Specifications
+
+architecture decisions
+
+interfaces
+
+schemas
+
+dependencies
+
+components
+
+policies
+
+known risks
+
+supported environments
+```
+
+This is more powerful than a raw commit diff.
+
+---
+
+# Semantic release diff
+
+Eventually Monad should be able to produce something like:
+
+```text
+REL-018 → REL-019
+
+Requirements:
++ REQ-044 satisfied
+
+Interfaces:
+- CLI inspect --legacy removed
++ CLI inspect --format json added
+
+Schemas:
+v3 → v4
+
+Policies:
+release policy unchanged
+
+Known Risks:
+2 resolved
+1 added
+```
+
+This is a semantic view of change.
+
+---
+
+# Release impact
+
+Before publishing, Monad may use the Impact Engine to identify:
+
+```text
+affected components
+
+affected interfaces
+
+affected consumers
+
+affected data
+
+required migrations
+
+required Reviews
+
+required Verification
+
+compatibility risks
+```
+
+Release planning can then be proportional to actual blast radius.
+
+---
+
+# Release blast radius
+
+A tiny internal patch may affect one component.
+
+A schema or protocol change may affect:
+
+```text
+repositories
+
+plugins
+
+stored records
+
+automation
+
+external consumers
+
+documentation
+
+deployment tooling
+```
+
+Release governance should reflect that difference.
+
+---
+
+# Release environments
+
+Supported environments may include:
+
+```text
+operating systems
+
+CPU architectures
+
+runtime versions
+
+database versions
+
+Git versions
+
+container runtimes
+
+cloud platforms
+```
+
+Support should be based on explicit policy and Verification, not assumption.
+
+---
+
+# Supported versus observed
+
+Suppose Monad happens to run successfully on:
+
+```text
+FreeBSD
+```
+
+once.
+
+That observation does not necessarily mean:
+
+```text
+FreeBSD is supported.
+```
+
+Support is a deliberate commitment.
+
+Observation and support should remain distinct.
+
+---
+
+# Support matrix
+
+A release may provide:
+
+```text
+Linux x86_64:
+supported
+
+Linux arm64:
+supported
+
+macOS arm64:
+supported
+
+Windows:
+experimental
+
+FreeBSD:
+unknown
+```
+
+Unknown is preferable to unsupported claims without evidence.
+
+---
+
+# Deprecation
+
+Deprecation communicates that a capability remains available but is intended for removal or replacement.
+
+A useful deprecation record may include:
+
+```text
+deprecated feature
+
+reason
+
+replacement
+
+first deprecated release
+
+planned removal
+
+migration guidance
+```
+
+Deprecation should give consumers time to adapt when compatibility promises require it.
+
+---
+
+# Removal
+
+Removal should be traceable to prior deprecation when policy requires that sequence.
+
+Conceptually:
+
+```text
+Capability
+   ↓
+Deprecated
+   ↓
+Migration Window
+   ↓
+Removed
+```
+
+Emergency removals may take a different path, especially for security reasons.
+
+---
+
+# End of support
+
+A release eventually may stop receiving:
+
+```text
+bug fixes
+
+security fixes
+
+compatibility updates
+
+operational support
+```
+
+End-of-support state should remain historically visible.
+
+It should not erase the release.
+
+---
+
+# Release supersession
+
+A new release may supersede an older one for normal use.
+
+For example:
+
+```text
+REL-21 supersedes REL-20
+```
+
+But REL-20 may remain supported for some period.
+
+Therefore:
+
+```text
+Superseded ≠ Unsupported
+```
+
+---
+
+# Release withdrawal
+
+A release may need to be withdrawn.
+
+Possible reasons:
+
+```text
+critical defect
+
+supply-chain compromise
+
+corrupt artifacts
+
+invalid migration
+
+license issue
+
+incorrect publication
+```
+
+Withdrawal should preserve:
+
+```text
+what happened
+
+why
+
+when
+
+who authorized it
+
+replacement guidance
+```
+
+---
+
+# Yanked package versus withdrawn release
+
+A registry may support:
+
+```text
+yank
+```
+
+or similar native state.
+
+That is one mechanism.
+
+Monad may model the higher-level status as:
+
+```text
+withdrawn
+```
+
+while preserving the native registry action that implemented it.
+
+---
+
+# Security releases
+
+A security release may require special handling.
+
+The record may contain:
+
+```text
+affected versions
+
+fixed version
+
+severity
+
+embargo history
+
+disclosure timeline
+
+mitigation
+
+advisory reference
+```
+
+Sensitive information may require controlled disclosure.
+
+---
+
+# Supply-chain assurance
+
+Release assurance may eventually include:
+
+```text
+artifact signatures
+
+SBOMs
+
+dependency inventories
+
+provenance attestations
+
+builder identity
+
+tamper-evident metadata
+```
+
+These mechanisms strengthen artifact trust.
+
+They do not replace semantic governance or Verification.
+
+---
+
+# SBOM
+
+A Software Bill of Materials identifies components included in an artifact.
+
+It can support:
+
+```text
+vulnerability analysis
+
+license review
+
+dependency traceability
+
+incident response
+```
+
+An SBOM is evidence about composition.
+
+It is not proof of security.
+
+---
+
+# Signatures
+
+Artifact signatures can establish properties such as:
+
+```text
+artifact was signed by this key
+```
+
+assuming the relevant trust model.
+
+They do not establish:
+
+```text
+artifact is correct
+```
+
+or:
+
+```text
+artifact was appropriately authorized
+```
+
+Those remain separate claims.
+
+---
+
+# Provenance attestations
+
+Build attestations may record:
+
+```text
+builder
+
+source
+
+inputs
+
+workflow
+
+artifact digest
+```
+
+Monad should integrate with established provenance mechanisms rather than inventing incompatible equivalents without need.
+
+---
+
+# Release provenance
+
+A complete release provenance chain may resemble:
+
+```text
+Requirement
+   ↓
+Specification
+   ↓
+Implementation
+   ↓
+Source Revision
+   ↓
+Build
+   ↓
+Artifact
+   ↓
+Verification
+   ↓
+Approval
+   ↓
+Publication
+   ↓
+Release
+```
+
+Each link should be recoverable for consequential releases.
+
+---
+
+# Release history
+
+Release history should answer:
+
+```text
+What versions existed?
+
+When were they published?
+
+What did each contain?
+
+Which were supported?
+
+Which were withdrawn?
+
+Which superseded which?
+
+What compatibility changes occurred?
+```
+
+This becomes part of the project's durable engineering history.
+
+---
+
+# Historical release state
+
+A release record should preserve historical facts.
+
+For example:
+
+```text
+REL-007
+
+Published:
+2026-03-04
+
+Deprecated:
+2026-08-10
+
+End of support:
+2027-02-01
+```
+
+Current state may be:
+
+```text
+deprecated
+```
+
+while preserving the earlier states and their valid times.
+
+---
+
+# Release valid time
+
+Release information benefits from temporal semantics.
+
+Examples:
+
+```text
+support began
+
+support ended
+
+deprecation became effective
+
+security advisory became applicable
+```
+
+Git history alone does not fully model these semantics.
+
+---
+
+# Release correction
+
+Release metadata may be wrong.
+
+For example:
+
+```text
+release notes incorrectly state Windows support
+```
+
+Correcting the metadata should preserve:
+
+```text
+original claim
+
+correction
+
+reason
+
+effective time
+```
+
+when consequence warrants it.
+
+---
+
+# Release metadata versus released bits
+
+Correcting release notes does not necessarily create a new software release.
+
+This distinction matters.
+
+For example:
+
+```text
+REL-020 binaries unchanged
+
+Release metadata:
+corrected supported OS list
+```
+
+Semantic history should capture both.
+
+---
+
+# Release naming
+
+Names may improve human communication.
+
+Examples:
+
+```text
+Monad 0.1 Preview
+
+Monad M0 Kernel
+
+Monad 1.0
+```
+
+But names should not substitute for stable identity and version.
+
+---
+
+# Milestone versus release
+
+A Milestone organizes planned outcomes.
+
+A Release is an actual supported system state.
+
+Therefore:
+
+```text
+Milestone ≠ Release
+```
+
+A milestone may produce:
+
+```text
+zero releases
+
+one release
+
+several releases
+```
+
+---
+
+# Increment versus release
+
+An engineering increment is a planning unit.
+
+It may become part of a release.
+
+But it is not necessarily externally published.
+
+---
+
+# Release versus release train
+
+A release train is an operational cadence or coordination mechanism.
+
+For example:
+
+```text
+weekly
+
+monthly
+
+quarterly
+```
+
+Individual releases remain distinct artifacts.
+
+---
+
+# Release frequency
+
+Monad should not optimize release frequency as an isolated metric.
+
+Fast releases are useful only if they preserve adequate:
+
+```text
+safety
+
+traceability
+
+recovery
+
+compatibility
+
+Verification
+```
+
+Release speed and release confidence must be balanced.
+
+---
+
+# Continuous delivery
+
+Continuous delivery means maintaining the system in a releasable state and automating much of the delivery process.
+
+It does not remove the need for explicit release semantics.
+
+Indeed, frequent delivery makes precise candidate identity and automated Evidence even more valuable.
+
+---
+
+# Continuous deployment
+
+Continuous deployment automatically deploys qualified changes.
+
+A project may use it.
+
+But automatic deployment should still answer:
+
+```text
+Which release state was deployed?
+
+What policy authorized it?
+
+What Evidence qualified it?
+
+What happened afterward?
+```
+
+---
+
+# Human release
+
+A human may manually declare or publish a release.
+
+That action should still traverse the same semantic boundaries:
+
+```text
+Actor
+
+Authority
+
+Candidate
+
+Policy
+
+Evidence
+
+Publication operation
+
+Observed result
+```
+
+Human execution is not outside the system model.
+
+---
+
+# AI-assisted release
+
+AI may assist with:
+
+```text
+release-note drafting
+
+change classification
+
+compatibility analysis
+
+Evidence summarization
+
+risk discovery
+
+candidate validation
+
+migration review
+```
+
+These capabilities can reduce repetitive work.
+
+They should not silently grant the AI release Authority.
+
+---
+
+# AI release authority
+
+An AI Actor may eventually receive bounded Authority to release low-risk changes.
+
+For example:
+
+```text
+Scope:
+documentation-only
+
+Requirements:
+all checks passing
+
+Allowed channels:
+preview
+
+Maximum impact:
+no runtime code
+
+Escalate:
+any uncertain classification
+```
+
+This would be an explicit autonomy envelope.
+
+Not an assumption.
+
+---
+
+# Release automation
+
+A release engine may automate:
+
+```text
+candidate creation
+
+version computation
+
+build execution
+
+artifact signing
+
+registry publication
+
+release-note generation
+
+status updates
+```
+
+Automation should operate under Policy and produce Evidence.
+
+---
+
+# Release failure
+
+Release operations can fail in many places.
+
+Examples:
+
+```text
+build failed
+
+signature failed
+
+registry unavailable
+
+one platform artifact missing
+
+package published but GitHub Release failed
+
+documentation update failed
+
+post-publication Verification failed
+```
+
+Partial release state must be representable.
+
+---
+
+# Partial publication
+
+Suppose:
+
+```text
+npm publish:
+success
+
+GitHub Release:
+success
+
+container registry:
+failure
+```
+
+The release process should not report simply:
+
+```text
+failed
+```
+
+or:
+
+```text
+success
+```
+
+It should preserve the partial outcome.
+
+---
+
+# Release recovery
+
+Recovery may involve:
+
+```text
+retrying publication
+
+withdrawing partial artifacts
+
+completing missing channels
+
+creating corrected release
+
+reconciling native state
+
+escalating to human operator
+```
+
+The proper action depends on what actually happened.
+
+---
+
+# Idempotent release operations
+
+Where possible, release operations should be safe to retry.
+
+For example:
+
+```text
+upload artifact if digest absent
+
+otherwise verify existing digest
+```
+
+rather than blindly creating duplicates.
+
+Idempotency reduces operational risk.
+
+---
+
+# Release operation identity
+
+Each release attempt should have an execution identity.
+
+Example:
+
+```text
+Release:
+REL-021
+
+Publication attempt:
+EXEC-8821
+
+Retry:
+EXEC-8822
+```
+
+This allows failures and retries to be traced without confusing them with the semantic Release identity.
+
+---
+
+# Reconciliation after release
+
+After publication, Monad should reconcile its semantic model with native systems.
+
+Conceptually:
+
+```text
+Expected Release State
+        ↓
+Native Publication
+        ↓
+Observation
+        ↓
+Reconciliation
+        ↓
+Confirmed Release State
+```
+
+This ensures the model reflects what actually exists.
+
+---
+
+# Drift
+
+Release-related drift may include:
+
+```text
+registry package missing
+
+tag moved
+
+release notes edited
+
+artifact replaced
+
+supported version metadata stale
+
+documentation pointing to wrong version
+```
+
+Drift should be surfaced.
+
+It should not silently alter historical truth.
+
+---
+
+# Immutability
+
+Some release artifacts should be immutable after publication.
+
+Examples often include:
+
+```text
+versioned package contents
+
+signed binaries
+
+checksums
+
+schema release bundles
+```
+
+If content must change, creating a new release is generally safer than mutating an existing artifact.
+
+Exact rules depend on the native system and release policy.
+
+---
+
+# Mutable release metadata
+
+Other information may legitimately evolve:
+
+```text
+known issues
+
+security advisories
+
+support status
+
+documentation links
+```
+
+The model should distinguish immutable released content from mutable metadata about the release.
+
+---
+
+# Release documentation
+
+A supported release should have enough documentation to understand:
+
+```text
+installation
+
+configuration
+
+behavior
+
+compatibility
+
+migration
+
+known limitations
+
+support status
+```
+
+Documentation versioning may therefore be part of release engineering.
+
+---
+
+# Documentation compatibility
+
+Documentation must correspond to the system state it describes.
+
+A common failure is:
+
+```text
+latest documentation
+```
+
+describing behavior that does not exist in an older release.
+
+Version-aware documentation can prevent this ambiguity.
+
+---
+
+# Release and System documentation
+
+The [System](/docs/system) area explains what Monad is now.
+
+Release artifacts answer:
+
+```text
+What exactly was true for this released state?
+```
+
+Current System documentation may move forward.
+
+Historical release documentation should remain recoverable where necessary.
+
+---
+
+# Release and Building Monad
+
+The [Building Monad](/docs/building-monad) narrative may explain:
+
+```text
+why a release mattered
+
+what changed during the increment
+
+what was learned
+
+which assumptions failed
+
+what comes next
+```
+
+That narrative is complementary.
+
+It should not replace the release record.
+
+---
+
+# Release and Artifacts
+
+A release should connect to the wider engineering record:
+
+```text
+Requirements
+
+Decisions
+
+Specifications
+
+Schemas
+
+Policies
+
+Experiments
+
+Evidence
+
+Verification
+
+Reviews
+
+Traceability
+```
+
+The release becomes one of the most useful convergence points in the artifact graph.
+
+---
+
+# Release traceability
+
+A complete trace might resemble:
+
+```text
+REQ-014
+   ↓
+SPEC-008
+   ↓
+WP-031
+   ↓
+PR-114
+   ↓
+REV-052
+   ↓
+VER-088
+   ↓
+EV-203
+   ↓
+RC-009
+   ↓
+APPROVAL-017
+   ↓
+REL-009
+   ↓
+GitHub Release v0.9.0
+```
+
+This should be inspectable without manually reconstructing the chain from disconnected tools.
+
+---
+
+# Release record shape
+
+A conceptual release record might include:
+
+```yaml
+id: REL-009
+
+version: 0.9.0
+
+status: published
+
+candidate:
+  revision: ...
+
+source:
+  repository: ...
+  commit: ...
+
+artifacts:
+  - ...
+
+requirements:
+  - ...
+
+specifications:
+  - ...
+
+verification:
+  - ...
+
+reviews:
+  - ...
+
+known_issues:
+  - ...
+
+accepted_risks:
+  - ...
+
+compatibility:
+  - ...
+
+migrations:
+  - ...
+
+approval:
+  - ...
+
+publication:
+  - ...
+
+provenance:
+  ...
+```
+
+This is illustrative, not the canonical schema.
+
+Exact machine-readable definitions belong in [Schemas](/docs/artifacts/schemas).
+
+---
+
+# Minimum viable release record
+
+Monad does not need a massive release manifest on day one.
+
+A useful initial record may contain:
+
+```text
+Release ID
+
+Version
+
+Source Revision
+
+Status
+
+Artifacts
+
+Verification Summary
+
+Known Issues
+
+Publication References
+```
+
+Governance, compatibility, provenance, and richer traceability can deepen as the release process earns that complexity.
+
+---
+
+# Release quality criteria
+
+A strong release should be:
+
+```text
+identifiable
+
+revision-bound
+
+traceable
+
+reproducible enough for its support promise
+
+verified against relevant expectations
+
+explicit about compatibility
+
+explicit about known limitations
+
+governed proportionally to risk
+
+recoverable when publication fails
+
+observable after publication
+
+historically preservable
+```
+
+---
+
+# Release anti-pattern: tag and pray
+
+```text
+git tag
+git push
+```
+
+followed by assumption that a release now exists safely.
+
+Tags are useful native mechanisms.
+
+They are not a substitute for release understanding.
+
+---
+
+# Release anti-pattern: verification against moving main
+
+Testing a moving branch while publication targets a later revision makes release Evidence ambiguous.
+
+Verification should bind to the candidate being released.
+
+---
+
+# Release anti-pattern: mutable artifacts
+
+Replacing an existing version's binary with different content destroys confidence in:
+
+```text
+version identity
+
+digests
+
+provenance
+
+incident investigation
+
+reproducibility
+```
+
+New content should normally receive new immutable identity.
+
+---
+
+# Release anti-pattern: silent breaking change
+
+A technically successful release may still be harmful if compatibility changes are undisclosed.
+
+Breaking changes should be treated as explicit engineering facts.
+
+---
+
+# Release anti-pattern: release notes as source of truth
+
+Release notes are useful communication.
+
+But they should not become the only place where:
+
+```text
+Requirements
+
+compatibility
+
+risk
+
+migration
+
+Verification
+```
+
+are recorded.
+
+They are a projection of deeper engineering state.
+
+---
+
+# Release anti-pattern: unsupported means untested
+
+There are several distinct states:
+
+```text
+supported
+
+experimental
+
+known incompatible
+
+unverified
+
+unknown
+```
+
+Collapsing all non-supported states into:
+
+```text
+unsupported
+```
+
+loses useful meaning.
+
+---
+
+# Release anti-pattern: automatic approval by CI
+
+A green CI pipeline may satisfy some release conditions.
+
+It does not automatically imply that the Actor or automation has Authority to release.
+
+Policy must establish that relationship explicitly.
+
+---
+
+# Release anti-pattern: manual exception without record
+
+A release may occasionally need an exception.
+
+For example:
+
+```text
+performance benchmark unavailable due infrastructure outage
+```
+
+If the release proceeds anyway, preserve:
+
+```text
+the exception
+
+Authority
+
+rationale
+
+risk
+
+follow-up obligation
+```
+
+---
+
+# Release anti-pattern: version number as compatibility contract
+
+A version number communicates only what the project's versioning policy gives it meaning to communicate.
+
+Without explicit compatibility surfaces, even semantic versioning can become theater.
+
+---
+
+# Release anti-pattern: rollback assumption
+
+A statement such as:
+
+```text
+we can always roll back
+```
+
+is dangerous unless rollback has been analyzed and ideally tested.
+
+Database and external side effects may make rollback impossible.
+
+---
+
+# Release anti-pattern: deleting bad releases from history
+
+A broken release may be:
+
+```text
+withdrawn
+
+deprecated
+
+superseded
+
+yanked
+```
+
+It should not simply disappear from the engineering record.
+
+Failures are part of history.
+
+---
+
+# Release anti-pattern: support by accident
+
+A platform is not officially supported merely because one developer happened to run it successfully.
+
+Support should be deliberate and backed by an appropriate level of Verification.
+
+---
+
+# Release anti-pattern: unreconciled publication
+
+If Monad believes:
+
+```text
+release published
+```
+
+but the registry never received the artifact, the semantic system has diverged from native reality.
+
+Observation and reconciliation close that gap.
+
+---
+
+# Release anti-pattern: every commit is a release
+
+Frequent builds and deployments are compatible with explicit release semantics.
+
+But treating every internal change as an externally supported release can create unnecessary compatibility obligations.
+
+Support boundaries should remain intentional.
+
+---
+
+# Release questions
+
+Before declaring a release, ask:
+
+```text
+What exact state are we releasing?
+
+What changed?
+
+What Requirements are satisfied?
+
+What remains incomplete?
+
+What candidate was verified?
+
+What Verification applies?
+
+What Evidence supports readiness?
+
+What compatibility changed?
+
+Are migrations required?
+
+What known risks remain?
+
+What recovery path exists?
+
+Who has Authority to approve?
+
+Which channels should receive it?
+
+How will publication be observed and reconciled?
+```
+
+These questions expose whether the release is actually understood.
+
+---
+
+# Release Definition of Ready
+
+A release candidate may be ready for final evaluation when:
+
+```text
+scope is defined
+
+candidate revision is stable
+
+target artifacts can be built
+
+applicable Requirements are known
+
+required Reviews are complete or scheduled
+
+Verification plan exists
+
+migration impact is understood
+
+compatibility impact is understood
+
+known risks are recorded
+
+release Policy can be evaluated
+```
+
+---
+
+# Release Definition of Done
+
+A release may be complete when:
+
+```text
+candidate was authorized
+
+required Verification passed
+
+required Evidence exists
+
+artifacts were produced
+
+publication operations completed
+
+native publication state was observed
+
+digests and metadata were reconciled
+
+release documentation was published
+
+known risks and issues were recorded
+
+traceability is intact
+```
+
+Exact criteria should be defined by release Policy and release type.
+
+---
+
+# Release metrics
+
+Useful release-system metrics may include:
+
+```text
+release failure rate
+
+rollback or compensation rate
+
+time from candidate to publication
+
+escaped critical defects
+
+migration failure rate
+
+percentage of releases with complete provenance
+
+reproducibility success rate
+
+frequency of emergency exceptions
+
+support burden by release
+```
+
+Metrics should expose system health.
+
+They should not pressure teams into releasing faster than safely justified.
+
+---
+
+# Release frequency is not success
+
+A project can release:
+
+```text
+100 times per day
+```
+
+and still have poor:
+
+```text
+quality
+
+traceability
+
+compatibility
+
+recovery
+
+user trust
+```
+
+Release frequency becomes useful only in context.
+
+---
+
+# Release confidence should be evidence-based
+
+The strongest release statement is not:
+
+```text
+we think this is ready
+```
+
+but something closer to:
+
+```text
+we know which state this is,
+which expectations apply,
+what was verified,
+what remains uncertain,
+what risks were accepted,
+and how to recover if reality disagrees.
+```
+
+---
+
+# Release maturity
+
+A reasonable progression for Monad may be:
+
+```text
+Stage 1
+Versioned Git tags and release notes
+
+Stage 2
+Explicit release records and immutable candidate revisions
+
+Stage 3
+Verification and Evidence attached to releases
+
+Stage 4
+Compatibility and migration metadata
+
+Stage 5
+Policy-driven Approval and publication
+
+Stage 6
+Reproducible builds and supply-chain attestations
+
+Stage 7
+Semantic release diffs and impact-aware release planning
+
+Stage 8
+Cross-system release reconciliation and bounded autonomous delivery
+```
+
+Each stage should be added because it reduces real risk or reconstruction cost.
+
+---
+
+# Release invariants
+
+The release system should preserve several distinctions:
+
+```text
+Release ≠ Deployment
+
+Release ≠ Git Tag
+
+Release ≠ Build
+
+Release ≠ Version Number
+
+Candidate ≠ Release
+
+Approval ≠ Publication
+
+Publication Requested ≠ Publication Observed
+
+Supported ≠ Merely Working
+
+Experimental ≠ Stable
+
+Superseded ≠ Unsupported
+
+Deprecated ≠ Removed
+
+Artifact Digest ≠ Verification
+
+Signature ≠ Correctness
+
+Build Provenance ≠ Governance Approval
+
+Known Risk ≠ Defect
+
+Rollback ≠ Compensation
+
+Native Publication State ≠ Semantic Release State
+
+Current Documentation ≠ Historical Release Truth
+```
+
+---
+
+# Example: preview release
+
+```text
+Release:
+REL-0003
+
+Version:
+0.3.0-preview.1
+
+Channel:
+Preview
+
+Source:
+commit 4a7c...
+
+Supported Platforms:
+Linux x86_64
+macOS arm64
+
+Experimental:
+Windows
+
+Verification:
+Core acceptance suite passed
+
+Known Risks:
+Initial graph indexing performance
+not yet characterized above 500k nodes.
+
+Compatibility:
+No stability guarantee for schema format.
+
+Status:
+Published
+```
+
+The weaker support commitment is explicit.
+
+---
+
+# Example: stable release
+
+```text
+Release:
+REL-0100
+
+Version:
+1.0.0
+
+Channel:
+Stable
+
+Requirements:
+all M1 mandatory Requirements satisfied
+
+Verification:
+complete
+
+Architecture Review:
+complete
+
+Security Review:
+complete
+
+Migration:
+0.9.x → 1.0 supported
+
+Known Blockers:
+none
+
+Accepted Risks:
+2 documented
+
+Approval:
+APP-044
+
+Status:
+Published and Supported
+```
+
+The release record explains why the system considers the state supportable.
+
+---
+
+# Example: failed publication
+
+```text
+Release:
+REL-0112
+
+Candidate:
+RC-0112-2
+
+npm:
+published
+
+GitHub Release:
+published
+
+container registry:
+failed
+
+Semantic Release Status:
+Publication Incomplete
+```
+
+Recovery can then operate against the actual partial state.
+
+---
+
+# Example: withdrawn release
+
+```text
+Release:
+REL-0113
+
+Version:
+1.1.3
+
+Published:
+2026-07-12
+
+Issue:
+Migration can corrupt identity bindings
+under interrupted upgrade.
+
+Status:
+Withdrawn
+
+Replacement:
+1.1.4
+
+Native Actions:
+package yanked
+container tags removed from stable channel
+
+Historical Record:
+retained
+```
+
+Withdrawal changes the current support state without erasing history.
+
+---
+
+# Example: semantic release diff
+
+```text
+REL-0114 → REL-0115
+
+Requirements:
++ REQ-072 verified
+
+Schemas:
+4 → 5
+
+Interfaces:
++ query impact --json
+
+Breaking Changes:
+none
+
+Migrations:
+schema 4 → 5 automatic
+
+Known Risks:
+- FIND-301 resolved
+
+Supported Platforms:
+unchanged
+```
+
+This communicates engineering meaning rather than only commit volume.
+
+---
+
+# Example: compatibility break
+
+```text
+Release:
+2.0.0
+
+Breaking Surface:
+Plugin Contract
+
+Previous:
+Plugin Contract v1
+
+Current:
+Plugin Contract v2
+
+Reason:
+Capability negotiation redesigned.
+
+Migration:
+adapter guide available
+
+Deprecation History:
+v1 deprecated in 1.6
+```
+
+The version change is connected to the actual compatibility boundary.
+
+---
+
+# Example: autonomous preview release
+
+A future bounded workflow might permit:
+
+```text
+Actor:
+Release Agent
+
+Authority:
+preview channel only
+
+Conditions:
+documentation-only change
+no executable code changed
+all required checks pass
+impact classified low
+
+Operation:
+publish preview documentation release
+
+Escalate if:
+uncertain impact
+Policy conflict
+failed Verification
+scope expansion
+```
+
+The automation remains governed.
+
+---
+
+# Releases as an engineering argument
+
+A release implicitly makes a claim:
+
+> **This identified system state is sufficiently understood, verified, governed, documented, and recoverable to be offered under the support commitments associated with this release class.**
+
+That claim should be inspectable.
+
+Its supporting argument may include:
+
+```text
+Requirements
+
+Specifications
+
+Implementation
+
+Reviews
+
+Verification
+
+Evidence
+
+Risk decisions
+
+Approval
+
+Publication observations
+```
+
+A release artifact therefore represents far more than packaging.
+
+---
+
+# The governing principle
+
+> **A release should identify an exact system state and preserve enough evidence, provenance, compatibility information, governance, and operational context to explain why that state was declared supportable and how it can be safely used, upgraded, superseded, or withdrawn.**
+
+The goal is not to create heavyweight release bureaucracy.
+
+The goal is to make support commitments real, traceable, and recoverable.
+
+A release earns trust when engineers can determine not only **what shipped**, but **why it was considered ready, what it promises, what remains uncertain, and what to do when reality disagrees**.
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Traceability"
+    href="/docs/artifacts/traceability"
+  >
+    Follow a release backward through Requirements, decisions, implementation, Review, Verification, and Evidence.
+  </Card>
+
+<Card
+title="Verification"
+href="/docs/artifacts/verification"
+>
+See how release expectations are evaluated against observable results.
+</Card>
+
+<Card
+title="Evidence"
+href="/docs/artifacts/evidence"
+>
+Inspect the records supporting release readiness and system claims.
+</Card>
+
+<Card
+title="Reviews"
+href="/docs/artifacts/reviews"
+>
+Understand the structured examinations that may contribute to a release decision.
+</Card>
+</Cards>
+
+---
+
+## Related artifact views
+
+<Cards>
+  <Card
+    title="Requirements"
+    href="/docs/artifacts/requirements"
+  >
+    See the obligations a release may claim to satisfy.
+  </Card>
+
+<Card
+title="Specifications"
+href="/docs/artifacts/specifications"
+>
+Inspect the contracts governing released behavior.
+</Card>
+
+<Card
+title="Policies"
+href="/docs/artifacts/policies"
+>
+Understand the rules governing release readiness, Approval, and publication.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

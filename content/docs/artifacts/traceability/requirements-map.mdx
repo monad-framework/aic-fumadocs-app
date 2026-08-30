@@ -1,0 +1,1744 @@
+---
+title: Requirements Traceability Map
+description: Canonical ownership, dependency, refinement, duplication, and downstream traceability map for the RB-001 Monad requirements baseline.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Traceability artifact · RTM-001
+  </p>
+</div>
+
+# Requirements Traceability Map
+
+**Traceability Map:** RTM-001
+**Status:** Active
+**Baseline:** RB-001
+**Scope:** REQ-ID, REQ-SEM, REQ-AUTH, REQ-PROV, REQ-GOV, REQ-EXEC, REQ-INT, REQ-REC, REQ-LOCAL, REQ-REPRO, REQ-AI, REQ-VFY
+
+<Callout type="info" title="Purpose">
+RTM-001 establishes how the requirements families relate to one another after acceptance of RB-001.
+
+It does not replace the numbered requirements.
+
+It establishes:
+
+* which family canonically owns a concept,
+* where other families refine or constrain that concept,
+* where apparent duplicates should be treated as cross-family specialization,
+* which requirements drive Architecture Decisions,
+* which requirements drive Specifications,
+* and how the requirements corpus should become traceable into implementation, verification, and Evidence.
+</Callout>
+
+---
+
+# Why this artifact exists
+
+RB-001 established that the requirements corpus is coherent enough to become a controlled baseline.
+
+It also established that the corpus contains substantial cross-family overlap.
+
+Without an explicit traceability map, that overlap creates several risks:
+
+```text
+same concept
+    ↓
+defined independently in several families
+    ↓
+definitions drift
+    ↓
+architecture and specifications inherit ambiguity
+```
+
+RTM-001 prevents this by establishing canonical semantic ownership.
+
+The governing principle is:
+
+> **A cross-cutting concept has one canonical semantic owner. Other requirement families may specialize, constrain, consume, or depend upon that concept without redefining it.**
+
+---
+
+# Traceability relationship vocabulary
+
+RTM-001 uses the following relationship types.
+
+## `owns`
+
+The source family is the canonical definition of the concept.
+
+```text
+REQ-AUTH owns Authority
+```
+
+---
+
+## `depends-on`
+
+The source requirement or family cannot be interpreted completely without the target.
+
+```text
+REQ-EXEC depends-on REQ-AUTH
+```
+
+---
+
+## `constrains`
+
+The source adds a restriction to behavior owned elsewhere.
+
+```text
+REQ-GOV constrains REQ-EXEC
+```
+
+---
+
+## `specializes`
+
+The source applies a general concept to a narrower domain.
+
+```text
+REQ-AI specializes Actor semantics
+```
+
+---
+
+## `refines`
+
+The source provides a more precise obligation without replacing the target.
+
+```text
+REQ-REC refines native-state comparison
+```
+
+---
+
+## `duplicates`
+
+Two requirements substantially express the same obligation without meaningful specialization.
+
+Duplicates are candidates for controlled consolidation.
+
+---
+
+## `supersedes`
+
+A later requirement intentionally replaces an earlier requirement.
+
+A superseded requirement remains historically addressable.
+
+---
+
+## `derived-from`
+
+A downstream artifact exists because of one or more requirements.
+
+```text
+ADR-###
+derived-from
+REQ-###
+```
+
+---
+
+## `verified-by`
+
+A requirement is evaluated through a Verification obligation or method.
+
+---
+
+## `evidenced-by`
+
+Evidence supports the determination that a requirement or verification obligation has been satisfied.
+
+---
+
+## `implemented-by`
+
+An implementation element participates in satisfying a requirement.
+
+Implementation presence alone does not establish satisfaction.
+
+---
+
+# Canonical ownership map
+
+| Concept                   | Canonical owner        | Primary consumers                            |
+| ------------------------- | ---------------------- | -------------------------------------------- |
+| Semantic identity         | `REQ-ID`               | SEM, PROV, AUTH, EXEC, INT, REC, AI, VFY     |
+| Subject identity          | `REQ-ID`               | SEM, PROV, REC                               |
+| Representation identity   | `REQ-ID`               | SEM, PROV, INT                               |
+| Native identity binding   | `REQ-ID`               | SEM, INT, REC                                |
+| Semantic distinctions     | `REQ-SEM`              | All families                                 |
+| Subject                   | `REQ-SEM`              | ID, PROV, AUTH, GOV, EXEC, INT, REC, AI, VFY |
+| Representation            | `REQ-SEM`              | ID, PROV, INT, REC                           |
+| Claim                     | `REQ-SEM`              | PROV, GOV, AI, VFY                           |
+| Evidence                  | `REQ-SEM`              | PROV, GOV, EXEC, REPRO, AI, VFY              |
+| Actor                     | `REQ-SEM`              | AUTH, GOV, EXEC, AI                          |
+| Native Reference          | `REQ-SEM`              | ID, PROV, INT, REC                           |
+| Authority                 | `REQ-AUTH`             | GOV, EXEC, INT, REC, LOCAL, AI, VFY          |
+| Authorization             | `REQ-AUTH`             | GOV, EXEC, AI                                |
+| Delegation                | `REQ-AUTH`             | GOV, EXEC, AI                                |
+| Authority scope           | `REQ-AUTH`             | GOV, EXEC, INT, AI                           |
+| Authority precedence      | `REQ-AUTH`             | GOV, REC                                     |
+| Provenance                | `REQ-PROV`             | All consequential families                   |
+| Observation origin        | `REQ-PROV`             | INT, REC, VFY                                |
+| Derivation lineage        | `REQ-PROV`             | SEM, AI, REPRO, VFY                          |
+| Governance                | `REQ-GOV`              | EXEC, INT, REC, AI, VFY                      |
+| Policy                    | `REQ-GOV`              | AUTH, EXEC, AI, VFY                          |
+| Approval                  | `REQ-GOV`              | EXEC, RELEASE, VFY                           |
+| Obligation                | `REQ-GOV`              | EXEC, VFY                                    |
+| Exception / waiver        | `REQ-GOV`              | EXEC, VFY                                    |
+| Consequential operation   | `REQ-EXEC`             | INT, REC, AI                                 |
+| Execution attempt         | `REQ-EXEC`             | INT, REC, REPRO, VFY                         |
+| Requested effect          | `REQ-EXEC`             | INT, REC, VFY                                |
+| Observed effect           | `REQ-EXEC`             | REC, VFY                                     |
+| Partial execution         | `REQ-EXEC`             | INT, REC, VFY                                |
+| Native integration        | `REQ-INT`              | REC, EXEC, LOCAL                             |
+| Adapter capability        | `REQ-INT`              | EXEC, REC                                    |
+| Native observation        | `REQ-INT`              | PROV, REC, VFY                               |
+| Native mutation           | `REQ-INT`              | EXEC, REC                                    |
+| Provider capability       | `REQ-INT`              | EXEC, LOCAL                                  |
+| Reconciliation            | `REQ-REC`              | INT, GOV, EXEC                               |
+| Divergence                | `REQ-REC`              | VFY, GOV                                     |
+| Conflict                  | `REQ-REC`              | GOV, EXEC                                    |
+| Convergence               | `REQ-REC`              | INT, VFY                                     |
+| Local-first behavior      | `REQ-LOCAL`            | All runtime-facing families                  |
+| Degraded operation        | `REQ-LOCAL`            | INT, EXEC, AI                                |
+| Local inspectability      | `REQ-LOCAL`            | PROV, GOV, REPRO, VFY                        |
+| Reproducibility           | `REQ-REPRO`            | EXEC, AI, VFY                                |
+| Reproduction context      | `REQ-REPRO`            | EXEC, AI, VFY                                |
+| Equivalence contract      | `REQ-REPRO`            | VFY                                          |
+| AI Actor behavior         | `REQ-AI`               | AUTH, GOV, EXEC, VFY                         |
+| AI interaction provenance | `REQ-AI` + `REQ-PROV`  | VFY, REPRO                                   |
+| AI proposal               | `REQ-AI`               | GOV, EXEC                                    |
+| Verification              | `REQ-VFY`              | All requirement families                     |
+| Verification obligation   | `REQ-VFY`              | GOV, RELEASE                                 |
+| Verification method       | `REQ-VFY`              | REPRO, EXEC                                  |
+| Verification result       | `REQ-VFY`              | GOV, RELEASE                                 |
+| Verification Evidence     | `REQ-VFY` + `REQ-PROV` | GOV, RELEASE                                 |
+
+---
+
+# Family dependency graph
+
+At the family level, the requirements form the following dependency structure:
+
+```text
+                     ┌──────────────┐
+                     │   REQ-SEM    │
+                     │ Semantic     │
+                     │ Model        │
+                     └──────┬───────┘
+                            │
+             ┌──────────────┼──────────────┐
+             │              │              │
+             ▼              ▼              ▼
+        ┌────────┐      ┌────────┐     ┌──────────┐
+        │ REQ-ID │      │REQ-PROV│     │ REQ-AUTH │
+        │Identity│      │Prov.   │     │Authority │
+        └───┬────┘      └───┬────┘     └────┬─────┘
+            │               │               │
+            └───────────────┼───────────────┘
+                            ▼
+                       ┌─────────┐
+                       │ REQ-GOV │
+                       │Governance
+                       └────┬────┘
+                            │
+                            ▼
+                       ┌──────────┐
+                       │ REQ-EXEC │
+                       │Execution │
+                       └────┬─────┘
+                            │
+                  ┌─────────┴─────────┐
+                  ▼                   ▼
+             ┌─────────┐         ┌─────────┐
+             │ REQ-INT │────────▶│ REQ-REC │
+             │Integrat.│         │Reconcil.│
+             └────┬────┘         └────┬────┘
+                  │                   │
+                  └─────────┬─────────┘
+                            ▼
+                      ┌───────────┐
+                      │ REQ-LOCAL │
+                      │Local First│
+                      └─────┬─────┘
+                            │
+              ┌─────────────┼─────────────┐
+              ▼             ▼             ▼
+        ┌───────────┐  ┌─────────┐  ┌───────────┐
+        │REQ-REPRO  │  │ REQ-AI  │  │ REQ-VFY   │
+        │Reproduce. │  │AI Inter.│  │Verification
+        └───────────┘  └─────────┘  └───────────┘
+```
+
+This diagram is directional only in the sense of **semantic dependency**.
+
+It does not imply implementation layering.
+
+---
+
+# Foundational semantic dependencies
+
+## Identity depends on the Semantic Model
+
+Identity cannot be defined without concepts such as:
+
+* Subject,
+* Representation,
+* Native Reference,
+* relationship,
+* Claim,
+* and provenance-bearing state.
+
+Therefore:
+
+```text
+REQ-ID
+depends-on
+REQ-SEM
+```
+
+`REQ-ID` owns identity behavior.
+
+`REQ-SEM` owns the entities being identified.
+
+---
+
+## Provenance depends on semantic identity
+
+Provenance is useful only if the system can identify:
+
+```text
+what
+came from
+where
+through which transformation
+at which point in time
+```
+
+Therefore:
+
+```text
+REQ-PROV
+depends-on
+REQ-ID
+REQ-SEM
+```
+
+---
+
+## Authority depends on identity and semantic scope
+
+Authority cannot be meaningful without identifiable:
+
+* Actors,
+* Subjects,
+* operations,
+* scopes,
+* policies,
+* delegations,
+* and governed objects.
+
+Therefore:
+
+```text
+REQ-AUTH
+depends-on
+REQ-ID
+REQ-SEM
+```
+
+Authority may also depend upon provenance when evaluating whether an authority record is legitimate.
+
+---
+
+# Governance dependency map
+
+Governance consumes several canonical concepts:
+
+```text
+REQ-GOV
+    depends-on REQ-AUTH
+    depends-on REQ-PROV
+    depends-on REQ-ID
+    depends-on REQ-SEM
+```
+
+Governance determines:
+
+```text
+given:
+    actor
+    authority
+    target
+    requested operation
+    applicable policy
+    context
+
+determine:
+    allowed
+    denied
+    unresolved
+    allowed-with-obligations
+```
+
+Governance does not own Actor identity, Authority semantics, Provenance semantics, or Execution mechanics.
+
+---
+
+# Execution dependency map
+
+Execution consumes:
+
+```text
+REQ-EXEC
+    depends-on REQ-GOV
+    depends-on REQ-AUTH
+    depends-on REQ-PROV
+    depends-on REQ-ID
+```
+
+Execution owns the transition from:
+
+```text
+authorized intention
+        ↓
+attempted consequential operation
+        ↓
+result
+        ↓
+observed effects
+```
+
+Execution MUST NOT redefine authorization.
+
+Execution MUST NOT infer authority from technical capability.
+
+Execution MUST NOT treat successful provider return values as proof that intended postconditions hold.
+
+---
+
+# Integration dependency map
+
+Integration consumes execution semantics while exposing provider-specific capability.
+
+```text
+REQ-INT
+    depends-on REQ-EXEC
+    depends-on REQ-PROV
+    depends-on REQ-ID
+    depends-on REQ-LOCAL
+```
+
+Integration owns:
+
+```text
+provider interaction
+capability discovery
+native observation
+native mutation interface
+native identifiers
+provider errors
+provider-specific semantics
+```
+
+Integration does not own:
+
+```text
+semantic identity
+authority
+governance
+reconciliation meaning
+verification
+```
+
+---
+
+# Reconciliation dependency map
+
+Reconciliation operates across semantic and native state.
+
+```text
+REQ-REC
+    depends-on REQ-INT
+    depends-on REQ-ID
+    depends-on REQ-AUTH
+    depends-on REQ-PROV
+    depends-on REQ-GOV
+    depends-on REQ-EXEC
+```
+
+Its central semantic responsibility is:
+
+```text
+expected / modeled state
+        vs
+observed native state
+        ↓
+classify relationship
+```
+
+Possible classifications may include:
+
+```text
+consistent
+divergent
+conflicting
+unknown
+stale
+unobservable
+pending
+```
+
+The precise classification vocabulary belongs in the Reconciliation Specification.
+
+---
+
+# Local-first dependency map
+
+Local-first is cross-cutting rather than merely infrastructural.
+
+It constrains every subsystem that might otherwise assume remote availability.
+
+```text
+REQ-LOCAL
+constrains
+REQ-ID
+REQ-SEM
+REQ-AUTH
+REQ-PROV
+REQ-GOV
+REQ-EXEC
+REQ-INT
+REQ-REC
+REQ-REPRO
+REQ-AI
+REQ-VFY
+```
+
+The canonical rule is:
+
+> A subsystem may depend on remote capability, but it must make the resulting availability boundary explicit rather than causing the entire system's meaning to disappear when disconnected.
+
+---
+
+# Reproducibility dependency map
+
+Reproducibility depends upon retained execution context and provenance.
+
+```text
+REQ-REPRO
+    depends-on REQ-PROV
+    depends-on REQ-EXEC
+    depends-on REQ-INT
+    depends-on REQ-LOCAL
+```
+
+It also constrains verification:
+
+```text
+REQ-REPRO
+constrains
+REQ-VFY
+```
+
+when verification claims themselves require reproduction.
+
+Not every verification method must be perfectly reproducible.
+
+The reproducibility requirement must match the declared assurance level and equivalence contract.
+
+---
+
+# AI dependency map
+
+AI is deliberately downstream of the ordinary Monad semantic model.
+
+```text
+REQ-AI
+    depends-on REQ-SEM
+    depends-on REQ-ID
+    depends-on REQ-AUTH
+    depends-on REQ-PROV
+    depends-on REQ-GOV
+    depends-on REQ-EXEC
+    depends-on REQ-INT
+    depends-on REQ-LOCAL
+    depends-on REQ-REPRO
+    depends-on REQ-VFY
+```
+
+This relationship is central.
+
+Monad does **not** define:
+
+```text
+ordinary system
++
+special AI system
+```
+
+Instead:
+
+```text
+AI
+is an Actor
+with capabilities
+operating inside
+the ordinary system
+```
+
+AI-specific requirements exist only where AI introduces genuinely distinct concerns such as:
+
+* non-deterministic generation,
+* model/provider identity,
+* prompt and context provenance,
+* retrieved-context trust,
+* prompt injection,
+* inferred versus observed state,
+* conversational authority,
+* autonomous continuation,
+* generated artifacts,
+* and probabilistic evaluation.
+
+---
+
+# Verification dependency map
+
+Verification is downstream of every requirement family.
+
+```text
+REQ-ID      ─┐
+REQ-SEM     ─┤
+REQ-AUTH    ─┤
+REQ-PROV    ─┤
+REQ-GOV     ─┤
+REQ-EXEC    ─┤
+REQ-INT     ─┤
+REQ-REC     ─┼──▶ REQ-VFY
+REQ-LOCAL   ─┤
+REQ-REPRO   ─┤
+REQ-AI      ─┘
+```
+
+This does not mean `REQ-VFY` owns the content being verified.
+
+It owns how expectations are evaluated.
+
+---
+
+# Cross-family canonicalization rules
+
+## Rule RTM-001
+
+A concept MUST have one canonical semantic owner.
+
+---
+
+## Rule RTM-002
+
+A consuming family MAY restate a canonical concept only when the restatement establishes a domain-specific constraint.
+
+---
+
+## Rule RTM-003
+
+A consuming family SHOULD reference the canonical requirement rather than independently redefining the concept.
+
+---
+
+## Rule RTM-004
+
+Two requirements are not considered duplicates merely because they share terminology.
+
+They are duplicates only when:
+
+```text
+same obligation
++
+same effective scope
++
+same normative consequence
+```
+
+---
+
+## Rule RTM-005
+
+A specialized requirement SHOULD remain when it answers:
+
+> What additional obligation exists because this concept is being applied in this family?
+
+---
+
+## Rule RTM-006
+
+A requirement SHOULD be considered for consolidation when deleting either statement would not materially change the normative system contract.
+
+---
+
+# High-priority duplicate clusters
+
+The following clusters should be reviewed first during normalization.
+
+---
+
+## Cluster DUP-001 — Identity versus Representation
+
+Canonical owners:
+
+```text
+REQ-ID
+REQ-SEM
+```
+
+Core distinctions:
+
+```text
+Subject ≠ Representation
+Semantic identity ≠ storage location
+Semantic identity ≠ native identifier
+```
+
+### Normalization rule
+
+`REQ-SEM` defines the concepts.
+
+`REQ-ID` defines identity continuity and binding behavior.
+
+Other families consume those semantics.
+
+---
+
+## Cluster DUP-002 — Capability versus Authority
+
+Canonical owner:
+
+```text
+REQ-AUTH
+```
+
+Repeated variants include:
+
+```text
+can perform ≠ may perform
+
+native permission ≠ Monad authority
+
+provider capability ≠ governance authorization
+
+AI capability ≠ AI authority
+```
+
+### Normalization rule
+
+Keep the canonical invariant in Authority.
+
+Keep specialized consequences where needed.
+
+---
+
+## Cluster DUP-003 — Provenance requirements
+
+Canonical owner:
+
+```text
+REQ-PROV
+```
+
+Repeated across:
+
+```text
+AUTH
+GOV
+EXEC
+INT
+REC
+REPRO
+AI
+VFY
+```
+
+### Normalization rule
+
+The consuming family states **which event or artifact requires provenance**.
+
+`REQ-PROV` states **what provenance means and how its integrity behaves**.
+
+---
+
+## Cluster DUP-004 — Revision binding
+
+Revision binding appears throughout:
+
+* authority,
+* approval,
+* governance,
+* execution,
+* reconciliation,
+* reproducibility,
+* AI,
+* verification.
+
+### Canonical interpretation
+
+Revision binding is not one isolated concept.
+
+Each family legitimately owns its domain-specific binding:
+
+```text
+authority applies to revision/scope
+approval applies to revision/scope
+execution acts on expected revision
+verification evaluates target revision
+```
+
+These are **parallel specializations**, not direct duplicates.
+
+No consolidation should remove those distinctions.
+
+---
+
+## Cluster DUP-005 — Freshness and staleness
+
+Freshness appears in:
+
+```text
+PROV
+INT
+REC
+LOCAL
+VFY
+```
+
+### Canonical ownership
+
+* `REQ-PROV` owns observation time and lineage semantics.
+* `REQ-INT` owns provider-observation freshness.
+* `REQ-REC` owns whether freshness is sufficient for comparison.
+* `REQ-VFY` owns whether Evidence remains valid for a Verification obligation.
+* `REQ-LOCAL` owns behavior when remote refresh is unavailable.
+
+These SHOULD NOT be collapsed into one requirement.
+
+---
+
+## Cluster DUP-006 — Retry and idempotency
+
+Appears in:
+
+```text
+EXEC
+INT
+REC
+VFY
+```
+
+### Canonical ownership
+
+`REQ-EXEC` owns operation-level safety.
+
+`REQ-INT` specializes provider behavior.
+
+`REQ-REC` specializes repeated convergence attempts.
+
+`REQ-VFY` specializes repeated verification attempts.
+
+---
+
+## Cluster DUP-007 — Partial success and uncertain outcome
+
+Appears heavily across:
+
+```text
+EXEC
+INT
+REC
+VFY
+```
+
+### Canonical owner
+
+`REQ-EXEC` owns consequential-operation outcome semantics.
+
+Integration and reconciliation SHOULD map native/provider behavior into that model.
+
+Verification SHOULD inspect the resulting state rather than redefine execution outcomes.
+
+---
+
+## Cluster DUP-008 — Offline and unavailable dependencies
+
+Appears across nearly every family.
+
+### Canonical owner
+
+```text
+REQ-LOCAL
+```
+
+Domain families retain only consequences such as:
+
+```text
+cannot refresh authority
+cannot contact AI provider
+cannot observe remote system
+cannot execute remote operation
+```
+
+---
+
+## Cluster DUP-009 — Historical preservation
+
+Appears in:
+
+```text
+ID
+AUTH
+PROV
+GOV
+EXEC
+REC
+REPRO
+VFY
+```
+
+This repetition is intentional.
+
+Each family preserves a distinct class of historical fact.
+
+### Global invariant
+
+> Current state MUST NOT silently rewrite historical truth.
+
+This invariant may eventually be elevated to the System Constitution.
+
+---
+
+## Cluster DUP-010 — Explainability
+
+Appears in:
+
+```text
+AUTH
+GOV
+REC
+AI
+VFY
+```
+
+These are related but distinct:
+
+```text
+Why does this Actor have authority?
+Why was this operation allowed?
+Why are these states divergent?
+Why did AI produce or propose this?
+Why did verification produce this result?
+```
+
+No single family should absorb the others.
+
+---
+
+# Requirement-to-Decision map
+
+The following decision work is directly derived from RB-001.
+
+| Decision candidate                                  | Requirement drivers |
+| --------------------------------------------------- | ------------------- |
+| ADR — Semantic identifier strategy                  | ID, SEM             |
+| ADR — Subject / Representation binding architecture | ID, SEM, PROV       |
+| ADR — Semantic-model persistence                    | SEM, LOCAL, REPRO   |
+| ADR — System Constitution architecture              | AUTH, GOV           |
+| ADR — Authority evaluation architecture             | AUTH, GOV           |
+| ADR — Governance / policy engine architecture       | AUTH, GOV, EXEC     |
+| ADR — Governed execution boundary                   | GOV, EXEC, AI       |
+| ADR — Integration adapter architecture              | INT, EXEC           |
+| ADR — Native observation strategy                   | INT, REC, LOCAL     |
+| ADR — Reconciliation engine architecture            | REC, INT, EXEC      |
+| ADR — Local authoritative state architecture        | LOCAL, SEM, PROV    |
+| ADR — Reproducibility execution architecture        | REPRO, EXEC, LOCAL  |
+| ADR — AI Actor/context architecture                 | AI, PROV, AUTH      |
+| ADR — Verification architecture                     | VFY, REPRO, PROV    |
+
+Each ADR MUST trace back to its driving requirements.
+
+---
+
+# Requirement-to-Specification map
+
+| Specification                         | Primary requirement families |
+| ------------------------------------- | ---------------------------- |
+| Semantic Kernel Specification         | SEM, ID                      |
+| Identity Specification                | ID, SEM, PROV                |
+| Subject Specification                 | SEM, ID                      |
+| Representation Specification          | SEM, ID, PROV                |
+| Native Reference Specification        | SEM, ID, INT                 |
+| Claim Specification                   | SEM, PROV, VFY               |
+| Evidence Specification                | SEM, PROV, VFY               |
+| Provenance Specification              | PROV                         |
+| Authority Specification               | AUTH, ID, PROV               |
+| Governance Specification              | GOV, AUTH                    |
+| Policy Evaluation Specification       | GOV, AUTH, EXEC              |
+| Operation Specification               | EXEC, GOV                    |
+| Execution Specification               | EXEC, INT                    |
+| Integration Contract                  | INT, EXEC                    |
+| Adapter Contract                      | INT                          |
+| Observation Contract                  | INT, PROV                    |
+| Reconciliation Specification          | REC, INT                     |
+| Divergence Specification              | REC                          |
+| Conflict Specification                | REC, GOV                     |
+| Local-State Specification             | LOCAL, SEM                   |
+| Reproducibility Specification         | REPRO, PROV                  |
+| AI Interaction Specification          | AI, AUTH, PROV               |
+| Verification Specification            | VFY, PROV                    |
+| Verification Result Specification     | VFY                          |
+| Verification Obligation Specification | VFY, GOV                     |
+
+---
+
+# Traceability chain
+
+Every consequential system behavior should eventually be traceable through:
+
+```text
+Requirement
+    ↓
+Architecture Decision
+    ↓
+Specification
+    ↓
+Implementation
+    ↓
+Verification Obligation
+    ↓
+Verification Method
+    ↓
+Verification Execution
+    ↓
+Evidence
+    ↓
+Verification Result
+```
+
+Not every requirement requires every intermediate artifact.
+
+For example:
+
+```text
+REQ
+    ↓
+Specification
+    ↓
+Verification
+```
+
+may be sufficient when no material architecture decision exists.
+
+The requirement is that omitted stages be intentional rather than invisible.
+
+---
+
+# Requirement realization model
+
+A requirement is not considered satisfied merely because implementation exists.
+
+The preferred model is:
+
+```text
+Requirement
+    │
+    ├── derived-by ─────▶ Decision
+    │
+    ├── specified-by ───▶ Specification
+    │
+    ├── implemented-by ─▶ Component
+    │
+    └── verified-by ────▶ Verification Obligation
+                              │
+                              ▼
+                           Evidence
+                              │
+                              ▼
+                      Verification Result
+```
+
+This makes it possible to ask:
+
+* Which requirements have no design?
+* Which requirements have no Specification?
+* Which requirements have no implementation?
+* Which requirements have no Verification?
+* Which implementations satisfy no known requirement?
+* Which tests verify no requirement?
+* Which Decisions are not justified by requirements?
+* Which requirements depend on obsolete Evidence?
+
+---
+
+# Bidirectional traceability
+
+Traceability MUST be navigable in both directions.
+
+Forward:
+
+```text
+requirement
+→ implementation
+```
+
+Reverse:
+
+```text
+implementation
+→ requirement
+```
+
+The same applies to:
+
+```text
+ADR ↔ Requirement
+Specification ↔ Requirement
+Verification ↔ Requirement
+Evidence ↔ Verification
+```
+
+Reverse traceability is particularly important for detecting architecture or implementation that exists without an articulated system need.
+
+---
+
+# Orphan detection
+
+RTM-001 introduces five important orphan classes.
+
+## ORPHAN-REQ
+
+A requirement with no downstream realization path.
+
+This may be acceptable temporarily during design.
+
+It becomes a concern when implementation is claimed complete.
+
+---
+
+## ORPHAN-ADR
+
+An Architecture Decision with no requirement, constraint, or other legitimate decision driver.
+
+This may indicate accidental architecture.
+
+---
+
+## ORPHAN-SPEC
+
+A Specification clause with no requirement or governing Decision.
+
+This may indicate unnecessary system behavior.
+
+---
+
+## ORPHAN-IMPL
+
+Implementation with no traceable requirement or technical necessity.
+
+This may indicate scope creep or accidental complexity.
+
+---
+
+## ORPHAN-VFY
+
+Verification that evaluates no requirement, Specification clause, Decision invariant, or legitimate quality obligation.
+
+This may indicate tests that exist without a meaningful contract.
+
+---
+
+# Coverage model
+
+Requirements coverage MUST NOT be represented as a single percentage without context.
+
+At minimum, coverage should distinguish:
+
+```text
+requirements with design trace
+requirements with specification trace
+requirements with implementation trace
+requirements with verification trace
+requirements with current evidence
+```
+
+Example:
+
+```yaml
+baseline: RB-001
+
+coverage:
+  architecture: 0.82
+  specification: 0.67
+  implementation: 0.41
+  verification: 0.36
+  current_evidence: 0.28
+```
+
+These values are illustrative only.
+
+A requirement can be:
+
+```text
+fully specified
+but not implemented
+```
+
+or:
+
+```text
+implemented
+but not verified
+```
+
+and those states MUST remain distinguishable.
+
+---
+
+# Requirement lifecycle
+
+After RB-001, requirements SHOULD move through an explicit lifecycle.
+
+```text
+proposed
+    ↓
+reviewed
+    ↓
+accepted
+    ↓
+baselined
+    ↓
+implemented
+    ↓
+verified
+```
+
+Additional states may include:
+
+```text
+deprecated
+superseded
+withdrawn
+blocked
+```
+
+Baseline membership and implementation state MUST remain separate.
+
+A baselined requirement may not yet be implemented.
+
+---
+
+# Requirement change relationships
+
+A post-RB-001 requirement change SHOULD explicitly record one of:
+
+```text
+clarifies
+refines
+splits
+merges
+supersedes
+deprecates
+corrects
+```
+
+Example:
+
+```yaml
+requirement: REQ-INT-142
+status: superseded
+
+superseded_by:
+  - REQ-INT-331
+  - REQ-INT-332
+
+reason: >
+  The original requirement combined provider retry semantics
+  with execution idempotency.
+```
+
+The exact schema belongs in a later Specification.
+
+---
+
+# Consolidation policy
+
+A duplicate discovered after RB-001 SHOULD NOT be removed immediately.
+
+Use:
+
+```text
+discover duplicate
+    ↓
+identify canonical owner
+    ↓
+record duplicate relationship
+    ↓
+determine downstream references
+    ↓
+deprecate redundant requirement
+    ↓
+redirect new references
+    ↓
+preserve historical identity
+```
+
+This prevents normalization from breaking traceability.
+
+---
+
+# Cross-family references
+
+Requirement pages SHOULD eventually use explicit references when consuming another family's canonical semantics.
+
+For example:
+
+```text
+REQ-AI-###
+AI-generated actions MUST remain subject to the authority
+semantics established by REQ-AUTH-###.
+```
+
+rather than creating a second independent definition of Authority.
+
+Likewise:
+
+```text
+REQ-REC-###
+Observed native state MUST retain provenance satisfying
+REQ-PROV-###.
+```
+
+The requirement page remains understandable while canonical ownership stays clear.
+
+---
+
+# Constitution candidates
+
+Several requirements recur so broadly that they may eventually belong above individual requirement families as constitutional invariants.
+
+Candidates include:
+
+```text
+Capability ≠ Authority
+
+Claim ≠ Truth
+
+Evidence ≠ Claim
+
+Provenance ≠ Authority
+
+Intent ≠ Authorization
+
+Authorization ≠ Execution
+
+Execution success ≠ Verification success
+
+Requested effect ≠ Observed effect
+
+Semantic identity ≠ physical location
+
+Generated state ≠ authoritative state
+
+Unknown ≠ false
+
+Current truth must not erase historical truth
+```
+
+RTM-001 does **not** move them.
+
+It identifies them as candidates for later constitutional review.
+
+---
+
+# Traceability queries
+
+The eventual system SHOULD be able to answer queries such as:
+
+```text
+Show every requirement in RB-001.
+
+Show requirements with no Specification.
+
+Show requirements with no Verification obligation.
+
+Show requirements whose latest Evidence is stale.
+
+Show requirements affected by ADR-012.
+
+Show requirements implemented by component X.
+
+Show verification failures affecting a release.
+
+Show all requirements depending on REQ-AUTH.
+
+Show requirements superseded since RB-001.
+
+Show implementation with no requirement trace.
+
+Show requirements affected by changing the GitHub adapter.
+
+Show all requirements governing AI-generated mutations.
+```
+
+These queries are not merely documentation conveniences.
+
+They are part of the intended engineering control model.
+
+---
+
+# Initial normalization order
+
+Normalization SHOULD proceed in dependency order.
+
+## Phase 1 — Foundations
+
+```text
+REQ-SEM
+REQ-ID
+REQ-PROV
+REQ-AUTH
+```
+
+Goal:
+
+establish stable semantic ownership before downstream extraction.
+
+---
+
+## Phase 2 — Control
+
+```text
+REQ-GOV
+REQ-EXEC
+```
+
+Goal:
+
+separate authorization and policy from execution mechanics.
+
+---
+
+## Phase 3 — Native-system behavior
+
+```text
+REQ-INT
+REQ-REC
+```
+
+Goal:
+
+extract provider and reconciliation mechanics into Specifications.
+
+These are the two largest normalization targets.
+
+---
+
+## Phase 4 — System properties
+
+```text
+REQ-LOCAL
+REQ-REPRO
+```
+
+Goal:
+
+separate durable properties from environment/profile mechanics.
+
+---
+
+## Phase 5 — AI and assurance
+
+```text
+REQ-AI
+REQ-VFY
+```
+
+Goal:
+
+ensure AI uses ordinary Monad semantics and move verification mechanics into explicit Specifications.
+
+---
+
+# Normalization constraints
+
+During normalization:
+
+1. Requirements MUST NOT be renumbered merely for aesthetic continuity.
+2. Existing identifiers MUST remain resolvable.
+3. Removed duplication MUST retain a trace to the canonical requirement.
+4. Architecture extraction MUST preserve the underlying requirement.
+5. Specification extraction MUST preserve the durable obligation.
+6. Cross-family links MUST not create circular semantic ownership.
+7. Historical references to RB-001 MUST continue to resolve.
+8. Current requirement state MUST remain distinguishable from baseline state.
+
+---
+
+# Baseline preservation
+
+RB-001 is immutable as a historical observation.
+
+Future requirement sets may produce:
+
+```text
+RB-002
+RB-003
+...
+```
+
+But later baselines do not rewrite RB-001.
+
+Therefore:
+
+```text
+RB-001
+    = what the accepted requirements corpus was
+      at that baseline point
+
+current requirements
+    = what the requirements corpus is now
+```
+
+The distinction is essential for historical reproducibility.
+
+---
+
+# Relationship to Verification
+
+RTM-001 gives Verification the information needed to create systematic requirement assurance.
+
+For each requirement:
+
+```text
+Requirement
+    ↓
+Verification Obligation
+    ↓
+Verification Method
+    ↓
+Evidence
+    ↓
+Result
+```
+
+A Verification result MUST remain scoped to:
+
+* the requirement revision,
+* evaluated target revision,
+* verification method revision,
+* relevant environment,
+* and Evidence.
+
+A later requirement change may invalidate earlier Verification without making the historical result false.
+
+---
+
+# Relationship to Releases
+
+A release SHOULD eventually be able to declare:
+
+```yaml
+release: v0.1.0
+requirements_baseline: RB-002
+
+verification:
+  required: 412
+  passed: 410
+  waived: 2
+  failed: 0
+
+evidence_snapshot: EVS-0012
+```
+
+A release therefore binds not merely to code.
+
+It binds to a known requirements and assurance state.
+
+---
+
+# Relationship to impact analysis
+
+Traceability enables change impact to propagate through the system.
+
+For example:
+
+```text
+change REQ-AUTH-###
+        ↓
+affected Governance Specification
+        ↓
+affected Execution Specification
+        ↓
+affected components
+        ↓
+affected verification obligations
+        ↓
+affected releases
+```
+
+This is one of the principal reasons to maintain requirement relationships explicitly.
+
+---
+
+# Relationship to AI
+
+AI systems SHOULD consume this traceability model rather than infer system structure solely from repository text.
+
+An AI agent should be able to determine:
+
+```text
+why does this requirement exist?
+
+what is canonical?
+
+what is merely a specialization?
+
+what Decision resolved the design?
+
+what Specification defines exact behavior?
+
+what code implements it?
+
+what Verification proves it?
+
+what Evidence supports the result?
+```
+
+This reduces the probability of AI changing one representation of a concept while overlooking its governing source.
+
+---
+
+# Definition of Ready
+
+RTM-001 is ready for use when:
+
+* [x] RB-001 has been accepted,
+* [x] all baseline requirement families have known prefixes,
+* [x] canonical family ownership has been established,
+* [x] cross-family dependency direction has been established,
+* [x] major duplicate clusters have been identified,
+* [x] downstream Decision candidates have been identified,
+* [x] downstream Specification candidates have been identified.
+
+---
+
+# Definition of Done
+
+RTM-001 is complete as the initial traceability map when:
+
+* [x] all twelve requirement families are represented,
+* [x] canonical ownership rules are explicit,
+* [x] family-level dependencies are explicit,
+* [x] duplicate classes are identified,
+* [x] ADR derivation paths are identified,
+* [x] Specification derivation paths are identified,
+* [x] normalization order is defined,
+* [x] requirement-history preservation rules are defined,
+* [x] future implementation and Verification traceability is defined.
+
+Full requirement-level mapping is subsequent work.
+
+---
+
+# Governing invariants
+
+RTM-001 establishes the following invariants:
+
+1. Every cross-cutting semantic concept has one canonical owner.
+2. Specialization does not imply semantic redefinition.
+3. Duplicate requirements must be normalized deliberately.
+4. Requirement identity survives consolidation.
+5. Architecture Decisions must trace to legitimate drivers.
+6. Specifications must trace to Requirements or Decisions.
+7. Implementation does not itself prove requirement satisfaction.
+8. Verification must trace to an explicit expectation.
+9. Evidence must trace to the Verification it supports.
+10. Historical baselines are immutable observations.
+11. Current state must not rewrite prior baselines.
+12. Traceability must work in both directions.
+13. Untraceable implementation is a review signal.
+14. Unverified requirements remain visibly unverified.
+15. Changing a canonical requirement must expose downstream impact.
+
+---
+
+# Governing principle
+
+> **Every important engineering fact should be connected to why it exists, what defines it, what realizes it, and how we know it is true.**
+
+RB-001 established the first controlled requirements baseline.
+
+RTM-001 establishes the relationships necessary to evolve that baseline without losing meaning.
+
+The next stage is therefore not more requirements discovery.
+
+It is controlled derivation:
+
+```text
+RB-001
+    ↓
+RTM-001
+    ↓
+Architecture Decisions
+    ↓
+Specifications
+    ↓
+Implementation
+    ↓
+Verification
+```
+
+<Cards>
+  <Card
+    href="/docs/artifacts/reviews/requirements-baseline"
+    title="Requirements Baseline Review"
+  >
+    Review the accepted RB-001 baseline and its normalization findings.
+  </Card>
+
+<Card
+href="/docs/artifacts/requirements"
+title="Requirements"
+
+>
+
+```
+Browse the normative requirement families represented by this map.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/decisions"
+title="Architecture Decisions"
+
+>
+
+```
+Follow requirement-driven architectural choices.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications"
+title="Specifications"
+
+>
+
+```
+Inspect the precise contracts derived from requirements and decisions.
+```
+
+  </Card>
+</Cards>

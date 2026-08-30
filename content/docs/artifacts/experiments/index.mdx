@@ -1,0 +1,4644 @@
+---
+title: Experiments
+description: Controlled investigations used to test assumptions, compare alternatives, reduce uncertainty, falsify hypotheses, and produce evidence before consequential engineering commitments are made.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Structured learning
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Experiments turn engineering uncertainty into something testable. They create bounded opportunities to learn before assumptions harden into architecture, policy, specification, or production behavior.
+  </p>
+</div>
+
+# What is an experiment?
+
+An **Experiment** is a bounded investigation designed to answer a specific question, test a hypothesis, compare alternatives, or reduce an important uncertainty.
+
+An Experiment should make clear:
+
+```text
+what is unknown
+
+what we believe might be true
+
+how we will test it
+
+what observations matter
+
+what would support the hypothesis
+
+what would weaken or falsify it
+
+what was actually observed
+
+what follows from the result
+```
+
+The objective is not merely to try something.
+
+The objective is to learn something.
+
+> **An experiment exists to change the state of knowledge.**
+
+---
+
+# Why experiments matter
+
+Engineering projects frequently make irreversible or expensive decisions while important assumptions remain untested.
+
+Examples include assumptions such as:
+
+```text
+a graph representation will materially improve impact analysis
+
+semantic identity can survive file movement reliably
+
+a local-first architecture can remain usable at large repository scale
+
+native tools can remain authoritative while Monad maintains a semantic model
+
+AI-generated context can improve implementation quality
+
+a particular storage model can support required query patterns
+
+a policy mechanism can govern automated execution without excessive friction
+```
+
+Any of these may be plausible.
+
+Plausibility is not Evidence.
+
+Experiments provide a disciplined way to investigate them before the project commits too deeply.
+
+---
+
+# Experiments reduce uncertainty
+
+Consider an architectural uncertainty:
+
+```text
+Should Monad require a graph database?
+```
+
+That question should not necessarily become an immediate technology decision.
+
+Instead, it can become an Experiment:
+
+```text
+Hypothesis:
+The required graph traversals cannot be served
+with acceptable performance using relational
+storage plus derived indexes.
+```
+
+Then test representative workloads.
+
+The result may show:
+
+```text
+relational storage is sufficient
+```
+
+or:
+
+```text
+specialized graph storage produces a material advantage
+```
+
+Either result improves the architecture.
+
+---
+
+# An experiment is not a decision
+
+An Experiment produces information.
+
+A [Decision](/docs/artifacts/decisions) determines what the project will do.
+
+The relationship is usually:
+
+```text
+Question
+   ↓
+Experiment
+   ↓
+Evidence
+   ↓
+Decision
+```
+
+not:
+
+```text
+Experiment
+   ↓
+automatic architecture
+```
+
+A successful prototype can still be the wrong production architecture.
+
+---
+
+# An experiment is not implementation
+
+Experimental code is built to learn.
+
+Production implementation is built to satisfy an approved Specification under expected operational conditions.
+
+These objectives are different.
+
+Experimental code may deliberately omit:
+
+```text
+error handling
+
+migration support
+
+security hardening
+
+generalization
+
+observability
+
+performance optimization
+
+compatibility guarantees
+```
+
+That can be appropriate if those concerns are irrelevant to the hypothesis.
+
+<Callout type="warning" title="Prototype success is not production readiness">
+
+An Experiment demonstrating that something can work does not establish that it should become part of the production system.
+
+</Callout>
+
+---
+
+# An experiment is not a benchmark
+
+A benchmark measures some property under defined conditions.
+
+An Experiment uses observations—including benchmarks—to answer a question.
+
+For example:
+
+```text
+Benchmark:
+graph traversal takes 18 ms
+
+Experiment:
+does traversal remain below the acceptable
+latency threshold across representative project sizes?
+```
+
+The benchmark is Evidence within the Experiment.
+
+---
+
+# An experiment is not exploration
+
+Exploration is often open-ended.
+
+An Experiment is deliberately bounded.
+
+Exploration might ask:
+
+> What storage approaches are available?
+
+An Experiment might ask:
+
+> Does PostgreSQL with recursive queries satisfy the traversal requirements defined for the M0 semantic kernel?
+
+Both are useful.
+
+Only the second has a defined hypothesis and evaluation condition.
+
+---
+
+# An experiment is not a demonstration
+
+A demonstration shows that something works under some circumstances.
+
+An Experiment asks whether a claim survives deliberate testing.
+
+For example:
+
+```text
+Demo:
+AI generated a correct change once.
+```
+
+versus:
+
+```text
+Experiment:
+Across 50 representative work packages,
+does graph-scoped context reduce incorrect edits
+relative to repository search alone?
+```
+
+The second produces much stronger Evidence.
+
+---
+
+# Questions before answers
+
+Experiments should begin with a meaningful uncertainty.
+
+Examples:
+
+```text
+Can stable semantic identity survive repository moves?
+
+Does explicit provenance materially improve debugging?
+
+Is a dedicated graph database necessary?
+
+Can Monad reconstruct enough project context locally?
+
+What information is actually required for impact analysis?
+
+Does AI context built from the semantic model outperform
+ordinary repository retrieval?
+
+How frequently do native and semantic state diverge?
+
+Can policy evaluation remain usable without central services?
+
+Which metadata fields users will actually maintain?
+```
+
+A weak Experiment starts with a technology and looks for justification.
+
+A strong Experiment starts with a question.
+
+---
+
+# Hypothesis
+
+A Hypothesis is a testable proposition.
+
+For example:
+
+> A stable Subject identifier can remain unchanged when its primary source file is renamed or moved.
+
+A useful Hypothesis should be:
+
+```text
+specific
+
+observable
+
+falsifiable
+
+relevant to a real decision
+```
+
+Avoid hypotheses such as:
+
+```text
+The system will be better.
+```
+
+There is no clear test.
+
+Prefer:
+
+```text
+Using semantic identity independent of path
+will preserve identity across repository moves
+without requiring manual rebinding in at least
+95% of representative rename scenarios.
+```
+
+Now the claim can be tested.
+
+---
+
+# Null hypothesis
+
+For consequential experiments, it can be useful to articulate the competing assumption.
+
+For example:
+
+```text
+H1:
+semantic identity survives repository movement reliably
+
+H0:
+repository movement causes enough ambiguity that
+automatic continuity cannot be trusted
+```
+
+This helps prevent the Experiment from being structured only to confirm the preferred design.
+
+---
+
+# Falsifiability
+
+Monad places unusual emphasis on falsifiability.
+
+For an architectural Hypothesis, ask:
+
+> **What result would convince us that this idea is wrong?**
+
+For example:
+
+```text
+Hypothesis:
+A semantic graph materially improves change-impact analysis.
+```
+
+Potential falsification condition:
+
+```text
+If a simpler indexed dependency model identifies
+the same affected Subjects with equivalent accuracy
+and substantially lower maintenance cost,
+the graph approach is not justified for this capability.
+```
+
+This is important.
+
+Otherwise every result can be interpreted as evidence supporting the original idea.
+
+---
+
+# Confirmation is not the goal
+
+An Experiment should not be designed to prove the team correct.
+
+It should be designed to distinguish among competing explanations.
+
+For example:
+
+```text
+Observation:
+impact analysis improved
+```
+
+Possible explanations:
+
+```text
+graph relationships helped
+
+better source indexing helped
+
+the benchmark was too simple
+
+the repository structure already encoded the answer
+
+the evaluator knew which implementation was being tested
+```
+
+Good Experiment design tries to separate these possibilities.
+
+---
+
+# Experiment anatomy
+
+A useful Experiment artifact may contain:
+
+```text
+Identity
+
+Title
+
+Status
+
+Question
+
+Context
+
+Hypothesis
+
+Competing Hypotheses
+
+Motivation
+
+Decision at Stake
+
+Scope
+
+Variables
+
+Controls
+
+Method
+
+Fixtures / Dataset
+
+Environment
+
+Procedure
+
+Success Criteria
+
+Failure / Falsification Criteria
+
+Observations
+
+Results
+
+Evidence
+
+Limitations
+
+Interpretation
+
+Conclusion
+
+Follow-up
+
+Related Requirements
+
+Related Decisions
+
+Related Specifications
+
+Provenance
+```
+
+Not every small Experiment needs every field.
+
+The structure should scale with consequence.
+
+---
+
+# Experiment identity
+
+Experiments need durable identity.
+
+Examples might eventually use:
+
+```text
+EXP-001
+```
+
+or:
+
+```text
+experiment:identity/rename-continuity
+```
+
+The final identifier format belongs in the relevant Schema.
+
+As elsewhere in Monad:
+
+```text
+Experiment identity ≠ file path
+```
+
+A file may move while the Experiment remains the same semantic object.
+
+---
+
+# Experiment status
+
+Experiments have lifecycle.
+
+Possible states include:
+
+```text
+proposed
+
+designed
+
+ready
+
+running
+
+completed
+
+inconclusive
+
+invalidated
+
+abandoned
+
+superseded
+```
+
+The exact vocabulary should remain small and purposeful.
+
+---
+
+# Proposed
+
+A proposed Experiment identifies an uncertainty worth investigating but may not yet have an adequate design.
+
+It should not yet be treated as Evidence.
+
+---
+
+# Designed
+
+A designed Experiment has a sufficiently explicit method and evaluation criteria to review before execution.
+
+This is valuable because it allows reviewers to detect a biased methodology before results exist.
+
+---
+
+# Ready
+
+A ready Experiment has:
+
+```text
+defined hypothesis
+
+defined method
+
+required environment
+
+required fixtures
+
+success and falsification criteria
+
+responsible Actor
+```
+
+and can be executed without inventing major methodology during the run.
+
+---
+
+# Running
+
+A running Experiment is actively producing observations.
+
+Its methodology should not be silently rewritten in response to undesirable results.
+
+If methodology changes materially:
+
+```text
+record the change
+```
+
+or:
+
+```text
+start a new Experiment revision
+```
+
+---
+
+# Completed
+
+A completed Experiment has finished execution and recorded:
+
+```text
+observations
+
+Evidence
+
+interpretation
+
+conclusion
+```
+
+Completion does not imply that the Hypothesis was supported.
+
+A falsified Hypothesis can be an extremely successful Experiment.
+
+---
+
+# Inconclusive
+
+Some experiments fail to distinguish the alternatives.
+
+Examples:
+
+```text
+sample too small
+
+measurement noise too large
+
+fixtures unrepresentative
+
+environment unstable
+
+success criteria ambiguous
+```
+
+The correct conclusion may be:
+
+```text
+inconclusive
+```
+
+That is better than pretending the result is stronger than it is.
+
+---
+
+# Invalidated
+
+An Experiment may later be discovered to contain a methodological flaw.
+
+For example:
+
+```text
+benchmark used cached results unknowingly
+```
+
+or:
+
+```text
+comparison configurations were not equivalent
+```
+
+The Experiment should remain historically visible but be marked invalidated.
+
+---
+
+# Abandoned
+
+An Experiment may be abandoned because:
+
+```text
+question no longer matters
+
+architecture changed
+
+cost exceeded expected value
+
+better Evidence became available
+```
+
+The reason should be recorded.
+
+---
+
+# Superseded
+
+A later Experiment may replace an earlier design.
+
+For example:
+
+```text
+EXP-014
+tested synthetic repositories
+
+EXP-027
+tested representative production repositories
+```
+
+The later Experiment may provide stronger Evidence without erasing the earlier work.
+
+---
+
+# Decision at stake
+
+A particularly useful field is:
+
+> **What decision could this Experiment change?**
+
+For example:
+
+```text
+Decision at stake:
+whether the M0 kernel requires a graph database
+```
+
+This prevents experiments from becoming technically interesting but strategically irrelevant.
+
+---
+
+# Experiment priority
+
+Not every unknown deserves investigation.
+
+Prioritize uncertainty according to:
+
+```text
+decision importance
+
+cost of being wrong
+
+reversibility
+
+current uncertainty
+
+experiment cost
+
+time sensitivity
+```
+
+A simple heuristic is:
+
+```text
+High consequence
++
+High uncertainty
++
+Low-to-moderate test cost
+=
+strong Experiment candidate
+```
+
+---
+
+# Scope
+
+The Experiment must define what it is and is not testing.
+
+For example:
+
+```text
+In scope:
+identity continuity across rename and move
+
+Out of scope:
+identity split and merge semantics
+```
+
+Without Scope, conclusions tend to grow beyond what the Experiment actually established.
+
+---
+
+# Variables
+
+Relevant variables should be identified where useful.
+
+For example, identity matching may depend on:
+
+```text
+file path
+
+content similarity
+
+native identifier
+
+Git history
+
+semantic relationships
+
+manual confirmation
+```
+
+Understanding these variables helps interpret why an outcome occurred.
+
+---
+
+# Independent variable
+
+The independent variable is deliberately changed.
+
+For example:
+
+```text
+context strategy:
+repository search
+versus
+semantic graph context
+```
+
+---
+
+# Dependent variable
+
+The dependent variable is observed.
+
+For example:
+
+```text
+implementation correctness
+
+number of unrelated edits
+
+task completion rate
+
+verification failures
+```
+
+---
+
+# Controlled variables
+
+Other conditions should remain sufficiently stable to make comparisons meaningful.
+
+For example:
+
+```text
+same repository
+
+same task
+
+same model version
+
+same tool permissions
+
+same verification suite
+```
+
+Perfect control may be impossible.
+
+The important thing is to know what changed.
+
+---
+
+# Confounding variables
+
+A Confounder may influence the result without being the intended variable.
+
+For example:
+
+```text
+Model A received semantic context
+
+Model B did not
+```
+
+but:
+
+```text
+Model A also had twice the token budget
+```
+
+Now it is unclear what caused the difference.
+
+Confounders should be reduced or acknowledged.
+
+---
+
+# Method
+
+The Method describes how the Experiment will be executed.
+
+A good Method should be detailed enough that another engineer could reproduce the essential investigation.
+
+For example:
+
+```text
+1. Construct repository fixture.
+2. Import fixture into semantic model.
+3. Record Subject identities.
+4. Rename and move selected files.
+5. Run reconciliation.
+6. Compare Subject identity assignments.
+7. Record ambiguous and incorrect matches.
+8. Repeat across fixture classes.
+```
+
+---
+
+# Procedure versus method
+
+The Method explains the experimental design.
+
+The Procedure gives the concrete steps.
+
+For small Experiments these may be combined.
+
+For complex investigations, separating them improves clarity.
+
+---
+
+# Fixtures
+
+Experiments often require controlled inputs.
+
+Examples:
+
+```text
+sample repositories
+
+synthetic dependency graphs
+
+historical commit sequences
+
+mock native systems
+
+known-good artifact sets
+
+policy scenarios
+```
+
+Fixtures should be versioned when they materially affect results.
+
+---
+
+# Synthetic fixtures
+
+Synthetic fixtures are useful because they make specific edge cases easy to construct.
+
+For example:
+
+```text
+rename only
+
+move plus edit
+
+duplicate files
+
+split Subject
+
+merge Subjects
+
+ambiguous historical lineage
+```
+
+But synthetic fixtures may not represent real engineering repositories.
+
+Use them deliberately.
+
+---
+
+# Real-world fixtures
+
+Real repositories improve external validity.
+
+However, they introduce noise.
+
+A useful progression is:
+
+```text
+small synthetic fixture
+        ↓
+controlled representative fixture
+        ↓
+real Monad repository
+        ↓
+external reference project
+```
+
+This matches Monad's broader dogfooding strategy.
+
+---
+
+# Dogfooding experiments
+
+Monad itself is a natural experimental subject.
+
+Examples:
+
+```text
+Can Monad model its own architecture?
+
+Can reconciliation detect changes in Monad correctly?
+
+Can Monad generate useful context for its own work?
+
+Can policies safely govern agents modifying Monad?
+```
+
+Dogfooding provides realistic complexity.
+
+---
+
+# External reference experiments
+
+Dogfooding alone can produce a self-referential architecture.
+
+Therefore some important experiments should also run against a deliberately small external project.
+
+This helps answer:
+
+> Is the capability general, or does it work only because Monad was designed around itself?
+
+---
+
+# Environment
+
+The execution Environment can affect results.
+
+Capture relevant details such as:
+
+```text
+operating system
+
+runtime versions
+
+dependency versions
+
+hardware class
+
+repository revision
+
+database version
+
+model provider/version
+
+configuration
+
+network assumptions
+```
+
+Capture only what matters to reproducibility.
+
+---
+
+# Environment snapshot
+
+For highly consequential experiments, an environment snapshot may include:
+
+```text
+Nix flake revision
+
+container digest
+
+lockfile
+
+Git commit
+
+tool versions
+```
+
+This increases confidence that the Experiment can later be reproduced.
+
+---
+
+# Reproducibility
+
+A strong Experiment should be reproducible enough that another Actor can rerun it under equivalent conditions.
+
+Perfect byte-for-byte reproducibility is not always possible.
+
+AI experiments, distributed systems, network services, and timing-sensitive tests may include nondeterminism.
+
+The artifact should distinguish:
+
+```text
+fully reproducible
+
+statistically reproducible
+
+partially reproducible
+
+not currently reproducible
+```
+
+where useful.
+
+---
+
+# Repeatability
+
+Repeatability asks:
+
+> Can we get consistent results when the same team repeats the Experiment?
+
+Reproducibility asks:
+
+> Can another environment or Actor independently obtain comparable results?
+
+Both matter.
+
+---
+
+# Success criteria
+
+Success criteria should be defined before observing the final result whenever practical.
+
+For example:
+
+```text
+identity continuity:
+≥ 98%
+
+false identity merges:
+0
+
+cases requiring human review:
+≤ 5%
+```
+
+Predetermined criteria reduce post-hoc rationalization.
+
+---
+
+# Failure criteria
+
+Explicit failure criteria are equally important.
+
+For example:
+
+```text
+If any unrelated Subject is automatically merged,
+automatic merge resolution is unsafe for M0.
+```
+
+This may be more informative than a generic success percentage.
+
+---
+
+# Falsification criteria
+
+A Hypothesis should identify results that would weaken or reject it.
+
+For example:
+
+```text
+Hypothesis:
+graph-aware impact analysis materially outperforms
+dependency indexing alone
+```
+
+Falsification condition:
+
+```text
+If precision and recall improve by less than 2%
+while graph maintenance adds substantial complexity,
+the additional graph machinery is not justified.
+```
+
+---
+
+# Stop conditions
+
+Some experiments should define when to stop.
+
+Examples:
+
+```text
+required confidence achieved
+
+critical failure discovered
+
+cost limit reached
+
+sample limit reached
+
+environment invalidated
+```
+
+This prevents open-ended investigation.
+
+---
+
+# Baseline
+
+A Baseline gives the Experiment something meaningful to compare against.
+
+For example:
+
+```text
+new approach:
+semantic graph context
+
+baseline:
+ripgrep + file tree + dependency metadata
+```
+
+Without a Baseline, a new mechanism can look impressive merely because it works at all.
+
+---
+
+# Prefer simple baselines
+
+Monad should deliberately compare sophisticated mechanisms against simpler alternatives.
+
+For example:
+
+```text
+semantic graph
+versus
+relational indexes
+
+AI planning engine
+versus
+structured checklist
+
+custom artifact database
+versus
+filesystem + Git
+
+complex policy language
+versus
+simple capability matrix
+```
+
+A complicated approach should earn its complexity.
+
+---
+
+# Control group
+
+For some Experiments, a control group may be useful.
+
+For example:
+
+```text
+20 implementation tasks
+with semantic context
+
+20 comparable tasks
+with ordinary repository retrieval
+```
+
+The control helps isolate the effect being investigated.
+
+---
+
+# Sample size
+
+Sample size should be large enough to support the intended conclusion.
+
+A single successful case may prove feasibility.
+
+It usually cannot establish reliability.
+
+For example:
+
+```text
+1 successful rename
+→ feasibility
+```
+
+but not:
+
+```text
+identity continuity is reliable
+```
+
+---
+
+# Representative samples
+
+More data is not always better.
+
+The sample should cover meaningful variation.
+
+For identity experiments:
+
+```text
+simple rename
+
+directory move
+
+rename plus edit
+
+copy then delete
+
+file split
+
+file merge
+
+generated representation
+
+multiple similar files
+```
+
+Representative cases matter more than arbitrary volume.
+
+---
+
+# Edge cases
+
+Experiments should intentionally include difficult cases when those cases matter to the architecture.
+
+For example:
+
+```text
+ambiguous identity
+
+stale read model
+
+conflicting authority
+
+partial execution
+
+network failure
+
+reconciliation after out-of-band edit
+```
+
+Happy-path experiments produce weak confidence.
+
+---
+
+# Negative tests
+
+The Experiment should test cases where the mechanism should not act.
+
+For example:
+
+```text
+identity resolver should NOT merge
+two semantically distinct Subjects
+merely because their representations are similar
+```
+
+False positives can be more dangerous than missed matches.
+
+---
+
+# Adversarial experiments
+
+For important mechanisms, deliberately try to break the system.
+
+Examples:
+
+```text
+construct identity collisions
+
+introduce malformed provenance
+
+create conflicting policies
+
+simulate stale authorization
+
+modify native state outside Monad
+
+remove required evidence
+
+feed misleading AI context
+```
+
+An architecture should survive hostile conditions, not merely expected ones.
+
+---
+
+# Fault injection
+
+Fault injection can test failure behavior deliberately.
+
+For example:
+
+```text
+kill database during execution
+
+disconnect native adapter
+
+corrupt projection cache
+
+return stale Git revision
+
+fail verification midway
+
+deny network access
+```
+
+This reveals whether failure semantics are actually understood.
+
+---
+
+# Chaos experiments
+
+Distributed or long-running systems may eventually justify chaos-style experiments.
+
+For Monad's early local-first kernel, this would likely be premature.
+
+The principle is useful:
+
+> Test failures intentionally before production introduces them accidentally.
+
+---
+
+# Observations
+
+Observations record what happened.
+
+Examples:
+
+```text
+47 of 50 identities preserved automatically
+
+3 required manual resolution
+
+0 false merges observed
+
+mean reconciliation time 84 ms
+```
+
+Observations should remain distinct from interpretation.
+
+---
+
+# Observation versus interpretation
+
+Suppose:
+
+```text
+Observation:
+graph query completed in 22 ms
+```
+
+Interpretation:
+
+```text
+performance is sufficient for interactive use
+```
+
+The first is measured.
+
+The second depends on an acceptance threshold.
+
+Keeping them distinct protects the Evidence.
+
+---
+
+# Observation versus conclusion
+
+Another example:
+
+```text
+Observation:
+semantic context reduced failed verification
+from 18% to 12%
+```
+
+Conclusion:
+
+```text
+semantic context appears beneficial
+under the tested task set
+```
+
+Avoid:
+
+```text
+semantic context solves AI reliability
+```
+
+The conclusion must not exceed the evidence.
+
+---
+
+# Raw results
+
+Raw Experiment outputs may include:
+
+```text
+logs
+
+benchmark data
+
+test output
+
+traces
+
+generated artifacts
+
+query results
+
+execution histories
+
+screenshots
+
+model responses
+```
+
+These can be preserved as Evidence where useful.
+
+---
+
+# Derived results
+
+Experiment reports often summarize raw Evidence.
+
+Examples:
+
+```text
+mean
+
+median
+
+percentile
+
+error rate
+
+precision
+
+recall
+
+success rate
+
+latency distribution
+```
+
+Derived results should preserve enough provenance to reconstruct how they were calculated.
+
+---
+
+# Statistical analysis
+
+Some experiments may require statistical reasoning.
+
+Most early engineering experiments do not need elaborate statistical machinery.
+
+Use only the level needed for the claim.
+
+For example:
+
+```text
+Does operation latency remain below 100 ms
+for every benchmark fixture?
+```
+
+may need simple measurements.
+
+A comparative AI evaluation across variable tasks may require much stronger analysis.
+
+---
+
+# Variance
+
+Averages can hide instability.
+
+For performance experiments, record appropriate distributions.
+
+For example:
+
+```text
+median: 24 ms
+p95: 58 ms
+p99: 310 ms
+```
+
+The tail may determine usability.
+
+---
+
+# Confidence
+
+Do not imply greater confidence than the Experiment supports.
+
+Possible language:
+
+```text
+demonstrates feasibility
+
+provides moderate evidence
+
+strongly supports
+
+does not support
+
+falsifies under tested assumptions
+
+remains inconclusive
+```
+
+Avoid pretending a prototype creates certainty.
+
+---
+
+# AI experiments
+
+AI-related experiments require special care because model behavior may vary across:
+
+```text
+model
+
+provider
+
+model revision
+
+prompt
+
+context
+
+temperature
+
+tool access
+
+sampling
+
+time
+```
+
+Results must capture enough of those conditions to interpret what happened.
+
+---
+
+# Model identity
+
+An AI Experiment should record the specific model or sufficiently precise provider/model identifier where possible.
+
+A claim such as:
+
+```text
+GPT works better
+```
+
+is too vague to be durable Evidence.
+
+---
+
+# Prompt provenance
+
+If prompt changes materially affect the Experiment, preserve:
+
+```text
+system instructions
+
+task prompt
+
+context-generation method
+
+tool definitions
+
+relevant settings
+```
+
+This makes AI evaluation more reproducible.
+
+---
+
+# AI evaluation criteria
+
+Avoid relying only on subjective impressions such as:
+
+```text
+answer looked better
+```
+
+Prefer observable measures where possible:
+
+```text
+tests passed
+
+requirements satisfied
+
+incorrect files modified
+
+review corrections required
+
+security violations
+
+time to completion
+
+token usage
+
+verification result
+```
+
+Human judgment can still be valuable.
+
+It should be represented explicitly as judgment.
+
+---
+
+# LLM-as-judge
+
+An AI model may sometimes assist evaluation.
+
+But:
+
+```text
+model judges model
+```
+
+can introduce bias.
+
+Use independent verification where practical, especially for consequential conclusions.
+
+---
+
+# Human evaluation
+
+Human evaluation can assess qualities difficult to measure automatically.
+
+Examples:
+
+```text
+architectural coherence
+
+maintainability
+
+clarity
+
+relevance
+
+usability
+```
+
+The evaluation rubric should be defined before assessment where possible.
+
+---
+
+# Blind evaluation
+
+For comparative experiments, evaluators may be blinded to which technique produced the result.
+
+This can reduce preference bias.
+
+For example:
+
+```text
+Reviewer receives implementation A and B
+without knowing which used semantic context.
+```
+
+---
+
+# Benchmark contamination
+
+AI systems may have prior knowledge of public benchmark tasks.
+
+Therefore, public tasks may not reliably measure generalization.
+
+Project-specific or newly constructed fixtures can provide stronger Evidence.
+
+---
+
+# Cost
+
+Experiments should track relevant cost.
+
+Examples:
+
+```text
+execution time
+
+compute
+
+AI tokens
+
+human review
+
+storage
+
+operational complexity
+```
+
+A mechanism that improves accuracy slightly while multiplying cost by 100 may not be worthwhile.
+
+---
+
+# Complexity cost
+
+Monad should treat conceptual and operational complexity as part of the result.
+
+For example:
+
+```text
+Approach A:
+95% accuracy
+simple relational model
+
+Approach B:
+96% accuracy
+graph database + synchronization service + custom query layer
+```
+
+The Experiment should not report only the one-percent improvement.
+
+---
+
+# Maintenance cost
+
+Some approaches are cheap to demonstrate and expensive to maintain.
+
+Examples:
+
+```text
+custom DSL
+
+multi-database synchronization
+
+bespoke graph engine
+
+complex distributed scheduler
+```
+
+Experiment conclusions should account for expected lifecycle cost when the decision depends on it.
+
+---
+
+# Reversibility
+
+The more irreversible the decision, the stronger the Evidence should be.
+
+For example:
+
+```text
+temporary local cache
+→ easily replaced
+```
+
+versus:
+
+```text
+public persistent identifier scheme
+→ expensive to change
+```
+
+The identifier scheme deserves much stronger experimentation.
+
+---
+
+# Architectural experiments
+
+Architecture experiments answer questions such as:
+
+```text
+Is a dedicated graph store necessary?
+
+Can canonical state remain distributed?
+
+Can read models be rebuilt deterministically?
+
+Can reconciliation recover from out-of-band edits?
+
+Can semantic identity remain stable?
+```
+
+These should precede architectural commitments where uncertainty is material.
+
+---
+
+# Storage experiments
+
+Storage investigations may compare:
+
+```text
+filesystem
+
+SQLite
+
+PostgreSQL
+
+embedded graph structures
+
+dedicated graph database
+
+hybrid persistence
+```
+
+Evaluation should reflect Monad's actual requirements rather than generic database benchmarks.
+
+---
+
+# Query experiments
+
+Potential questions include:
+
+```text
+How quickly can authority paths be resolved?
+
+Can impact traversal remain interactive?
+
+How expensive is provenance reconstruction?
+
+Can indexes support local-first operation?
+```
+
+Representative semantic workloads matter more than synthetic record throughput alone.
+
+---
+
+# Identity experiments
+
+Identity is a high-risk domain and deserves focused investigation.
+
+Examples:
+
+```text
+rename continuity
+
+move continuity
+
+copy detection
+
+split
+
+merge
+
+native identifier rebinding
+
+generated representation replacement
+
+cross-repository movement
+```
+
+Particular attention should be paid to false identity merges.
+
+---
+
+# Reconciliation experiments
+
+Questions might include:
+
+```text
+How accurately can Monad detect native drift?
+
+Which changes can be reconciled automatically?
+
+When should human confirmation be required?
+
+How stale can semantic state become safely?
+```
+
+---
+
+# Authority experiments
+
+Potential experiments include:
+
+```text
+Can scoped Authority be resolved predictably?
+
+Do conflicting claims produce understandable results?
+
+Can Authority remain portable across native systems?
+```
+
+---
+
+# Policy experiments
+
+Policy investigations may test:
+
+```text
+Does capability-scoped authorization reduce risk?
+
+Does execution-time reevaluation prevent stale authorization?
+
+Can native policy projections remain synchronized?
+
+How much workflow friction does approval gating introduce?
+```
+
+---
+
+# Context experiments
+
+Monad assumes that purpose-built Context may outperform generic retrieval.
+
+That should be tested.
+
+For example:
+
+```text
+Task:
+modify parser behavior
+
+Baseline:
+repository search
+
+Variant:
+semantic context containing
+requirements, interfaces, dependencies,
+recent decisions, and verification targets
+```
+
+Then compare measurable outcomes.
+
+---
+
+# Impact-analysis experiments
+
+A central question is whether explicit relationships improve impact discovery.
+
+Possible comparison:
+
+```text
+A:
+file dependency analysis
+
+B:
+file dependency + semantic relationships
+
+C:
+full graph traversal
+```
+
+Measure:
+
+```text
+precision
+
+recall
+
+false positives
+
+human correction
+
+analysis cost
+```
+
+---
+
+# Provenance experiments
+
+Questions may include:
+
+```text
+Which provenance fields are actually useful?
+
+How much provenance can be captured automatically?
+
+When does provenance overhead become excessive?
+
+Can provenance materially improve debugging and review?
+```
+
+This helps prevent metadata accumulation without demonstrated value.
+
+---
+
+# Artifact-model experiments
+
+Monad's Artifact model should also be tested.
+
+Questions:
+
+```text
+Can engineers navigate the artifact relationships?
+
+Which artifact categories are useful?
+
+Which metadata is routinely left empty?
+
+Can artifacts remain understandable without a database UI?
+```
+
+The documentation model itself is an experimental subject.
+
+---
+
+# Human-factor experiments
+
+Engineering systems fail when people stop using them.
+
+Useful questions include:
+
+```text
+How long does artifact capture take?
+
+Which fields users skip?
+
+Can engineers understand Policy decisions?
+
+Does the workflow reduce or increase cognitive load?
+
+How quickly can a new contributor orient themselves?
+```
+
+Usability is part of system correctness.
+
+---
+
+# Progressive formalization experiments
+
+Monad assumes not everything should be formalized immediately.
+
+This assumption can be tested.
+
+For example:
+
+```text
+capture lightweight note first
+→ later promote to Claim or Decision
+```
+
+Measure:
+
+```text
+capture rate
+
+promotion rate
+
+information loss
+
+maintenance burden
+```
+
+---
+
+# Experiments can falsify Monad itself
+
+Experiments are not merely implementation tools.
+
+They should test Monad's fundamental premises.
+
+Examples:
+
+```text
+Is fragmentation of engineering knowledge
+actually a root problem?
+
+Does semantic modeling improve engineering outcomes?
+
+Does durable identity provide sufficient benefit
+to justify complexity?
+
+Can simpler search and indexing provide most of the value?
+
+Does governed AI execution materially outperform
+ordinary repository automation?
+```
+
+<Callout type="info" title="The project must be able to discover that it is wrong">
+
+A system built around unfalsifiable premises cannot meaningfully learn from Evidence.
+
+</Callout>
+
+---
+
+# Simpler alternatives
+
+Every major Monad capability should consider whether a simpler mechanism is sufficient.
+
+For example:
+
+```text
+Need:
+find related artifacts
+```
+
+Possible solutions:
+
+```text
+folder conventions
+
+frontmatter links
+
+full-text search
+
+relational index
+
+semantic graph
+```
+
+The Experiment should test the minimum mechanism capable of satisfying the requirement.
+
+---
+
+# Complexity must earn its place
+
+A useful rule:
+
+> **Do not adopt a more complex architecture merely because an Experiment shows that it works. Adopt it when the Evidence shows that the additional complexity solves a problem simpler alternatives cannot solve adequately.**
+
+---
+
+# Experiment records
+
+Completed Experiment artifacts should preserve enough information to understand:
+
+```text
+why it was run
+
+what was tested
+
+how it was tested
+
+what happened
+
+what the Evidence means
+
+what remains uncertain
+```
+
+The record should survive long after the prototype code disappears.
+
+---
+
+# Experimental code
+
+Experimental code may live separately from production implementation.
+
+For example:
+
+```text
+experiments/
+  identity-rename/
+  graph-query/
+  context-evaluation/
+```
+
+The precise repository structure remains project-specific.
+
+The important distinction is semantic:
+
+```text
+experimental code
+≠
+production commitment
+```
+
+---
+
+# Promotion to implementation
+
+If an Experiment supports a design, the code should not automatically be promoted unchanged.
+
+The normal path is:
+
+```text
+Experiment
+   ↓
+Evidence
+   ↓
+Decision
+   ↓
+Specification
+   ↓
+Production Implementation
+```
+
+Some prototype code may be reusable.
+
+Its reuse should be deliberate.
+
+---
+
+# Experiment debt
+
+Temporary experimental code can become permanent accidentally.
+
+Examples:
+
+```text
+prototype service becomes production service
+
+temporary schema becomes public contract
+
+hardcoded fixture becomes runtime assumption
+```
+
+Explicit Experiment status helps prevent this.
+
+---
+
+# Disposable experiments
+
+Many experiments should be disposable.
+
+The value is the Evidence and learning, not the code.
+
+A deleted prototype can still produce a permanent engineering contribution if the findings are preserved.
+
+---
+
+# Experiment provenance
+
+Experiments should record relevant provenance.
+
+Potential dimensions include:
+
+```text
+author
+
+executor
+
+repository revision
+
+environment
+
+tool versions
+
+input fixtures
+
+data sources
+
+AI model
+
+configuration
+
+time
+```
+
+The required depth should reflect the importance of the conclusion.
+
+---
+
+# Evidence links
+
+Raw outputs should be linked rather than copied excessively into the Experiment report.
+
+For example:
+
+```text
+Experiment
+   ├── result summary
+   ├── benchmark dataset
+   ├── execution log
+   ├── verification report
+   └── trace
+```
+
+This keeps the report readable while preserving inspectability.
+
+---
+
+# Evidence integrity
+
+Important Experiment Evidence should be immutable or otherwise protected against silent alteration.
+
+If the evidence changes:
+
+```text
+record a new revision
+```
+
+rather than rewriting history.
+
+---
+
+# Invalid Evidence
+
+Evidence may later become invalid because:
+
+```text
+measurement bug found
+
+fixture corrupted
+
+tool version defective
+
+test configuration incorrect
+```
+
+The Experiment should record that correction without deleting the historical event.
+
+---
+
+# Contradictory experiments
+
+Two valid experiments may produce different results.
+
+For example:
+
+```text
+EXP-021:
+graph traversal faster
+
+EXP-034:
+relational traversal faster
+```
+
+This does not necessarily imply one is wrong.
+
+Differences may come from:
+
+```text
+repository scale
+
+data distribution
+
+query pattern
+
+hardware
+
+implementation maturity
+```
+
+The contradiction becomes a new question.
+
+---
+
+# Replication
+
+Important findings should sometimes be replicated.
+
+A replication Experiment may:
+
+```text
+rerun original method
+
+use new fixtures
+
+use another implementation
+
+use another Actor
+
+use another environment
+```
+
+Replicated findings create stronger Evidence.
+
+---
+
+# Experiment families
+
+Related experiments may form a sequence.
+
+For example:
+
+```text
+EXP-001
+identity survives simple rename
+
+EXP-004
+identity survives move plus edit
+
+EXP-009
+identity survives repository migration
+
+EXP-015
+identity split/merge model
+```
+
+Together they form a growing Evidence base around one architectural concern.
+
+---
+
+# Experiment series
+
+A series may follow:
+
+```text
+feasibility
+   ↓
+correctness
+   ↓
+performance
+   ↓
+failure behavior
+   ↓
+real-world validation
+```
+
+This avoids asking one small prototype to answer every question.
+
+---
+
+# Follow-up questions
+
+Every Experiment should identify what remains unknown.
+
+For example:
+
+```text
+Supported:
+identity continuity works under rename
+
+Still unknown:
+copy/delete ambiguity
+
+split/merge semantics
+
+cross-repository movement
+```
+
+This prevents conclusions from growing beyond Evidence.
+
+---
+
+# Unexpected findings
+
+Experiments often reveal issues unrelated to the original hypothesis.
+
+These should be captured.
+
+For example:
+
+```text
+Experiment:
+measure graph query performance
+
+Unexpected finding:
+80% of runtime comes from identity resolution
+```
+
+That may justify a new Experiment.
+
+---
+
+# Experiment branching
+
+Unexpected findings may produce:
+
+```text
+new question
+   ↓
+new Hypothesis
+   ↓
+new Experiment
+```
+
+This is part of learning, not failure.
+
+---
+
+# Open questions
+
+Experiments should reduce uncertainty, not hide remaining uncertainty.
+
+An Experiment report may explicitly conclude:
+
+```text
+Question A:
+answered
+
+Question B:
+partially answered
+
+Question C:
+still unknown
+```
+
+This is more useful than a binary success label.
+
+---
+
+# Experiment review
+
+Before execution, review may ask:
+
+1. Is the question important?
+2. Is the Hypothesis testable?
+3. What result would falsify it?
+4. Is there a simpler baseline?
+5. Are the fixtures representative?
+6. Are important confounders controlled?
+7. Are success criteria defined in advance?
+8. Is the cost proportionate to the decision?
+9. Is the method reproducible?
+10. Will the result actually inform a decision?
+
+---
+
+# Result review
+
+After execution, review should ask:
+
+1. Was the Method followed?
+2. Were any conditions changed?
+3. What was actually observed?
+4. Is the Evidence valid?
+5. Does the interpretation exceed the Evidence?
+6. Were negative results preserved?
+7. Were unexpected findings captured?
+8. What remains unknown?
+9. Does the result change a Decision?
+10. Should the Experiment be replicated?
+
+---
+
+# Bias
+
+Experiments are vulnerable to bias.
+
+Common forms include:
+
+```text
+confirmation bias
+
+selection bias
+
+survivorship bias
+
+observer bias
+
+benchmark bias
+
+publication bias
+```
+
+The Experiment design should reduce them where practical.
+
+---
+
+# Selection bias
+
+Testing only easy examples can make a mechanism appear stronger than it is.
+
+For example:
+
+```text
+identity Experiment tests only pure renames
+```
+
+while real repositories frequently contain:
+
+```text
+rename + edit + split + generated code
+```
+
+The sample must reflect the intended claim.
+
+---
+
+# Publication bias
+
+Failed experiments are valuable.
+
+If only successful Experiments remain visible, the project loses important knowledge.
+
+Monad should preserve:
+
+```text
+supported hypotheses
+
+falsified hypotheses
+
+inconclusive investigations
+
+abandoned approaches
+```
+
+---
+
+# Negative results
+
+A negative result can prevent months of wasted engineering effort.
+
+For example:
+
+```text
+Experiment:
+custom graph database
+
+Result:
+no meaningful capability advantage
+for required M0 queries
+```
+
+This can justify deliberately staying with a simpler architecture.
+
+That is a successful engineering outcome.
+
+---
+
+# Failed prototypes
+
+Prototype failure should be recorded when it teaches something.
+
+Examples:
+
+```text
+approach failed under concurrent edits
+
+migration strategy lost identity continuity
+
+AI planner generated invalid dependency order
+```
+
+These failures become future design constraints.
+
+---
+
+# Learning value
+
+The success of an Experiment should be measured primarily by whether it reduced meaningful uncertainty.
+
+Therefore:
+
+```text
+Hypothesis falsified
++
+decision clarified
+=
+successful Experiment
+```
+
+---
+
+# Experiment cost ceiling
+
+An Experiment should have a bounded cost where practical.
+
+For example:
+
+```text
+maximum:
+2 engineering days
+```
+
+or:
+
+```text
+maximum:
+$50 provider cost
+```
+
+If uncertainty still remains afterward, the team can decide whether more Evidence is worth additional investment.
+
+---
+
+# Time-boxing
+
+Time-boxing is especially useful for exploratory implementation.
+
+For example:
+
+```text
+Spend one day determining whether
+SQLite can satisfy the required traversal workload.
+```
+
+This avoids premature productionization.
+
+---
+
+# Spike versus Experiment
+
+A traditional engineering spike may explore an unknown.
+
+Monad can treat a spike as an Experiment when it has:
+
+```text
+question
+
+bounded scope
+
+recorded method
+
+observations
+
+conclusion
+```
+
+Not every quick spike needs elaborate formalism.
+
+---
+
+# Experiment granularity
+
+Experiments should be small enough that their result is interpretable.
+
+Avoid:
+
+```text
+Experiment:
+build the whole Monad architecture and see if it works
+```
+
+Prefer:
+
+```text
+EXP-001:
+identity continuity under file rename
+
+EXP-002:
+read-model rebuild determinism
+
+EXP-003:
+graph-free impact analysis baseline
+
+EXP-004:
+policy decision reproducibility
+```
+
+Small questions produce clearer Evidence.
+
+---
+
+# Layered experimentation
+
+Complex questions can be decomposed.
+
+For example:
+
+```text
+Question:
+Can Monad provide reliable impact analysis?
+```
+
+Break into:
+
+```text
+Can dependencies be extracted accurately?
+
+Can semantic relationships be represented?
+
+Can affected Subjects be traversed?
+
+Can false positives remain acceptable?
+
+Can uncertainty be surfaced?
+
+Can analysis remain fast enough?
+```
+
+---
+
+# Experiment dependencies
+
+Some Experiments depend on prior findings.
+
+For example:
+
+```text
+EXP-020:
+AI context quality
+```
+
+may depend on:
+
+```text
+EXP-003:
+semantic model completeness
+```
+
+Those relationships should be explicit where they affect interpretation.
+
+---
+
+# Experiment traceability
+
+A useful trace is:
+
+```text
+Open Question
+     ↓
+Hypothesis
+     ↓
+Experiment
+     ↓
+Evidence
+     ↓
+Conclusion
+     ↓
+Decision
+     ↓
+Specification
+```
+
+This allows future readers to understand why an architecture exists.
+
+---
+
+# Requirement-driven experiments
+
+A Requirement may contain uncertainty.
+
+For example:
+
+```text
+REQ:
+local query latency must support interactive use
+```
+
+The Experiment determines whether a proposed architecture satisfies it.
+
+```text
+Requirement
+   ↓
+Experiment
+   ↓
+Evidence
+```
+
+---
+
+# Decision-driven experiments
+
+A Decision may be blocked on Evidence.
+
+For example:
+
+```text
+ADR:
+choose persistence strategy
+```
+
+Status:
+
+```text
+pending EXP-012
+```
+
+This is preferable to deciding before the key uncertainty is resolved.
+
+---
+
+# Specification-driven experiments
+
+A Specification may expose implementation uncertainty.
+
+For example:
+
+```text
+SPEC:
+reconciliation must detect native changes
+within target latency
+```
+
+An Experiment may compare detection mechanisms before implementation is finalized.
+
+---
+
+# Policy-driven experiments
+
+A Policy may require evidence that a mechanism is safe enough.
+
+For example:
+
+```text
+Policy:
+AI may autonomously edit low-risk files
+only after capability demonstrates acceptable
+verification failure rate.
+```
+
+An Experiment can generate that Evidence.
+
+---
+
+# Release experiments
+
+Before a capability is treated as production-ready, release experiments may validate:
+
+```text
+upgrade path
+
+migration
+
+rollback
+
+reproducibility
+
+performance
+
+compatibility
+
+failure recovery
+```
+
+These may later become formal Verification rather than experiments.
+
+---
+
+# Experiment versus verification
+
+The distinction is important.
+
+**Experiment**
+
+asks:
+
+> Is this proposition true?
+
+**Verification**
+
+asks:
+
+> Does the implementation satisfy an established Requirement, Specification, invariant, or Policy?
+
+Conceptually:
+
+```text
+uncertain design
+→ Experiment
+```
+
+while:
+
+```text
+approved contract
+→ Verification
+```
+
+---
+
+# When an experiment becomes verification
+
+Suppose an Experiment establishes:
+
+```text
+SQLite can rebuild the read model in < 5 seconds
+for the target repository size.
+```
+
+Later a Requirement states:
+
+```text
+Read model rebuild shall complete in ≤ 5 seconds.
+```
+
+The same measurement pattern may now become a formal verification test.
+
+Knowledge matured into a contract.
+
+---
+
+# Experiment artifacts are evidence-producing artifacts
+
+The Experiment report itself is not necessarily the Evidence.
+
+Instead:
+
+```text
+Experiment
+   ↓ produces
+Evidence
+```
+
+The report explains:
+
+```text
+question
+
+method
+
+interpretation
+
+conclusion
+```
+
+The Evidence contains:
+
+```text
+measurements
+
+logs
+
+results
+
+observations
+
+outputs
+```
+
+---
+
+# Experiment authority
+
+Anyone may be able to run an Experiment.
+
+That does not mean every Experiment should influence architecture equally.
+
+The authority of the conclusion may depend on:
+
+```text
+method quality
+
+scope
+
+provenance
+
+review
+
+evidence validity
+
+decision authority
+```
+
+Existence is not authority.
+
+---
+
+# Experiment provenance versus credibility
+
+Provenance answers:
+
+```text
+who ran this?
+
+with what tools?
+
+against which revision?
+```
+
+Credibility depends on additional factors:
+
+```text
+method
+
+controls
+
+sample
+
+reproducibility
+
+evidence quality
+
+review
+```
+
+Provenance supports trust.
+
+It does not establish correctness by itself.
+
+---
+
+# Experiment confidence
+
+A useful result may include an explicit confidence assessment:
+
+```text
+low
+
+moderate
+
+high
+```
+
+But the reason should be visible.
+
+For example:
+
+```text
+Confidence:
+moderate
+
+because:
+tested on representative synthetic fixtures
+and Monad repository,
+but not yet external projects
+```
+
+---
+
+# Generalizability
+
+Ask:
+
+> Where should we expect this result to remain true?
+
+For example:
+
+```text
+tested:
+TypeScript monorepo
+```
+
+does not automatically establish:
+
+```text
+works equally for every language and repository topology
+```
+
+State the domain of evidence.
+
+---
+
+# Internal validity
+
+Internal validity asks whether the Experiment actually measured the intended effect.
+
+For example:
+
+```text
+Did semantic context improve outcomes,
+or did the variant simply receive more information?
+```
+
+---
+
+# External validity
+
+External validity asks whether the result generalizes beyond the test conditions.
+
+For Monad, this is one reason the external reference project matters.
+
+---
+
+# Ecological validity
+
+An Experiment may work in artificial conditions but fail in realistic workflows.
+
+For example:
+
+```text
+identity resolution succeeds on curated fixtures
+but fails on real refactoring sequences
+```
+
+Eventually, important capabilities should be tested under natural engineering activity.
+
+---
+
+# Longitudinal experiments
+
+Some questions only become visible over time.
+
+Examples:
+
+```text
+Does metadata remain maintained after six months?
+
+Does artifact navigation degrade as the corpus grows?
+
+Do users begin bypassing Policy gates?
+
+How often do identity corrections occur?
+```
+
+These require observation across real project evolution.
+
+---
+
+# Observational studies
+
+Not every useful investigation can manipulate variables.
+
+Sometimes Monad may study:
+
+```text
+existing repository history
+
+current development behavior
+
+artifact usage
+
+review patterns
+```
+
+These are observational rather than controlled Experiments.
+
+They should be labeled accurately.
+
+---
+
+# Case studies
+
+A case study may deeply examine one instance.
+
+For example:
+
+```text
+Model the complete evolution of one feature
+from Requirement through Release.
+```
+
+This can reveal system-design problems even without broad statistical generalization.
+
+---
+
+# Proofs of concept
+
+A proof of concept answers:
+
+> Can this mechanism work at all?
+
+Examples:
+
+```text
+Can a Subject survive representation movement?
+
+Can read models rebuild from canonical records?
+
+Can GitHub relationships be normalized into native references?
+```
+
+POCs are useful early.
+
+Their conclusions should remain limited to feasibility.
+
+---
+
+# Performance experiments
+
+Performance work should test representative operations.
+
+For Monad this may include:
+
+```text
+repository import
+
+identity resolution
+
+relationship traversal
+
+impact analysis
+
+context generation
+
+read-model rebuild
+
+reconciliation
+```
+
+Measure the workloads the actual system will perform.
+
+---
+
+# Scalability experiments
+
+Scalability asks how behavior changes as size increases.
+
+Variables might include:
+
+```text
+Subjects
+
+Relationships
+
+repositories
+
+artifacts
+
+claims
+
+history depth
+
+concurrent operations
+```
+
+Performance should be measured across realistic scale bands.
+
+---
+
+# Resource experiments
+
+Local-first operation makes resource use important.
+
+Measure:
+
+```text
+memory
+
+disk
+
+CPU
+
+startup time
+
+index size
+
+background activity
+```
+
+A system that requires substantial infrastructure may violate the intended operating model.
+
+---
+
+# Portability experiments
+
+Monad may need to validate operation across:
+
+```text
+Linux
+
+macOS
+
+different repository structures
+
+different Git hosts
+
+different language ecosystems
+```
+
+These experiments should follow actual portability Requirements rather than speculative completeness.
+
+---
+
+# Recovery experiments
+
+Recovery behavior can be tested intentionally.
+
+Examples:
+
+```text
+delete read model and rebuild
+
+interrupt reconciliation midway
+
+restore canonical state from backup
+
+resume partial execution
+
+rebuild projection after schema migration
+```
+
+---
+
+# Migration experiments
+
+Schema and semantic migrations are high-risk.
+
+Before committing to a migration mechanism, test:
+
+```text
+forward migration
+
+rollback where supported
+
+partial failure
+
+large historical dataset
+
+identity preservation
+
+read-model regeneration
+```
+
+---
+
+# Compatibility experiments
+
+When interfaces evolve, investigate compatibility assumptions.
+
+Examples:
+
+```text
+old CLI against new local service
+
+new Schema reader against old artifact version
+
+plugin built for prior contract version
+```
+
+---
+
+# Security experiments
+
+Security-oriented Experiments may include:
+
+```text
+unauthorized operation attempts
+
+capability escalation
+
+policy bypass
+
+plugin isolation
+
+credential leakage paths
+
+malicious native input
+```
+
+These may eventually become formal security verification.
+
+---
+
+# Threat-driven experiments
+
+A threat model may identify an uncertainty.
+
+For example:
+
+```text
+Threat:
+AI agent receives malicious instructions
+from repository content.
+```
+
+Experiment:
+
+```text
+Can repository content cause the agent
+to invoke a capability outside its authorized Scope?
+```
+
+This turns abstract security concern into observable behavior.
+
+---
+
+# Failure experiments
+
+Every important subsystem should eventually answer:
+
+> What happens when this dependency fails?
+
+Examples:
+
+```text
+database unavailable
+
+Git command fails
+
+GitHub unavailable
+
+AI provider unavailable
+
+policy index stale
+
+projection corrupt
+
+verification interrupted
+```
+
+Failure behavior is architecture.
+
+---
+
+# Experiment governance
+
+Experiments themselves may require governance when they can cause meaningful side effects.
+
+For example:
+
+```text
+safe:
+benchmark local fixture
+```
+
+versus:
+
+```text
+dangerous:
+experiment against production deployment environment
+```
+
+Policy may constrain where and how an Experiment is allowed to run.
+
+---
+
+# Sandboxing
+
+Risky experiments should run in isolated environments where possible.
+
+Examples:
+
+```text
+temporary repository
+
+container
+
+disposable database
+
+test account
+
+staging project
+```
+
+This limits unintended impact.
+
+---
+
+# Data sensitivity
+
+Experiments may use sensitive information.
+
+Artifacts should define:
+
+```text
+data source
+
+handling requirements
+
+retention rules
+
+redaction
+
+access scope
+```
+
+when applicable.
+
+---
+
+# Experiment cleanup
+
+The Experiment should specify cleanup if it modifies external or persistent state.
+
+For example:
+
+```text
+remove temporary branch
+
+delete test deployment
+
+drop fixture database
+
+revoke temporary credentials
+```
+
+---
+
+# Experiment logs
+
+Execution logs can support reproducibility and debugging.
+
+But logging everything indefinitely may create unnecessary storage and privacy cost.
+
+Preserve the minimum information needed to support the conclusion.
+
+---
+
+# Automation
+
+Experiment execution should become automated when:
+
+```text
+the Experiment will be repeated
+
+comparisons require consistency
+
+manual execution risks bias
+
+the result becomes part of release qualification
+```
+
+One-off investigations may remain simple scripts.
+
+---
+
+# Experiment harnesses
+
+A reusable Experiment harness can standardize:
+
+```text
+fixture preparation
+
+execution
+
+measurement
+
+result capture
+
+environment recording
+```
+
+This can improve consistency across experiment families.
+
+Avoid building a generalized experimentation platform before repeated need exists.
+
+---
+
+# Machine-readable results
+
+Structured result files can support comparison.
+
+For example:
+
+```json
+{
+  "experiment": "EXP-012",
+  "revision": "abc123",
+  "runs": 100,
+  "successful": 97,
+  "ambiguous": 3,
+  "false_merges": 0
+}
+```
+
+The precise schema belongs in [Schemas](/docs/artifacts/schemas).
+
+---
+
+# Human-readable reports
+
+Machine output is not enough.
+
+An Experiment report should explain:
+
+```text
+why the question mattered
+
+what happened
+
+what the result means
+
+what it does not mean
+
+what should happen next
+```
+
+Both human and machine views are useful.
+
+---
+
+# Result normalization
+
+Repeated experiments may need standardized metrics.
+
+For example:
+
+```text
+precision
+
+recall
+
+latency_ms
+
+memory_mb
+
+failure_rate
+
+human_review_rate
+```
+
+Standardization enables comparison across runs.
+
+---
+
+# Historical comparison
+
+Repeated runs can reveal regressions.
+
+For example:
+
+```text
+EXP-012 run 1
+identity accuracy: 98%
+
+run 7
+identity accuracy: 91%
+```
+
+That may indicate architecture drift.
+
+At that point the Experiment may evolve into ongoing Verification.
+
+---
+
+# Experiment dashboards
+
+A derived dashboard may summarize:
+
+```text
+open Experiments
+
+current hypotheses
+
+completed findings
+
+inconclusive questions
+
+falsified assumptions
+
+Experiments blocking decisions
+```
+
+The dashboard is a Projection.
+
+The Experiment records remain canonical.
+
+---
+
+# Experiment index
+
+The Experiment collection should eventually support discovery by:
+
+```text
+status
+
+domain
+
+question
+
+Hypothesis
+
+Decision
+
+Requirement
+
+component
+
+date
+
+result
+```
+
+This makes the project's learning history searchable.
+
+---
+
+# Avoid experiment graveyards
+
+A directory containing hundreds of forgotten prototypes is not an engineering knowledge system.
+
+Every meaningful Experiment should end with:
+
+```text
+conclusion
+
+next action
+```
+
+Possible next actions include:
+
+```text
+adopt
+
+reject
+
+revise hypothesis
+
+run follow-up
+
+replicate
+
+defer
+
+no action
+```
+
+---
+
+# Experiment conclusion
+
+The conclusion should answer the original question.
+
+For example:
+
+```text
+Conclusion:
+SQLite plus recursive CTEs satisfies the
+M0 impact-traversal requirements for repositories
+up to the tested 100k-Subject scale.
+
+A dedicated graph database is not justified
+for M0 based on current Evidence.
+```
+
+This is much more useful than:
+
+```text
+Experiment successful.
+```
+
+---
+
+# Conclusion strength
+
+The language should reflect the Evidence.
+
+Prefer:
+
+```text
+supports
+
+weakly supports
+
+does not support
+
+contradicts
+
+falsifies within tested Scope
+
+inconclusive
+```
+
+Avoid absolute statements unless the Experiment actually establishes them.
+
+---
+
+# Decision recommendation
+
+An Experiment may recommend:
+
+```text
+adopt approach A
+
+reject approach B
+
+continue investigation
+
+run external validation
+
+defer decision
+```
+
+But the recommendation remains distinct from the actual Decision.
+
+---
+
+# Record disagreement
+
+Reviewers may disagree with the interpretation.
+
+The artifact should preserve significant disagreement rather than forcing artificial consensus.
+
+For example:
+
+```text
+Experimenter:
+Evidence supports relational storage.
+
+Reviewer:
+Workload does not adequately represent
+future graph traversal complexity.
+```
+
+That disagreement may justify another Experiment.
+
+---
+
+# Corrections
+
+If the Experiment report later proves incorrect:
+
+```text
+preserve original conclusion
+
+record correction
+
+link corrected interpretation
+
+explain reason
+```
+
+Do not silently rewrite history.
+
+---
+
+# Supersession
+
+A later Experiment may supersede the evidentiary weight of an earlier one.
+
+For example:
+
+```text
+earlier:
+synthetic benchmark
+
+later:
+large real-world workload
+```
+
+Both remain part of the engineering history.
+
+---
+
+# Experiment quality
+
+A high-quality Experiment is:
+
+```text
+decision-relevant
+
+falsifiable
+
+bounded
+
+reproducible enough
+
+honest about uncertainty
+
+traceable
+
+efficient
+
+reviewable
+```
+
+It does not need to be academically elaborate.
+
+It needs to produce trustworthy engineering learning.
+
+---
+
+# The minimum experiment
+
+For a small low-risk investigation, the artifact can be extremely lightweight:
+
+```text
+Question
+
+Hypothesis
+
+Method
+
+Result
+
+Conclusion
+```
+
+Example:
+
+```text
+Question:
+Can SQLite return the required transitive
+dependency query correctly?
+
+Hypothesis:
+Yes, using recursive CTEs.
+
+Method:
+Run query against representative fixture.
+
+Result:
+Expected 147 Subjects returned.
+
+Conclusion:
+Feasibility established.
+Performance remains untested.
+```
+
+That may be sufficient.
+
+---
+
+# Larger experiments
+
+A high-consequence architectural Experiment may require:
+
+```text
+formal plan
+
+multiple fixtures
+
+baseline comparison
+
+repeated runs
+
+environment capture
+
+statistical analysis
+
+independent review
+
+replication
+```
+
+Formalization should match risk.
+
+---
+
+# Experiment Definition of Ready
+
+A consequential Experiment is ready when:
+
+```text
+the question is explicit
+
+the Hypothesis is falsifiable
+
+the decision at stake is identified
+
+Scope is bounded
+
+method is defined
+
+fixtures exist
+
+success criteria exist
+
+failure criteria exist
+
+required environment is available
+
+expected cost is acceptable
+```
+
+---
+
+# Experiment Definition of Done
+
+An Experiment is done when:
+
+```text
+the planned execution completed
+or was explicitly terminated
+
+observations are preserved
+
+Evidence is linked
+
+deviations from Method are recorded
+
+result is interpreted
+
+limitations are stated
+
+conclusion answers the question
+
+remaining uncertainty is identified
+
+next action is recorded
+```
+
+---
+
+# Experiment artifacts
+
+An Experiment may produce:
+
+```text
+experiment plan
+
+prototype
+
+fixture
+
+benchmark
+
+test harness
+
+raw measurements
+
+logs
+
+trace
+
+result dataset
+
+analysis
+
+conclusion
+
+follow-up question
+```
+
+Not all outputs need permanent retention.
+
+Retain those required to support the conclusion.
+
+---
+
+# Gates
+
+Experiments may serve as gates before:
+
+```text
+architecture commitment
+
+public Schema commitment
+
+persistent ID design
+
+production automation
+
+high-risk AI autonomy
+
+major migration
+
+external integration
+
+release
+```
+
+The gate should specify what Evidence is required.
+
+---
+
+# Example: identity continuity
+
+```text
+Question:
+Can Subject identity remain stable through
+ordinary repository refactoring?
+
+Hypothesis:
+Identity resolution preserves at least 98%
+of Subjects automatically across representative
+rename and move scenarios with zero false merges.
+
+Baseline:
+path identity
+
+Method:
+apply controlled refactor sequences
+to representative repositories.
+
+Metrics:
+continuity rate
+false merges
+human review rate
+resolution latency
+
+Falsification:
+any false merge in critical fixtures,
+or continuity < 98%.
+
+Decision at stake:
+whether automatic semantic identity continuity
+is safe for M0.
+```
+
+---
+
+# Example: semantic context
+
+```text
+Question:
+Does Monad-generated context improve
+AI implementation reliability?
+
+Hypothesis:
+Purpose-built semantic context reduces
+verification failures by at least 20%
+relative to ordinary repository retrieval.
+
+Baseline:
+repository search
+
+Variant:
+semantic Context containing relevant
+Requirements, Decisions, Interfaces,
+dependencies, and verification targets.
+
+Evaluation:
+same model
+same tasks
+same tool capabilities
+same verification suite
+
+Decision at stake:
+whether semantic Context is a core
+AI integration capability.
+```
+
+---
+
+# Example: graph necessity
+
+```text
+Question:
+Does Monad require a dedicated graph database?
+
+Hypothesis:
+Relational persistence plus derived graph indexes
+can satisfy M0 traversal and impact-analysis
+Requirements without unacceptable complexity.
+
+Alternatives:
+SQLite / PostgreSQL
+dedicated graph store
+
+Metrics:
+correctness
+query latency
+rebuild time
+storage overhead
+operational complexity
+
+Decision at stake:
+persistence architecture.
+```
+
+This Experiment should actively try to prove that the simpler design is sufficient.
+
+---
+
+# Example: reconciliation
+
+```text
+Question:
+Can Monad detect native repository drift reliably?
+
+Hypothesis:
+Filesystem and Git observations can identify
+relevant out-of-band changes and reconcile
+semantic state without full repository re-import.
+
+Cases:
+rename
+move
+delete
+edit
+copy
+branch switch
+history rewrite
+
+Metrics:
+detection accuracy
+incorrect reconciliation
+unresolved cases
+latency
+```
+
+---
+
+# Example: Policy friction
+
+```text
+Question:
+Does governed execution create excessive
+friction for ordinary low-risk work?
+
+Hypothesis:
+Capability-scoped Policy can govern
+high-risk operations while adding negligible
+overhead to read-only and local development tasks.
+
+Measure:
+blocked operations
+approval latency
+manual override attempts
+workflow duration
+user feedback
+```
+
+A Policy system should demonstrate not only safety, but usability.
+
+---
+
+# Example: provenance value
+
+```text
+Question:
+Which provenance information materially helps
+engineers reconstruct how a change occurred?
+
+Candidate fields:
+Actor
+tool
+input
+repository revision
+source
+environment
+timestamp
+execution location
+
+Method:
+attempt reconstruction of historical changes
+with different provenance subsets.
+
+Decision at stake:
+minimum canonical provenance model.
+```
+
+This helps ensure provenance earns its metadata cost.
+
+---
+
+# Example: simpler indexing
+
+One of Monad's most important falsification experiments may be:
+
+```text
+Question:
+Can ordinary indexing and search provide
+most of the value expected from the semantic graph?
+
+Baseline:
+full-text search
+symbol index
+dependency extraction
+artifact links
+
+Variant:
+full semantic graph
+
+Compare:
+context quality
+impact accuracy
+traceability
+query complexity
+maintenance cost
+```
+
+If the simpler approach performs almost as well, Monad should take that result seriously.
+
+---
+
+# Experiments and first principles
+
+Monad's architecture should emerge from tested needs rather than assumed sophistication.
+
+The sequence is:
+
+```text
+Observation
+   ↓
+Question
+   ↓
+Hypothesis
+   ↓
+Experiment
+   ↓
+Evidence
+   ↓
+Decision
+   ↓
+Specification
+   ↓
+Implementation
+```
+
+This is slower than immediately choosing technology.
+
+It is much faster than rebuilding the architecture after foundational assumptions fail.
+
+---
+
+# What experiments should not become
+
+Experiments should not become:
+
+```text
+technology tourism
+
+unbounded research
+
+prototype accumulation
+
+architecture by benchmark
+
+confirmation theater
+
+a substitute for Requirements
+
+a substitute for Decisions
+
+a permanent excuse to avoid committing
+```
+
+The purpose is to reduce uncertainty enough to move forward responsibly.
+
+---
+
+# When not to experiment
+
+Not every question requires an Experiment.
+
+Do not experiment when:
+
+```text
+the answer is already established by authoritative Evidence
+
+the decision is trivial and reversible
+
+the cost of testing exceeds the cost of trying
+
+the uncertainty does not affect a meaningful decision
+```
+
+Engineering judgment still matters.
+
+---
+
+# Experiment economy
+
+A useful question is:
+
+> **What is the cheapest Experiment that could materially change our confidence?**
+
+That might be:
+
+```text
+a 30-line script
+
+a small fixture
+
+one benchmark
+
+a manual walkthrough
+
+a temporary prototype
+```
+
+Not every uncertainty needs a research program.
+
+---
+
+# Progressive evidence
+
+Confidence can grow through layers:
+
+```text
+reasoning
+   ↓
+prototype
+   ↓
+controlled Experiment
+   ↓
+representative fixture
+   ↓
+dogfooding
+   ↓
+external validation
+   ↓
+production observation
+```
+
+Different decisions require different levels of Evidence.
+
+---
+
+# Experiments and uncertainty
+
+Monad should preserve uncertainty explicitly.
+
+An Experiment may change:
+
+```text
+unknown
+```
+
+into:
+
+```text
+likely
+```
+
+or:
+
+```text
+unlikely
+```
+
+without producing certainty.
+
+The engineering record should reflect that.
+
+---
+
+# Knowledge-state transition
+
+An Experiment can be understood as a transition:
+
+```text
+Question
++
+Hypothesis
++
+Method
++
+Evidence
+        ↓
+Updated Knowledge State
+```
+
+That knowledge may then change:
+
+```text
+Requirement
+
+Decision
+
+Architecture
+
+Specification
+
+Policy
+```
+
+---
+
+# A learning system
+
+The deeper purpose of Experiments is not merely technical validation.
+
+They create a disciplined feedback loop:
+
+```text
+We believe something
+       ↓
+We make the belief testable
+       ↓
+We observe reality
+       ↓
+Reality changes our belief
+       ↓
+The system changes accordingly
+```
+
+A project unable to perform this loop eventually becomes governed by inherited assumptions.
+
+---
+
+# The governing principle
+
+> **Important uncertainty should become testable before it becomes structural.**
+
+Experiments give Monad a mechanism for doing that.
+
+They allow the project to distinguish:
+
+```text
+what sounds plausible
+
+what was demonstrated
+
+what remains uncertain
+
+what has been falsified
+
+what now deserves commitment
+```
+
+That distinction is essential to building an engineering system from first principles.
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Evidence"
+    href="/docs/artifacts/evidence"
+  >
+    Inspect the observations, measurements, outputs, and records produced by Experiments and other engineering activities.
+  </Card>
+
+<Card
+title="Decisions"
+href="/docs/artifacts/decisions"
+>
+See how Experiment results inform consequential architectural and engineering commitments.
+</Card>
+
+<Card
+title="Verification"
+href="/docs/artifacts/verification"
+>
+Explore the distinction between investigating uncertainty and proving conformance to an established contract.
+</Card>
+
+<Card
+title="Traceability"
+href="/docs/artifacts/traceability"
+>
+Follow questions and hypotheses through Experiments, Evidence, Decisions, Specifications, and implementation.
+</Card>
+</Cards>
+
+---
+
+## Related artifact views
+
+<Cards>
+  <Card
+    title="Requirements"
+    href="/docs/artifacts/requirements"
+  >
+    Inspect the constraints and outcomes that Experiments may help validate or refine.
+  </Card>
+
+<Card
+title="Models"
+href="/docs/artifacts/models"
+>
+Explore semantic structures whose assumptions may require experimental validation.
+</Card>
+
+<Card
+title="Policies"
+href="/docs/artifacts/policies"
+>
+See how governance mechanisms themselves can be tested for safety, effectiveness, and usability.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

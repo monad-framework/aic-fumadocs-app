@@ -1,0 +1,74 @@
+---
+title: Project Definition
+description: Defining the journey
+---
+
+Next, we will define the project before choosing any technologies.
+
+For that you'll want to create a small project-definition file and put it in a `docs/` root folder:
+
+```bash
+mkdir -p docs
+cat > docs/project.md <<'EOF'
+# Project Definition
+
+## Problem
+
+What problem does this project exist to solve?
+
+## Users
+
+Who is this project for?
+
+## Outcome
+
+What should exist when the project is successful?
+
+## Scope
+
+What is explicitly included?
+
+## Non-Scope
+
+What is explicitly excluded?
+
+## Constraints
+
+What technical, operational, financial, legal, organizational, or time constraints exist?
+
+## Success Criteria
+
+How will we know the project is working?
+
+## Open Questions
+
+What important questions remain unanswered?
+EOF
+```
+
+Then commit the structural addition:
+
+```bash
+git add docs/project.md
+git commit -m "docs: add initial project definition"
+```
+
+The repository should now be:
+
+```text
+.
+├── .git/
+├── README.md
+└── docs/
+    └── project.md
+```
+
+But **don't fill `project.md` out blindly**.
+
+The next step is to answer its first and most important question:
+
+> **What are we actually building?**
+
+Your project may be entirely different from what I'm building here. For that reason, the first tranche of documents are going to be self-documenting templates. Whether you are creating your own project or following along with this, we will basically be doing the same thing at this point. We need to take our project idea however vague and turn that into the first real project definition before making any stack or architecture decisions.
+
+Our next article is going to discuss the differences between idea.md, workspace.md, and project.md.

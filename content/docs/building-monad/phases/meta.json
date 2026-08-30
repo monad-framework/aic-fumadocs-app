@@ -1,0 +1,15 @@
+{
+  "title": "Phases",
+  "description": "Phases",
+  "pages": [
+    "index",
+    "01-inception",
+    "02-domain-discovery",
+    "03-product-definition",
+    "04-architecture",
+    "05-specification",
+    "06-implementation",
+    "07-verification",
+    "08-release-and-evolution"
+  ]
+}

@@ -1,0 +1,3526 @@
+---
+title: Models
+description: The explicit conceptual, domain, semantic, lifecycle, and system models that define the entities, relationships, invariants, and structures Monad uses to reason about software systems.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Explicit representations of meaning
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Models make the structure of Monad's reasoning explicit: what exists, how things relate, which distinctions matter, and which invariants must survive implementation.
+  </p>
+</div>
+
+# What is a model?
+
+A **Model** is an explicit representation of some part of the system that exists to make its meaning, structure, relationships, or behavior understandable and analyzable.
+
+Models answer questions such as:
+
+```text
+What kinds of things exist?
+
+What makes two things different?
+
+How are they related?
+
+Which relationships are valid?
+
+Which states can something occupy?
+
+Which transitions are possible?
+
+What must remain true?
+
+Which distinctions must not collapse?
+```
+
+A Model can describe:
+
+* concepts,
+* domain entities,
+* semantic relationships,
+* lifecycle states,
+* authority structures,
+* execution flows,
+* repository topology,
+* dependency structures,
+* capability relationships,
+* or other meaningful aspects of Monad.
+
+Models are not merely diagrams.
+
+They are engineering artifacts.
+
+---
+
+# Why models matter
+
+Many software systems contain important models implicitly.
+
+They live across:
+
+* class hierarchies,
+* database tables,
+* directory structures,
+* enum values,
+* workflow code,
+* issue labels,
+* documentation,
+* conventions,
+* and developer memory.
+
+The result is often a system whose actual conceptual structure must be reconstructed from implementation.
+
+Monad takes the opposite approach.
+
+Important meaning should be made explicit before it becomes irreversibly encoded in unrelated implementation details.
+
+<Callout type="info" title="A core Monad principle">
+
+The implementation should realize the model.
+
+The implementation should not be the only place from which the model can be discovered.
+
+</Callout>
+
+---
+
+# Models sit between concepts and specifications
+
+The relationship can be understood as:
+
+```text
+Concepts
+   ↓
+Models
+   ↓
+Specifications
+   ↓
+Schemas
+   ↓
+Implementation
+```
+
+Each layer answers a different question.
+
+**Concepts** define meaning.
+
+**Models** define structure and relationships.
+
+**Specifications** define contractual semantics.
+
+**Schemas** encode machine-validatable structure.
+
+**Implementation** realizes the system.
+
+These layers may influence one another, but they should not be collapsed.
+
+---
+
+# A simple example
+
+The conceptual layer may say:
+
+> A Subject is the semantic thing itself, while a Representation is one concrete form through which that Subject appears.
+
+The Model may express:
+
+```text
+Subject
+   │
+   │ represented-by
+   ▼
+Representation
+```
+
+and define:
+
+```text
+Subject 1 ─── 0..* Representation
+```
+
+A Specification may then require:
+
+```text
+Deleting a Representation MUST NOT implicitly
+delete its Subject.
+```
+
+A schema may encode:
+
+```json
+{
+  "subject": "subject:auth",
+  "representation": "src/auth.ts"
+}
+```
+
+And an implementation may store that relationship in a graph database, relational database, files, or another representation.
+
+The Model remains conceptually independent of the storage mechanism.
+
+---
+
+# Models are abstractions
+
+Every Model omits something.
+
+That is not a flaw.
+
+A Model is useful because it selects the information necessary for a particular form of reasoning.
+
+For example:
+
+```text
+dependency model
+```
+
+may ignore:
+
+```text
+organizational ownership
+```
+
+while:
+
+```text
+governance model
+```
+
+may ignore:
+
+```text
+compiler dependency edges
+```
+
+Both can describe the same system from different perspectives.
+
+The important question is not:
+
+```text
+Is this model complete?
+```
+
+but:
+
+> **Is this model complete enough for the reasoning it is intended to support?**
+
+---
+
+# Models are scoped
+
+Every consequential Model should make its Scope understandable.
+
+Possible scopes include:
+
+```text
+entire Monad system
+
+semantic kernel
+
+repository
+
+artifact system
+
+execution lifecycle
+
+authority model
+
+release domain
+
+plugin interface
+
+one project
+
+multiple projects
+```
+
+Without Scope, readers may apply a Model beyond the domain in which its rules are valid.
+
+---
+
+# Multiple models can coexist
+
+Monad does not need one gigantic Model containing every possible relationship.
+
+That would quickly become unusable.
+
+Instead, different Models can describe different concerns.
+
+For example:
+
+```text
+Domain Model
+Architecture Model
+Lifecycle Model
+Authority Model
+Execution Model
+Repository Model
+Dependency Model
+Artifact Model
+Capability Model
+```
+
+These models may share concepts and relationships while remaining separately understandable.
+
+---
+
+# The model family
+
+A mature Monad system may contain several kinds of Models.
+
+## Conceptual Model
+
+Defines the primary concepts and distinctions used throughout the system.
+
+Examples:
+
+```text
+Subject
+Representation
+Claim
+Evidence
+Authority
+Provenance
+Policy
+Capability
+```
+
+## Domain Model
+
+Defines the entities, relationships, invariants, and lifecycle semantics of a specific domain.
+
+Examples:
+
+```text
+Requirement
+Decision
+Specification
+Work Package
+Release
+```
+
+## Semantic Model
+
+Defines how meaning itself is represented.
+
+Examples:
+
+```text
+semantic identity
+typed relationships
+claims
+authority
+provenance
+temporal state
+```
+
+## Lifecycle Model
+
+Defines meaningful states and transitions.
+
+Examples:
+
+```text
+draft → proposed → approved → active → superseded
+```
+
+## Authority Model
+
+Defines who or what may legitimately govern a Scope.
+
+Examples:
+
+```text
+Actor
+Capability
+Authority
+Policy
+Approval
+Governed Action
+```
+
+## Execution Model
+
+Defines how planned work becomes governed system change.
+
+Examples:
+
+```text
+Plan
+Authorization
+Context
+Execution
+Verification
+Evidence
+State Update
+```
+
+## Artifact Model
+
+Defines engineering artifact identity, classification, relationships, status, provenance, and lifecycle.
+
+## Repository Model
+
+Defines meaningful repository structures and their relationship to semantic Subjects.
+
+## Dependency Model
+
+Defines dependency relationships used for impact analysis and ordering.
+
+---
+
+# Conceptual models
+
+A Conceptual Model captures the broad structure of the ideas used by the system.
+
+For example:
+
+```text
+Subject
+   │
+   ├── represented-by ──► Representation
+   │
+   ├── described-by ────► Claim
+   │
+   └── related-to ──────► Subject
+```
+
+The purpose is not to describe storage.
+
+The purpose is to answer:
+
+```text
+What are these things?
+
+How are they related conceptually?
+
+Which distinctions matter?
+```
+
+---
+
+# Domain models
+
+A Domain Model provides a more precise representation of one area of engineering reality.
+
+For example, a decision domain might contain:
+
+```text
+Decision
+Proposal
+Alternative
+Rationale
+Constraint
+Evidence
+Supersession
+```
+
+with relationships such as:
+
+```text
+Decision ── addresses ──► Requirement
+
+Decision ── rejects ────► Alternative
+
+Evidence ── supports ───► Decision
+
+Decision ── supersedes ─► Decision
+```
+
+The Domain Model gives structure to reasoning that would otherwise remain buried in documents.
+
+---
+
+# A domain is more than a directory
+
+A filesystem directory such as:
+
+```text
+docs/decisions/
+```
+
+does not define the Decision domain.
+
+The domain is the conceptual system of:
+
+```text
+entities
+relationships
+invariants
+states
+transitions
+authority
+meaning
+```
+
+The directory is one Representation of artifacts belonging to that domain.
+
+This distinction is fundamental to Monad.
+
+---
+
+# Entities
+
+An **Entity** is a distinguishable concept represented in a Model.
+
+Examples may include:
+
+```text
+Subject
+Requirement
+Decision
+Specification
+Actor
+Policy
+Evidence
+Release
+Work Package
+```
+
+An entity definition should answer:
+
+```text
+What is it?
+
+What makes it distinct?
+
+What identity does it have?
+
+What properties are meaningful?
+
+What relationships may it participate in?
+
+What lifecycle does it have?
+```
+
+---
+
+# Entities are not automatically database tables
+
+A common modeling mistake is to define entities by mirroring storage.
+
+For example:
+
+```text
+subjects table
+claims table
+relationships table
+```
+
+may be a reasonable database design.
+
+But that does not mean the conceptual system consists of three database tables.
+
+A Model should describe the system's meaning independently of how persistence happens to be implemented.
+
+---
+
+# Value objects
+
+Some concepts may not need independent identity.
+
+For example:
+
+```text
+Version
+Timestamp
+Scope
+Digest
+Location
+```
+
+may behave more like values than semantic entities.
+
+A Model should distinguish:
+
+```text
+things with durable identity
+```
+
+from:
+
+```text
+values describing those things
+```
+
+when the distinction affects semantics.
+
+---
+
+# Relationships
+
+Relationships express meaningful connections between entities.
+
+Examples:
+
+```text
+requires
+implements
+depends-on
+supersedes
+verifies
+supports
+challenges
+generated-from
+represents
+owned-by
+authorized-by
+```
+
+Typed relationships are more useful than a generic:
+
+```text
+related-to
+```
+
+because the type carries meaning.
+
+---
+
+# Relationship direction
+
+Direction matters when semantics are asymmetric.
+
+For example:
+
+```text
+Requirement ── satisfied-by ──► Specification
+```
+
+is not the same proposition as:
+
+```text
+Specification ── satisfied-by ──► Requirement
+```
+
+The inverse relationship might instead be:
+
+```text
+Specification ── satisfies ──► Requirement
+```
+
+Directional semantics should be explicit.
+
+---
+
+# Relationship inverses
+
+Some relationship types may have useful inverses.
+
+For example:
+
+```text
+implements
+implemented-by
+```
+
+```text
+supersedes
+superseded-by
+```
+
+```text
+depends-on
+dependency-of
+```
+
+The Model should determine whether inverses are:
+
+* stored explicitly,
+* derived,
+* or merely conceptual.
+
+That implementation decision belongs in Specifications.
+
+---
+
+# Relationship cardinality
+
+Relationships may also have cardinality constraints.
+
+For example:
+
+```text
+Subject 1 ───────── 0..* Representation
+```
+
+or:
+
+```text
+Artifact 0..1 ───── superseded-by ───── 0..1 Artifact
+```
+
+Cardinality should be modeled when it reflects meaningful domain rules.
+
+---
+
+# Relationship properties
+
+Some relationships themselves may have meaningful properties.
+
+For example:
+
+```text
+Requirement
+    │
+    │ satisfied-by
+    │ confidence = verified
+    │ observed_at = ...
+    ▼
+Specification
+```
+
+At that point the relationship may require:
+
+* attributes,
+* provenance,
+* temporal semantics,
+* or even independent identity.
+
+The Model should not force every relationship into the same representation.
+
+---
+
+# Typed relationships
+
+Typed relationships are central to Monad because they allow the system to reason about meaning rather than only adjacency.
+
+Compare:
+
+```text
+A ── related-to ──► B
+```
+
+with:
+
+```text
+Requirement ── satisfied-by ──► Specification
+```
+
+The second relationship enables more useful questions.
+
+For example:
+
+```text
+Which Requirements have no satisfying Specification?
+
+Which Specifications implement no known Requirement?
+
+Which implementation changes affect a Requirement?
+
+Which Evidence supports this verification result?
+```
+
+The relationship type creates reasoning power.
+
+---
+
+# Relationship explosion
+
+Typed relationships can also create complexity.
+
+A system with thousands of subtly different edge types becomes difficult to understand.
+
+Monad should therefore prefer:
+
+```text
+a small coherent semantic vocabulary
+```
+
+over:
+
+```text
+a relationship type for every sentence anyone might write
+```
+
+New relationship types should earn their existence.
+
+---
+
+# Properties
+
+Properties describe entities.
+
+Examples:
+
+```text
+title
+status
+version
+scope
+created_at
+criticality
+```
+
+A Model should distinguish meaningful semantic properties from incidental metadata.
+
+For example:
+
+```text
+Requirement.priority
+```
+
+may matter to planning.
+
+```text
+Requirement.file_line_count
+```
+
+probably does not belong in the core domain Model unless some process depends on it.
+
+---
+
+# Identity
+
+Identity answers:
+
+> **What makes this the same thing across change?**
+
+This is one of the deepest modeling questions in Monad.
+
+A Subject may survive:
+
+```text
+rename
+move
+new Representation
+format change
+repository relocation
+projection regeneration
+```
+
+because none of those necessarily change what the Subject is.
+
+The Model must therefore distinguish semantic identity from the identity of its Representations.
+
+---
+
+# Identity and equality
+
+Two records can contain equal values without representing the same Subject.
+
+Conversely, one Subject can change many properties and remain the same Subject.
+
+Therefore:
+
+```text
+identity ≠ structural equality
+```
+
+The Model must preserve that distinction where it matters.
+
+---
+
+# Native identity
+
+External systems already have identifiers.
+
+Examples:
+
+```text
+Git commit SHA
+GitHub issue number
+database primary key
+package name
+file path
+URL
+ADR identifier
+```
+
+These are **Native References** within their respective systems.
+
+Monad should not pretend those identities do not exist.
+
+But it should not automatically treat them as universal semantic identity either.
+
+---
+
+# Identity bindings
+
+Monad may associate semantic Subjects with Native References.
+
+Conceptually:
+
+```text
+Subject
+   │
+   │ represented-by
+   ▼
+Representation
+   │
+   │ addressed-by
+   ▼
+Native Reference
+```
+
+or through a more direct binding model.
+
+The exact representation remains a design matter.
+
+The distinction remains important regardless of implementation.
+
+---
+
+# Invariants
+
+An **Invariant** is a condition that must remain true across valid Model states.
+
+Examples:
+
+```text
+Identity ≠ location
+```
+
+```text
+Claim ≠ Evidence
+```
+
+```text
+Capability ≠ Authority
+```
+
+```text
+A Representation does not implicitly own
+the lifecycle of its Subject.
+```
+
+Invariants are some of the most important outputs of modeling.
+
+They tell Specifications and implementations what freedom they do not have.
+
+---
+
+# Constraints
+
+Constraints restrict valid states.
+
+Examples:
+
+```text
+A superseded artifact cannot also be current.
+
+A lifecycle transition must use a known transition type.
+
+A governed action requires applicable Authority.
+
+A Representation binding must refer to an existing Subject.
+```
+
+Some constraints belong in:
+
+* the conceptual Model,
+* Specifications,
+* schemas,
+* database rules,
+* or verification logic.
+
+The same invariant may appear in multiple enforcement layers.
+
+---
+
+# State
+
+Some entities have meaningful state.
+
+For example:
+
+```text
+Requirement:
+draft
+approved
+implemented
+verified
+superseded
+```
+
+State should be modeled when it changes the meaning or behavior of the entity.
+
+Do not create state merely because a UI wants a status badge.
+
+---
+
+# State transitions
+
+A lifecycle Model describes valid transitions.
+
+For example:
+
+```text
+draft
+  │
+  │ propose
+  ▼
+proposed
+  │
+  │ approve
+  ▼
+approved
+  │
+  │ supersede
+  ▼
+superseded
+```
+
+Each transition may have:
+
+* preconditions,
+* Authority requirements,
+* side effects,
+* Evidence,
+* provenance,
+* and time.
+
+These details move from Model into Specification.
+
+---
+
+# Lifecycle is type-specific
+
+Different entities have different lifecycles.
+
+A Requirement may be:
+
+```text
+draft → approved → implemented → verified
+```
+
+A hypothesis may be:
+
+```text
+open → supported → weakened → rejected
+```
+
+A release may be:
+
+```text
+planned → candidate → approved → published
+```
+
+A plugin installation may have another lifecycle entirely.
+
+Monad should resist forcing unrelated concepts into one universal status enum.
+
+---
+
+# Time
+
+Time is part of many Models.
+
+But "time" is not always one value.
+
+Monad may need to distinguish:
+
+```text
+valid time
+observation time
+recorded time
+execution time
+release time
+```
+
+For example:
+
+```text
+The Requirement became valid Monday.
+
+The repository was inspected Tuesday.
+
+The observation was imported Wednesday.
+```
+
+Those are different facts.
+
+A Model should retain those distinctions where reasoning depends on them.
+
+---
+
+# Current and historical state
+
+The Model must support the distinction between:
+
+```text
+what was true
+```
+
+and:
+
+```text
+what is true now
+```
+
+For example:
+
+```text
+ADR-004 governed the system in March.
+ADR-011 superseded it in June.
+```
+
+Both statements may be historically true.
+
+Only the latter may define current authority.
+
+This is more expressive than deleting the old Decision.
+
+---
+
+# Provenance
+
+Provenance describes origin and derivation.
+
+A Model may need to represent:
+
+```text
+producer
+source
+derivation
+observation
+execution context
+recording Actor
+source version
+```
+
+For example:
+
+```text
+Generated Model
+    │
+    │ derived-from
+    ▼
+Repository State
+```
+
+Provenance makes derived information inspectable.
+
+---
+
+# Provenance is not trust
+
+Knowing where information came from does not prove it is authoritative.
+
+For example:
+
+```text
+Claim:
+The system uses PostgreSQL.
+
+Source:
+README written two years ago.
+```
+
+The provenance may be known perfectly.
+
+The Claim may still be obsolete.
+
+Therefore:
+
+```text
+provenance ≠ authority
+```
+
+---
+
+# Authority
+
+Authority determines which information governs a Scope.
+
+A Model may contain competing Claims.
+
+For example:
+
+```text
+README:
+uses SQLite
+
+architecture specification:
+uses PostgreSQL
+
+running environment:
+uses PostgreSQL
+```
+
+The Model must be capable of representing the conflict.
+
+Authority determines which source governs the relevant question.
+
+---
+
+# Authority is scoped
+
+Authority is rarely global.
+
+For example:
+
+```text
+package.json
+```
+
+may be authoritative for:
+
+```text
+declared JavaScript dependencies
+```
+
+but not for:
+
+```text
+product requirements
+```
+
+An ADR may govern:
+
+```text
+architecture direction
+```
+
+but not:
+
+```text
+current production health
+```
+
+Modeling Authority without Scope creates misleading conclusions.
+
+---
+
+# Claims
+
+A Claim represents an assertion about the system.
+
+Examples:
+
+```text
+Component A depends on Component B.
+
+Requirement R-12 is implemented.
+
+Release 0.3 passed verification.
+
+File x represents Subject y.
+```
+
+Claims let Monad distinguish:
+
+```text
+something has been asserted
+```
+
+from:
+
+```text
+the system accepts it as current authoritative truth
+```
+
+That distinction is essential for preserving conflicting and historical information.
+
+---
+
+# Evidence
+
+Evidence supports or challenges Claims.
+
+For example:
+
+```text
+Claim:
+The build is reproducible.
+
+Evidence:
+Independent reproduction produced
+the same artifact digest.
+```
+
+Evidence can increase confidence.
+
+It can also invalidate a previously accepted Claim.
+
+The Model should therefore preserve Evidence as something distinct from the proposition it bears upon.
+
+---
+
+# Observations
+
+An Observation records something that was perceived or measured.
+
+Examples:
+
+```text
+test passed
+file existed
+HTTP response was 200
+repository dependency edge observed
+benchmark completed in 42 ms
+```
+
+An Observation may become Evidence.
+
+It may also support an Inference.
+
+---
+
+# Inference
+
+An Inference is a conclusion derived from available information.
+
+For example:
+
+```text
+Observed:
+src/auth.ts imports src/session.ts
+
+Inference:
+auth depends on session
+```
+
+The Inference may be correct.
+
+But Monad should preserve its epistemic status rather than silently converting every inferred relationship into confirmed authority.
+
+---
+
+# Uncertainty
+
+Unknown or uncertain state must be representable.
+
+A system that supports only:
+
+```text
+true
+false
+```
+
+will eventually turn missing information into false certainty.
+
+Useful states may include:
+
+```text
+known
+unknown
+inferred
+disputed
+provisional
+verified
+superseded
+```
+
+depending on the domain.
+
+---
+
+# Conflict
+
+Models should permit conflicting information when reality contains conflict.
+
+For example:
+
+```text
+Claim A:
+service uses Redis
+
+Claim B:
+service uses Memcached
+```
+
+The graph should not necessarily discard one immediately.
+
+Instead Monad can ask:
+
+```text
+Which source is authoritative?
+
+Which Claim is newer?
+
+Which Claim has stronger Evidence?
+
+Is the Scope actually the same?
+
+Has the system changed over time?
+```
+
+Conflict is information.
+
+---
+
+# Correction
+
+Correcting a Model should not require pretending the previous information never existed.
+
+Conceptually:
+
+```text
+Claim A
+  │
+  │ corrected-by
+  ▼
+Claim B
+```
+
+or:
+
+```text
+Model v1
+  │
+  │ superseded-by
+  ▼
+Model v2
+```
+
+Historical preservation improves auditability and learning.
+
+---
+
+# Split and merge
+
+Identity becomes difficult when one concept evolves into several or several collapse into one.
+
+For example:
+
+```text
+Subject A
+   │
+   ├──► Subject B
+   └──► Subject C
+```
+
+or:
+
+```text
+Subject A ─┐
+           ├──► Subject C
+Subject B ─┘
+```
+
+The Model must eventually represent such transitions without rewriting history.
+
+This is especially important for semantic identity.
+
+---
+
+# Canonical and derived models
+
+Some Models may be authored directly.
+
+Others may be derived.
+
+For example:
+
+```text
+Domain Model
+```
+
+may be canonical.
+
+A:
+
+```text
+dependency graph visualization
+```
+
+may be derived from it and repository observations.
+
+Derived Models should carry provenance.
+
+They should not become silent alternate authorities.
+
+---
+
+# Canonical does not mean centralized
+
+A canonical Model may be distributed across several authoritative artifacts.
+
+For example:
+
+```text
+domain definitions
+relationship catalog
+lifecycle definitions
+policy definitions
+```
+
+may together constitute the authoritative model.
+
+The important property is not:
+
+```text
+all truth exists in one file
+```
+
+but:
+
+```text
+authority is explicit and resolvable
+```
+
+---
+
+# Authored and generated models
+
+Some Models are deliberately designed by humans.
+
+Others can be generated.
+
+Examples of generated Models:
+
+```text
+dependency graph
+repository topology
+package graph
+API surface
+database schema graph
+```
+
+Generated Models are often highly valuable.
+
+But:
+
+```text
+generated ≠ authoritative
+```
+
+unless authority rules explicitly establish otherwise.
+
+---
+
+# Model synchronization
+
+If a Model and native system both change, Monad may need reconciliation.
+
+For example:
+
+```text
+Model:
+Component A depends on B
+
+Repository:
+dependency removed
+```
+
+Possible interpretations include:
+
+```text
+repository is now correct
+model is stale
+repository violates Specification
+change is experimental
+observation is incomplete
+```
+
+The Model alone cannot resolve that.
+
+Authority, provenance, lifecycle, and policy must participate.
+
+---
+
+# Models and native systems
+
+Monad should model existing engineering systems rather than requiring all engineering reality to move inside Monad.
+
+Native systems include:
+
+* Git,
+* filesystems,
+* GitHub,
+* package managers,
+* build tools,
+* test frameworks,
+* databases,
+* deployment systems,
+* observability systems,
+* issue trackers,
+* documentation platforms,
+* and external services.
+
+The goal is semantic integration.
+
+Not replacement for its own sake.
+
+---
+
+# Repository model
+
+A Repository Model may capture meaningful repository structure such as:
+
+```text
+Repository
+├── Workspace
+├── Package
+├── Application
+├── Library
+├── Tool
+└── Artifact Collection
+```
+
+with relationships like:
+
+```text
+contains
+depends-on
+publishes
+builds
+tests
+deploys
+```
+
+The exact structure should reflect real engineering needs rather than mirroring every directory.
+
+---
+
+# Repository structure is not semantic structure
+
+Consider:
+
+```text
+src/
+docs/
+tests/
+```
+
+These directories tell us where things are stored.
+
+They do not necessarily tell us:
+
+```text
+which Requirement a test verifies
+
+which Decision caused an implementation
+
+which Subject a file represents
+
+which service owns a dependency
+
+which Evidence supports a release
+```
+
+The semantic Model captures those relationships.
+
+---
+
+# Dependency model
+
+A dependency Model may distinguish multiple dependency types.
+
+For example:
+
+```text
+build dependency
+runtime dependency
+data dependency
+deployment dependency
+semantic dependency
+governance dependency
+```
+
+Collapsing all of them into:
+
+```text
+depends-on
+```
+
+may make impact analysis unreliable.
+
+The relationship vocabulary should reflect differences that matter operationally.
+
+---
+
+# Causal relationships
+
+Dependency is not causation.
+
+Consider:
+
+```text
+Decision D
+  │
+  │ caused
+  ▼
+Specification S
+```
+
+versus:
+
+```text
+Specification S
+  │
+  │ depends-on
+  ▼
+Schema X
+```
+
+versus:
+
+```text
+Commit C
+  │
+  │ occurred-after
+  ▼
+Decision D
+```
+
+These relationships encode different semantics.
+
+A Model should avoid conflating:
+
+```text
+causation
+dependency
+chronology
+correlation
+rationale
+```
+
+---
+
+# Artifact model
+
+The Artifact Model can define common properties of engineering records.
+
+Conceptually:
+
+```text
+Artifact
+├── Requirement
+├── Decision
+├── Specification
+├── Model
+├── Schema
+├── Policy
+├── Experiment
+├── Evidence
+├── Verification
+├── Review
+└── Release
+```
+
+Common concerns may include:
+
+```text
+identity
+type
+status
+version
+authority
+provenance
+scope
+relationships
+timestamps
+```
+
+Type-specific Models can then add additional semantics.
+
+---
+
+# Artifact relationships
+
+Artifacts are valuable partly because of their relationships.
+
+For example:
+
+```text
+Requirement
+    │
+    │ satisfied-by
+    ▼
+Specification
+    │
+    │ implemented-by
+    ▼
+Implementation
+    │
+    │ verified-by
+    ▼
+Verification
+    │
+    │ supported-by
+    ▼
+Evidence
+```
+
+This forms an engineering argument rather than a collection of documents.
+
+---
+
+# Requirement model
+
+A Requirement Model may include:
+
+```text
+Requirement
+Goal
+Constraint
+Acceptance Criterion
+Stakeholder
+Evidence
+```
+
+with relationships such as:
+
+```text
+Requirement ── derives-from ──► Goal
+
+Requirement ── constrained-by ──► Constraint
+
+Requirement ── verified-by ──► Verification
+```
+
+---
+
+# Decision model
+
+A Decision Model may contain:
+
+```text
+Decision
+Alternative
+Constraint
+Rationale
+Evidence
+Supersession
+```
+
+Possible relationships:
+
+```text
+Decision ── addresses ──► Requirement
+
+Decision ── selects ──► Alternative
+
+Decision ── supersedes ──► Decision
+```
+
+---
+
+# Specification model
+
+A Specification Model may describe:
+
+```text
+Specification
+Clause
+Invariant
+Interface
+Precondition
+Postcondition
+Failure
+Compatibility Rule
+```
+
+This becomes especially useful if Monad eventually supports clause-level traceability.
+
+---
+
+# Evidence model
+
+Evidence may require a rich Model.
+
+For example:
+
+```text
+Evidence
+├── Observation
+├── Source
+├── Producer
+├── Method
+├── Result
+└── Context
+```
+
+with relationships such as:
+
+```text
+Evidence ── supports ──► Claim
+
+Evidence ── challenges ──► Claim
+
+Evidence ── produced-by ──► Actor
+```
+
+---
+
+# Verification model
+
+A Verification Model may contain:
+
+```text
+Verification
+Verification Method
+Target
+Result
+Evidence
+Environment
+```
+
+Possible methods include:
+
+```text
+test
+review
+analysis
+experiment
+formal verification
+inspection
+```
+
+---
+
+# Release model
+
+A Release Model might connect:
+
+```text
+Release
+Version
+Commit
+Artifact
+Verification
+Evidence
+Approval
+```
+
+allowing the system to answer:
+
+```text
+What exactly was released?
+
+From which source state?
+
+Under which approvals?
+
+With what verification?
+
+Supported by which Evidence?
+```
+
+---
+
+# Work model
+
+Monad's project execution may use a Model such as:
+
+```text
+Project
+├── Domain
+├── Milestone
+├── Epic
+├── Feature
+├── Work Package
+└── Task
+```
+
+Possible relationships:
+
+```text
+Milestone contains Epic
+
+Epic decomposes-into Feature
+
+Feature realized-by Work Package
+
+Work Package contains Task
+```
+
+The exact semantics belong in the project operating model.
+
+---
+
+# Execution model
+
+A governed execution might be modeled as:
+
+```text
+Intent
+   ↓
+Plan
+   ↓
+Authorization
+   ↓
+Context Assembly
+   ↓
+Execution
+   ↓
+Verification
+   ↓
+Evidence
+   ↓
+State Update
+```
+
+This Model provides structure for both human and AI work.
+
+---
+
+# Actor model
+
+Actors may include:
+
+```text
+Human
+AI Agent
+Service
+Tool
+Automation
+Organization
+```
+
+The Model should avoid assuming only humans act on the system.
+
+At the same time, Actors should not automatically share equivalent Authority.
+
+---
+
+# Capability model
+
+A Capability describes what an Actor or system can technically do.
+
+Examples:
+
+```text
+read repository
+
+modify files
+
+create issue
+
+execute tests
+
+deploy service
+
+query graph
+```
+
+This Model can support:
+
+```text
+capability discovery
+tool selection
+execution planning
+```
+
+But Capability remains distinct from Authority.
+
+---
+
+# Policy model
+
+Policies constrain behavior.
+
+Conceptually:
+
+```text
+Actor
+   │
+   │ attempts
+   ▼
+Action
+   │
+   │ evaluated-under
+   ▼
+Policy
+   │
+   ▼
+Decision
+```
+
+The Model may also need:
+
+```text
+Scope
+Authority
+Capability
+Approval
+Exception
+```
+
+to represent governed action correctly.
+
+---
+
+# Governance model
+
+A Governance Model may connect:
+
+```text
+Constitution
+Policy
+Authority
+Actor
+Decision
+Approval
+Amendment
+```
+
+The Constitution constrains the broader system.
+
+Policies operationalize rules.
+
+Authority determines legitimate control over Scope.
+
+Approvals may authorize specific transitions.
+
+---
+
+# Constitutional model
+
+Monad's Constitution is deliberately distinct from the evolving System Graph.
+
+Conceptually:
+
+```text
+Constitution
+    │
+    │ constrains
+    ▼
+System Model
+```
+
+The Constitution defines the meta-rules that determine what the system is permitted to represent or do.
+
+Examples may include:
+
+```text
+allowed semantic primitives
+
+allowed relationship families
+
+authority hierarchy
+
+governance invariants
+
+capability boundaries
+
+evolution rules
+
+amendment procedures
+```
+
+This separation helps prevent the system from casually rewriting the rules by which its own truth is governed.
+
+---
+
+# The System Graph
+
+The System Graph is one representation of Monad's explicit system Model.
+
+At a high level:
+
+```text
+System Graph
+├── Subjects
+├── Relationships
+├── Claims
+├── Authority
+├── Provenance
+├── Evidence
+├── Lifecycle
+└── Context
+```
+
+The graph should describe engineering reality.
+
+It should not become reality merely because a node exists.
+
+---
+
+# The graph is not necessarily one database
+
+"Graph" describes semantic structure.
+
+It does not require one specific graph database.
+
+Possible implementations include:
+
+```text
+relational storage
+graph database
+documents
+files
+embedded read model
+hybrid persistence
+```
+
+The Model should remain portable across implementation choices where feasible.
+
+---
+
+# Nodes are not automatically Subjects
+
+A graph implementation may contain nodes representing:
+
+```text
+Subject
+Claim
+Evidence
+Actor
+Relationship record
+Projection
+```
+
+Therefore:
+
+```text
+graph node ≠ Subject
+```
+
+The implementation structure should not redefine the domain vocabulary.
+
+---
+
+# Graph density
+
+A naive semantic graph can become useless if it records every possible relationship.
+
+The goal is not:
+
+```text
+maximum edge count
+```
+
+The goal is:
+
+```text
+useful recoverable meaning
+```
+
+A relationship should generally earn its existence by improving:
+
+* reasoning,
+* traceability,
+* impact analysis,
+* governance,
+* context assembly,
+* verification,
+* or historical understanding.
+
+---
+
+# Query-driven modeling
+
+One powerful way to evaluate a Model is to ask which questions it enables.
+
+For example:
+
+```text
+Which Requirements are implemented but not verified?
+
+Which Decisions currently govern this Component?
+
+Which Representations are stale?
+
+Which Claims conflict?
+
+Which Evidence supports this Release?
+
+Which Components depend on this interface?
+
+Which Actor authorized this change?
+```
+
+If the Model cannot answer the questions the system exists to answer, it may be missing important structure.
+
+---
+
+# Avoid modeling for hypothetical queries alone
+
+The reverse problem also exists.
+
+A project can add enormous Model complexity because:
+
+```text
+someone might want to query this someday
+```
+
+That is not enough.
+
+Modeling cost should be justified by actual or credible future engineering value.
+
+---
+
+# Progressive formalization
+
+Monad should allow information to become more structured over time.
+
+For example:
+
+```text
+note
+  ↓
+identified concept
+  ↓
+typed Subject
+  ↓
+structured relationship
+  ↓
+validated domain artifact
+```
+
+Not every observation needs complete ontology before it can be captured.
+
+This lowers friction while preserving a path toward precision.
+
+---
+
+# Capture before perfection
+
+If formal capture is too expensive, engineers will avoid it.
+
+Therefore the Model should support low-friction states such as:
+
+```text
+unknown
+unclassified
+provisional
+inferred
+```
+
+when appropriate.
+
+Forcing false certainty harms the knowledge system more than admitting incomplete structure.
+
+---
+
+# Model evolution
+
+Models change as understanding improves.
+
+A Model may evolve because:
+
+* new evidence appears,
+* a concept proves unnecessary,
+* two concepts need separation,
+* one concept needs consolidation,
+* implementation exposes missing semantics,
+* or product Scope changes.
+
+Evolution should be explicit.
+
+---
+
+# Backward compatibility
+
+Model changes can affect:
+
+```text
+stored state
+schemas
+queries
+plugins
+generated views
+APIs
+tests
+AI prompts
+```
+
+Therefore important Model evolution should include impact analysis and migration planning.
+
+---
+
+# Model migrations
+
+A migration may transform:
+
+```text
+old model state
+```
+
+into:
+
+```text
+new model state
+```
+
+For example:
+
+```text
+Representation.location: string
+```
+
+might evolve into:
+
+```text
+Representation
+   └── NativeReference
+```
+
+if one location field proves insufficient.
+
+The migration should preserve semantic meaning where possible.
+
+---
+
+# Model versioning
+
+Versioning can help distinguish incompatible semantics.
+
+For example:
+
+```text
+Domain Model v1
+```
+
+may define:
+
+```text
+Claim.source
+```
+
+while:
+
+```text
+Domain Model v2
+```
+
+introduces:
+
+```text
+Provenance
+```
+
+as a richer concept.
+
+Versioning should reflect semantic change, not merely document editing.
+
+---
+
+# Deprecation
+
+A Model concept can become deprecated.
+
+For example:
+
+```text
+Resource
+```
+
+might later be replaced by:
+
+```text
+Subject
+Representation
+```
+
+if the single abstraction proves too ambiguous.
+
+Deprecation should preserve historical interpretation while steering new work toward the replacement.
+
+---
+
+# Model supersession
+
+Sometimes one Model should be replaced entirely.
+
+For example:
+
+```text
+Repository-Centric Model
+          │
+          │ superseded-by
+          ▼
+Semantic Subject Model
+```
+
+The old Model remains historically useful.
+
+The new Model becomes authoritative for current reasoning.
+
+---
+
+# Model comparison
+
+When considering competing Models, compare them against concrete criteria.
+
+For example:
+
+| Criterion           | Model A | Model B |
+| ------------------- | ------: | ------: |
+| Identity stability  |    Weak |  Strong |
+| Native integration  |  Strong |  Strong |
+| Complexity          |     Low |  Medium |
+| Split/merge support |    Weak |  Strong |
+| Query usefulness    |  Medium |  Strong |
+| Migration cost      |     Low |  Medium |
+
+The Model should be chosen because it best addresses actual engineering needs, not because it is intellectually elegant.
+
+---
+
+# Models are hypotheses about structure
+
+A Model represents our current understanding of how a system should be interpreted.
+
+That understanding can be wrong.
+
+Therefore Models should remain falsifiable.
+
+Useful questions include:
+
+```text
+What evidence would prove this distinction unnecessary?
+
+Could a simpler Model support the same queries?
+
+Does the Model create more maintenance cost than value?
+
+Does it fail when applied outside Monad?
+
+Does implementation repeatedly work around it?
+```
+
+A Model that cannot be challenged becomes doctrine rather than engineering.
+
+---
+
+# Simpler models should win when sufficient
+
+Monad's semantic ambitions create a real risk of over-modeling.
+
+The graph approach is not automatically correct because it is expressive.
+
+If:
+
+```text
+simple indexing + search
+```
+
+can solve a problem reliably, then a richer semantic Model should justify its added cost.
+
+The goal is not maximum semantic sophistication.
+
+The goal is enough explicit meaning to make important engineering reasoning dependable.
+
+---
+
+# Models and search
+
+Search answers:
+
+```text
+Where does this phrase or token appear?
+```
+
+A semantic Model can answer:
+
+```text
+What is this?
+
+What does it represent?
+
+Which Requirement does it satisfy?
+
+Which Decision governs it?
+
+What depends on it?
+
+Which Evidence supports it?
+```
+
+These are complementary capabilities.
+
+Monad should not recreate search badly in order to justify semantic modeling.
+
+---
+
+# Models and AI
+
+Models can significantly improve AI engineering.
+
+Without an explicit Model, an AI agent may need to infer:
+
+```text
+what files matter
+
+which document is authoritative
+
+what an artifact means
+
+which relationships exist
+
+which changes are allowed
+```
+
+from raw repository content.
+
+With a Model, the agent can receive structured context.
+
+For example:
+
+```text
+Task:
+modify authentication subsystem
+
+Relevant Subjects:
+AUTH-SERVICE
+SESSION-MODEL
+
+Governing Requirements:
+REQ-AUTH-001
+REQ-AUTH-004
+
+Governing Decisions:
+ADR-AUTH-003
+
+Affected Components:
+auth-api
+session-store
+
+Authority:
+may edit implementation
+may not modify security policy
+```
+
+This does not make the AI correct automatically.
+
+It improves the quality of the context within which it reasons.
+
+---
+
+# AI should not silently extend the Model
+
+An AI agent may discover information that appears to require a new concept or relationship.
+
+It should not silently mutate the canonical Model simply because doing so makes the current task easier.
+
+Instead, depending on policy, it may:
+
+```text
+propose new concept
+
+record an inference
+
+surface a model gap
+
+request review
+
+create provisional relationship
+```
+
+Authority over the Model remains governed.
+
+---
+
+# Models and context assembly
+
+One of Monad's major uses for Models is task-specific context.
+
+Instead of loading an entire repository, the system may derive a relevant subgraph.
+
+For example:
+
+```text
+Task
+ │
+ ├──► Requirement
+ │       │
+ │       └──► Decision
+ │
+ ├──► Component
+ │       │
+ │       ├──► Interface
+ │       └──► Dependency
+ │
+ └──► Policy
+```
+
+The Model enables intentional context selection.
+
+---
+
+# Context is a projection
+
+Task context is not the whole system.
+
+It is a projection over relevant information.
+
+Therefore:
+
+```text
+context ≠ canonical state
+```
+
+Context should be derivable, attributable, and refreshable.
+
+---
+
+# Model projections
+
+Models can generate many views.
+
+For example:
+
+```text
+System Model
+    │
+    ├──► architecture diagram
+    ├──► dependency graph
+    ├──► traceability matrix
+    ├──► artifact index
+    ├──► release report
+    └──► AI task context
+```
+
+These are projections.
+
+They should not each become independently maintained versions of the same truth.
+
+---
+
+# Model visualization
+
+Diagrams are useful Model Representations.
+
+Examples include:
+
+* entity-relationship diagrams,
+* state machines,
+* dependency graphs,
+* architecture diagrams,
+* process flows,
+* sequence diagrams.
+
+But the diagram is not automatically the canonical Model.
+
+A visual representation may omit detail for clarity.
+
+---
+
+# Textual models
+
+Some Models are better represented as structured text.
+
+For example:
+
+```yaml
+entity: Requirement
+
+relationships:
+  - name: derived-from
+    target: Goal
+
+  - name: verified-by
+    target: Verification
+```
+
+Structured textual representations are:
+
+* diffable,
+* reviewable,
+* machine-readable,
+* and compatible with Git.
+
+Whether YAML, JSON, TOML, or another format is appropriate depends on the Model.
+
+---
+
+# Executable models
+
+Some Models may support generated code or validation.
+
+For example:
+
+```text
+Lifecycle Model
+      │
+      ├──► validator
+      ├──► transition API
+      └──► test cases
+```
+
+This can reduce divergence between design and implementation.
+
+But executable generation should not force conceptual semantics into whatever the generator happens to support.
+
+---
+
+# Model validation
+
+Validation may answer:
+
+```text
+Is this Model structurally valid?
+
+Do referenced entity types exist?
+
+Are relationship types permitted?
+
+Are cardinalities legal?
+
+Are lifecycle transitions well formed?
+
+Are required invariants declared?
+```
+
+Validation does not answer:
+
+```text
+Is this the right Model?
+```
+
+That remains an engineering judgment.
+
+---
+
+# Model review
+
+A good Model review should ask:
+
+1. What problem does this Model solve?
+2. What is its Scope?
+3. Which concepts exist?
+4. Which concepts need stable identity?
+5. Which are values rather than entities?
+6. Which relationships matter?
+7. Which relationships are directional?
+8. Which relationships require properties?
+9. What are the cardinalities?
+10. What invariants must hold?
+11. Which states exist?
+12. Which transitions are valid?
+13. Where does Authority matter?
+14. Where does time matter?
+15. Which information is inferred versus authoritative?
+16. How does the Model evolve?
+17. Can simpler structure solve the same problem?
+18. Which queries should this Model enable?
+19. Which edge cases challenge it?
+20. How would we know the Model is wrong?
+
+---
+
+# Model completeness
+
+Completeness should be measured against required reasoning.
+
+A Model is incomplete if an important system question cannot be expressed without escaping into undocumented assumptions.
+
+For example, if Monad must answer:
+
+```text
+Which active Decision governs this Requirement?
+```
+
+but the Model has no:
+
+```text
+Decision → Requirement
+```
+
+relationship, then the Model may be insufficient.
+
+---
+
+# Minimal models
+
+A Model should start with the smallest coherent structure that satisfies current needs.
+
+For example, an initial semantic kernel may require only:
+
+```text
+Subject
+Representation
+Native Reference
+Relationship
+Claim
+Provenance
+Authority
+```
+
+Additional concepts can be introduced when evidence demonstrates that they are needed.
+
+This reduces speculative complexity.
+
+---
+
+# Model boundaries
+
+Useful Models have boundaries.
+
+For example:
+
+```text
+Domain Model
+```
+
+should not necessarily contain:
+
+```text
+deployment topology
+```
+
+unless those semantics belong to the domain being modeled.
+
+A boundary helps keep each Model understandable.
+
+---
+
+# Cross-model relationships
+
+Separate Models still need to compose.
+
+For example:
+
+```text
+Requirement Model
+       │
+       │ references
+       ▼
+Architecture Model
+```
+
+or:
+
+```text
+Execution Model
+       │
+       │ governed-by
+       ▼
+Authority Model
+```
+
+These interfaces should be explicit.
+
+---
+
+# Model ownership
+
+A Model should have clear stewardship.
+
+For example:
+
+```text
+Model:
+Semantic Kernel
+
+Owner:
+Core architecture domain
+```
+
+Ownership helps answer who is responsible for:
+
+* review,
+* evolution,
+* migration,
+* documentation,
+* and compatibility.
+
+Ownership does not necessarily imply unilateral Authority to change it.
+
+---
+
+# Model authority
+
+Not every Model Representation is authoritative.
+
+For example:
+
+```text
+canonical domain model
+```
+
+may govern semantics.
+
+A:
+
+```text
+generated Mermaid diagram
+```
+
+may be derived.
+
+A:
+
+```text
+blog post diagram
+```
+
+may be explanatory.
+
+Monad should be able to distinguish these roles.
+
+---
+
+# Model evidence
+
+Models can themselves be supported by Evidence.
+
+For example:
+
+```text
+Hypothesis:
+stable Subject identity is necessary
+
+Evidence:
+the same conceptual Component moved across
+three paths during refactoring while retaining
+the same engineering meaning
+```
+
+This matters because the Model should emerge from real engineering pressure rather than abstract preference alone.
+
+---
+
+# Model experiments
+
+Questions about the Model may require experiments.
+
+For example:
+
+```text
+Can simple repository indexing answer the
+same traceability queries as a semantic graph?
+```
+
+An experiment can compare both approaches.
+
+If the simpler approach works, Monad should be willing to use it.
+
+---
+
+# Model failure modes
+
+Common Model failures include:
+
+## Modeling storage instead of meaning
+
+The conceptual system becomes coupled to one implementation.
+
+## Treating paths as identity
+
+Renames become semantic deletion and recreation.
+
+## Universal entity types
+
+Everything becomes a generic node with meaningless metadata.
+
+## Relationship explosion
+
+The graph becomes impossible to reason about.
+
+## One universal lifecycle
+
+Unrelated artifacts are forced into inappropriate states.
+
+## Authority collapse
+
+Existence is mistaken for truth.
+
+## Provenance collapse
+
+Origin is mistaken for authority.
+
+## Temporal collapse
+
+Historical and current truth are indistinguishable.
+
+## Inference collapse
+
+Machine guesses become facts.
+
+## Over-modeling
+
+The cost of maintaining the Model exceeds its engineering value.
+
+## Under-modeling
+
+Critical assumptions remain implicit.
+
+---
+
+# A useful test
+
+For every Model concept, ask:
+
+```text
+What breaks if we remove this distinction?
+```
+
+If the answer is:
+
+```text
+nothing important
+```
+
+then the concept may not belong in the core Model.
+
+If the answer is:
+
+```text
+identity becomes unstable
+authority becomes ambiguous
+history becomes unrecoverable
+impact analysis becomes unreliable
+```
+
+then the distinction likely matters.
+
+---
+
+# Models and Specifications
+
+Models define what exists and how concepts relate.
+
+[Specifications](/docs/artifacts/specifications) define exact behavioral contracts.
+
+For example:
+
+```text
+Model:
+Subject has Representations.
+
+Specification:
+Moving a Representation MUST NOT
+change Subject identity.
+```
+
+The Model provides structure.
+
+The Specification establishes required behavior.
+
+---
+
+# Models and Schemas
+
+[Schemas](/docs/artifacts/schemas) encode machine-validatable representations of Model structures.
+
+For example:
+
+```text
+Model:
+Requirement has status.
+
+Schema:
+status must be one of:
+draft | approved | verified | superseded
+```
+
+But a schema alone does not explain what those states mean.
+
+---
+
+# Models and Architecture Decisions
+
+[Architecture Decisions](/docs/artifacts/decisions) explain why important modeling choices were made.
+
+For example:
+
+```text
+Decision:
+Separate semantic identity from filesystem paths.
+```
+
+The resulting Model may introduce:
+
+```text
+Subject
+Representation
+Native Reference
+```
+
+instead of a single path-based entity.
+
+---
+
+# Models and Requirements
+
+[Requirements](/docs/artifacts/requirements) create needs that Models must support.
+
+For example:
+
+```text
+Requirement:
+System identity must survive repository restructuring.
+```
+
+This Requirement may force a Model capable of stable semantic identity.
+
+---
+
+# Models and Policies
+
+[Policies](/docs/artifacts/policies) govern actions over modeled entities.
+
+For example:
+
+```text
+Model:
+Constitution
+
+Policy:
+Constitution changes require explicit approval
+from an authorized maintainer.
+```
+
+The Model defines the object.
+
+The Policy constrains its change.
+
+---
+
+# Models and Evidence
+
+[Evidence](/docs/artifacts/evidence) can support or challenge Model assumptions.
+
+For example:
+
+```text
+Model assumption:
+one Native Reference maps to one Subject.
+
+Observed corpus:
+same native identifier reused after migration.
+```
+
+That Evidence may force the Model to evolve.
+
+---
+
+# Models and Experiments
+
+[Experiments](/docs/artifacts/experiments) can evaluate competing Model designs before they become authoritative.
+
+This is especially useful for:
+
+* identity,
+* graph density,
+* context assembly,
+* read-model design,
+* relationship vocabularies,
+* and provenance representation.
+
+---
+
+# Models and Traceability
+
+[Traceability](/docs/artifacts/traceability) uses Models to connect engineering intent and implementation.
+
+Conceptually:
+
+```text
+Goal
+ ↓
+Requirement
+ ↓
+Decision
+ ↓
+Specification
+ ↓
+Component
+ ↓
+Verification
+ ↓
+Evidence
+```
+
+Without a Model of those relationships, traceability is reduced to manually maintained links.
+
+---
+
+# Models and System documentation
+
+[System](/docs/system) explains the current authoritative architecture and concepts.
+
+This section preserves the inspectable Model artifacts that support that explanation.
+
+A reader may use System documentation to learn Monad.
+
+An engineer may use Models to inspect the structures beneath it.
+
+---
+
+# Model maturity
+
+A Model can mature through stages such as:
+
+```text
+question
+  ↓
+hypothesis
+  ↓
+draft model
+  ↓
+reviewed model
+  ↓
+accepted model
+  ↓
+implemented model
+  ↓
+validated model
+  ↓
+evolved model
+```
+
+The exact artifact lifecycle should be defined elsewhere.
+
+The important point is that tentative modeling should not masquerade as settled architecture.
+
+---
+
+# Canonical model status
+
+Where possible, each Model should make clear whether it is:
+
+```text
+exploratory
+proposed
+authoritative
+derived
+deprecated
+superseded
+historical
+```
+
+Readers and machines should not need to infer authority from folder location.
+
+---
+
+# Model documentation structure
+
+A substantial Model artifact may include sections such as:
+
+```text
+Purpose
+Scope
+Definitions
+Entities
+Value Objects
+Relationships
+Cardinalities
+Invariants
+Lifecycle
+Authority
+Temporal Semantics
+Examples
+Edge Cases
+Open Questions
+Migration
+Related Specifications
+Related Decisions
+Evidence
+```
+
+Not every Model needs every section.
+
+Structure should serve understanding.
+
+---
+
+# Models should remain inspectable
+
+An engineering Model should be understandable by more than the implementation that consumes it.
+
+A reader should be able to answer:
+
+```text
+What is being modeled?
+
+Why?
+
+What are the important concepts?
+
+How are they related?
+
+What assumptions exist?
+
+Which parts are authoritative?
+
+What remains uncertain?
+```
+
+If those answers require reverse-engineering code, the artifact has failed part of its purpose.
+
+---
+
+# Models should remain portable
+
+Core semantic Models should avoid depending unnecessarily on one technology.
+
+For example:
+
+Prefer:
+
+```text
+Subject
+Relationship
+Claim
+```
+
+over:
+
+```text
+Neo4j node
+Neo4j edge
+Neo4j property
+```
+
+unless Neo4j-specific behavior is intentionally part of the contract.
+
+The Model should survive implementation evolution whenever possible.
+
+---
+
+# Models should remain composable
+
+Different Model areas should connect without requiring one monolithic schema.
+
+For example:
+
+```text
+Artifact Model
+       │
+       ├──► Evidence Model
+       ├──► Authority Model
+       └──► Lifecycle Model
+```
+
+This allows Monad to grow by extension rather than constant redesign of one universal structure.
+
+---
+
+# Models should remain evolvable
+
+No Model should assume that current understanding is final.
+
+That implies support for:
+
+* versioning,
+* deprecation,
+* migration,
+* supersession,
+* historical interpretation,
+* and explicit uncertainty.
+
+---
+
+# The smallest useful semantic kernel
+
+A useful early question for Monad is:
+
+> **What is the smallest Model that still makes the system meaningfully more powerful than search, indexing, and ordinary metadata?**
+
+A candidate kernel may center on:
+
+```text
+Subject
+Representation
+Native Reference
+Relationship
+Claim
+Authority
+Provenance
+Evidence
+```
+
+with:
+
+```text
+identity
+time
+lifecycle
+context
+```
+
+cross-cutting the model.
+
+That kernel should be expanded only when additional distinctions prove necessary.
+
+---
+
+# The falsification standard
+
+Monad should be willing to abandon or simplify a Model when evidence shows that it is unnecessary.
+
+Evidence against a Model might include:
+
+* excessive manual maintenance,
+* little improvement over search,
+* poor generalization beyond Monad,
+* repeated user confusion,
+* inability to keep projections fresh,
+* graph density without useful queries,
+* or implementation complexity disproportionate to value.
+
+The Model exists to serve engineering.
+
+Engineering does not exist to serve the Model.
+
+<Callout type="info" title="A model is a tool, not a doctrine">
+
+Monad should retain only the semantic structure that materially improves understanding, governance, change, verification, or machine reasoning.
+
+</Callout>
+
+---
+
+# The governing principle
+
+A good Model preserves the distinctions required to reason correctly about the system while avoiding distinctions that add cost without useful meaning.
+
+> **Model the things whose identity, relationships, state, authority, history, or behavior matter—and leave incidental representation details free to change.**
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Schemas"
+    href="/docs/artifacts/schemas"
+  >
+    See how selected Model structures become machine-validatable representations.
+  </Card>
+
+<Card
+title="Specifications"
+href="/docs/artifacts/specifications"
+>
+Explore the precise behavioral contracts that operationalize Models.
+</Card>
+
+<Card
+title="Evidence"
+href="/docs/artifacts/evidence"
+>
+Inspect the observations that support or challenge modeling assumptions.
+</Card>
+
+<Card
+title="Traceability"
+href="/docs/artifacts/traceability"
+>
+Follow modeled relationships across engineering intent, implementation, verification, and evidence.
+</Card>
+</Cards>
+
+---
+
+## Related artifact views
+
+<Cards>
+  <Card
+    title="Architecture Decisions"
+    href="/docs/artifacts/decisions"
+  >
+    Inspect the decisions that establish consequential modeling choices.
+  </Card>
+
+<Card
+title="Experiments"
+href="/docs/artifacts/experiments"
+>
+Examine tests of competing model hypotheses and semantic approaches.
+</Card>
+
+<Card
+title="Policies"
+href="/docs/artifacts/policies"
+>
+See how governed actions are constrained over modeled system state.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

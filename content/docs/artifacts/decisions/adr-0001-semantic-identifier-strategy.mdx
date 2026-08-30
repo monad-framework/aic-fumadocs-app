@@ -1,0 +1,2207 @@
+---
+title: ADR-0001 — Semantic Identifier Strategy
+description: Defines the canonical identity strategy for Subjects, Representations, Native References, Claims, and other durable semantic entities in Monad.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Architecture Decision Record · ADR-0001
+  </p>
+</div>
+
+# ADR-0001 — Semantic Identifier Strategy
+
+**Status:** Accepted
+**Decision type:** Foundational architecture
+**Requirements baseline:** RB-001
+**Traceability artifact:** RTM-001
+**Primary requirement families:** `REQ-ID`, `REQ-SEM`, `REQ-PROV`
+**Consequential consumers:** `REQ-AUTH`, `REQ-GOV`, `REQ-EXEC`, `REQ-INT`, `REQ-REC`, `REQ-AI`, `REQ-VFY`
+
+---
+
+# Decision
+
+Monad will use **stable, opaque, type-scoped semantic identifiers generated independently of mutable representation details or external-system identifiers**.
+
+A durable semantic entity receives a Monad identifier whose identity does not depend on:
+
+* its current name,
+* filesystem path,
+* repository,
+* URL,
+* database location,
+* title,
+* content hash,
+* provider-native identifier,
+* current representation,
+* or current revision.
+
+Provider-native identifiers, paths, URLs, hashes, aliases, and other externally meaningful references are modeled as **bindings to semantic identity**, not as semantic identity itself.
+
+The canonical model is:
+
+```text id="eb5cgj"
+Stable Monad Identity
+        │
+        ├── Representation bindings
+        ├── Native identifier bindings
+        ├── Paths / locations
+        ├── Aliases
+        ├── Revisions
+        └── Provenance
+```
+
+The stable Monad identifier survives ordinary rename, move, reorganization, provider migration, and representation change.
+
+<Callout type="info" title="Core rule">
+Monad identifies the semantic thing first and records how that thing is currently represented second.
+
+Identity is therefore not derived from location. 
+</Callout>
+
+---
+
+# Context
+
+Monad is intended to represent engineering knowledge across many forms:
+
+* source files,
+* requirements,
+* specifications,
+* Architecture Decision Records,
+* Issues,
+* pull requests,
+* commits,
+* releases,
+* database records,
+* CI runs,
+* external services,
+* generated documents,
+* AI interactions,
+* Claims,
+* Evidence,
+* verification results,
+* and future artifact classes.
+
+The same underlying Subject may appear in several of these systems simultaneously.
+
+For example:
+
+```text id="3eiu28"
+Requirement REQ-AUTH-042
+        │
+        ├── MDX representation
+        ├── semantic graph node
+        ├── GitHub issue
+        ├── generated requirement index entry
+        ├── release evidence reference
+        └── AI context representation
+```
+
+These representations may change independently.
+
+If identity were derived from any one mutable representation, Monad would repeatedly lose continuity as the engineering system evolves.
+
+---
+
+# Problem
+
+The identity system must answer:
+
+> What makes this the same semantic entity across time, representations, repositories, systems, and revisions?
+
+Several tempting identifiers fail this requirement.
+
+---
+
+# Why filenames are insufficient
+
+Consider:
+
+```text id="0o99ji"
+content/docs/specs/execution.mdx
+```
+
+Later:
+
+```text id="q0vtqx"
+content/docs/system/execution/specification.mdx
+```
+
+The artifact may be semantically the same artifact.
+
+A path-based identifier would incorrectly imply a new identity.
+
+Therefore:
+
+```text id="9ln693"
+path ≠ identity
+```
+
+---
+
+# Why titles are insufficient
+
+A requirement may change from:
+
+```text id="ev85nw"
+Controlled Native Mutation
+```
+
+to:
+
+```text id="hup2lq"
+Governed Native-System Mutation
+```
+
+The requirement remains the same requirement unless deliberately replaced.
+
+Therefore:
+
+```text id="ffk7f0"
+title ≠ identity
+```
+
+---
+
+# Why content hashes are insufficient
+
+A content hash identifies a particular byte sequence.
+
+It is useful for:
+
+* integrity,
+* revision identification,
+* reproducibility,
+* caching,
+* and immutable content addressing.
+
+But any legitimate edit changes the hash.
+
+Therefore:
+
+```text id="5ajn7f"
+content hash = revision/content identity
+
+content hash ≠ durable semantic identity
+```
+
+---
+
+# Why provider-native identifiers are insufficient
+
+Suppose a requirement is represented by:
+
+```text id="ju97qg"
+GitHub Issue #142
+```
+
+The Issue may later be:
+
+* migrated to another repository,
+* copied into another provider,
+* replaced by a native project item,
+* represented in a local database,
+* or no longer represented in GitHub at all.
+
+Its Monad semantic identity should survive.
+
+Therefore:
+
+```text id="3rd5ud"
+GitHub issue ID ≠ Monad semantic identity
+```
+
+The native identifier is instead bound to the Monad identity.
+
+---
+
+# Why URLs are insufficient
+
+URLs are locators.
+
+They may change because of:
+
+* domain changes,
+* repository transfers,
+* routing changes,
+* documentation reorganization,
+* provider migration,
+* slug changes,
+* or hosting changes.
+
+Therefore:
+
+```text id="ljtma5"
+URL ≠ semantic identity
+```
+
+---
+
+# Decision drivers
+
+The selected identifier strategy must satisfy the following architectural drivers.
+
+## Stability
+
+Identity must survive ordinary lifecycle changes.
+
+---
+
+## Representation independence
+
+Identity must not require one canonical storage format.
+
+---
+
+## Provider independence
+
+Identity must survive movement between native systems.
+
+---
+
+## Local-first operation
+
+Identity generation must not require:
+
+* central registration,
+* network access,
+* a remote allocator,
+* or a SaaS identity authority.
+
+---
+
+## Collision resistance
+
+Independent Monad instances must be able to generate identifiers with negligible collision probability.
+
+---
+
+## Mergeability
+
+Artifacts created independently should be safely combinable later.
+
+---
+
+## Inspectability
+
+Identifiers must remain reasonably usable in:
+
+* logs,
+* CLI output,
+* configuration,
+* documents,
+* graph queries,
+* diagnostics,
+* and debugging.
+
+---
+
+## Explicit semantics
+
+The identifier itself should not silently encode mutable domain meaning.
+
+---
+
+## Historical continuity
+
+Identity must remain stable through revision history.
+
+---
+
+# Chosen identifier form
+
+The canonical semantic identifier is a **type-scoped opaque identifier**.
+
+Conceptually:
+
+```text id="4cvnz7"
+<type-prefix>-<opaque-id>
+```
+
+Examples:
+
+```text id="1sfzbh"
+sub-01K9A4N7J6V53FPEM3Z8CY4WJT
+rep-01K9A4NK28S3G8BX91W2FX56QE
+clm-01K9A4P2PAPB8PSW7MXRFBEBS9
+evd-01K9A4PA0RG60HRFNAG1Q915BW
+vfy-01K9A4Q6SYVJBPBDWEFADEJYV4
+```
+
+The exact encoding is specified below.
+
+The prefix provides human and machine context.
+
+The opaque portion provides durable identity.
+
+---
+
+# Identifier primitive
+
+Monad will use **UUIDv7 as the canonical underlying identifier primitive**, represented in canonical textual UUID form internally and optionally encoded in a more compact presentation form by tooling.
+
+Canonical persisted form:
+
+```text id="t3pm0l"
+0191f574-b9c7-7c1d-a7db-38ca251bd192
+```
+
+Typed semantic presentation:
+
+```text id="4l9scu"
+sub:0191f574-b9c7-7c1d-a7db-38ca251bd192
+```
+
+Where filename-safe or CLI-friendly syntax is preferred:
+
+```text id="4wbdfb"
+sub-0191f574-b9c7-7c1d-a7db-38ca251bd192
+```
+
+The **UUID value is the identity**.
+
+The display prefix identifies the semantic entity type.
+
+---
+
+# Why UUIDv7
+
+UUIDv7 provides a useful combination of:
+
+* distributed generation,
+* no central allocator,
+* negligible collision probability,
+* standard UUID representation,
+* broad ecosystem support,
+* roughly time-ordered generation,
+* database-index locality superior to fully random UUIDv4,
+* and no dependence on mutable semantic information.
+
+Importantly, time ordering is a property of generation, not semantic authority.
+
+```text id="qkx6ob"
+newer UUID
+≠
+newer semantic truth
+```
+
+---
+
+# UUID generation is local
+
+A Monad process MUST be able to create semantic identity offline.
+
+Conceptually:
+
+```text id="yf3o8y"
+monad create requirement
+        ↓
+generate UUIDv7 locally
+        ↓
+persist semantic entity
+```
+
+No network round trip is required.
+
+No central ID server exists in the foundational architecture.
+
+---
+
+# Type prefixes
+
+Human-facing forms SHOULD use a small registered type prefix.
+
+Initial examples:
+
+| Entity                      | Prefix |
+| --------------------------- | ------ |
+| Subject                     | `sub`  |
+| Representation              | `rep`  |
+| Claim                       | `clm`  |
+| Evidence                    | `evd`  |
+| Actor                       | `act`  |
+| Native Reference            | `nref` |
+| Authority grant             | `auth` |
+| Governance decision         | `gov`  |
+| Execution                   | `exe`  |
+| Reconciliation              | `rec`  |
+| Verification                | `vfy`  |
+| Verification obligation     | `vfo`  |
+| Decision                    | `dec`  |
+| Specification               | `spec` |
+| Requirement semantic entity | `req`  |
+
+This registry is extensible.
+
+Prefix vocabulary does not alter UUID semantics.
+
+---
+
+# Prefixes are not embedded into the UUID
+
+The identifier model is:
+
+```yaml id="4dz4f2"
+id:
+  type: subject
+  uuid: 0191f574-b9c7-7c1d-a7db-38ca251bd192
+```
+
+Not:
+
+```text id="kvny1h"
+derive UUID bits from "subject"
+```
+
+This preserves compatibility with ordinary UUID tooling.
+
+---
+
+# Entity type is part of semantic validation
+
+Although the UUID alone is globally collision-resistant, Monad SHOULD reject obvious cross-type misuse.
+
+For example:
+
+```text id="e66oxu"
+expected: Evidence
+received: sub:0191...
+```
+
+should fail validation unless the API explicitly accepts a generic semantic entity.
+
+This allows typed references without making identity location-dependent.
+
+---
+
+# Stable identity versus revision identity
+
+Monad distinguishes:
+
+```text id="938dg3"
+semantic identity
+```
+
+from:
+
+```text id="rmzcno"
+revision identity
+```
+
+Example:
+
+```text id="wu1obv"
+Requirement
+req:0191...
+
+revision 1
+hash: sha256:abc...
+
+revision 2
+hash: sha256:def...
+
+revision 3
+hash: sha256:ghi...
+```
+
+The Requirement retains one semantic identity.
+
+Each revision may have its own immutable revision identifier.
+
+---
+
+# Revision identification
+
+Revision identity MAY use:
+
+* Git commit + path,
+* content hash,
+* immutable database revision,
+* provider-native revision,
+* explicit revision UUID,
+* or another deterministic snapshot locator.
+
+The appropriate method is domain-specific.
+
+This ADR does not mandate one universal revision scheme.
+
+It mandates only:
+
+```text id="gsu8am"
+semantic identity ≠ revision identity
+```
+
+---
+
+# Subject identity
+
+A Subject represents the semantic thing Monad is talking about.
+
+Example:
+
+```yaml id="8322r7"
+subject:
+  id: sub:0191f574-b9c7-7c1d-a7db-38ca251bd192
+  kind: requirement
+```
+
+That identity survives changes to:
+
+* title,
+* representation,
+* repository,
+* native system,
+* current status,
+* or physical location.
+
+---
+
+# Representation identity
+
+A Representation receives a separate identifier when it must be addressed independently.
+
+Example:
+
+```yaml id="e7rwfa"
+subject:
+  id: sub:0191f574-b9c7-7c1d-a7db-38ca251bd192
+
+representations:
+  - id: rep:0191f57a-429b-78d5-baf3-693a3b93d42f
+    kind: mdx-document
+
+  - id: rep:0191f57b-0dbe-74d3-9b29-bd23f8b82acf
+    kind: github-issue
+```
+
+The two Representations describe or expose the same Subject.
+
+They are not the Subject.
+
+---
+
+# Native Reference identity
+
+Native systems often possess their own stable identifiers.
+
+Example:
+
+```yaml id="exw0x8"
+native_reference:
+  id: nref:0191f580-0458-7d8f-88bd-3da3471804a2
+
+  provider: github
+
+  native:
+    repository_node_id: R_kgDOL12345
+    issue_node_id: I_kwDOL12345abc
+    number: 142
+```
+
+The Monad `nref` identifier gives the binding itself stable identity.
+
+The native identifier remains preserved exactly.
+
+---
+
+# Native identifier binding
+
+A binding conceptually means:
+
+```text id="72a8zb"
+Monad Subject
+       │
+       │ represented-by
+       ▼
+Representation
+       │
+       │ located-by
+       ▼
+Native Reference
+```
+
+Alternative valid models may associate Native References directly with Subjects where no separate Representation is useful.
+
+The Semantic Model Specification will define exact relationship rules.
+
+---
+
+# Native identifiers MUST NOT be rewritten
+
+Monad must preserve provider-native identifiers faithfully.
+
+For example:
+
+```text id="o77m1h"
+GitHub node ID
+Google Drive file ID
+Supabase row primary key
+Vercel deployment ID
+Slack message timestamp
+```
+
+should remain recognizable as native identifiers.
+
+Monad does not normalize them into fake universal IDs.
+
+Instead:
+
+```text id="6fby0j"
+native identifier
++
+provider namespace
++
+Monad binding
+```
+
+creates interoperability.
+
+---
+
+# Aliases
+
+Aliases MAY provide human-friendly references.
+
+Examples:
+
+```text id="7499nw"
+REQ-AUTH-042
+ADR-0001
+SPEC-EXEC-003
+Monad.ExecutionEngine
+```
+
+An alias is not the canonical identity.
+
+Example:
+
+```yaml id="ag40zl"
+id: req:0191f589-05b4-7147-b2ce-83741872bd78
+
+aliases:
+  - REQ-AUTH-042
+```
+
+Aliases may change.
+
+The semantic identifier does not.
+
+---
+
+# Structured document identifiers
+
+Existing document-level identifiers such as:
+
+```text id="5bqwo3"
+ADR-0001
+REQ-ID-042
+SPEC-0007
+RB-001
+RTM-001
+```
+
+remain first-class human-facing identifiers.
+
+They SHOULD NOT be replaced in prose with UUIDs.
+
+Instead they are bound to semantic identity.
+
+Example:
+
+```yaml id="70dknx"
+semantic_id: req:0191f58a-bcd9-78f6-933c-537583464339
+artifact_id: REQ-ID-042
+```
+
+This gives Monad both:
+
+```text id="noeo4e"
+stable machine identity
++
+meaningful human identifier
+```
+
+---
+
+# Artifact identifiers and semantic identifiers
+
+These identifiers solve different problems.
+
+## Artifact identifier
+
+Example:
+
+```text id="af78lp"
+ADR-0001
+```
+
+Optimized for:
+
+* communication,
+* ordering,
+* document navigation,
+* human review,
+* and governance.
+
+---
+
+## Semantic identifier
+
+Example:
+
+```text id="05jk3r"
+dec:0191f58c-979f-7a8e-8c7c-08333cf161df
+```
+
+Optimized for:
+
+* durable reference,
+* graph relationships,
+* merges,
+* machine processing,
+* migration,
+* and cross-system continuity.
+
+Both SHOULD coexist.
+
+---
+
+# Human-readable IDs MUST NOT become global semantic identity
+
+An identifier such as:
+
+```text id="04wbm9"
+REQ-AUTH-042
+```
+
+may be unique within one requirements namespace.
+
+It may not be globally unique across:
+
+* projects,
+* imported corpora,
+* forks,
+* independent Monad workspaces,
+* or historical systems.
+
+Therefore the system must not rely upon it as universal identity.
+
+---
+
+# Namespaces
+
+Monad semantic UUID identity does not require a globally coordinated namespace.
+
+Project or workspace context MAY still be attached for organization.
+
+Example:
+
+```yaml id="ufplpi"
+subject:
+  id: sub:0191f58f-76ed-7935-bba5-c806bec7cbc2
+  workspace: monad
+```
+
+Workspace membership is mutable metadata.
+
+It is not part of the identity calculation.
+
+---
+
+# Forks
+
+Forking introduces an important distinction.
+
+If a repository fork represents the same semantic entity, the identity MAY remain shared.
+
+If the fork intentionally creates an independently evolving semantic entity, a new identity SHOULD be created.
+
+Conceptually:
+
+```text id="vmfeic"
+technical fork
+≠
+automatic semantic fork
+```
+
+The decision depends on semantic continuity, not Git mechanics.
+
+---
+
+# Copies
+
+Copying a file does not automatically copy semantic identity.
+
+Example:
+
+```text id="p5kz7x"
+cp adr-0001.mdx adr-0002.mdx
+```
+
+The second artifact is not automatically the same Decision.
+
+Identity-aware tooling SHOULD detect suspicious duplication when embedded identity metadata is copied.
+
+---
+
+# Import
+
+When importing an existing artifact corpus, Monad SHOULD preserve existing stable domain identifiers as aliases or native bindings where appropriate.
+
+Example:
+
+```text id="4rpkza"
+existing:
+REQ-PROV-118
+
+Monad:
+req:0191...
+```
+
+The existing identifier remains important.
+
+Monad does not force renumbering.
+
+---
+
+# Existing globally stable identifiers
+
+Where an external system already exposes a sufficiently durable identifier, Monad still assigns its own semantic identity when the entity becomes part of the Monad semantic model.
+
+This preserves independence from provider semantics.
+
+Example:
+
+```text id="mmg7zc"
+DOI
+GitHub node ID
+URN
+database UUID
+```
+
+may all be stored as identity bindings.
+
+Monad need not duplicate the identifier's purpose, but it retains its own semantic addressability.
+
+---
+
+# Deterministic IDs
+
+Monad will **not** use deterministic name-based identifiers as the default semantic identity mechanism.
+
+Rejected default pattern:
+
+```text id="s8u03n"
+UUID(namespace, current-path)
+```
+
+because mutable inputs create unstable semantic identity.
+
+---
+
+# Deterministic identity MAY be used for derived entities
+
+Some mechanically derived entities may reasonably use deterministic IDs when their identity is defined by immutable inputs.
+
+For example:
+
+```text id="02dtrm"
+derived edge
+derived index key
+cache key
+immutable projection
+```
+
+These are implementation-specific exceptions.
+
+They do not change the default semantic identity strategy.
+
+---
+
+# Identity creation
+
+A new semantic identifier SHOULD be created when the system determines that a genuinely new semantic entity exists.
+
+It SHOULD NOT be created merely because:
+
+* the artifact moved,
+* title changed,
+* representation changed,
+* provider changed,
+* native identifier changed because of migration,
+* revision changed,
+* or an index was rebuilt.
+
+---
+
+# Identity split
+
+Sometimes one Subject is later discovered to contain multiple independent concepts.
+
+Example:
+
+```text id="rue0al"
+SUB-A
+   ↓ split
+SUB-B
+SUB-C
+```
+
+The original identity must remain in history.
+
+New identifiers are created for the new Subjects.
+
+The relationship must be explicit.
+
+Example:
+
+```yaml id="9fvady"
+transition:
+  type: split
+
+  from:
+    - sub:A
+
+  to:
+    - sub:B
+    - sub:C
+```
+
+---
+
+# Identity merge
+
+The reverse may occur.
+
+```text id="z91fr2"
+SUB-A
+SUB-B
+   ↓ merge
+SUB-C
+```
+
+Monad SHOULD preserve:
+
+* the old identities,
+* the new identity,
+* the merge relationship,
+* the rationale,
+* the Actor,
+* and relevant Evidence.
+
+---
+
+# Identity correction
+
+An incorrect binding does not mean the identifier itself should silently move.
+
+For example:
+
+```text id="yn9g3o"
+native issue #42
+incorrectly linked to SUB-A
+```
+
+Correction should record:
+
+```text id="e57c5t"
+old binding
+        ↓
+invalidated
+        ↓
+new binding
+        ↓
+SUB-B
+```
+
+Historical provenance remains inspectable.
+
+---
+
+# Identity deletion
+
+Deleting a Representation does not necessarily delete the Subject.
+
+Deleting the final Representation does not necessarily delete the Subject.
+
+Therefore:
+
+```text id="y9z5ss"
+representation lifecycle
+≠
+subject lifecycle
+```
+
+A Subject may temporarily have no active Representation.
+
+---
+
+# Tombstones
+
+When semantic identity is retired or deleted, Monad SHOULD preserve a tombstone when historical relationships require continued resolution.
+
+Example:
+
+```yaml id="bv9yuc"
+id: sub:0191f5...
+
+status: retired
+
+tombstone:
+  reason: superseded
+  replaced_by:
+    - sub:0191f6...
+```
+
+This prevents broken historical references.
+
+---
+
+# Identity reuse
+
+A retired semantic identifier MUST NOT be reused for a different entity.
+
+Ever.
+
+```text id="r2nh31"
+old identity
+≠
+available identifier slot
+```
+
+---
+
+# Identifier immutability
+
+Once assigned, the UUID portion of a semantic identity is immutable.
+
+Metadata may change.
+
+Bindings may change.
+
+Aliases may change.
+
+Representations may change.
+
+Identity does not.
+
+---
+
+# Timestamp semantics
+
+UUIDv7 contains generation-time ordering information.
+
+That timestamp means approximately:
+
+> when this identifier was generated.
+
+It does **not** establish:
+
+* when the semantic entity first existed,
+* valid time,
+* authoritative creation time,
+* document creation time,
+* provider creation time,
+* or historical precedence.
+
+Those facts require explicit provenance.
+
+---
+
+# Security considerations
+
+Semantic identifiers MUST NOT encode:
+
+* passwords,
+* API keys,
+* user secrets,
+* confidential names,
+* internal network topology,
+* access tokens,
+* or sensitive data.
+
+Opaque identifiers reduce accidental disclosure.
+
+---
+
+# Guessability
+
+UUIDv7 contains timestamp information and therefore is not intended as a secret capability token.
+
+Possession of an ID MUST NOT itself grant access.
+
+```text id="ktx6ii"
+knows identifier
+≠
+authorized
+```
+
+Authorization remains governed by `REQ-AUTH` and `REQ-GOV`.
+
+---
+
+# Trust boundary
+
+Externally supplied Monad-style identifiers MUST be validated.
+
+A syntactically valid UUID does not prove:
+
+* the entity exists,
+* the entity belongs to the current workspace,
+* the caller may access it,
+* the binding is legitimate,
+* or the claimed entity type is correct.
+
+---
+
+# Serialization
+
+Canonical APIs SHOULD treat semantic IDs as structured values even when serialized as strings.
+
+Example:
+
+```json id="9uobmr"
+{
+  "id": "sub:0191f574-b9c7-7c1d-a7db-38ca251bd192"
+}
+```
+
+Internal storage MAY use native UUID database types.
+
+---
+
+# Database storage
+
+Where supported, implementations SHOULD store the UUID portion in a native UUID column rather than arbitrary text.
+
+Entity type MAY be represented through:
+
+* the owning table,
+* a discriminator column,
+* graph node type,
+* or another explicit schema mechanism.
+
+The chosen persistence model belongs to the Semantic Model persistence ADR.
+
+---
+
+# Filesystem serialization
+
+When identifiers are embedded into text artifacts, the preferred form is:
+
+```yaml id="s4c27q"
+semantic_id: req:0191f574-b9c7-7c1d-a7db-38ca251bd192
+```
+
+The human artifact ID remains separate:
+
+```yaml id="1sk93f"
+id: REQ-ID-042
+semantic_id: req:0191f574-b9c7-7c1d-a7db-38ca251bd192
+```
+
+---
+
+# Identity assignment during ingestion
+
+For artifacts without existing Monad identity:
+
+```text id="58ygnc"
+discover artifact
+      ↓
+determine whether existing semantic binding exists
+      ↓
+yes ─────────────▶ reuse identity
+
+no
+ ↓
+determine whether this is a new semantic entity
+ ↓
+assign identity
+ ↓
+persist binding + provenance
+```
+
+Monad SHOULD avoid generating duplicate semantic identities simply because the same artifact was rediscovered.
+
+---
+
+# Matching before identity creation
+
+Ingestion MAY consider:
+
+* existing embedded semantic ID,
+* known Native Reference,
+* stable external ID,
+* previous path bindings,
+* content similarity,
+* aliases,
+* provenance,
+* explicit user mapping.
+
+However, probabilistic matching SHOULD NOT silently establish consequential identity equivalence.
+
+---
+
+# Ambiguous identity
+
+When the system cannot determine whether two things are the same semantic entity, it SHOULD preserve uncertainty.
+
+Example:
+
+```yaml id="i03uw4"
+identity_resolution:
+  status: ambiguous
+  candidates:
+    - sub:A
+    - sub:B
+```
+
+It SHOULD NOT arbitrarily choose one merely to maintain a clean graph.
+
+---
+
+# AI identity inference
+
+AI MAY assist with:
+
+* duplicate detection,
+* likely identity matching,
+* split suggestions,
+* merge suggestions,
+* representation classification,
+* alias inference.
+
+AI MUST NOT silently make consequential identity decisions solely from probabilistic similarity.
+
+Consequential changes require the applicable authority and governance rules.
+
+---
+
+# Cross-project identity
+
+A semantic entity MAY be referenced from several projects without changing identity.
+
+Example:
+
+```text id="cdignm"
+SUB-42
+  ├── project A
+  ├── project B
+  └── global knowledge view
+```
+
+Project membership is a relationship.
+
+It is not identity.
+
+---
+
+# Workspace export and import
+
+Exporting and importing a Monad workspace MUST preserve semantic IDs.
+
+This is necessary for:
+
+* backup,
+* migration,
+* reproducibility,
+* synchronization,
+* branch experimentation,
+* and multi-machine workflows.
+
+---
+
+# Workspace merge
+
+Two independently created workspaces may contain:
+
+```text id="j2ls0f"
+same real-world subject
++
+different Monad semantic IDs
+```
+
+This is expected.
+
+The system must support explicit identity reconciliation rather than assume UUID equality is required for semantic equivalence.
+
+---
+
+# Identity equivalence
+
+Monad therefore distinguishes:
+
+```text id="wwlhdk"
+identifier equality
+```
+
+from:
+
+```text id="ya9j0r"
+semantic equivalence
+```
+
+Two IDs may later be determined to refer to the same Subject.
+
+That determination is represented explicitly.
+
+---
+
+# Canonical identity after equivalence
+
+When duplicate Subject identities are discovered, Monad SHOULD NOT simply rewrite every historical identifier.
+
+Instead it may establish:
+
+```text id="0xv4yi"
+SUB-A
+same-as
+SUB-B
+```
+
+followed by a governed canonicalization operation if policy permits.
+
+Historical identifiers remain resolvable.
+
+---
+
+# Identifier resolution
+
+The system SHOULD eventually expose a common resolution operation.
+
+Conceptually:
+
+```text id="w2h7yb"
+resolve("REQ-AUTH-042")
+resolve("sub:0191...")
+resolve(github_issue_node_id)
+```
+
+which may return the same semantic Subject through different identifiers or aliases.
+
+The exact resolution API belongs in the Identity Specification.
+
+---
+
+# Resolution does not imply authority
+
+Successful resolution means:
+
+> Monad can determine what semantic entity this identifier refers to.
+
+It does not mean:
+
+* the caller may mutate it,
+* the identifier is canonical,
+* the referenced state is current,
+* or the representation is authoritative.
+
+---
+
+# Search versus identity resolution
+
+Search asks:
+
+> What might the user mean?
+
+Identity resolution asks:
+
+> What specific entity does this recognized identifier bind to?
+
+These must remain distinct.
+
+```text id="co4i53"
+search
+≈ discovery
+
+resolution
+= established identity binding
+```
+
+---
+
+# Identity and reconciliation
+
+Reconciliation depends upon stable identity.
+
+Without stable identity, a renamed issue or moved document may appear to be:
+
+```text id="cs4w7i"
+deleted old object
++
+created new object
+```
+
+rather than:
+
+```text id="datzs1"
+same Subject
++
+changed Representation
+```
+
+Stable identity therefore reduces false divergence.
+
+---
+
+# Identity and provenance
+
+Identity establishes:
+
+```text id="2nd27y"
+what
+```
+
+Provenance establishes:
+
+```text id="6y6rj0"
+where it came from
+how it changed
+who or what produced it
+```
+
+Neither replaces the other.
+
+---
+
+# Identity and authority
+
+Authority MUST bind to stable semantic identity or a deliberately defined scope.
+
+It SHOULD NOT rely solely upon:
+
+* mutable paths,
+* titles,
+* provider display names,
+* or UI labels.
+
+Otherwise rename operations could accidentally alter governance.
+
+---
+
+# Identity and verification
+
+Verification results SHOULD bind to stable semantic targets and concrete revisions.
+
+For example:
+
+```yaml id="6msdzv"
+target:
+  subject: sub:0191...
+  revision: sha256:...
+```
+
+This allows later verification history to remain interpretable after the Subject changes.
+
+---
+
+# Identity and reproducibility
+
+Reproduction must distinguish:
+
+```text id="lm7wue"
+same Subject
+```
+
+from:
+
+```text id="c242br"
+same revision
+```
+
+A reproduced execution may involve the same semantic entities while evaluating different revisions.
+
+---
+
+# Identity and local-first behavior
+
+Identity assignment does not require connectivity.
+
+Cached entities retain the same IDs offline.
+
+Later synchronization does not allocate replacement IDs merely because a remote system becomes available.
+
+---
+
+# Alternatives considered
+
+## Alternative A — Paths as IDs
+
+Example:
+
+```text id="0sp7mn"
+/docs/requirements/authority.mdx
+```
+
+### Advantages
+
+* simple,
+* human-readable,
+* requires no metadata.
+
+### Rejected because
+
+* rename changes identity,
+* move changes identity,
+* repository migration changes identity,
+* non-filesystem entities do not fit,
+* multiple Representations are difficult.
+
+---
+
+## Alternative B — Human artifact IDs only
+
+Example:
+
+```text id="4l4jc7"
+REQ-AUTH-042
+ADR-0001
+```
+
+### Advantages
+
+* highly readable,
+* already familiar,
+* easy to cite.
+
+### Rejected as the universal semantic mechanism because
+
+* namespace collisions are possible,
+* not every semantic entity naturally has such an ID,
+* cross-workspace merging becomes difficult,
+* imported systems may use overlapping schemes,
+* automated allocation becomes domain-specific.
+
+These IDs remain supported as aliases/artifact identifiers.
+
+---
+
+## Alternative C — Content-addressed identity
+
+Example:
+
+```text id="m7a685"
+sha256:...
+```
+
+### Advantages
+
+* deterministic,
+* excellent integrity properties,
+* immutable content identity.
+
+### Rejected for semantic identity because
+
+* every edit changes identity,
+* semantic continuity is lost,
+* multiple encodings of the same meaning produce different identities.
+
+Content hashes remain useful for revision identity.
+
+---
+
+## Alternative D — Provider-native identity
+
+Example:
+
+```text id="kpe5sf"
+github:I_kwDO...
+```
+
+### Advantages
+
+* already stable within provider,
+* easy integration.
+
+### Rejected because
+
+* couples Monad identity to provider,
+* migration becomes identity migration,
+* local-only entities do not fit,
+* multi-provider representation is awkward.
+
+---
+
+## Alternative E — UUIDv4
+
+### Advantages
+
+* extremely common,
+* simple,
+* distributed,
+* mature tooling.
+
+### Not selected
+
+UUIDv7 provides the same core independence while improving generation ordering and database locality.
+
+UUIDv4 remains acceptable for imported or preexisting identities where required.
+
+---
+
+## Alternative F — ULID
+
+### Advantages
+
+* compact,
+* sortable,
+* readable,
+* excellent distributed properties.
+
+### Not selected as canonical primitive
+
+UUIDv7 has stronger standards alignment and better compatibility with native database UUID types and broad ecosystem tooling.
+
+A future presentation layer MAY encode UUID values compactly without changing canonical identity.
+
+---
+
+## Alternative G — Central sequential identifiers
+
+Example:
+
+```text id="522qtx"
+SUB-00000042
+```
+
+### Advantages
+
+* concise,
+* human-friendly,
+* sortable.
+
+### Rejected because
+
+* requires centralized allocation,
+* harms offline-first creation,
+* creates merge conflicts,
+* complicates distributed workspaces.
+
+Human-friendly sequential aliases remain possible.
+
+---
+
+## Alternative H — Deterministic UUIDv5
+
+### Advantages
+
+* stable when inputs are stable,
+* no registry,
+* reproducible.
+
+### Rejected as default because
+
+the hard problem becomes choosing immutable namespace inputs.
+
+Using mutable names, paths, or URLs simply hides the instability inside the hash.
+
+---
+
+# Consequences
+
+## Positive consequences
+
+Monad gains:
+
+* durable semantic continuity,
+* provider independence,
+* representation independence,
+* offline identity creation,
+* safe repository reorganization,
+* cross-system graph stability,
+* better reconciliation,
+* explicit revision semantics,
+* stable provenance references,
+* portable exported state,
+* and robust long-term traceability.
+
+---
+
+# Costs
+
+The decision introduces additional complexity.
+
+Artifacts may have several identifiers:
+
+```text id="7wheko"
+semantic ID
+artifact ID
+native ID
+revision ID
+path
+URL
+aliases
+```
+
+The system must teach users and tooling which identifier serves which purpose.
+
+---
+
+# Mitigation
+
+Human-facing interfaces SHOULD prefer meaningful aliases.
+
+Users should normally see:
+
+```text id="9s3phu"
+REQ-AUTH-042
+ADR-0001
+Execution Specification
+```
+
+rather than UUIDs.
+
+UUIDs should appear when durable machine identity or disambiguation matters.
+
+---
+
+# Migration consequences
+
+Existing corpus artifacts currently identified only by:
+
+* paths,
+* requirement numbers,
+* ADR numbers,
+* or titles
+
+can be assigned semantic IDs incrementally.
+
+A big-bang migration is unnecessary.
+
+---
+
+# Progressive adoption
+
+## Stage 1 — Human identifiers
+
+Continue using existing identifiers:
+
+```text id="zv8qpm"
+REQ-ID-001
+ADR-0001
+```
+
+---
+
+## Stage 2 — Embedded semantic IDs
+
+Add:
+
+```yaml id="hu1wlu"
+semantic_id: req:0191...
+```
+
+to consequential artifacts.
+
+---
+
+## Stage 3 — Identity registry
+
+Persist mappings across:
+
+```text id="y28drw"
+semantic ID
+artifact alias
+path
+native reference
+```
+
+---
+
+## Stage 4 — Graph-native identity
+
+All system relationships use semantic IDs internally.
+
+---
+
+## Stage 5 — Automated identity reconciliation
+
+Monad detects:
+
+* duplicate identity,
+* stale bindings,
+* moved Representations,
+* split candidates,
+* merge candidates.
+
+---
+
+# Required follow-on specifications
+
+This ADR creates the need for the following precise contracts:
+
+1. **Identity Specification**
+
+   * identifier grammar,
+   * type registry,
+   * creation rules,
+   * validation,
+   * resolution,
+   * alias behavior,
+   * split/merge semantics.
+
+2. **Subject Specification**
+
+   * Subject identity and lifecycle.
+
+3. **Representation Specification**
+
+   * representation identity,
+   * Subject binding,
+   * revision semantics.
+
+4. **Native Reference Specification**
+
+   * provider namespaces,
+   * native IDs,
+   * durable bindings.
+
+5. **Identity Reconciliation Specification**
+
+   * duplicate detection,
+   * equivalence,
+   * merge,
+   * split,
+   * correction.
+
+---
+
+# Required implementation properties
+
+An implementation conforming to this decision MUST eventually support:
+
+* local UUIDv7 generation,
+* typed semantic IDs,
+* immutable semantic identity,
+* separate artifact aliases,
+* separate revision identity,
+* separate Native References,
+* identity resolution,
+* historical binding preservation,
+* split and merge representation,
+* and export/import without identity loss.
+
+---
+
+# Acceptance criteria
+
+ADR-0001 is correctly implemented when all of the following are true.
+
+## Rename continuity
+
+Given:
+
+```text id="5cibgl"
+content/docs/a.mdx
+```
+
+with Subject:
+
+```text id="31287o"
+sub:X
+```
+
+after moving to:
+
+```text id="temnu3"
+content/docs/system/a.mdx
+```
+
+the Subject remains:
+
+```text id="zn2pqi"
+sub:X
+```
+
+---
+
+## Revision continuity
+
+Editing the artifact creates a new revision identity without creating a new Subject identity.
+
+---
+
+## Provider migration continuity
+
+Migrating an artifact from one native provider to another preserves Subject identity.
+
+---
+
+## Offline creation
+
+A new Subject can be assigned identity without network connectivity.
+
+---
+
+## Import/export continuity
+
+Exporting and importing a workspace preserves semantic identities exactly.
+
+---
+
+## Alias mutation
+
+Changing:
+
+```text id="g0xhch"
+REQ-OLD-042
+```
+
+to:
+
+```text id="gbme3d"
+REQ-AUTH-042
+```
+
+does not change semantic identity.
+
+---
+
+## Native binding correction
+
+Correcting an erroneous native mapping preserves historical provenance rather than rewriting history.
+
+---
+
+## Identity collision
+
+Independent local creation produces safely mergeable identifiers without coordinated allocation.
+
+---
+
+## Type validation
+
+A Subject ID cannot silently satisfy an API requiring an Evidence ID.
+
+---
+
+# Verification obligations
+
+The following high-level Verification obligations derive from this ADR.
+
+```text id="44gp97"
+VFO-ID-001
+Semantic identity survives rename.
+
+VFO-ID-002
+Semantic identity survives move.
+
+VFO-ID-003
+Semantic identity survives ordinary revision.
+
+VFO-ID-004
+Semantic identity survives representation replacement.
+
+VFO-ID-005
+Semantic identity can be created offline.
+
+VFO-ID-006
+Independent workspaces can generate IDs without coordination.
+
+VFO-ID-007
+Export/import preserves identity.
+
+VFO-ID-008
+Native identifiers remain independently addressable.
+
+VFO-ID-009
+Revision identity remains distinct from semantic identity.
+
+VFO-ID-010
+Retired identifiers are not reused.
+```
+
+Detailed Verification methods belong in the Verification Specification.
+
+---
+
+# Risks
+
+## Risk — Identifier proliferation
+
+Users may become confused by multiple identifier classes.
+
+### Mitigation
+
+Expose human identifiers by default and UUIDs only when useful.
+
+---
+
+## Risk — Duplicate semantic identities
+
+Independent ingestion may assign two semantic IDs to the same real Subject.
+
+### Mitigation
+
+Support identity reconciliation rather than requiring centralized allocation.
+
+---
+
+## Risk — Incorrect identity merges
+
+Automated matching may incorrectly merge separate Subjects.
+
+### Mitigation
+
+Treat consequential equivalence as governed state and preserve provenance.
+
+---
+
+## Risk — Prefix registry sprawl
+
+Too many semantic types may produce an unwieldy prefix catalog.
+
+### Mitigation
+
+Prefer a small set of foundational entity types and extend deliberately.
+
+---
+
+## Risk — UUID timestamp misinterpretation
+
+UUIDv7 ordering may be incorrectly interpreted as semantic chronology.
+
+### Mitigation
+
+Require explicit provenance and valid-time metadata for consequential temporal reasoning.
+
+---
+
+# Rejected invariants
+
+Monad explicitly rejects:
+
+```text id="7bk4u7"
+same path = same semantic entity
+
+different path = different semantic entity
+
+same content = same semantic entity
+
+different content = different semantic entity
+
+same title = same semantic entity
+
+same provider ID = universal identity
+
+newer ID = newer truth
+
+identifier possession = authorization
+```
+
+---
+
+# Core invariants
+
+```text id="8b8fvt"
+Identity ≠ Location
+
+Identity ≠ Title
+
+Identity ≠ Path
+
+Identity ≠ URL
+
+Identity ≠ Representation
+
+Identity ≠ Native Identifier
+
+Identity ≠ Revision
+
+Identity ≠ Content Hash
+
+Identity ≠ Authority
+
+Identity ≠ Authorization
+
+Semantic equality ≠ identifier equality necessarily
+
+Identifier equality ≠ revision equality
+
+Move ≠ New Subject
+
+Rename ≠ New Subject
+
+Edit ≠ New Subject
+
+Provider migration ≠ New Subject
+
+Deleted Representation ≠ Deleted Subject
+
+Copied Representation ≠ Same Subject automatically
+
+Newer UUID ≠ Newer semantic truth
+```
+
+---
+
+# Definition of Ready
+
+ADR-0001 was ready for decision because:
+
+* [x] RB-001 established identity as a foundational requirement family,
+* [x] RTM-001 established `REQ-ID` as canonical owner of identity semantics,
+* [x] local-first operation requires decentralized generation,
+* [x] provider integration requires provider-independent semantic identity,
+* [x] reconciliation requires identity continuity,
+* [x] provenance requires durable references,
+* [x] revision identity must remain distinct from semantic identity.
+
+---
+
+# Definition of Done
+
+ADR-0001 is complete when:
+
+* [x] the canonical identity strategy is selected,
+* [x] the identifier primitive is selected,
+* [x] semantic and revision identity are distinguished,
+* [x] native identifiers are treated as bindings,
+* [x] artifact aliases are preserved,
+* [x] offline generation is supported architecturally,
+* [x] split and merge semantics are acknowledged,
+* [x] security implications are identified,
+* [x] rejected alternatives are documented,
+* [x] downstream Specifications are identified,
+* [x] Verification obligations are identified.
+
+---
+
+# Governing principle
+
+> **A thing remains itself even when where it lives, what it is called, how it is represented, or which system currently contains it changes.**
+
+Monad therefore assigns identity to the semantic entity itself and treats every location, representation, native identifier, alias, and revision as something attached to that identity rather than something from which identity is derived.
+
+<Cards>
+  <Card
+    href="/docs/artifacts/requirements/identity"
+    title="Identity Requirements"
+  >
+    Review the normative requirements that drive this decision.
+  </Card>
+
+<Card
+href="/docs/artifacts/requirements/semantic-model"
+title="Semantic Model Requirements"
+>
+Review the concepts whose durable identity this ADR governs.
+</Card>
+
+<Card
+href="/docs/artifacts/requirements/provenance"
+title="Provenance Requirements"
+>
+See how durable identity participates in historical and derivation traceability.
+</Card>
+
+<Card
+href="/docs/artifacts/traceability/requirements-map"
+title="Requirements Traceability Map"
+>
+Inspect the relationship between this decision and the RB-001 requirements baseline.
+</Card>
+</Cards>

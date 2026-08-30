@@ -1,0 +1,22 @@
+{
+  "title": "Requirements",
+  "description": "The durable engineering obligations Monad must satisfy.",
+  "pages": [
+    "index",
+    "identity",
+    "semantic-model",
+    "authority",
+    "evidence",
+    "provenance",
+    "provenance-ii",
+    "governance",
+    "execution",
+    "integration",
+    "reconciliation",
+    "local-first",
+    "portability",
+    "reproducibility",
+    "ai-interaction",
+    "verification"
+  ]
+}

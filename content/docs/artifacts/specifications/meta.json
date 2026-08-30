@@ -1,0 +1,20 @@
+{
+    "title": "Specifications",
+    "pages": [
+        "index",
+        "ai-interaction",
+        "authority",
+        "claims",
+        "execution",
+        "identity",
+        "integration-contract",
+        "lifecycle",
+        "operation",
+        "policy",
+        "provenance",
+        "reconciliation",
+        "relationships",
+        "semantic-kernel",
+        "verification"
+    ]
+}

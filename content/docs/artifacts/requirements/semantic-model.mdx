@@ -1,0 +1,2246 @@
+---
+title: Semantic Model Requirements
+description: The requirements governing Monad's semantic representation of engineering reality, including Subjects, Representations, Native References, Claims, Relationships, Evidence, Context, lifecycle, authority, provenance, and derived views.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-SEM
+  </p>
+</div>
+
+# Semantic Model Requirements
+
+Monad requires more than an index of files, issues, commits, documents, and tool outputs.
+
+It needs an explicit model of the engineering things those native objects **mean**, how they relate, what is known about them, where that knowledge came from, which assertions are authoritative, and how those things change over time.
+
+The purpose of the semantic model is not to replace native engineering systems.
+
+It is to create a stable layer through which those systems can be understood together.
+
+> **The model describes engineering reality. It must not be confused with any one representation of that reality.**
+
+The central requirement is therefore not “build a graph.”
+
+It is:
+
+> **Represent the minimum set of semantic distinctions necessary to reason reliably across engineering systems, artifacts, actors, history, authority, and execution.**
+
+<Callout type="info" title="Status of this requirement family">
+These requirements establish obligations for Monad's semantic model without committing to a graph database, RDF, a specific serialization, a particular persistence engine, or a final schema language. Those are separate specification and architecture decisions.
+</Callout>
+
+---
+
+# Requirement family scope
+
+The `REQ-SEM-*` family governs the semantic representation of:
+
+* Subjects,
+* Representations,
+* Native References,
+* Claims,
+* Relationships,
+* Evidence,
+* Provenance,
+* Authority,
+* Actors,
+* Capabilities,
+* Policies,
+* Context,
+* lifecycle,
+* observations,
+* inferences,
+* projections,
+* historical state,
+* derived state,
+* uncertainty,
+* conflicts,
+* and semantic extensions.
+
+It also governs the distinctions between those concepts.
+
+It does **not** independently define:
+
+* storage technology,
+* database topology,
+* graph query language,
+* serialization syntax,
+* transport protocols,
+* exact identifier formats,
+* visualizations,
+* implementation language,
+* or every domain-specific entity Monad may eventually model.
+
+---
+
+# Foundational model requirements
+
+## REQ-SEM-001 — Monad MUST maintain an explicit semantic system model
+
+Monad MUST maintain an explicit representation of engineering entities and relationships that is distinct from the raw structures of the native systems it integrates with.
+
+The semantic model MUST make it possible to reason about engineering meaning that cannot reliably be recovered from storage location alone.
+
+Examples include:
+
+* that a file represents a specification,
+* that a specification satisfies a requirement,
+* that a decision supersedes another decision,
+* that evidence supports a claim,
+* that an actor is permitted to perform an operation,
+* that a generated artifact is derived from a canonical source,
+* or that two native objects represent the same Subject.
+
+---
+
+## REQ-SEM-002 — The semantic model MUST remain conceptually distinct from persistence
+
+The semantic model MUST NOT be defined solely by the shape of a database, graph store, filesystem tree, ORM, or implementation-specific type system.
+
+Conceptually:
+
+```text
+Semantic Model
+      ≠
+Storage Model
+```
+
+A persistence technology MAY encode the semantic model.
+
+It MUST NOT silently determine the meaning of the semantic model merely because it stores it.
+
+---
+
+## REQ-SEM-003 — The semantic model MUST remain conceptually distinct from projections
+
+Derived representations such as:
+
+* search indexes,
+* dashboards,
+* graph visualizations,
+* generated documentation,
+* dependency matrices,
+* AI context packages,
+* cached query results,
+* and denormalized read models
+
+MUST remain distinguishable from the semantic state from which they were derived.
+
+Conceptually:
+
+```text
+Canonical System Model
+        ↓
+     Projection
+```
+
+does not imply:
+
+```text
+Projection = Canonical System Model
+```
+
+---
+
+## REQ-SEM-004 — The semantic model MUST preserve distinctions that materially affect engineering reasoning
+
+Monad MUST represent concepts separately when collapsing them would destroy information needed for:
+
+* identity,
+* provenance,
+* authority,
+* lifecycle,
+* traceability,
+* execution,
+* verification,
+* reconciliation,
+* historical reconstruction,
+* or reliable AI reasoning.
+
+At minimum, the model MUST preserve the distinctions established by this requirement family.
+
+---
+
+## REQ-SEM-005 — The semantic model SHOULD avoid distinctions that do not earn their complexity
+
+Monad SHOULD NOT introduce semantic entities, relationship types, metadata, or lifecycle machinery merely because they might theoretically be useful.
+
+A proposed distinction SHOULD be justified by a concrete reasoning, governance, automation, traceability, or interoperability need.
+
+A useful review question is:
+
+> **What breaks if we remove this distinction?**
+
+If the answer is “nothing material,” the distinction may not belong in the semantic kernel.
+
+---
+
+# Subject
+
+## REQ-SEM-006 — Monad MUST represent semantic Subjects
+
+The model MUST include the concept of a **Subject**.
+
+A Subject is the semantic thing about which Monad records:
+
+* identity,
+* relationships,
+* claims,
+* state,
+* provenance,
+* authority,
+* evidence,
+* lifecycle,
+* or other meaningful engineering information.
+
+Examples may include:
+
+* a requirement,
+* a decision,
+* a specification,
+* a component,
+* an interface,
+* a policy,
+* a release,
+* a work item,
+* a repository,
+* a capability,
+* or another meaningful engineering concept.
+
+The model MUST NOT assume that every file or native-system object is a Subject.
+
+---
+
+## REQ-SEM-007 — Subject identity MUST be separable from Subject properties
+
+A Subject's identity MUST remain conceptually distinct from mutable properties such as:
+
+* name,
+* title,
+* location,
+* owner,
+* status,
+* description,
+* lifecycle state,
+* classification,
+* or implementation language.
+
+Changing such a property MUST NOT inherently imply creation of a new Subject.
+
+---
+
+## REQ-SEM-008 — A Subject MAY exist without a current Representation
+
+Monad MUST support Subjects that remain meaningful even when no current file, page, issue, database record, or other external Representation is presently available.
+
+Examples include:
+
+* historical Subjects,
+* conceptual entities created before documentation,
+* temporarily unavailable native entities,
+* migrated Subjects,
+* or retained semantic history.
+
+---
+
+# Representation
+
+## REQ-SEM-009 — Monad MUST distinguish Representations from Subjects
+
+The model MUST include the concept of a **Representation** or an equivalent explicit construct.
+
+A Representation is a concrete form through which a Subject is expressed, encoded, rendered, or exposed.
+
+Possible Representations include:
+
+* Markdown,
+* MDX,
+* YAML,
+* JSON,
+* source code,
+* generated documentation,
+* API resources,
+* database rows,
+* rendered pages,
+* diagrams,
+* or native-tool records.
+
+One Subject MAY have multiple Representations.
+
+---
+
+## REQ-SEM-010 — Representation identity MUST NOT determine Subject identity
+
+The existence, deletion, replacement, regeneration, or relocation of a Representation MUST NOT by itself determine whether the represented Subject continues to exist.
+
+This requirement reinforces:
+
+```text
+Representation ≠ Subject
+```
+
+---
+
+## REQ-SEM-011 — Representation role SHOULD be expressible
+
+Where useful, Monad SHOULD support describing the role a Representation serves.
+
+Possible roles include:
+
+* canonical,
+* authored,
+* generated,
+* derived,
+* archival,
+* executable,
+* rendered,
+* imported,
+* mirrored,
+* or reference-only.
+
+The exact vocabulary MAY be extensible and SHOULD be specified separately.
+
+---
+
+## REQ-SEM-012 — Representation authority MUST NOT be inferred solely from format or location
+
+A Markdown file is not automatically authoritative because it exists in `docs/`.
+
+A database row is not automatically authoritative because it is stored centrally.
+
+A generated page is not automatically authoritative because it is visible.
+
+Representation authority MUST be determined through explicit authority semantics.
+
+---
+
+# Native Reference
+
+## REQ-SEM-013 — Monad MUST represent Native References independently
+
+The semantic model MUST include a concept representing references to entities owned by native systems.
+
+A Native Reference MUST preserve sufficient information to resolve or identify the native object within the relevant scope.
+
+Examples include:
+
+```text
+GitHub issue
+Git commit
+filesystem path
+CI run
+deployment
+package
+database record
+external ticket
+cloud resource
+```
+
+---
+
+## REQ-SEM-014 — Native References MUST remain distinguishable from semantic Subjects
+
+The existence of a Native Reference MUST NOT imply that the referenced native object is itself a semantic Subject.
+
+A Native Reference may instead:
+
+* identify a Representation,
+* provide evidence,
+* supply provenance,
+* participate in execution,
+* support reconciliation,
+* or merely point to an external object.
+
+---
+
+## REQ-SEM-015 — Native-system ownership MUST be preserved
+
+Monad MUST preserve the fact that native-system entities remain owned by their native systems unless an explicit integration contract says otherwise.
+
+The semantic model MUST NOT imply that importing or binding a native object transfers native ownership to Monad.
+
+---
+
+# Relationships
+
+## REQ-SEM-016 — Monad MUST represent typed semantic relationships
+
+The semantic model MUST support relationships whose meaning is explicit.
+
+Examples may include:
+
+```text
+satisfies
+implements
+depends-on
+supersedes
+represented-by
+derived-from
+supports
+contradicts
+verifies
+produced-by
+governed-by
+authorized-by
+```
+
+A generic unlabeled connection is insufficient where relationship meaning matters.
+
+---
+
+## REQ-SEM-017 — Relationship direction MUST be explicit where semantically meaningful
+
+For directional relationships, Monad MUST preserve direction.
+
+For example:
+
+```text
+Specification implements Requirement
+```
+
+does not mean the same thing as:
+
+```text
+Requirement implements Specification
+```
+
+---
+
+## REQ-SEM-018 — Relationship type MUST be distinguishable from relationship instance
+
+The model MUST distinguish:
+
+```text
+relationship kind: satisfies
+```
+
+from:
+
+```text
+specific relationship:
+Specification S satisfies Requirement R
+```
+
+This distinction supports validation, governance, tooling, and extensibility.
+
+---
+
+## REQ-SEM-019 — Relationship properties MUST be supportable where needed
+
+A relationship MAY itself carry meaningful properties such as:
+
+* provenance,
+* confidence,
+* temporal scope,
+* status,
+* authority,
+* evidence,
+* rationale,
+* or native origin.
+
+Monad MUST support such relationship-level information where engineering meaning depends on it.
+
+---
+
+## REQ-SEM-020 — The semantic model MUST avoid uncontrolled relationship proliferation
+
+Monad SHOULD NOT introduce a distinct relationship type for every minor variation of prose.
+
+Relationship vocabularies SHOULD be:
+
+* intentional,
+* composable,
+* reviewable,
+* and driven by concrete reasoning needs.
+
+The model MUST balance semantic precision against graph density and usability.
+
+---
+
+# Claims
+
+## REQ-SEM-021 — Monad MUST represent claims independently from Subjects
+
+The semantic model MUST support explicit **Claims** where statements about a Subject need to be treated as first-class engineering knowledge.
+
+A Claim represents something asserted to be true about one or more Subjects.
+
+Examples:
+
+```text
+Component A depends on Component B.
+Requirement R is satisfied.
+Artifact X is authoritative.
+Deployment D contains release R.
+```
+
+A Subject is what the statement is about.
+
+A Claim is the statement made about it.
+
+---
+
+## REQ-SEM-022 — Claim identity MUST be distinguishable from claim content
+
+Where Claims are persisted as first-class semantic objects, Monad SHOULD support distinguishing:
+
+* the identity of the Claim,
+* the proposition asserted,
+* the actor or source asserting it,
+* and its provenance.
+
+This enables multiple actors or sources to make competing claims about the same underlying proposition.
+
+---
+
+## REQ-SEM-023 — Conflicting Claims MUST be representable
+
+Monad MUST permit contradictory claims to coexist when both are part of the engineering record.
+
+For example:
+
+```text
+Claim A:
+  Requirement R is satisfied.
+
+Claim B:
+  Requirement R is not satisfied.
+```
+
+The model MUST NOT require destructive overwrite merely because the claims conflict.
+
+Resolution belongs to:
+
+* authority,
+* evidence,
+* policy,
+* temporal scope,
+* verification,
+* or another explicit mechanism.
+
+---
+
+## REQ-SEM-024 — Claim existence MUST NOT imply Claim truth
+
+A Claim being stored in Monad MUST NOT imply that Monad treats it as true.
+
+The system MUST be capable of distinguishing a recorded assertion from an accepted or authoritative assertion.
+
+---
+
+# Evidence
+
+## REQ-SEM-025 — Monad MUST distinguish Evidence from Claims
+
+The model MUST represent Evidence independently from the Claim that evidence supports, weakens, contradicts, or otherwise informs.
+
+Conceptually:
+
+```text
+Evidence
+   ↓ supports
+Claim
+```
+
+does not imply:
+
+```text
+Evidence = Claim
+```
+
+---
+
+## REQ-SEM-026 — Evidence MUST retain provenance
+
+Evidence MUST retain sufficient provenance to determine, where relevant:
+
+* where it came from,
+* how it was produced,
+* by whom or what,
+* when it was observed,
+* what process created it,
+* and what source material it depends upon.
+
+---
+
+## REQ-SEM-027 — Evidence validity MUST be distinguishable from evidence relevance
+
+Monad SHOULD support distinguishing:
+
+* whether evidence is authentic or valid,
+* whether it remains current,
+* whether it applies to the claim,
+* and how strongly it bears on the claim.
+
+Valid evidence may no longer be relevant.
+
+Relevant evidence may still be weak.
+
+Those distinctions MUST NOT be collapsed when engineering decisions depend on them.
+
+---
+
+## REQ-SEM-028 — Evidence SHOULD be linkable to verification activities
+
+When Evidence is produced by verification, testing, review, inspection, or execution, the semantic model SHOULD support linking it to the activity that produced it.
+
+Example:
+
+```text
+Verification Run
+      ↓ produced
+Evidence
+      ↓ supports
+Claim
+      ↓ concerns
+Requirement
+```
+
+---
+
+# Provenance
+
+## REQ-SEM-029 — Monad MUST represent provenance independently from authority
+
+The fact that information came from a particular source MUST NOT automatically determine whether that source is authoritative.
+
+Formally:
+
+```text
+Provenance ≠ Authority
+```
+
+Knowing *where something came from* and knowing *whether it should govern* are different questions.
+
+---
+
+## REQ-SEM-030 — Provenance MUST support derivation chains where material
+
+Monad SHOULD support representing derivation such as:
+
+```text
+Source Artifact
+      ↓
+Parsed Observation
+      ↓
+Derived Claim
+      ↓
+Generated Projection
+```
+
+where that lineage matters for:
+
+* auditability,
+* trust,
+* reproducibility,
+* correction,
+* reconciliation,
+* or debugging.
+
+---
+
+## REQ-SEM-031 — Original source MUST be distinguishable from intermediate producer
+
+When information passes through several systems, Monad MUST be capable of distinguishing:
+
+* original source,
+* requested origin,
+* resolved origin,
+* intermediate producer,
+* transformation,
+* observer,
+* and recorder
+
+when those distinctions materially affect provenance.
+
+---
+
+# Authority
+
+## REQ-SEM-032 — Monad MUST represent authority independently from existence
+
+The existence of:
+
+* a Subject,
+* Claim,
+* file,
+* issue,
+* generated page,
+* native-system record,
+* or relationship
+
+MUST NOT automatically make it authoritative.
+
+Formally:
+
+```text
+Existence ≠ Authority
+```
+
+---
+
+## REQ-SEM-033 — Authority MUST be capable of applying at narrower scope than an entire Subject
+
+Monad SHOULD support authority scoped to:
+
+* a property,
+* Claim,
+* relationship,
+* domain,
+* lifecycle transition,
+* operation,
+* representation,
+* or other meaningful boundary.
+
+The model SHOULD NOT require authority to apply only at whole-object granularity.
+
+---
+
+## REQ-SEM-034 — Conflicting authoritative assertions MUST be representable
+
+The semantic model MUST be capable of representing cases where multiple sources make conflicting claims and each has some applicable authority.
+
+The model MUST preserve enough information for policy or governance mechanisms to resolve, escalate, or expose the conflict.
+
+---
+
+# Actor
+
+## REQ-SEM-035 — Monad MUST represent actors that participate in engineering operations
+
+The semantic model MUST support actors such as:
+
+* humans,
+* teams,
+* automated tools,
+* services,
+* agents,
+* AI systems,
+* CI systems,
+* and integrations.
+
+Actor identity MUST be distinguishable from the operation performed.
+
+---
+
+## REQ-SEM-036 — Human and AI actors MUST use the same foundational semantic distinctions
+
+Monad MUST NOT require one conceptual model for humans and a separate incompatible model for AI systems.
+
+Both SHOULD participate through the same underlying concepts of:
+
+* identity,
+* capability,
+* authority,
+* policy,
+* provenance,
+* execution,
+* evidence,
+* and accountability.
+
+Specific capabilities may differ.
+
+The semantic foundations should not.
+
+---
+
+# Capability
+
+## REQ-SEM-037 — Monad MUST represent capability independently from authority
+
+The semantic model MUST preserve the distinction between:
+
+```text
+Actor can perform operation X
+```
+
+and:
+
+```text
+Actor is authorized to perform operation X
+```
+
+Therefore:
+
+```text
+Capability ≠ Authority
+```
+
+---
+
+## REQ-SEM-038 — Capability SHOULD be describable explicitly
+
+Where execution or integration depends on it, Monad SHOULD support explicit capability descriptions for:
+
+* tools,
+* agents,
+* providers,
+* integrations,
+* actors,
+* execution environments,
+* and native systems.
+
+Capabilities may include:
+
+* read,
+* search,
+* edit,
+* execute,
+* deploy,
+* approve,
+* verify,
+* generate,
+* reconcile,
+* or domain-specific operations.
+
+---
+
+# Policy
+
+## REQ-SEM-039 — Policies MUST be representable as semantic entities where they govern system behavior
+
+Monad MUST support representing governance rules and policies when those rules determine:
+
+* authority,
+* allowable operations,
+* obligations,
+* approvals,
+* evidence requirements,
+* lifecycle transitions,
+* or system constraints.
+
+---
+
+## REQ-SEM-040 — Policy existence MUST be distinguishable from policy applicability
+
+A Policy may exist without applying to every Subject, actor, operation, repository, or lifecycle state.
+
+Monad MUST support scoped applicability.
+
+---
+
+# Context
+
+## REQ-SEM-041 — Monad MUST represent context when interpretation depends on it
+
+The model MUST support explicit Context where the meaning or applicability of information depends on factors such as:
+
+* project,
+* workspace,
+* repository,
+* branch,
+* release,
+* environment,
+* lifecycle state,
+* actor,
+* task,
+* execution,
+* or time.
+
+---
+
+## REQ-SEM-042 — Context MUST NOT silently become identity
+
+A Subject MUST NOT become a different Subject merely because it appears within a different context unless the semantic model explicitly defines that distinction.
+
+For example:
+
+```text
+same requirement
+viewed in release A
+```
+
+and:
+
+```text
+same requirement
+viewed in release B
+```
+
+may be two contextual views of one Subject rather than two Requirements.
+
+---
+
+## REQ-SEM-043 — Context SHOULD be composable
+
+Monad SHOULD allow context to be assembled from multiple relevant dimensions rather than requiring every possible context combination to become a new monolithic object.
+
+---
+
+# Observation
+
+## REQ-SEM-044 — Monad MUST distinguish observation from underlying truth
+
+An observed state is evidence about reality.
+
+It is not necessarily reality itself.
+
+For example:
+
+```text
+Observed:
+  file missing at 10:03
+```
+
+does not necessarily prove:
+
+```text
+Subject deleted at 10:03
+```
+
+The semantic model MUST permit that distinction.
+
+---
+
+## REQ-SEM-045 — Observations SHOULD retain observation time
+
+Where freshness or historical reasoning matters, observations SHOULD record when they were made.
+
+---
+
+## REQ-SEM-046 — Observation time MUST be distinguishable from valid time where both matter
+
+Monad MUST be capable of representing the difference between:
+
+```text
+when something was true
+```
+
+and:
+
+```text
+when Monad learned it
+```
+
+when that distinction affects correctness.
+
+---
+
+# Inference
+
+## REQ-SEM-047 — Monad MUST distinguish inference from observation and confirmation
+
+The semantic model MUST preserve the distinction:
+
+```text
+Observation
+     ≠
+Inference
+     ≠
+Confirmation
+```
+
+An AI system, heuristic, or rule engine MAY infer useful information.
+
+That inferred information MUST retain its epistemic status.
+
+---
+
+## REQ-SEM-048 — Inferences SHOULD retain derivation information
+
+Where an inference materially affects engineering behavior, Monad SHOULD retain:
+
+* inference producer,
+* source observations,
+* source claims,
+* method or rule,
+* confidence where meaningful,
+* time,
+* and current status.
+
+---
+
+## REQ-SEM-049 — Inference confidence MUST NOT substitute for authority
+
+A highly confident inference MUST NOT automatically become authoritative merely because its probability is high.
+
+---
+
+# Unknown and uncertainty
+
+## REQ-SEM-050 — Unknown MUST be distinguishable from false
+
+The model MUST preserve the distinction between:
+
+```text
+known false
+```
+
+and:
+
+```text
+not currently known
+```
+
+This applies to:
+
+* relationships,
+* claims,
+* existence,
+* authority,
+* identity,
+* lifecycle,
+* verification,
+* and other semantic properties.
+
+---
+
+## REQ-SEM-051 — Uncertainty MUST be representable where meaningful
+
+Monad MUST support retaining uncertainty instead of forcing premature precision.
+
+Uncertainty may concern:
+
+* identity,
+* relationships,
+* truth,
+* provenance,
+* applicability,
+* authority,
+* freshness,
+* lifecycle state,
+* or interpretation.
+
+---
+
+# Time and historical truth
+
+## REQ-SEM-052 — The semantic model MUST support current and historical truth as distinct views
+
+Monad MUST be capable of answering both:
+
+> What does the system currently consider true?
+
+and:
+
+> What was considered true or valid at an earlier point?
+
+where retained history makes those questions meaningful.
+
+---
+
+## REQ-SEM-053 — Historical truth MUST NOT masquerade as current truth
+
+A historical Subject, Claim, Policy, Decision, or relationship MUST remain distinguishable from current authoritative state.
+
+Retention for history MUST NOT imply current applicability.
+
+---
+
+## REQ-SEM-054 — Current truth MUST NOT erase historical truth
+
+When information is superseded, corrected, replaced, or invalidated, Monad SHOULD preserve prior state where necessary for:
+
+* audit,
+* reasoning,
+* provenance,
+* release reconstruction,
+* decision history,
+* incident analysis,
+* or traceability.
+
+---
+
+## REQ-SEM-055 — Temporal semantics MUST remain explicit
+
+When the model uses time, specifications MUST define what timestamps mean.
+
+Potential dimensions include:
+
+* valid time,
+* observation time,
+* recording time,
+* execution time,
+* event time,
+* release time,
+* and supersession time.
+
+Monad MUST NOT treat all timestamps as interchangeable.
+
+---
+
+# Lifecycle
+
+## REQ-SEM-056 — Lifecycle state MUST be distinct from Subject identity
+
+A Subject moving from:
+
+```text
+draft → active → superseded
+```
+
+MUST NOT require creation of a new Subject solely because lifecycle state changed.
+
+---
+
+## REQ-SEM-057 — Lifecycle models SHOULD be type-appropriate
+
+Monad SHOULD NOT impose one universal lifecycle state machine on every Subject type.
+
+Requirements, decisions, releases, deployments, evidence, work items, and policies may require different lifecycle semantics.
+
+---
+
+## REQ-SEM-058 — Lifecycle transitions SHOULD be explicit where behavior depends on them
+
+Where state transitions affect governance, authority, execution, or interpretation, Monad SHOULD represent the transition explicitly enough to validate and inspect it.
+
+---
+
+# Derived state and projections
+
+## REQ-SEM-059 — Derived state MUST be distinguishable from authored or canonical state
+
+A value calculated from other semantic information MUST remain identifiable as derived where that distinction matters.
+
+Examples include:
+
+* calculated compliance state,
+* impact sets,
+* generated dependency relationships,
+* inferred ownership,
+* status summaries,
+* or health scores.
+
+---
+
+## REQ-SEM-060 — Projection freshness MUST be representable where stale data could mislead
+
+When projections may lag behind canonical or native state, Monad SHOULD support determining whether a projection is:
+
+* current,
+* stale,
+* partially refreshed,
+* invalid,
+* or of unknown freshness.
+
+---
+
+## REQ-SEM-061 — Generated views MUST NOT silently become canonical
+
+A generated model, page, index, or projection MUST NOT acquire authority merely because consumers use it frequently.
+
+If a generated artifact is intended to be authoritative, that authority MUST be explicit.
+
+---
+
+# Canonical state
+
+## REQ-SEM-062 — Canonicality MUST be explicit
+
+If Monad designates some semantic state or representation as canonical, the meaning and scope of that canonicality MUST be defined.
+
+“Canonical” MUST NOT merely mean:
+
+* easiest to query,
+* stored in the central database,
+* generated most recently,
+* or rendered by the primary UI.
+
+---
+
+## REQ-SEM-063 — Canonicality MAY be scoped
+
+Different domains MAY have different authoritative native or semantic sources.
+
+Monad MUST NOT require one globally centralized artifact to be the source of truth for every engineering fact.
+
+---
+
+## REQ-SEM-064 — Native systems MUST be allowed to remain authoritative for native facts
+
+Where another system owns a capability well, Monad SHOULD preserve that system as the authority for appropriate native facts.
+
+Examples may include:
+
+* Git for commit identity and repository history,
+* CI for execution results,
+* deployment systems for deployment state,
+* issue systems for native issue metadata,
+* package registries for published package state.
+
+Monad may enrich those facts semantically without pretending to replace their native ownership.
+
+---
+
+# Reconciliation
+
+## REQ-SEM-065 — Semantic state MUST be reconcilable with native systems
+
+Because native engineering systems can change independently, Monad MUST support reconciliation between:
+
+* semantic state,
+* stored observations,
+* projections,
+* and current native reality.
+
+---
+
+## REQ-SEM-066 — Reconciliation MUST distinguish change from stale observation
+
+When semantic state differs from a native system, Monad SHOULD determine whether the mismatch represents:
+
+* actual native change,
+* semantic change,
+* stale observation,
+* synchronization delay,
+* failed projection,
+* conflicting authority,
+* or another known condition.
+
+---
+
+## REQ-SEM-067 — Reconciliation MUST preserve provenance
+
+Changes produced by reconciliation MUST remain distinguishable from changes directly authored in native systems or semantic state.
+
+---
+
+# Model extensibility
+
+## REQ-SEM-068 — The semantic model MUST support domain extension without abandoning core invariants
+
+Monad MUST permit additional Subject types, relationship types, properties, and domain concepts while preserving foundational distinctions such as:
+
+```text
+Identity ≠ Location
+Subject ≠ Representation
+Native Identity ≠ Semantic Identity
+Claim ≠ Evidence
+Provenance ≠ Authority
+Capability ≠ Authority
+Inference ≠ Confirmation
+Unknown ≠ False
+Generated ≠ Canonical
+Historical Truth ≠ Current Truth
+```
+
+---
+
+## REQ-SEM-069 — Extensions MUST NOT redefine foundational semantics silently
+
+A plugin, integration, project, or domain extension MUST NOT silently redefine the meaning of foundational concepts.
+
+If such semantics are intentionally extended or amended, the change MUST occur through an explicit governed mechanism.
+
+---
+
+## REQ-SEM-070 — Extension metadata SHOULD avoid unstructured semantic dumping grounds
+
+Monad SHOULD resist designs where arbitrary meaning accumulates in fields such as:
+
+```text
+metadata: {}
+```
+
+without defined semantics.
+
+Extension mechanisms SHOULD remain discoverable, typed, namespaced, or otherwise governed enough to prevent semantic erosion.
+
+---
+
+# Model integrity
+
+## REQ-SEM-071 — Referential integrity SHOULD be verifiable
+
+Where one semantic entity refers to another, Monad SHOULD be capable of determining whether the referenced entity:
+
+* exists,
+* is unresolved,
+* is historical,
+* is unavailable,
+* or is invalid within the applicable context.
+
+---
+
+## REQ-SEM-072 — Semantic integrity MUST exceed structural validity
+
+A structurally valid record may still be semantically invalid.
+
+For example:
+
+```yaml
+relationship:
+  type: satisfies
+  source: decision-17
+  target: deployment-5
+```
+
+may satisfy a generic schema while violating the semantic definition of `satisfies`.
+
+Monad MUST therefore distinguish:
+
+```text
+structural validity
+```
+
+from:
+
+```text
+semantic validity
+```
+
+---
+
+## REQ-SEM-073 — Model invariants MUST be expressible and testable where practical
+
+Important semantic invariants SHOULD be formalized enough to support validation.
+
+Examples may include:
+
+* a Representation references an identifiable Subject where required,
+* a supersession relationship does not imply equality,
+* a derived projection does not silently become authoritative,
+* or an identity merge requires an allowed transition.
+
+---
+
+# Model querying
+
+## REQ-SEM-074 — The semantic model MUST support meaningful queries across native boundaries
+
+Monad SHOULD enable questions such as:
+
+* Which specifications implement this requirement?
+* Which decisions constrain this component?
+* What evidence supports this claim?
+* Which native files represent this Subject?
+* Which policies govern this operation?
+* What changed since a previous release?
+* Which components may be affected by this decision?
+* Which claims are conflicting?
+* Which derived views are stale?
+* Why does Monad believe these two objects are the same Subject?
+
+Such questions SHOULD NOT require consumers to manually reconstruct meaning from unrelated tool APIs.
+
+---
+
+## REQ-SEM-075 — Query needs SHOULD inform modeling without dictating unnecessary complexity
+
+Concrete queries are useful tests of whether the model provides value.
+
+However, Monad SHOULD NOT add semantic structure solely to support speculative queries with no demonstrated engineering need.
+
+---
+
+# Local-first requirements
+
+## REQ-SEM-076 — The core semantic model MUST be inspectable locally
+
+Core semantic information needed to understand a project SHOULD remain inspectable without continuous access to hosted services.
+
+This does not require all native systems or external evidence to be locally replicated.
+
+It does require Monad's essential semantic state to support local reasoning.
+
+---
+
+## REQ-SEM-077 — Remote unavailability MUST NOT inherently destroy semantic identity or relationships
+
+If GitHub, an AI provider, a cloud database, or another integration becomes unavailable, Monad's retained semantic Subjects and relationships MUST NOT cease to exist solely because the remote service cannot currently be queried.
+
+---
+
+## REQ-SEM-078 — Portable representation SHOULD be possible
+
+The semantic model SHOULD be serializable or exportable in a form that supports:
+
+* inspection,
+* migration,
+* backup,
+* reproducibility,
+* testing,
+* and interoperability.
+
+The exact format remains a specification concern.
+
+---
+
+# AI requirements
+
+## REQ-SEM-079 — AI systems MUST consume semantic status rather than flattening epistemic distinctions
+
+When Monad provides context to AI systems, it SHOULD preserve distinctions such as:
+
+* authoritative,
+* proposed,
+* inferred,
+* historical,
+* superseded,
+* conflicting,
+* stale,
+* generated,
+* verified,
+* or unknown.
+
+AI context assembly MUST NOT casually flatten those into undifferentiated prose where the distinction affects correctness.
+
+---
+
+## REQ-SEM-080 — AI-generated semantic assertions MUST retain provenance
+
+Claims, relationships, classifications, or identity mappings produced by AI MUST remain attributable to the producing AI operation or actor.
+
+---
+
+## REQ-SEM-081 — AI-generated semantic assertions MUST NOT silently become authoritative
+
+AI systems MAY:
+
+* observe,
+* classify,
+* infer,
+* propose,
+* summarize,
+* generate candidate relationships,
+* or suggest corrections.
+
+Those capabilities MUST NOT inherently grant authority to mutate canonical semantic truth.
+
+---
+
+## REQ-SEM-082 — Semantic context SHOULD improve AI task boundaries
+
+The model SHOULD support constructing task context that tells an AI system:
+
+* what Subjects matter,
+* which artifacts are current,
+* what authority applies,
+* which decisions constrain the work,
+* which requirements must be satisfied,
+* which evidence exists,
+* what remains uncertain,
+* and what actions are permitted.
+
+---
+
+# Minimum semantic kernel
+
+## REQ-SEM-083 — Monad MUST define a deliberately small semantic kernel
+
+The foundational semantic model MUST remain small enough to:
+
+* understand,
+* implement,
+* validate,
+* evolve,
+* and falsify.
+
+The current candidate kernel includes:
+
+```text
+Subject
+Representation
+Native Reference
+Relationship
+Claim
+Evidence
+Provenance
+Authority
+```
+
+with cross-cutting concepts such as:
+
+```text
+Identity
+Time
+Lifecycle
+Context
+Actor
+Capability
+Policy
+Observation
+Inference
+```
+
+This list is a current modeling direction, not proof that every concept belongs in the irreducible kernel.
+
+---
+
+## REQ-SEM-084 — Kernel membership MUST be justified
+
+Before a concept becomes foundational, Monad SHOULD be able to explain:
+
+1. what engineering problem it solves,
+2. which semantic distinction it preserves,
+3. what breaks if it is removed,
+4. why the same value cannot be obtained more simply,
+5. and whether it belongs in the kernel or a domain extension.
+
+---
+
+## REQ-SEM-085 — The semantic kernel MUST remain falsifiable
+
+If evidence shows that a materially simpler model provides the required:
+
+* traceability,
+* governance,
+* identity continuity,
+* context assembly,
+* provenance,
+* and cross-system reasoning,
+
+Monad SHOULD prefer the simpler model.
+
+The graph or semantic-model approach MUST remain an engineering hypothesis rather than an untouchable doctrine.
+
+---
+
+# Graph requirements
+
+## REQ-SEM-086 — Graph-shaped semantics MUST NOT require graph-specific persistence
+
+The model MAY naturally form a graph of:
+
+```text
+entities
++
+typed relationships
+```
+
+but Monad MUST NOT infer from that fact alone that a graph database is required.
+
+---
+
+## REQ-SEM-087 — Graph nodes MUST NOT automatically be equivalent to Subjects
+
+A graph implementation MAY represent:
+
+* Subjects,
+* Representations,
+* Claims,
+* Evidence,
+* native references,
+* or other constructs
+
+as nodes.
+
+The implementation representation MUST NOT erase their semantic distinctions.
+
+Therefore:
+
+```text
+Node ≠ Subject
+```
+
+unless explicitly true for a particular model.
+
+---
+
+## REQ-SEM-088 — Graph density MUST remain manageable
+
+Monad SHOULD resist creating relationship structures so dense or generic that engineers cannot meaningfully interpret, query, validate, or govern them.
+
+Semantic usefulness matters more than maximum connectivity.
+
+---
+
+# Search and indexing
+
+## REQ-SEM-089 — Semantic modeling MUST complement rather than unnecessarily replace search
+
+Monad SHOULD continue to use conventional indexing and search where those mechanisms adequately solve the problem.
+
+Semantic structure SHOULD be introduced where it enables reasoning that simpler indexing cannot reliably provide.
+
+---
+
+## REQ-SEM-090 — Search results MUST NOT be mistaken for semantic truth
+
+The fact that a search engine considers two documents similar MUST NOT establish:
+
+* identity,
+* authority,
+* equivalence,
+* supersession,
+* dependency,
+* or causality
+
+without additional semantic evidence.
+
+---
+
+# Causality and dependency
+
+## REQ-SEM-091 — Causal relationships MUST be distinguishable from chronology
+
+The fact that event A occurred before event B MUST NOT automatically imply:
+
+```text
+A caused B
+```
+
+---
+
+## REQ-SEM-092 — Dependency MUST be distinguishable from causality
+
+A dependency relationship MUST NOT automatically imply a causal explanation.
+
+For example:
+
+```text
+Component A depends on Component B
+```
+
+does not necessarily mean:
+
+```text
+B caused A to exist
+```
+
+---
+
+## REQ-SEM-093 — Rationale MUST be distinguishable from dependency
+
+A decision explaining why an implementation exists is not the same semantic relationship as an implementation dependency.
+
+Monad SHOULD preserve those distinctions where they matter.
+
+---
+
+# Hypotheses and evolving knowledge
+
+## REQ-SEM-094 — Hypotheses SHOULD be representable without becoming facts
+
+Monad SHOULD support provisional propositions that remain explicitly hypothetical.
+
+---
+
+## REQ-SEM-095 — Competing hypotheses SHOULD be able to coexist
+
+Where engineering investigation has not resolved an issue, Monad SHOULD allow multiple hypotheses to remain represented with their respective evidence.
+
+---
+
+## REQ-SEM-096 — Knowledge-state transitions SHOULD be representable
+
+A proposition MAY move through states such as:
+
+```text
+unknown
+→ observed
+→ hypothesized
+→ supported
+→ confirmed
+→ contradicted
+→ superseded
+```
+
+where such a lifecycle provides engineering value.
+
+The exact state vocabulary SHOULD be domain-specific rather than universal unless later evidence supports a shared model.
+
+---
+
+# Corrections
+
+## REQ-SEM-097 — Correcting semantic knowledge MUST NOT require erasing the previous record
+
+Where provenance or historical reasoning matters, corrections SHOULD preserve:
+
+* the previous assertion,
+* the corrected assertion,
+* why the change occurred,
+* when it occurred,
+* and what authority produced it.
+
+---
+
+## REQ-SEM-098 — Correction MUST be distinguishable from historical falsification
+
+Updating current truth MUST NOT imply rewriting historical records to make the system appear as though it always knew the corrected information.
+
+---
+
+# Semantic ownership
+
+## REQ-SEM-099 — Model ownership MUST be distinguishable from authority over modeled reality
+
+A component may own:
+
+* schema maintenance,
+* persistence,
+* validation,
+* or projection generation
+
+without automatically becoming authoritative over the domain facts it stores.
+
+---
+
+## REQ-SEM-100 — Every foundational semantic concept SHOULD have clear stewardship
+
+Monad SHOULD make it clear which part of the system is responsible for maintaining the definitions and invariants of foundational semantic concepts.
+
+Stewardship may govern:
+
+* vocabulary,
+* schemas,
+* migrations,
+* invariants,
+* conformance,
+* and compatibility.
+
+---
+
+# Non-requirements
+
+The following are **not** implied by this requirement family.
+
+## Monad does not require RDF
+
+The model may share ideas with knowledge graphs or semantic-web technologies without requiring RDF, OWL, SPARQL, or linked-data infrastructure.
+
+---
+
+## Monad does not require a graph database
+
+A relational database, document store, embedded database, files, append-only log, hybrid representation, or another mechanism may ultimately satisfy the requirements.
+
+---
+
+## Monad does not require every engineering fact to be modeled
+
+Some information should remain:
+
+* incidental,
+* native-only,
+* transient,
+* derived,
+* local to a tool,
+* or unstructured.
+
+The semantic layer should formalize information when doing so creates material engineering value.
+
+---
+
+## Monad does not require one ontology for all software engineering
+
+The model should support useful shared semantics without pretending that every project, domain, language, organization, or engineering discipline can be reduced to one universal vocabulary.
+
+---
+
+## Monad does not require semantic relationships to replace filesystem organization
+
+Filesystems remain useful.
+
+Repositories remain useful.
+
+Directories remain useful.
+
+Package structures remain useful.
+
+The semantic model exists because those structures alone do not express every relationship Monad needs.
+
+---
+
+# Illustrative semantic example
+
+The following is explanatory rather than canonical serialization.
+
+Suppose Monad contains:
+
+```text
+Subject:
+  REQ-ID-001
+  type: Requirement
+
+Subject:
+  SPEC-IDENTITY-001
+  type: Specification
+
+Subject:
+  TEST-IDENTITY-RENAME-001
+  type: Verification
+
+Relationship:
+  SPEC-IDENTITY-001
+    specifies
+  REQ-ID-001
+
+Relationship:
+  TEST-IDENTITY-RENAME-001
+    verifies
+  REQ-ID-001
+```
+
+The specification might have:
+
+```text
+Representation:
+  docs/specifications/identity.md
+```
+
+and the verification might produce:
+
+```text
+Evidence:
+  rename-test-result-2026-08-28
+```
+
+which supports a Claim:
+
+```text
+Claim:
+  REQ-ID-001 is satisfied by implementation revision X
+```
+
+The semantic system can then answer more than:
+
+> Which files contain the string `REQ-ID-001`?
+
+It can answer:
+
+> Which specification defines the contract?
+
+> Which implementation realizes it?
+
+> Which verification evaluated it?
+
+> What evidence was produced?
+
+> Is the evidence current?
+
+> Who made the satisfaction claim?
+
+> Was that actor authoritative?
+
+> Which release included the verified implementation?
+
+That is the kind of reasoning the semantic model is intended to enable.
+
+---
+
+# Illustrative distinction matrix
+
+| Concept          | Question it answers                                       |
+| ---------------- | --------------------------------------------------------- |
+| Subject          | What engineering thing are we talking about?              |
+| Representation   | How or where is it expressed?                             |
+| Native Reference | What native-system object are we referring to?            |
+| Relationship     | How are two semantic entities related?                    |
+| Claim            | What is being asserted?                                   |
+| Evidence         | What supports or challenges the assertion?                |
+| Provenance       | Where did this information come from?                     |
+| Authority        | What source or actor is entitled to govern this matter?   |
+| Actor            | Who or what acted?                                        |
+| Capability       | What can the actor or tool do?                            |
+| Policy           | What rules govern what may or must happen?                |
+| Context          | Under what circumstances is this information interpreted? |
+| Observation      | What did the system detect?                               |
+| Inference        | What conclusion was derived?                              |
+| Lifecycle        | What state is the entity in, and how may it change?       |
+| Projection       | What derived view was constructed?                        |
+
+The exact formal model may evolve.
+
+The distinctions are retained because collapsing them produces materially different engineering semantics.
+
+---
+
+# Validation layers
+
+A mature Monad model should distinguish several kinds of correctness.
+
+```text
+Syntax
+  ↓
+Structure
+  ↓
+Reference validity
+  ↓
+Semantic validity
+  ↓
+Authority validity
+  ↓
+Policy validity
+  ↓
+Lifecycle validity
+  ↓
+Behavioral conformance
+  ↓
+Verification
+  ↓
+Evidence
+```
+
+A record may pass one layer and fail another.
+
+For example:
+
+```yaml
+status: approved
+```
+
+may be structurally valid.
+
+It may still be invalid because:
+
+* the transition was illegal,
+* the actor lacked authority,
+* a required approval was missing,
+* the object was already superseded,
+* or the record refers to the wrong Subject.
+
+> **Machine-validatable is not the same as semantically valid.**
+
+---
+
+# Verification themes
+
+The semantic-model requirement family should eventually be exercised through conformance scenarios covering at least:
+
+## Subject / Representation independence
+
+Create one Subject with two Representations.
+
+Expected:
+
+```text
+one semantic Subject
+two distinct Representations
+```
+
+---
+
+## Representation deletion
+
+Delete one Representation.
+
+Expected:
+
+```text
+Subject remains
+remaining Representation remains
+historical relationship preserved where required
+```
+
+---
+
+## Conflicting Claims
+
+Create two Claims asserting incompatible values.
+
+Expected:
+
+```text
+both retained
+conflict visible
+no destructive overwrite
+```
+
+---
+
+## Evidence separation
+
+Attach evidence to a Claim.
+
+Expected:
+
+```text
+Evidence remains independently identifiable
+Claim does not become identical to Evidence
+```
+
+---
+
+## Provenance versus authority
+
+Import a Claim from an identifiable source with no applicable authority.
+
+Expected:
+
+```text
+provenance known
+claim recorded
+claim not automatically authoritative
+```
+
+---
+
+## Capability versus authority
+
+Provide an actor with technical capability to execute an operation but deny authorization.
+
+Expected:
+
+```text
+capability resolves true
+authority resolves false
+operation is not authorized
+```
+
+---
+
+## Inference versus confirmation
+
+Generate an AI inference relating two Subjects.
+
+Expected:
+
+```text
+inference retained
+provenance retained
+canonical relationship unchanged until authorized confirmation
+```
+
+---
+
+## Current versus historical truth
+
+Supersede a Decision.
+
+Expected:
+
+```text
+new Decision may be current
+old Decision remains queryable historically
+old Decision does not masquerade as current
+```
+
+---
+
+## Stale projection
+
+Modify canonical semantic state without refreshing a derived projection.
+
+Expected:
+
+```text
+projection freshness detectable
+stale projection not silently represented as current
+```
+
+---
+
+# Open specification questions
+
+The following questions remain intentionally unresolved at this requirement layer.
+
+## Claim representation
+
+What is the minimum useful Claim representation?
+
+Possibilities include:
+
+* opaque prose,
+* subject-predicate-object,
+* predicate/value records,
+* typed propositions,
+* or multiple forms.
+
+---
+
+## Semantic equivalence
+
+When should two equivalent propositions share one Claim identity?
+
+When should they remain separate assertions?
+
+---
+
+## Representation modeling
+
+Should Representation always be a first-class persisted Subject-like entity, or may some representation bindings remain lightweight relationship records?
+
+---
+
+## Relationship vocabulary
+
+Which relationship types belong in the semantic kernel?
+
+Which should be domain-defined?
+
+---
+
+## Time model
+
+Which concepts require:
+
+* valid time,
+* transaction time,
+* observation time,
+* recording time,
+* or another temporal model?
+
+---
+
+## Authority granularity
+
+How fine-grained should authority become before complexity outweighs value?
+
+---
+
+## Evidence model
+
+Should Evidence itself always be a Subject?
+
+When is a native artifact sufficient?
+
+---
+
+## Context representation
+
+Should Context be:
+
+* an explicit persisted entity,
+* a structured value,
+* a query-time composition,
+* or a combination?
+
+---
+
+## Projection contracts
+
+How should Monad define freshness, consistency, invalidation, and provenance for derived views?
+
+---
+
+## Persistence
+
+Which storage representation best supports:
+
+* local-first operation,
+* portability,
+* incremental updates,
+* queries,
+* history,
+* reconciliation,
+* and deterministic behavior?
+
+The requirement family intentionally does not answer that question.
+
+---
+
+# Requirement relationships
+
+The semantic-model family depends strongly on:
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/identity" title="Identity Requirements">
+    Defines stable Subject identity, Representation independence, native bindings, continuity, aliases, and identity transitions.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/provenance" title="Provenance Requirements">
+    Defines the origin, derivation, observation, recording, and transformation history of semantic information.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/authority" title="Authority Requirements">
+    Defines which actors, sources, and mechanisms may establish or modify authoritative semantic state.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/evidence" title="Evidence Requirements">
+    Defines how evidence is captured, related to claims, evaluated, retained, and used in verification.
+  </Card>
+</Cards>
+
+It also constrains:
+
+* schemas,
+* specifications,
+* policies,
+* integrations,
+* execution,
+* AI context assembly,
+* reconciliation,
+* verification,
+* projections,
+* traceability,
+* and historical reconstruction.
+
+---
+
+# Traceability expectations
+
+Each accepted semantic-model requirement should ultimately trace into concrete model, specification, schema, implementation, and verification artifacts.
+
+For example:
+
+```text
+REQ-SEM-009
+  ↓ refined-by
+Representation Model
+  ↓ specified-by
+Representation Contract
+  ↓ encoded-by
+Representation Schema
+  ↓ implemented-by
+Semantic Repository
+  ↓ verified-by
+Subject / Representation Conformance Suite
+  ↓ evidenced-by
+Conformance Results
+```
+
+The identifiers above are illustrative.
+
+Traceability should follow real engineering artifacts rather than creating fictional completeness.
+
+---
+
+# Review questions
+
+A semantic-model change should be challenged with questions such as:
+
+1. What engineering distinction does this concept preserve?
+2. What breaks if we remove it?
+3. Is this semantic reality or only storage structure?
+4. Are we turning a Representation into a Subject accidentally?
+5. Are we turning a native identifier into semantic identity?
+6. Is this a Claim or the thing being claimed about?
+7. Is this Evidence or an assertion based on Evidence?
+8. Is this provenance or authority?
+9. Is this capability or permission?
+10. Is this observation or inference?
+11. Is this current truth or historical truth?
+12. Is this canonical state or a projection?
+13. Is this relationship actually dependency, chronology, causality, rationale, or correlation?
+14. Does this concept need its own lifecycle?
+15. Does this information need first-class identity?
+16. Can a native system remain the proper authority?
+17. Could ordinary indexing solve this problem more simply?
+18. Will this addition make the model easier or harder to use?
+19. Can the distinction be validated?
+20. Can the model evolve without destroying history?
+21. Can AI consume the distinction without flattening it?
+22. Does the distinction justify its capture and maintenance cost?
+
+---
+
+# Governing principle
+
+Monad should model **meaningful engineering reality**, not merely mirror the containers in which engineering information happens to live.
+
+The semantic model should preserve enough structure to answer:
+
+> What is this?
+
+> What does it represent?
+
+> How is it related?
+
+> Who said this?
+
+> What supports it?
+
+> Who is authoritative?
+
+> When was it true?
+
+> Is it current?
+
+> Is it observed, inferred, or confirmed?
+
+> What can act on it?
+
+> What changed?
+
+> Why should we believe the result?
+
+Every distinction added to the model should make one or more of those questions materially easier to answer.
+
+Every distinction that does not should remain subject to removal.
+
+> **A semantic model is useful only insofar as it reduces ambiguity, preserves meaning, and improves engineering action.**

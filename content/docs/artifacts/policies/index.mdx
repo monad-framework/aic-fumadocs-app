@@ -1,0 +1,4274 @@
+---
+title: Policies
+description: The explicit rules that govern what actors and systems may do, under which conditions, within which scope, and with what required evidence, approval, or verification.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Governed behavior
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Policies make the rules governing engineering behavior explicit: who or what may act, on which targets, within which scope, under which conditions, and with which obligations.
+  </p>
+</div>
+
+# What is a policy?
+
+A **Policy** is an explicit rule used to govern an operation, state transition, decision, or capability.
+
+A Policy may determine whether an action is:
+
+```text
+permitted
+
+denied
+
+permitted with obligations
+
+subject to approval
+
+subject to additional verification
+
+restricted to a particular scope
+
+restricted to particular lifecycle states
+
+escalated for human review
+```
+
+A Policy answers a question such as:
+
+> **Under these circumstances, is this operation allowed, and what must happen before, during, or after it?**
+
+Policies turn implicit organizational and system rules into inspectable engineering artifacts.
+
+---
+
+# Why policies matter
+
+Software systems contain many rules that are rarely written down as coherent contracts.
+
+Examples include:
+
+```text
+only maintainers may publish releases
+
+generated files must not be edited directly
+
+high-risk changes require review
+
+an AI agent may run tests but may not push to main
+
+a migration requires a verified backup
+
+constitutional rules may not be changed through ordinary configuration
+
+production deployment requires passing verification evidence
+```
+
+Without explicit Policies, these rules become distributed among:
+
+* CI configuration,
+* permissions,
+* shell scripts,
+* documentation,
+* code review habits,
+* cloud settings,
+* tribal knowledge,
+* prompt instructions,
+* and individual judgment.
+
+The result is fragmented governance.
+
+Monad treats important governing rules as first-class artifacts.
+
+<Callout type="info" title="Policy makes governance inspectable">
+
+A rule should not exist only because one particular script happens to enforce it today.
+
+</Callout>
+
+---
+
+# Policy is not authority
+
+Policy and Authority are related but distinct.
+
+**Authority** answers:
+
+> Who or what has legitimate standing over this Scope?
+
+**Policy** answers:
+
+> Given the relevant Authority and circumstances, what action is permitted?
+
+For example:
+
+```text
+Actor:
+Alice
+
+Authority:
+release-manager over Project A releases
+
+Policy:
+release publication requires release-manager authority
+and successful release verification
+```
+
+Alice's Authority does not itself perform the release.
+
+The Policy interprets that Authority in the context of the requested operation.
+
+Therefore:
+
+```text
+authority ≠ policy
+```
+
+---
+
+# Policy is not capability
+
+A system may be technically able to perform an operation without being permitted to do so.
+
+For example:
+
+```text
+AI Agent
+  │
+  ├── capability:
+  │     git.push
+  │
+  └── policy:
+        deny push to main
+```
+
+The capability exists.
+
+Permission does not.
+
+This distinction is fundamental:
+
+> **Capability describes what can be done. Policy helps determine what may be done.**
+
+---
+
+# Policy is not implementation
+
+A Policy might state:
+
+```text
+Changes to protected branches require review.
+```
+
+GitHub branch protection may enforce that Policy.
+
+A local pre-push hook may also enforce part of it.
+
+A CI workflow may verify it.
+
+Those are implementations or enforcement mechanisms.
+
+The Policy is the governing rule itself.
+
+Conceptually:
+
+```text
+Policy
+   ↓
+Enforcement Mechanism
+   ↓
+Observed Behavior
+```
+
+This separation allows the same rule to survive changes in tooling.
+
+---
+
+# Policy is not procedure
+
+A Policy establishes constraints.
+
+A procedure describes steps.
+
+For example:
+
+**Policy**
+
+```text
+Production releases require verified release evidence.
+```
+
+**Procedure**
+
+```text
+1. Build release candidate.
+2. Run verification suite.
+3. Generate evidence bundle.
+4. Request approval.
+5. Publish release.
+```
+
+The procedure may change while the Policy remains stable.
+
+---
+
+# Policy is not a specification
+
+A Specification describes how a system or component must behave.
+
+A Policy governs whether particular behavior is permitted under particular circumstances.
+
+For example:
+
+```text
+Specification:
+Execution.execute(operation)
+must return a structured execution result.
+
+Policy:
+Execution of repository.delete
+requires repository-admin authority.
+```
+
+Both may apply to the same operation, but they serve different purposes.
+
+---
+
+# The policy model
+
+A useful conceptual policy evaluation model is:
+
+```text
+Actor
+   +
+Capability
+   +
+Operation
+   +
+Target
+   +
+Scope
+   +
+Lifecycle State
+   +
+Authority
+   +
+Context
+   +
+Risk
+   +
+Evidence
+   +
+Applicable Policies
+   ↓
+Policy Evaluation
+   ↓
+Decision
+```
+
+A Policy Decision might be:
+
+```text
+permit
+
+deny
+
+permit-with-obligations
+
+approval-required
+
+verification-required
+
+escalation-required
+```
+
+---
+
+# Actor
+
+The **Actor** is the entity attempting or requesting an operation.
+
+An Actor might be:
+
+```text
+human engineer
+
+maintainer
+
+CI workflow
+
+AI agent
+
+local daemon
+
+plugin
+
+automation
+
+external service
+```
+
+Actor identity should be explicit whenever a Policy depends on who is acting.
+
+---
+
+# Operation
+
+The **Operation** is what the Actor intends to do.
+
+Examples:
+
+```text
+read
+
+create
+
+modify
+
+delete
+
+execute
+
+approve
+
+publish
+
+merge
+
+deploy
+
+migrate
+
+release
+
+supersede
+```
+
+Policies should govern meaningful operations rather than arbitrary implementation details where possible.
+
+---
+
+# Target
+
+The **Target** is what the operation affects.
+
+Examples:
+
+```text
+Requirement
+
+Decision
+
+repository
+
+branch
+
+file
+
+release
+
+deployment
+
+policy
+
+Schema
+
+Constitution
+
+external system
+```
+
+The same operation may have different Policies depending on its Target.
+
+---
+
+# Scope
+
+Authority and Policy are often scoped.
+
+For example:
+
+```text
+Actor:
+maintainer-a
+
+Authority:
+approve
+
+Scope:
+Project A / architecture decisions
+```
+
+That does not automatically imply:
+
+```text
+approve Project B releases
+```
+
+or:
+
+```text
+change constitutional rules
+```
+
+Policy evaluation must preserve Scope.
+
+---
+
+# Context
+
+The same operation may be permitted in one context and denied in another.
+
+For example:
+
+```text
+delete temporary build artifact
+→ permitted
+```
+
+while:
+
+```text
+delete canonical Requirement
+→ denied
+```
+
+Relevant Context may include:
+
+```text
+project
+
+environment
+
+branch
+
+work package
+
+current lifecycle state
+
+risk classification
+
+origin of request
+
+execution mode
+
+related evidence
+```
+
+---
+
+# Lifecycle state
+
+Lifecycle can affect permission.
+
+For example:
+
+```text
+draft Specification
+→ author may modify
+```
+
+while:
+
+```text
+approved Specification
+→ modification requires amendment process
+```
+
+Therefore Policy evaluation may depend on current state.
+
+---
+
+# Risk
+
+Operations may be classified by risk.
+
+Possible categories might include:
+
+```text
+low
+
+moderate
+
+high
+
+critical
+```
+
+The exact vocabulary should be deliberately defined.
+
+Risk can influence:
+
+* required review,
+* approval,
+* verification,
+* rollback preparation,
+* or execution restrictions.
+
+---
+
+# Evidence
+
+Some operations should require Evidence before they may proceed.
+
+For example:
+
+```text
+publish release
+```
+
+may require Evidence showing:
+
+```text
+tests passed
+
+build reproducible
+
+required reviews completed
+
+migration validated
+
+security checks passed
+```
+
+This connects governance to demonstrated system state.
+
+---
+
+# Policy decisions
+
+A policy engine should produce more than a boolean when the governing semantics require it.
+
+A richer result may include:
+
+```text
+decision
+
+applicable policies
+
+reason
+
+required obligations
+
+required approval
+
+required verification
+
+missing evidence
+
+authority basis
+
+scope
+
+risk classification
+```
+
+Conceptually:
+
+```json
+{
+  "decision": "approval-required",
+  "reason": "Protected release operation",
+  "requirements": [
+    "release-manager approval",
+    "release verification evidence"
+  ]
+}
+```
+
+---
+
+# Permit
+
+A `permit` decision means the operation may proceed under the evaluated conditions.
+
+It does not necessarily mean execution will succeed.
+
+For example:
+
+```text
+Policy:
+permit
+
+Execution:
+fails because network unavailable
+```
+
+Authorization and successful execution are separate concerns.
+
+---
+
+# Deny
+
+A `deny` decision means the operation must not proceed.
+
+A denial should ideally explain:
+
+```text
+which Policy denied it
+
+why
+
+which Scope was involved
+
+which requirement was unsatisfied
+```
+
+Opaque denials make governance difficult to understand and debug.
+
+---
+
+# Permit with obligations
+
+Some operations may proceed only if additional obligations are satisfied.
+
+For example:
+
+```text
+permit:
+database migration
+
+obligations:
+- create backup
+- record migration provenance
+- run post-migration verification
+```
+
+This is more expressive than simple allow/deny behavior.
+
+---
+
+# Approval required
+
+Some actions may require an authorized Actor to approve them.
+
+For example:
+
+```text
+AI Agent proposes release
+       ↓
+Policy
+       ↓
+Human approval required
+       ↓
+Execution may proceed
+```
+
+Approval should be represented as a durable event or artifact when it matters.
+
+---
+
+# Verification required
+
+Policy may require verification before or after an operation.
+
+For example:
+
+```text
+Before:
+configuration validates
+
+After:
+tests pass
+```
+
+The operation may therefore participate in a governed sequence rather than a single permission check.
+
+---
+
+# Escalation
+
+A Policy may be unable to safely decide automatically.
+
+For example:
+
+```text
+identity conflict detected
+
+authority ambiguous
+
+evidence contradictory
+
+risk classification unknown
+```
+
+The correct result may be:
+
+```text
+requires human review
+```
+
+rather than guessing.
+
+---
+
+# Unknown is not permit
+
+If relevant authority or state cannot be resolved, the system should not casually interpret uncertainty as permission.
+
+For sensitive operations:
+
+```text
+unknown authority
+```
+
+should often produce:
+
+```text
+deny
+```
+
+or:
+
+```text
+escalate
+```
+
+depending on the governing Policy.
+
+---
+
+# Unknown is not always deny
+
+A blanket deny-on-unknown rule can also make low-risk workflows unnecessarily rigid.
+
+Monad may therefore distinguish Policies by risk.
+
+For example:
+
+```text
+read public documentation
++
+unknown ownership
+→ probably acceptable
+```
+
+while:
+
+```text
+delete canonical artifact
++
+unknown ownership
+→ deny or escalate
+```
+
+The governing rule should be explicit.
+
+---
+
+# Policy applicability
+
+Before evaluating a Policy, Monad must know whether the Policy applies.
+
+Applicability may depend on:
+
+```text
+operation type
+
+target type
+
+Scope
+
+Actor type
+
+environment
+
+lifecycle state
+
+risk
+
+project
+
+capability
+
+artifact classification
+```
+
+A Policy that does not apply should not influence the decision.
+
+---
+
+# Policy selectors
+
+A Policy may contain selectors identifying its Scope.
+
+Conceptually:
+
+```yaml
+applies_to:
+  operation: modify
+  target:
+    type: specification
+    status: approved
+```
+
+The precise syntax belongs in the Policy Schema and Specification.
+
+---
+
+# Specific versus general policies
+
+Multiple Policies may apply to the same operation.
+
+For example:
+
+```text
+General:
+developers may modify source files
+
+Specific:
+security policy files require security-owner approval
+```
+
+The specific Policy may impose stronger constraints.
+
+Monad will need explicit precedence or combination semantics.
+
+---
+
+# Policy composition
+
+Policies should be composable without producing unpredictable behavior.
+
+For example:
+
+```text
+Policy A:
+operation permitted
+
+Policy B:
+review required
+
+Policy C:
+verification required
+```
+
+The result might be:
+
+```text
+permit with:
+- review
+- verification
+```
+
+rather than one Policy silently overriding the others.
+
+---
+
+# Conflict
+
+Policies may conflict.
+
+For example:
+
+```text
+Policy A:
+maintainers may publish releases
+
+Policy B:
+releases are frozen during incident response
+```
+
+Both may apply.
+
+Monad must determine whether:
+
+```text
+deny overrides permit
+
+specific overrides general
+
+higher Authority overrides lower Authority
+
+constitutional rules override ordinary Policies
+```
+
+These semantics cannot remain implicit.
+
+---
+
+# Policy hierarchy
+
+One possible conceptual hierarchy is:
+
+```text
+Constitutional Rules
+        ↓
+System Governance Policies
+        ↓
+Project Policies
+        ↓
+Repository Policies
+        ↓
+Workflow Policies
+```
+
+The exact hierarchy remains an architectural decision.
+
+The important principle is that lower-level Policies must not silently override higher-level constraints.
+
+---
+
+# Constitution versus policy
+
+The Constitution should contain only the small set of governing meta-rules that define what the system itself is allowed to consider valid.
+
+Examples might include:
+
+```text
+core authority hierarchy
+
+allowed extension mechanisms
+
+protected semantic primitives
+
+rules for constitutional amendment
+```
+
+Ordinary operational rules belong in Policy.
+
+Therefore:
+
+```text
+Constitution
+   ↓ constrains
+Policy System
+```
+
+not:
+
+```text
+every project rule
+→ Constitution
+```
+
+---
+
+# Policy authority
+
+Policies themselves require Authority.
+
+A random file containing:
+
+```text
+everyone may publish releases
+```
+
+should not automatically govern the system.
+
+Monad must know:
+
+```text
+who authored the Policy
+
+which Scope it governs
+
+who approved it
+
+whether it is current
+
+whether a higher-order rule permits it
+```
+
+Policy existence is not Policy Authority.
+
+---
+
+# Policy provenance
+
+Each governing Policy should preserve provenance where relevant.
+
+That may include:
+
+```text
+author
+
+approver
+
+originating Requirement
+
+originating Decision
+
+effective date
+
+revision
+
+superseded Policy
+
+repository revision
+```
+
+This allows engineers to understand why a rule exists.
+
+---
+
+# Policy rationale
+
+Policies should usually include a concise rationale.
+
+For example:
+
+```text
+Policy:
+Production deployment requires two-person approval.
+
+Rationale:
+Reduce the risk of unilateral high-impact change.
+```
+
+Rationale makes future revision more informed.
+
+Without rationale, maintainers may preserve obsolete rules simply because they do not know why they were introduced.
+
+---
+
+# Policy traceability
+
+A Policy should ideally be traceable to its justification.
+
+Conceptually:
+
+```text
+Risk / Requirement
+        ↓
+Decision
+        ↓
+Policy
+        ↓
+Enforcement
+        ↓
+Verification
+        ↓
+Evidence
+```
+
+This makes governance auditable.
+
+---
+
+# Policy lifecycle
+
+Policies themselves have lifecycle.
+
+A simple lifecycle may include:
+
+```text
+draft
+
+proposed
+
+approved
+
+active
+
+deprecated
+
+superseded
+
+retired
+```
+
+The exact states should be standardized only when needed.
+
+---
+
+# Draft policy
+
+A draft may be discussed and modified without governing current behavior.
+
+It should not be treated as authoritative merely because it exists in the repository.
+
+---
+
+# Proposed policy
+
+A proposed Policy may be ready for review but not yet effective.
+
+This distinction helps preserve debate without confusing proposal with current rule.
+
+---
+
+# Active policy
+
+An active Policy participates in current policy evaluation.
+
+Its Scope, Authority, and effective period should be resolvable.
+
+---
+
+# Superseded policy
+
+A superseded Policy remains historically meaningful but no longer governs current behavior.
+
+For example:
+
+```text
+POL-001 v1
+active 2026-01 through 2026-05
+
+POL-001 v2
+active from 2026-05
+```
+
+Historical evaluation may need to know which version was effective at a past point in time.
+
+---
+
+# Policy time
+
+Policies may have:
+
+```text
+valid_from
+
+valid_until
+
+recorded_at
+
+approved_at
+
+superseded_at
+```
+
+These timestamps serve different purposes.
+
+Monad should not collapse all temporal meaning into a single `updated_at`.
+
+---
+
+# Current policy versus historical policy
+
+A Policy may once have been valid and no longer be valid.
+
+Therefore:
+
+```text
+historically authoritative
+≠
+currently authoritative
+```
+
+This mirrors Monad's broader distinction between historical truth and current truth.
+
+---
+
+# Policy amendments
+
+An active Policy should generally not be silently rewritten.
+
+A meaningful change may require:
+
+```text
+new revision
+
+amendment record
+
+new approval
+
+new effective date
+```
+
+depending on the Policy's governance level.
+
+---
+
+# Policy immutability
+
+Published Policy revisions should often be preserved immutably for historical interpretation.
+
+Otherwise it becomes impossible to determine which rules governed a past action.
+
+---
+
+# Policy evaluation at execution time
+
+Authorization should generally be checked as close as practical to the point of side effect.
+
+A plan may have been permitted earlier.
+
+But circumstances may have changed.
+
+For example:
+
+```text
+12:00
+operation authorized
+
+12:05
+repository enters release freeze
+
+12:10
+operation executes
+```
+
+The earlier decision may no longer be valid.
+
+---
+
+# Time-of-check versus time-of-use
+
+This creates a classic policy problem:
+
+```text
+Policy checked
+   ↓
+state changes
+   ↓
+operation executes
+```
+
+For high-impact operations, Monad may need:
+
+* short-lived authorization,
+* execution-time reevaluation,
+* state preconditions,
+* or transactional enforcement.
+
+---
+
+# Policy decisions may expire
+
+A Policy Decision may therefore include:
+
+```text
+evaluated_at
+
+valid_until
+
+state_revision
+
+policy_revision
+```
+
+This can help execution determine whether the authorization remains usable.
+
+---
+
+# State-dependent policies
+
+A Policy may depend on the current system revision.
+
+For example:
+
+```text
+permit merge
+if HEAD = abc123
+and required verification applies to abc123
+```
+
+If HEAD becomes:
+
+```text
+def456
+```
+
+the earlier authorization may be invalid.
+
+---
+
+# Evidence-bound authorization
+
+A Policy may bind authorization to specific Evidence.
+
+For example:
+
+```text
+verification:
+passed commit abc123
+```
+
+should not automatically authorize deployment of:
+
+```text
+commit def456
+```
+
+This is a crucial relationship between governance and reproducibility.
+
+---
+
+# Policy and impact analysis
+
+Impact analysis may influence policy evaluation.
+
+For example:
+
+```text
+change:
+modify CLI help text
+
+impact:
+low
+```
+
+may require no special approval.
+
+But:
+
+```text
+change:
+modify identity resolution algorithm
+
+impact:
+affects semantic identity across repository
+
+risk:
+high
+```
+
+may trigger additional review and verification.
+
+---
+
+# Impact is not policy
+
+Impact analysis describes consequences.
+
+Policy decides what governance those consequences require.
+
+Therefore:
+
+```text
+Impact:
+high
+
+Policy:
+requires architecture approval
+```
+
+The impact engine should not independently invent permission rules.
+
+---
+
+# Context and policy
+
+Policy evaluation needs purpose-specific Context.
+
+A useful policy Context might include:
+
+```text
+requested operation
+
+Actor
+
+Target
+
+Scope
+
+Authority
+
+lifecycle state
+
+risk
+
+impact
+
+existing approvals
+
+Evidence
+
+current revision
+```
+
+It should not simply receive the entire system state.
+
+---
+
+# Policy and planning
+
+Planning proposes what should happen.
+
+Policy decides whether the plan or its operations may proceed.
+
+Conceptually:
+
+```text
+Intent
+  ↓
+Plan
+  ↓
+Policy Evaluation
+  ↓
+Authorized Plan
+  ↓
+Execution
+```
+
+Planning must not self-authorize.
+
+---
+
+# Policy and execution
+
+Execution is responsible for enforcing authorization at the side-effect boundary.
+
+A useful rule is:
+
+> **Execution must not infer permission merely because it received a request.**
+
+The execution component should receive or obtain a valid Policy Decision before performing governed operations.
+
+---
+
+# Policy and verification
+
+Policies can require specific verification.
+
+For example:
+
+```text
+If:
+database Schema changed
+
+Then require:
+migration verification
+compatibility verification
+rollback validation
+```
+
+Verification results become Evidence used by Policy.
+
+---
+
+# Policy and reconciliation
+
+Reconciliation may detect that native state violates a Policy.
+
+For example:
+
+```text
+protected branch changed without required approval
+```
+
+Reconciliation should be able to surface:
+
+```text
+policy violation
+
+unresolved state
+
+required remediation
+
+review request
+```
+
+rather than pretending the unauthorized state did not occur.
+
+---
+
+# Policy cannot undo reality
+
+A Policy may forbid an operation.
+
+But native systems may still permit the operation outside Monad.
+
+For example:
+
+```text
+Monad Policy:
+direct push forbidden
+
+Native Git remote:
+administrator force-pushes anyway
+```
+
+Monad must recognize that native reality changed.
+
+It can:
+
+* detect the violation,
+* record provenance,
+* mark inconsistency,
+* trigger review,
+* or propose remediation.
+
+It should not fabricate a world in which the forbidden action never occurred.
+
+---
+
+# Preventive versus detective controls
+
+Policies may be enforced through:
+
+## Preventive controls
+
+Stop the action before it occurs.
+
+Examples:
+
+```text
+execution guard
+
+branch protection
+
+permission boundary
+
+approval gate
+```
+
+## Detective controls
+
+Detect violations after they occur.
+
+Examples:
+
+```text
+reconciliation
+
+audit
+
+verification
+
+event inspection
+```
+
+Strong governance often needs both.
+
+---
+
+# Compensating controls
+
+Some systems cannot enforce a rule directly.
+
+A compensating control may reduce risk through another mechanism.
+
+For example:
+
+```text
+external system cannot require pre-approval
+```
+
+so Monad may require:
+
+```text
+post-action audit
++
+immutable event logging
++
+mandatory review
+```
+
+The Policy should make this explicit.
+
+---
+
+# Policy enforcement points
+
+Potential enforcement points include:
+
+```text
+CLI
+
+API
+
+Execution Component
+
+integration adapter
+
+CI workflow
+
+Git hosting platform
+
+deployment system
+
+plugin boundary
+```
+
+No single enforcement point should be assumed sufficient for every rule.
+
+---
+
+# Centralized policy, distributed enforcement
+
+A useful architectural pattern is:
+
+```text
+Policy semantics
+      │
+      ├── enforced by CLI
+      ├── enforced by execution engine
+      ├── enforced by CI
+      └── enforced by native platform
+```
+
+This allows consistent governance without requiring all operations to pass through one monolithic runtime.
+
+---
+
+# Policy synchronization
+
+If native systems implement Monad Policies, configuration drift becomes important.
+
+For example:
+
+```text
+Monad Policy:
+main requires two approvals
+
+GitHub configuration:
+main requires one approval
+```
+
+The system should detect that mismatch.
+
+---
+
+# Policy projection
+
+Monad may generate native configuration from canonical Policy.
+
+Conceptually:
+
+```text
+Canonical Policy
+      ↓
+Projection
+      ↓
+GitHub branch rules
+```
+
+The generated branch rule is derived.
+
+The Policy remains authoritative if that is the chosen governance model.
+
+---
+
+# Native policy authority
+
+In some cases, a native system may remain the authoritative source.
+
+For example:
+
+```text
+organization-wide GitHub permission policy
+```
+
+may be governed externally.
+
+Monad should represent that source faithfully rather than automatically replacing it.
+
+This is part of hybrid authority.
+
+---
+
+# Policy reconciliation
+
+When canonical and native Policies differ, reconciliation must determine:
+
+```text
+canonical changed
+
+native changed
+
+both changed
+
+translation incomplete
+
+policy unsupported natively
+```
+
+The correct response may be:
+
+```text
+update projection
+
+import native state
+
+flag conflict
+
+require human decision
+```
+
+---
+
+# Declarative policies
+
+A Policy may be expressed declaratively.
+
+For example:
+
+```yaml
+id: policy:release-publication
+
+applies_to:
+  operation: publish
+  target: release
+
+requires:
+  authority:
+    capability: release.publish
+
+  evidence:
+    - release-verification: passed
+```
+
+This makes the rule inspectable and potentially portable.
+
+The final syntax remains an implementation decision.
+
+---
+
+# Procedural policies
+
+Some Policies may require executable evaluation logic.
+
+For example:
+
+```text
+risk score derived from dependency impact,
+changed files,
+release stage,
+and service criticality
+```
+
+Executable Policy logic may be necessary.
+
+But executable rules should still have:
+
+```text
+identity
+
+version
+
+Scope
+
+Authority
+
+provenance
+
+tests
+```
+
+They should not become anonymous code hidden in an engine.
+
+---
+
+# Policy as data versus code
+
+The design space includes:
+
+```text
+declarative data
+
+general-purpose code
+
+policy DSL
+
+hybrid model
+```
+
+Each has trade-offs.
+
+Declarative Policies improve inspectability.
+
+Code improves expressiveness.
+
+A DSL may offer controlled expressiveness.
+
+A hybrid system may eventually be appropriate.
+
+Monad should avoid prematurely inventing a complex Policy language before simpler representations prove insufficient.
+
+---
+
+# Policy language requirements
+
+If a formal Policy language becomes necessary, useful requirements may include:
+
+```text
+deterministic evaluation
+
+explicit inputs
+
+bounded execution
+
+no arbitrary side effects
+
+clear error behavior
+
+versioning
+
+static validation
+
+testability
+
+human-readable explanations
+```
+
+A Policy evaluator should reason about permission.
+
+It should not mutate the system while evaluating the rule.
+
+---
+
+# Policy evaluation must be side-effect free
+
+A strong architectural rule is:
+
+> **Evaluating whether an operation may occur should not itself perform the operation.**
+
+This preserves the command boundary.
+
+Conceptually:
+
+```text
+Policy.evaluate(request)
+      ↓
+PolicyDecision
+```
+
+not:
+
+```text
+Policy.evaluate(request)
+      ↓
+maybe executes operation
+```
+
+---
+
+# Deterministic policy evaluation
+
+Given equivalent:
+
+```text
+Actor
+
+operation
+
+Target
+
+Scope
+
+Authority
+
+Context
+
+Policies
+
+system state
+```
+
+evaluation should produce the same Policy Decision.
+
+Nondeterministic authorization is extremely difficult to audit.
+
+---
+
+# AI should not decide policy unpredictably
+
+An AI model may assist with:
+
+```text
+classifying risk
+
+extracting relevant Context
+
+summarizing impact
+
+suggesting applicable Policies
+```
+
+But critical authorization should not depend solely on opaque probabilistic generation unless the governance model explicitly accepts that risk.
+
+A policy decision should remain explainable and reproducible where practical.
+
+---
+
+# AI as Actor
+
+An AI agent should be modeled as an Actor with explicit capabilities and constraints.
+
+For example:
+
+```text
+Actor:
+implementation-agent
+
+Capabilities:
+- repository.read
+- repository.write-worktree
+- tests.execute
+
+Policy:
+- deny main.push
+- deny release.publish
+- require review before external side effects
+```
+
+The AI should not receive authority merely because it can call a tool.
+
+---
+
+# Human approval
+
+Human approval should not be represented merely as:
+
+```text
+user clicked yes
+```
+
+for high-value governance decisions.
+
+A durable approval may need:
+
+```text
+Actor identity
+
+Policy
+
+Scope
+
+Target
+
+operation
+
+revision
+
+timestamp
+
+decision
+
+provenance
+```
+
+This creates inspectable evidence of authorization.
+
+---
+
+# Approval scope
+
+An approval should authorize the thing actually reviewed.
+
+For example:
+
+```text
+approved:
+commit abc123
+```
+
+should not implicitly authorize:
+
+```text
+commit def456
+```
+
+if meaningful changes occurred after review.
+
+---
+
+# Blanket approvals
+
+Broad approvals such as:
+
+```text
+approve all future recommendations
+```
+
+may be useful in conversational workflows.
+
+They should not automatically be interpreted as unlimited system Authority.
+
+Operational authorization must remain scoped to the governance model.
+
+---
+
+# Delegation
+
+Authority may sometimes be delegated.
+
+For example:
+
+```text
+release manager
+   ↓ delegates
+release publication
+   ↓ to
+automation identity
+```
+
+Delegation needs explicit rules such as:
+
+```text
+Scope
+
+duration
+
+capabilities
+
+revocation
+
+delegator authority
+```
+
+A Policy may govern whether delegation is permitted.
+
+---
+
+# Revocation
+
+Delegated Authority or approval may need revocation.
+
+For example:
+
+```text
+temporary deployment authorization
+expires after 30 minutes
+```
+
+Policy evaluation should account for revocation and expiry.
+
+---
+
+# Separation of duties
+
+Some high-risk operations may require multiple Actors.
+
+For example:
+
+```text
+author ≠ approver
+```
+
+or:
+
+```text
+two independent maintainers
+```
+
+This can reduce unilateral control over critical changes.
+
+---
+
+# Self-approval
+
+A Policy may forbid an Actor from approving their own change.
+
+Conceptually:
+
+```text
+change.author == approval.actor
+→ deny
+```
+
+Whether this rule applies depends on project governance and risk.
+
+---
+
+# Threshold policies
+
+Some approvals may use thresholds.
+
+For example:
+
+```text
+2 of 3 maintainers
+```
+
+or:
+
+```text
+security owner
+AND
+release manager
+```
+
+Threshold semantics should be explicit and testable.
+
+---
+
+# Role-based policy
+
+Policies may refer to roles such as:
+
+```text
+maintainer
+
+reviewer
+
+release-manager
+```
+
+Roles can simplify administration.
+
+But they may hide the actual capabilities and Authority granted.
+
+Monad should preserve the ability to inspect what a role means.
+
+---
+
+# Capability-based policy
+
+An alternative is to govern explicit capabilities.
+
+For example:
+
+```text
+capability:
+release.publish
+```
+
+This can be more precise than broad roles.
+
+Roles may then become bundles of capabilities rather than opaque privileges.
+
+---
+
+# Attribute-based policy
+
+Policy may also depend on attributes.
+
+For example:
+
+```text
+Actor.organization = monad-framework
+Target.environment = staging
+Risk < high
+```
+
+This is powerful but can become difficult to reason about if overused.
+
+---
+
+# Relationship-based policy
+
+The semantic graph may support relationship-aware governance.
+
+For example:
+
+```text
+Actor owns Component X
+Component X is affected by change
+```
+
+could make that Actor an eligible reviewer.
+
+This is one advantage of maintaining explicit system relationships.
+
+---
+
+# Graph-aware policies
+
+A Policy might eventually ask:
+
+```text
+Does this Actor have Authority over
+the Subjects transitively affected
+by this change?
+```
+
+This can support sophisticated engineering governance.
+
+But graph traversal must remain bounded and explainable.
+
+---
+
+# Avoid invisible policy inheritance
+
+If Policy applies through relationships, the evaluation should explain the path.
+
+For example:
+
+```text
+Policy applied because:
+
+change
+→ affects Component A
+→ owned by Team B
+→ Team B review required
+```
+
+Opaque graph-based authorization would be difficult to trust.
+
+---
+
+# Policy specificity
+
+Policies may become increasingly specific.
+
+For example:
+
+```text
+all source modifications
+
+Rust source modifications
+
+runtime Rust source modifications
+
+runtime memory-safety-sensitive modifications
+```
+
+The system needs rules for combining these without accidental contradiction.
+
+---
+
+# Policy precedence
+
+Possible strategies include:
+
+```text
+deny overrides permit
+
+higher Authority overrides lower Authority
+
+more-specific scope overrides general scope
+
+explicit priority field
+
+ordered policy sets
+```
+
+Each strategy has trade-offs.
+
+The final rule must be deterministic.
+
+---
+
+# Avoid arbitrary numeric priority where possible
+
+A system based on:
+
+```text
+priority: 783
+```
+
+can become impossible to understand.
+
+Semantic precedence based on Authority and Scope is often easier to reason about.
+
+Numeric ordering may still be useful within controlled policy sets.
+
+---
+
+# Policy sets
+
+Related Policies may be grouped.
+
+Examples:
+
+```text
+release governance
+
+repository protection
+
+AI execution
+
+artifact lifecycle
+
+security controls
+
+dependency changes
+```
+
+Grouping improves discovery.
+
+It should not change the semantics of individual rules unless explicitly defined.
+
+---
+
+# Baseline policies
+
+Projects may inherit baseline Policies.
+
+For example:
+
+```text
+Monad Core Baseline
+        ↓
+Project Policy Set
+        ↓
+Repository Overrides
+```
+
+Overrides should remain constrained by higher-level Authority.
+
+---
+
+# Policy inheritance
+
+Policy inheritance must distinguish:
+
+```text
+extend
+
+override
+
+disable
+
+replace
+```
+
+These operations are not equivalent.
+
+A project should not accidentally disable a mandatory baseline rule through ambiguous configuration.
+
+---
+
+# Mandatory policies
+
+Some Policies may be non-overridable within a Scope.
+
+For example:
+
+```text
+constitutional Policy
+```
+
+or organization-wide security Policy.
+
+That non-overridability must itself derive from a legitimate governing rule.
+
+---
+
+# Advisory policies
+
+Not every Policy needs to block work.
+
+Some may produce:
+
+```text
+warning
+
+recommendation
+
+review suggestion
+```
+
+For example:
+
+```text
+large change touches more than 20 components
+→ architecture review recommended
+```
+
+This can support good engineering without creating excessive bureaucracy.
+
+---
+
+# Policy severity
+
+A Policy may have enforcement levels such as:
+
+```text
+advisory
+
+warning
+
+required
+
+blocking
+```
+
+These should be distinct from risk severity.
+
+For example:
+
+```text
+risk = high
+enforcement = blocking
+```
+
+describes different concepts.
+
+---
+
+# Policy exceptions
+
+Real systems sometimes need exceptions.
+
+An exception should be explicit.
+
+For example:
+
+```text
+Policy:
+production changes require review
+
+Exception:
+incident commander may authorize emergency mitigation
+during declared incident
+```
+
+The exception is itself part of governance.
+
+---
+
+# Break-glass access
+
+Emergency operations may require a controlled bypass.
+
+A break-glass mechanism should usually require:
+
+```text
+special Authority
+
+explicit reason
+
+strong provenance
+
+limited Scope
+
+short duration
+
+post-action review
+```
+
+It should not be an undocumented admin shortcut.
+
+---
+
+# Exception expiration
+
+Policy exceptions should generally be bounded.
+
+For example:
+
+```text
+expires:
+2026-08-30T18:00Z
+```
+
+Permanent exceptions often indicate that the underlying Policy needs redesign.
+
+---
+
+# Exception evidence
+
+Use of an exception should produce an inspectable record.
+
+For example:
+
+```text
+exception used
+
+by whom
+
+for which operation
+
+why
+
+under which incident
+
+what changed
+
+what follow-up is required
+```
+
+---
+
+# Policy violations
+
+A violation is different from a failed operation.
+
+For example:
+
+```text
+Operation succeeded in native system
+but violated Monad Policy.
+```
+
+That is:
+
+```text
+successful side effect
++
+governance violation
+```
+
+The system should preserve both facts.
+
+---
+
+# Violation handling
+
+A detected violation may trigger:
+
+```text
+warning
+
+incident
+
+reconciliation conflict
+
+required review
+
+automatic rollback proposal
+
+temporary capability restriction
+```
+
+The response should itself be governed by Policy.
+
+---
+
+# Policy observability
+
+Monad should make it possible to inspect:
+
+```text
+which Policies were evaluated
+
+which matched
+
+which did not
+
+which decision won
+
+what obligations were produced
+
+what evidence was considered
+
+which Authority justified the result
+```
+
+This is essential for debugging governance.
+
+---
+
+# Policy evaluation trace
+
+A structured trace might conceptually resemble:
+
+```text
+Request
+  ↓
+POL-004 applies
+  ↓
+POL-011 applies
+  ↓
+POL-004 → permit
+POL-011 → verification required
+  ↓
+Combined decision:
+permit with verification obligation
+```
+
+Such traces improve explainability.
+
+---
+
+# Sensitive policy traces
+
+Policy diagnostics may contain sensitive information.
+
+For example:
+
+```text
+security roles
+
+internal environments
+
+secret resource names
+```
+
+Access to policy evaluation traces may itself require Policy.
+
+---
+
+# Policy privacy
+
+Not every Actor should necessarily be able to enumerate all Policies or permissions.
+
+The system may need to distinguish:
+
+```text
+can evaluate operation
+```
+
+from:
+
+```text
+can inspect full Policy definition
+```
+
+especially in multi-user or security-sensitive environments.
+
+---
+
+# Security boundary
+
+Policies are part of Monad's security model, but Monad should not claim that Policy alone provides complete security.
+
+Security also depends on:
+
+* native system enforcement,
+* credential protection,
+* process isolation,
+* operating-system permissions,
+* network boundaries,
+* and secure implementation.
+
+Policy describes and coordinates governance.
+
+Native controls must still enforce relevant boundaries.
+
+---
+
+# Credentials
+
+Policies should never require embedding secrets directly in Policy artifacts.
+
+Prefer references to:
+
+```text
+credential identity
+
+secret provider
+
+environment capability
+```
+
+rather than secret values.
+
+---
+
+# Policy testing
+
+Every important Policy should be testable.
+
+For example:
+
+```text
+maintainer + staging deploy
+→ permit
+
+developer + production deploy
+→ deny
+
+release manager + verified release
+→ permit
+
+release manager + unverified release
+→ verification required
+```
+
+These examples become executable governance tests.
+
+---
+
+# Policy fixtures
+
+A useful test fixture describes:
+
+```text
+Actor
+
+Authority
+
+operation
+
+Target
+
+Context
+
+applicable state
+
+expected decision
+
+expected obligations
+```
+
+This allows deterministic regression testing.
+
+---
+
+# Negative policy testing
+
+Policies should be tested for operations that must not be allowed.
+
+Security and governance failures often occur because teams test expected permits but not unexpected permits.
+
+Important tests include:
+
+```text
+unauthorized Actor
+
+wrong Scope
+
+expired approval
+
+stale Evidence
+
+wrong revision
+
+conflicting Policy
+
+missing Authority
+```
+
+---
+
+# Mutation testing
+
+Policy systems may benefit from mutation testing.
+
+For example:
+
+```text
+change:
+requires 2 approvals
+```
+
+to:
+
+```text
+requires 1 approval
+```
+
+Tests should fail if the stronger rule was actually intended.
+
+This can detect weak Policy test coverage.
+
+---
+
+# Policy verification
+
+Verification of the Policy system may establish:
+
+```text
+Policy parser behaves correctly
+
+precedence rules are deterministic
+
+expected permits occur
+
+expected denies occur
+
+obligations are emitted
+
+native enforcement matches canonical Policy
+```
+
+These verification results become Evidence.
+
+---
+
+# Policy Evidence
+
+Evidence supporting Policy correctness may include:
+
+```text
+test reports
+
+formal analysis
+
+configuration inspection
+
+native enforcement snapshots
+
+reconciliation reports
+
+audit results
+```
+
+This is different from Evidence required by an operation.
+
+Both may exist.
+
+---
+
+# Policy performance
+
+Policy evaluation may sit on critical execution paths.
+
+Performance matters.
+
+However:
+
+> **Governance correctness should not be sacrificed merely to save a small amount of evaluation time.**
+
+Caching and indexing can optimize evaluation once semantics are correct.
+
+---
+
+# Policy caching
+
+Cached Policy Decisions can become stale.
+
+Any cache must consider dependencies such as:
+
+```text
+Policy revision
+
+Authority revision
+
+Target state
+
+Actor state
+
+Evidence revision
+
+time
+```
+
+A simple long-lived boolean cache is unsafe for many governed operations.
+
+---
+
+# Policy indexing
+
+Read models may index:
+
+```text
+Policies by operation
+
+Policies by Target type
+
+Policies by Scope
+
+Policies by Actor class
+```
+
+to make evaluation efficient.
+
+The index is derived.
+
+The canonical Policy remains authoritative.
+
+---
+
+# Policy read models
+
+A policy read model may answer:
+
+```text
+Which Policies could apply to this operation?
+```
+
+It should not independently become the source of Policy semantics.
+
+---
+
+# Policy schemas
+
+[Schema](/docs/artifacts/schemas) definitions can make Policy artifacts machine-validatable.
+
+A Policy Schema may govern:
+
+```text
+identity
+
+version
+
+Scope
+
+selectors
+
+conditions
+
+effect
+
+obligations
+
+Authority
+
+lifecycle metadata
+```
+
+Structural validity is only the first layer.
+
+Semantic validation must still ensure that the Policy is meaningful.
+
+---
+
+# Example conceptual policy
+
+A machine-readable Policy might eventually resemble:
+
+```yaml
+schema: monad://schemas/policy/v1
+
+id: POL-RELEASE-001
+title: Verified releases only
+
+scope:
+  project: monad
+
+applies_to:
+  operation: publish
+  target_type: release
+
+effect: permit
+
+requires:
+  authority:
+    capability: release.publish
+
+  evidence:
+    - type: release-verification
+      result: passed
+
+on_missing_requirement:
+  effect: deny
+```
+
+This example illustrates the concept.
+
+It is not yet a commitment to the final Policy representation.
+
+---
+
+# Policy identifiers
+
+Policies need durable semantic identity.
+
+For example:
+
+```text
+POL-RELEASE-001
+```
+
+or:
+
+```text
+policy:release/verified-publication
+```
+
+The exact format remains to be standardized.
+
+As elsewhere in Monad:
+
+```text
+Policy identity ≠ file path
+```
+
+---
+
+# Policy versions
+
+Policy versioning should preserve meaningful governing history.
+
+For example:
+
+```text
+POL-001 v1
+requires one reviewer
+
+POL-001 v2
+requires two reviewers
+```
+
+The change is operationally significant.
+
+Historical actions should remain interpretable under the Policy effective at the time.
+
+---
+
+# Policy version versus lifecycle state
+
+A Policy can be:
+
+```text
+version 3
+status active
+```
+
+while:
+
+```text
+version 4
+status proposed
+```
+
+Therefore:
+
+```text
+version ≠ lifecycle state
+```
+
+---
+
+# Policy packages
+
+A reusable set of Policies may eventually form a package.
+
+For example:
+
+```text
+monad-baseline-engineering
+
+monad-release-governance
+
+monad-ai-agent-safety
+```
+
+Packages could support portable governance across projects.
+
+But reuse should not erase project-specific Scope or Authority.
+
+---
+
+# Policy portability
+
+A portable Policy should avoid assumptions that only one vendor can enforce.
+
+For example:
+
+Prefer:
+
+```text
+protected branch requires review
+```
+
+over:
+
+```text
+GitHub setting X must equal Y
+```
+
+The latter may be a projection or adapter-specific enforcement representation.
+
+---
+
+# Native projections
+
+A portable Policy might generate:
+
+```text
+GitHub ruleset
+
+GitLab protected branch rule
+
+local pre-push configuration
+```
+
+depending on available integrations.
+
+This preserves semantic intent across tools.
+
+---
+
+# Unsupported enforcement
+
+A native platform may not support a Policy exactly.
+
+For example:
+
+```text
+Policy:
+review must come from owner of affected Subject
+```
+
+but native branch protection may only support:
+
+```text
+any CODEOWNER
+```
+
+The system should surface:
+
+```text
+partial enforcement
+```
+
+rather than claiming equivalent protection.
+
+---
+
+# Enforcement coverage
+
+Monad may eventually report:
+
+```text
+Policy:
+POL-001
+
+Enforcement:
+CLI                 full
+Execution Engine    full
+GitHub              partial
+External manual use detective-only
+```
+
+This makes governance limitations inspectable.
+
+---
+
+# Policy drift
+
+Policy drift occurs when intended governance differs from actual enforcement.
+
+For example:
+
+```text
+Canonical Policy:
+2 approvals
+
+Native rule:
+1 approval
+```
+
+or:
+
+```text
+Canonical Policy:
+AI cannot publish release
+
+Tool credentials:
+AI technically can publish release
+```
+
+The second case is especially important because capability and permission have diverged.
+
+---
+
+# Least privilege
+
+Policies should generally support least-privilege operation.
+
+Grant Actors only the capabilities and Authority needed for their current responsibilities.
+
+This reduces the consequences of:
+
+* errors,
+* compromised credentials,
+* incorrect AI behavior,
+* malicious plugins,
+* and accidental automation.
+
+---
+
+# Temporary authority
+
+Some workflows may benefit from temporary elevated Authority.
+
+For example:
+
+```text
+Agent receives write access
+only for Work Package WP-004
+for duration of execution
+```
+
+This is more controlled than permanent repository-wide access.
+
+---
+
+# Work-scoped policy
+
+Monad's explicit work hierarchy can provide useful Scope.
+
+For example:
+
+```text
+Actor:
+implementation agent
+
+Scope:
+WP-004
+
+Allowed:
+modify files related to WP-004
+
+Denied:
+modify unrelated release configuration
+```
+
+Whether this can be enforced precisely depends on the system model and impact analysis.
+
+---
+
+# Artifact-specific policy
+
+Different artifact classes may have different governance.
+
+For example:
+
+```text
+journal entry
+→ author may edit freely
+
+Requirement
+→ review required before approval
+
+Decision
+→ must record rationale
+
+Constitution
+→ formal amendment required
+```
+
+Policy should preserve those differences.
+
+---
+
+# Generated artifacts
+
+Generated artifacts may have Policies such as:
+
+```text
+manual modification prohibited
+
+regenerate from canonical source
+
+verify freshness before release
+```
+
+This helps keep derived state from accidentally becoming authoritative.
+
+---
+
+# Canonical artifacts
+
+Canonical artifacts may require stricter governance.
+
+For example:
+
+```text
+approved Requirement
+→ must not be deleted without supersession record
+```
+
+Policies can protect durable engineering meaning.
+
+---
+
+# External artifacts
+
+Monad may observe artifacts it does not control.
+
+Policy can govern what Monad is allowed to do with them.
+
+For example:
+
+```text
+external issue
+→ read permitted
+→ modification requires explicit integration permission
+```
+
+---
+
+# Local-first policy
+
+Local-first operation implies that useful Policy evaluation should generally work without a permanent remote Policy service.
+
+A local project should retain enough Policy state to answer ordinary governance questions.
+
+Remote organizational Policies may still participate where needed.
+
+---
+
+# Distributed policy
+
+In multi-project or organizational environments, Policy may come from multiple sources.
+
+Conceptually:
+
+```text
+Organization Policy
+        +
+Workspace Policy
+        +
+Project Policy
+        +
+Repository Policy
+        ↓
+Effective Policy Set
+```
+
+The combination rules must remain explicit.
+
+---
+
+# Policy synchronization across repositories
+
+Some Policy may govern multiple repositories.
+
+A central semantic Policy can avoid manually duplicating rules.
+
+However, distributed enforcement introduces:
+
+* versioning,
+* rollout,
+* synchronization,
+* compatibility,
+* and availability concerns.
+
+Monad should add this complexity only when needed.
+
+---
+
+# Offline behavior
+
+If remote Policy cannot be reached, the system must know what to do.
+
+Possible behaviors include:
+
+```text
+use cached Policy
+
+deny sensitive operations
+
+permit low-risk local operations
+
+require later reconciliation
+```
+
+The correct behavior depends on Policy classification.
+
+---
+
+# Fail-open versus fail-closed
+
+This is a critical policy-system choice.
+
+**Fail-open**
+
+```text
+Policy engine unavailable
+→ operation proceeds
+```
+
+**Fail-closed**
+
+```text
+Policy engine unavailable
+→ operation blocked
+```
+
+Neither is universally correct.
+
+Risk-sensitive behavior should be explicitly defined.
+
+---
+
+# High-impact operations
+
+High-impact operations will usually favor stronger controls.
+
+Examples:
+
+```text
+delete canonical state
+
+publish release
+
+modify Constitution
+
+rotate identity mappings
+
+rewrite migration history
+
+deploy production
+
+change Policy authority
+```
+
+These may require fail-closed behavior, strong provenance, and explicit approval.
+
+---
+
+# Low-impact operations
+
+Low-impact operations may allow more flexibility.
+
+Examples:
+
+```text
+read documentation
+
+inspect dependency graph
+
+generate local projection
+
+run tests
+
+produce draft analysis
+```
+
+Blocking these unnecessarily can make governance counterproductive.
+
+---
+
+# Governance must preserve usability
+
+A Policy system that blocks routine work without proportionate benefit will be bypassed.
+
+Monad should therefore pursue:
+
+> **The minimum governance necessary to make important change understandable, authorized, and verifiable.**
+
+Not maximum bureaucracy.
+
+---
+
+# Policy overhead
+
+Every Policy introduces some combination of:
+
+```text
+authoring cost
+
+review cost
+
+evaluation complexity
+
+maintenance burden
+
+user friction
+
+migration cost
+```
+
+The rule must justify that cost.
+
+---
+
+# Formalization should follow risk
+
+High-risk operations deserve stronger formalization.
+
+Low-risk experimentation may require very little.
+
+This allows governance to scale with consequence.
+
+---
+
+# Progressive governance
+
+A project may begin with simple Policies:
+
+```text
+protect main
+
+require tests before release
+
+AI cannot publish
+```
+
+and introduce richer rules as real failures or coordination needs appear.
+
+Monad should not require enterprise governance machinery for a single-developer prototype.
+
+---
+
+# Policy maturity
+
+A useful progression might be:
+
+```text
+Stage 1
+Documented rules
+
+        ↓
+
+Stage 2
+Machine-readable Policy
+
+        ↓
+
+Stage 3
+Local enforcement
+
+        ↓
+
+Stage 4
+Native-system projection
+
+        ↓
+
+Stage 5
+Reconciliation and drift detection
+
+        ↓
+
+Stage 6
+Graph-aware adaptive governance
+```
+
+Each stage should solve a demonstrated problem.
+
+---
+
+# The smallest useful policy system
+
+An initial implementation may need only:
+
+```text
+Actor identity
+
+Capability model
+
+Policy records
+
+Scope
+
+permit / deny decisions
+
+structured explanations
+
+execution enforcement
+
+Policy tests
+```
+
+It does not require a custom DSL, distributed Policy service, formal logic engine, or enterprise entitlement platform.
+
+---
+
+# Policy review checklist
+
+A Policy review should ask:
+
+1. What problem or risk does this Policy address?
+2. Which operation does it govern?
+3. Which Target does it govern?
+4. What is its Scope?
+5. Which Actors are affected?
+6. Which Authority makes the Policy legitimate?
+7. Under which conditions does it apply?
+8. What decision can it produce?
+9. What obligations can it produce?
+10. What Evidence can it require?
+11. How is it enforced?
+12. How is enforcement verified?
+13. What happens when enforcement is unavailable?
+14. Are exceptions permitted?
+15. How are exceptions recorded?
+16. How is the Policy versioned?
+17. How is historical interpretation preserved?
+18. Can lower-level configuration override it?
+19. Does it create unnecessary workflow friction?
+20. What Evidence would show the Policy is ineffective?
+
+---
+
+# Policy falsifiability
+
+Policies should be evaluated empirically where possible.
+
+For example:
+
+```text
+Hypothesis:
+two-person release approval reduces production incidents
+caused by unilateral release mistakes
+```
+
+Evidence might later show:
+
+```text
+no meaningful benefit
+
+significant delivery delay
+```
+
+That should create a legitimate reason to revise the Policy.
+
+Governance should not become immune to evidence.
+
+---
+
+# Policy effectiveness
+
+A Policy may be:
+
+```text
+correctly enforced
+```
+
+yet:
+
+```text
+ineffective
+```
+
+For example:
+
+```text
+Policy:
+all changes require approval
+
+Result:
+reviewers mechanically approve everything
+```
+
+The rule technically operates but fails its intended purpose.
+
+---
+
+# Governance metrics
+
+Useful Policy metrics might include:
+
+```text
+violations detected
+
+exceptions used
+
+average approval latency
+
+blocked operations
+
+false-positive blocks
+
+Policy drift incidents
+
+time to resolve Policy conflict
+```
+
+Metrics should inform governance.
+
+They should not become targets that encourage gaming.
+
+---
+
+# Policy failure modes
+
+Common failures include:
+
+## Policy hidden in code
+
+The rule cannot be inspected independently from implementation.
+
+## Policy without Authority
+
+Any configuration file can supposedly redefine critical governance.
+
+## Capability equals permission
+
+Actors can do anything their tools technically permit.
+
+## Global authority
+
+Authority granted for one Scope leaks into unrelated Scope.
+
+## Boolean-only decisions
+
+The system cannot express approval, obligations, or verification requirements.
+
+## Stale authorization
+
+An operation executes after its Policy assumptions changed.
+
+## Policy drift
+
+Native enforcement no longer matches intended governance.
+
+## Over-governance
+
+Routine low-risk work requires disproportionate ceremony.
+
+## Under-governance
+
+Critical change can occur with no inspectable authorization.
+
+## Hidden exceptions
+
+Administrators bypass rules without durable records.
+
+## AI privilege
+
+Agents receive broad tool access that silently becomes effective Authority.
+
+## Ambiguous precedence
+
+Conflicting Policies produce unpredictable outcomes.
+
+## Unverifiable enforcement
+
+The project cannot demonstrate that the rule is actually enforced.
+
+---
+
+# A practical example
+
+Consider an AI agent attempting to modify an approved Specification.
+
+The request may be:
+
+```text
+Actor:
+implementation-agent
+
+Operation:
+modify
+
+Target:
+SPEC-004
+
+Current state:
+approved
+
+Scope:
+Project Monad
+```
+
+Relevant Policy might state:
+
+```text
+Approved Specifications may not be modified directly.
+
+Changes require:
+- amendment proposal
+- authorized review
+- re-verification
+```
+
+The Policy Decision becomes:
+
+```text
+deny direct modification
+
+permit:
+create amendment proposal
+```
+
+The agent still contributes productively.
+
+The Policy directs it into the correct lifecycle rather than merely blocking it.
+
+---
+
+# Another example: release publication
+
+```text
+Actor:
+release automation
+
+Operation:
+publish
+
+Target:
+Release 0.5.0
+```
+
+Policy requirements:
+
+```text
+release-manager approval
+
+release verification = passed
+
+artifact provenance complete
+
+release candidate revision unchanged
+```
+
+If all conditions hold:
+
+```text
+permit
+```
+
+If approval is missing:
+
+```text
+approval-required
+```
+
+If verification refers to an earlier revision:
+
+```text
+verification-required
+```
+
+If the release is under freeze:
+
+```text
+deny
+```
+
+That is richer and more useful than a static role check.
+
+---
+
+# Another example: low-risk AI operation
+
+```text
+Actor:
+analysis-agent
+
+Operation:
+query
+
+Target:
+system graph
+
+Side effects:
+none
+```
+
+Policy may simply return:
+
+```text
+permit
+```
+
+This illustrates an important design goal:
+
+> Governance should become stricter as consequence increases, not indiscriminately constrain every interaction.
+
+---
+
+# Policy artifacts in the engineering record
+
+A mature Policy artifact should make clear:
+
+```text
+what the rule is
+
+why it exists
+
+where it applies
+
+who authorized it
+
+how it is evaluated
+
+how it is enforced
+
+how it is verified
+
+when it became effective
+
+what supersedes it
+```
+
+That makes governance part of engineering rather than administrative folklore.
+
+---
+
+# Policy artifact structure
+
+A substantial Policy might eventually contain:
+
+```text
+Policy Identity
+
+Title
+
+Status
+
+Version
+
+Purpose
+
+Rationale
+
+Authority
+
+Scope
+
+Actors
+
+Operations
+
+Targets
+
+Applicability
+
+Conditions
+
+Effect
+
+Obligations
+
+Exceptions
+
+Enforcement
+
+Verification
+
+Lifecycle
+
+Effective Period
+
+Provenance
+
+Related Requirements
+
+Related Decisions
+
+Related Evidence
+```
+
+The final canonical format belongs in the relevant Schema and Specification.
+
+---
+
+# Policies and Requirements
+
+[Requirements](/docs/artifacts/requirements) explain what governance capabilities are required.
+
+For example:
+
+```text
+REQ:
+High-impact operations must require explicit authorization.
+```
+
+A Policy implements that requirement for a particular Scope.
+
+---
+
+# Policies and Decisions
+
+[Architecture Decisions](/docs/artifacts/decisions) explain consequential governance choices.
+
+For example:
+
+```text
+Decision:
+AI execution must use capability-scoped authorization
+rather than unrestricted repository credentials.
+```
+
+Policies encode the operational consequence.
+
+---
+
+# Policies and Specifications
+
+[Specifications](/docs/artifacts/specifications) define the behavior of policy evaluation and enforcement.
+
+For example:
+
+```text
+Policy:
+production deploy requires approval
+
+Specification:
+Policy.evaluate must return
+approval-required when approval is absent.
+```
+
+The Policy defines the governing rule.
+
+The Specification defines system behavior around that rule.
+
+---
+
+# Policies and Models
+
+[Models](/docs/artifacts/models) define concepts such as:
+
+```text
+Actor
+
+Authority
+
+Capability
+
+Scope
+
+Lifecycle
+
+Evidence
+```
+
+Policies compose those concepts into governing rules.
+
+---
+
+# Policies and Schemas
+
+[Schemas](/docs/artifacts/schemas) define the valid structural representation of Policy artifacts.
+
+Schema validation can confirm:
+
+```text
+Policy has valid structure
+```
+
+It cannot independently establish:
+
+```text
+Policy is legitimate
+
+Policy has Authority
+
+Policy is effective
+```
+
+Those require the wider system.
+
+---
+
+# Policies and Experiments
+
+[Experiments](/docs/artifacts/experiments) may test whether a governance strategy is practical.
+
+Examples:
+
+```text
+Does two-stage approval meaningfully reduce release defects?
+
+Can graph-derived ownership identify reviewers accurately?
+
+Does work-scoped AI permission reduce accidental change?
+```
+
+Governance should improve through evidence, not assumption.
+
+---
+
+# Policies and Evidence
+
+[Evidence](/docs/artifacts/evidence) may support:
+
+```text
+Policy compliance
+
+Policy effectiveness
+
+authorization
+
+required verification
+
+native enforcement state
+```
+
+Evidence should remain tied to the relevant Scope and revision.
+
+---
+
+# Policies and Verification
+
+[Verification](/docs/artifacts/verification) tests whether:
+
+```text
+Policy evaluator behaves correctly
+
+enforcement points honor decisions
+
+native rules match canonical Policy
+
+required obligations execute
+
+forbidden operations remain blocked
+```
+
+Policy correctness should be verified like other critical system behavior.
+
+---
+
+# Policies and Reviews
+
+[Reviews](/docs/artifacts/reviews) may provide authorized human judgment required by Policy.
+
+A review can become part of the Evidence supporting an operation.
+
+---
+
+# Policies and Releases
+
+[Releases](/docs/artifacts/releases) frequently depend on Policy.
+
+Examples include:
+
+```text
+release approval
+
+verification gates
+
+versioning rules
+
+artifact signing
+
+publication authority
+
+rollback requirements
+```
+
+Release governance should remain explicit rather than being hidden in CI.
+
+---
+
+# Policies and Traceability
+
+[Traceability](/docs/artifacts/traceability) should make it possible to follow:
+
+```text
+Risk / Requirement
+        ↓
+Decision
+        ↓
+Policy
+        ↓
+Enforcement
+        ↓
+Verification
+        ↓
+Evidence
+```
+
+This allows a reviewer to determine not only that a rule exists, but why.
+
+---
+
+# Questions the Policy system must eventually answer
+
+The authoritative architecture must eventually resolve questions such as:
+
+```text
+What is the canonical Policy representation?
+
+How are Policies identified?
+
+How are Policy versions handled?
+
+How is Authority over Policy itself represented?
+
+What are the exact decision types?
+
+How are multiple Policies combined?
+
+What is the precedence model?
+
+How are exceptions represented?
+
+How are approvals represented?
+
+How long do authorization decisions remain valid?
+
+How are Policy obligations executed?
+
+How are Policy sets inherited?
+
+What happens offline?
+
+Which operations fail open or fail closed?
+
+How are native enforcement mechanisms reconciled?
+
+Which parts of Policy evaluation may use AI?
+
+How are graph-derived Policies bounded and explained?
+```
+
+Until decided, these should remain visible design questions rather than accidental implementation choices.
+
+---
+
+# Policy design principle
+
+Monad should resist both extremes:
+
+```text
+No explicit governance
+```
+
+and:
+
+```text
+Every trivial operation requires ceremony
+```
+
+The goal is proportional control.
+
+Governance should become strongest where:
+
+```text
+impact is high
+
+authority matters
+
+reversal is difficult
+
+evidence matters
+
+multiple Actors coordinate
+
+automation can cause significant change
+```
+
+---
+
+# The governing principle
+
+> **An Actor's ability to perform an operation must not be confused with legitimate permission to perform it.**
+
+Policies make that distinction operational.
+
+They connect:
+
+```text
+Authority
+
+Capability
+
+Context
+
+Risk
+
+Evidence
+
+Lifecycle
+
+Operation
+```
+
+to an explicit, inspectable decision about what may happen next.
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Experiments"
+    href="/docs/artifacts/experiments"
+  >
+    Examine controlled investigations used to test assumptions, architectures, mechanisms, and hypotheses.
+  </Card>
+
+<Card
+title="Schemas"
+href="/docs/artifacts/schemas"
+>
+Inspect the structural contracts used to encode machine-readable Policy and other artifacts.
+</Card>
+
+<Card
+title="Specifications"
+href="/docs/artifacts/specifications"
+>
+Explore the behavioral contracts that define how Policy evaluation and enforcement must operate.
+</Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+>
+See how Authority, Policy, lifecycle, approval, and governed change fit into the current Monad system.
+</Card>
+</Cards>
+
+---
+
+## Related artifact views
+
+<Cards>
+  <Card
+    title="Evidence"
+    href="/docs/artifacts/evidence"
+  >
+    Inspect the records that support authorization, verification, compliance, and Policy evaluation.
+  </Card>
+
+<Card
+title="Verification"
+href="/docs/artifacts/verification"
+>
+See how governance rules and enforcement mechanisms are tested.
+</Card>
+
+<Card
+title="Traceability"
+href="/docs/artifacts/traceability"
+>
+Follow Policies back to Requirements and Decisions and forward into enforcement and Evidence.
+</Card>
+
+<Card
+title="Artifacts Overview"
+href="/docs/artifacts"
+>
+Return to the complete inspectable engineering record.
+</Card>
+</Cards>

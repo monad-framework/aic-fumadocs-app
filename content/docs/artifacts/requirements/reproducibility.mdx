@@ -1,0 +1,2378 @@
+---
+title: Reproducibility Requirements
+description: The requirements governing Monad's ability to reconstruct, repeat, explain, compare, and independently verify consequential engineering operations and results from preserved inputs, environments, tools, configuration, provenance, and evidence.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-REPRO
+  </p>
+</div>
+
+# Reproducibility Requirements
+
+Software engineering repeatedly asks questions whose answers depend on conditions that may no longer exist:
+
+* Why did this build succeed?
+* Why did the same build fail today?
+* Which compiler produced this artifact?
+* Which configuration was active?
+* Which dependency graph was resolved?
+* Which source revision was used?
+* Which environment variables influenced the result?
+* Which AI model produced this output?
+* Can this benchmark be repeated?
+* Can this migration be reconstructed?
+* Can another engineer independently obtain the same result?
+* Can a release artifact be rebuilt?
+* Can an old verification result still be explained?
+* Can a failed operation be reproduced closely enough to diagnose it?
+
+Without sufficient context, engineering history degrades into anecdote.
+
+Monad should preserve enough information around consequential engineering activity that important results can be reconstructed, explained, compared, or deliberately declared non-reproducible.
+
+The governing question is:
+
+> **What must be preserved so that a future engineer can understand and, where required, recreate the conditions that produced an engineering result?**
+
+---
+
+# Reproducibility is not determinism
+
+These concepts overlap but are not identical.
+
+```text
+determinism
+    =
+same inputs
+→ same output
+```
+
+Reproducibility asks a broader question:
+
+```text
+can the relevant conditions
+be reconstructed sufficiently
+to evaluate the result again?
+```
+
+A nondeterministic system can still support meaningful reproducibility.
+
+For example, an AI generation may not reproduce byte-for-byte output, but its:
+
+* provider,
+* model,
+* prompt,
+* context,
+* parameters,
+* tools,
+* source revision,
+* and execution time
+
+can still be preserved sufficiently to explain and investigate the generation.
+
+---
+
+# Reproducibility is not portability
+
+Portability asks:
+
+> Can this state move?
+
+Reproducibility asks:
+
+> Can this result be recreated or independently evaluated?
+
+A project may be perfectly portable while its builds are irreproducible.
+
+A build may be reproducible while its underlying project state is difficult to migrate.
+
+Monad should support both without conflating them.
+
+---
+
+# Reproducibility is scoped
+
+No engineering result is simply:
+
+```text
+reproducible = true
+```
+
+without qualification.
+
+Reproducibility depends on:
+
+* the Subject,
+* revision,
+* operation,
+* environment,
+* dependency set,
+* configuration,
+* tooling,
+* external systems,
+* time,
+* platform,
+* architecture,
+* network state,
+* randomness,
+* mutable inputs,
+* and required equivalence level.
+
+A better statement is:
+
+```text
+Result R
+was reproduced
+for Revision X
+using Method M
+under Environment E
+within Equivalence Contract C.
+```
+
+---
+
+# Equivalence matters
+
+Reproducing something does not always require identical bytes.
+
+Different engineering operations need different equivalence criteria.
+
+Examples:
+
+```text
+build artifact
+→ byte-for-byte equality
+
+API behavior
+→ contract-equivalent responses
+
+benchmark
+→ statistically comparable distribution
+
+migration
+→ equivalent resulting data state
+
+AI generation
+→ equivalent task outcome or bounded evaluation score
+
+documentation build
+→ semantically equivalent rendered content
+
+dependency resolution
+→ identical lock graph
+```
+
+---
+
+## REQ-REPRO-001 — Every reproducibility Claim MUST identify the equivalence being asserted
+
+Examples include:
+
+* byte-identical,
+* semantically equivalent,
+* behaviorally equivalent,
+* structurally equivalent,
+* statistically equivalent,
+* functionally equivalent,
+* or otherwise explicitly defined.
+
+---
+
+# Core reproducibility model
+
+A reproducible engineering result can be reasoned about as:
+
+```text
+Inputs
+  +
+Source Revision
+  +
+Configuration
+  +
+Environment
+  +
+Dependencies
+  +
+Tools
+  +
+Policies
+  +
+External State
+  +
+Randomness / Seeds
+  +
+Execution Method
+        ↓
+Operation
+        ↓
+Observed Result
+        ↓
+Evidence
+```
+
+Monad does not need to capture every possible environmental fact.
+
+It should capture the facts required to explain or recreate results that matter.
+
+---
+
+# Foundational requirements
+
+## REQ-REPRO-002 — Consequential engineering operations SHOULD preserve sufficient provenance to explain how their results were produced
+
+---
+
+## REQ-REPRO-003 — Reproducibility metadata SHOULD bind to the exact Subject or revision involved
+
+---
+
+## REQ-REPRO-004 — Tool identity SHOULD be preserved where tool behavior can materially influence the result
+
+---
+
+## REQ-REPRO-005 — Tool version SHOULD be preserved where version differences can materially influence the result
+
+---
+
+## REQ-REPRO-006 — Configuration affecting a consequential result SHOULD be identifiable
+
+---
+
+## REQ-REPRO-007 — Dependencies affecting a consequential result SHOULD be identifiable to an appropriate resolution level
+
+---
+
+## REQ-REPRO-008 — Environment assumptions affecting a consequential result SHOULD be identifiable
+
+---
+
+## REQ-REPRO-009 — Reproducibility Claims MUST remain distinguishable from successful execution Claims
+
+A build completing once does not establish that the build is reproducible.
+
+---
+
+## REQ-REPRO-010 — Reproducibility Claims SHOULD be backed by inspectable Evidence
+
+---
+
+# Reproducibility levels
+
+Monad SHOULD support reasoning about progressively stronger forms of reproducibility.
+
+## Level 0 — Unrecorded
+
+The result exists, but its production context is unknown.
+
+```text
+artifact.zip
+```
+
+No reliable reconstruction is possible.
+
+---
+
+## Level 1 — Source known
+
+The source revision is known.
+
+```text
+commit:
+  abc123
+```
+
+---
+
+## Level 2 — Toolchain known
+
+Relevant tool versions are recorded.
+
+```text
+runtime
+compiler
+package manager
+build tool
+```
+
+---
+
+## Level 3 — Dependency state known
+
+Resolved dependency versions are preserved.
+
+---
+
+## Level 4 — Configuration known
+
+Relevant configuration and feature flags are preserved.
+
+---
+
+## Level 5 — Environment known
+
+Operating-system, architecture, environment, and external dependencies are sufficiently described.
+
+---
+
+## Level 6 — Procedure known
+
+The exact invocation or execution method is recorded.
+
+---
+
+## Level 7 — Independent repetition demonstrated
+
+Another execution reconstructs the conditions and produces an equivalent result.
+
+---
+
+## Level 8 — Hermetic or strongly controlled reproduction
+
+External variability is intentionally minimized or eliminated.
+
+---
+
+# Reproducibility requirement scope
+
+The `REQ-REPRO-*` family applies to:
+
+* builds,
+* tests,
+* verification,
+* benchmarks,
+* generated artifacts,
+* code generation,
+* schema generation,
+* dependency resolution,
+* migrations,
+* releases,
+* packaging,
+* deployment preparation,
+* data transformations,
+* simulations,
+* experiments,
+* static analysis,
+* security analysis,
+* documentation generation,
+* environment construction,
+* AI generations,
+* automated engineering decisions,
+* and other consequential operations.
+
+---
+
+# Source identity
+
+## REQ-REPRO-011 — Reproducible source-based operations MUST identify the source revision used
+
+---
+
+## REQ-REPRO-012 — A mutable branch name SHOULD NOT be sufficient as the sole source revision identifier for a reproducibility Claim
+
+For example:
+
+```text
+main
+```
+
+is insufficient by itself.
+
+Prefer an immutable revision identifier where available.
+
+---
+
+## REQ-REPRO-013 — Dirty or uncommitted working-tree state SHOULD be recorded when it affects the operation
+
+---
+
+## REQ-REPRO-014 — Generated or untracked input files SHOULD be represented when they affect a consequential result
+
+---
+
+## REQ-REPRO-015 — Submodule, nested repository, or external source revisions SHOULD be included when they materially affect the result
+
+---
+
+# Input capture
+
+## REQ-REPRO-016 — Inputs required to reproduce a consequential operation SHOULD be identifiable
+
+---
+
+## REQ-REPRO-017 — Inputs SHOULD be classified as immutable, versioned, mutable, derived, or external where useful
+
+---
+
+## REQ-REPRO-018 — Mutable external inputs SHOULD be captured or referenced with enough temporal or version information to identify what was used
+
+---
+
+## REQ-REPRO-019 — Derived inputs SHOULD preserve derivation provenance where reconstruction depends on them
+
+---
+
+## REQ-REPRO-020 — Missing reproducibility-critical inputs SHOULD be surfaced explicitly
+
+---
+
+# Configuration
+
+## REQ-REPRO-021 — Effective configuration SHOULD be reproducible where configuration materially affects the result
+
+This may differ from merely preserving configuration files.
+
+For example:
+
+```text
+base config
+  +
+project config
+  +
+environment overrides
+  +
+CLI flags
+  +
+policy overrides
+        ↓
+effective configuration
+```
+
+---
+
+## REQ-REPRO-022 — Configuration precedence SHOULD be documented where multiple sources may define the same value
+
+---
+
+## REQ-REPRO-023 — Invocation-specific overrides SHOULD be preserved where relevant
+
+---
+
+## REQ-REPRO-024 — Hidden global configuration SHOULD be minimized for reproducibility-critical operations
+
+---
+
+## REQ-REPRO-025 — Reproducibility records SHOULD distinguish configuration values from their sources
+
+---
+
+# Secrets
+
+Reproducibility must not become an excuse to persist credentials.
+
+## REQ-REPRO-026 — Secrets MUST NOT be captured in reproducibility records merely because they affected execution
+
+---
+
+## REQ-REPRO-027 — Secret references or secret identities MAY be recorded when required to explain execution context
+
+---
+
+## REQ-REPRO-028 — Reproducibility metadata SHOULD preserve the existence of a required secret without disclosing its value
+
+Example:
+
+```yaml
+required_secret:
+  name: PACKAGE_REGISTRY_TOKEN
+  value: redacted
+```
+
+---
+
+## REQ-REPRO-029 — Secret rotation SHOULD NOT invalidate historical reproducibility provenance
+
+It may prevent exact reenactment if the original external authorization can no longer be recreated.
+
+That limitation should remain explicit.
+
+---
+
+# Toolchain identity
+
+## REQ-REPRO-030 — Reproducibility-critical tools SHOULD have identifiable versions
+
+---
+
+## REQ-REPRO-031 — Tool identity SHOULD distinguish different implementations providing similar capabilities
+
+---
+
+## REQ-REPRO-032 — Wrapper scripts SHOULD preserve the underlying toolchain versions where relevant
+
+---
+
+## REQ-REPRO-033 — Plugin and extension versions SHOULD be recorded when they can materially change behavior
+
+---
+
+## REQ-REPRO-034 — Toolchain metadata SHOULD remain available with historical Evidence
+
+---
+
+# Runtime identity
+
+## REQ-REPRO-035 — Runtime version SHOULD be recorded when it can affect the result
+
+Examples:
+
+* JavaScript runtime,
+* Python runtime,
+* Rust compiler,
+* JVM,
+* .NET runtime,
+* system shell.
+
+---
+
+## REQ-REPRO-036 — Runtime architecture SHOULD be recorded when materially relevant
+
+Examples:
+
+```text
+x86_64
+arm64
+```
+
+---
+
+# Dependency resolution
+
+## REQ-REPRO-037 — Reproducibility-critical dependencies SHOULD resolve to stable versions or immutable identities
+
+---
+
+## REQ-REPRO-038 — Dependency lock information SHOULD be preserved where supported by the ecosystem
+
+---
+
+## REQ-REPRO-039 — Dependency manifests alone MUST NOT be assumed to represent the resolved dependency graph
+
+---
+
+## REQ-REPRO-040 — Mutable dependency selectors SHOULD be resolved before asserting strong reproducibility
+
+Examples:
+
+```text
+latest
+main
+nightly
+*
+>=1
+```
+
+---
+
+## REQ-REPRO-041 — Dependency provenance SHOULD be retained when origin materially affects trust or behavior
+
+---
+
+## REQ-REPRO-042 — Missing or withdrawn dependencies SHOULD be representable as reproducibility failures rather than silently replaced
+
+---
+
+# Dependency graph
+
+## REQ-REPRO-043 — Monad SHOULD be capable of associating a reproduced result with the dependency graph actually used
+
+---
+
+## REQ-REPRO-044 — Dependency graph changes SHOULD be detectable when comparing reproduction attempts
+
+---
+
+## REQ-REPRO-045 — Equivalent top-level manifests MUST NOT be assumed to imply equivalent transitive dependencies
+
+---
+
+# Operating system
+
+## REQ-REPRO-046 — Operating-system identity SHOULD be captured when materially relevant
+
+---
+
+## REQ-REPRO-047 — Operating-system version SHOULD be captured when materially relevant
+
+---
+
+## REQ-REPRO-048 — System-library versions SHOULD be captured when they materially influence the result
+
+---
+
+## REQ-REPRO-049 — Kernel version SHOULD be captured only where its behavior materially affects reproduction
+
+---
+
+# Hardware
+
+## REQ-REPRO-050 — Hardware characteristics SHOULD be captured when they materially affect the result
+
+Examples include:
+
+* architecture,
+* CPU class,
+* GPU model,
+* accelerator,
+* memory,
+* storage type.
+
+---
+
+## REQ-REPRO-051 — Hardware-dependent benchmarks SHOULD identify the hardware configuration used
+
+---
+
+## REQ-REPRO-052 — Hardware-dependent AI execution SHOULD preserve relevant accelerator metadata where it affects behavior or performance
+
+---
+
+# Environment variables
+
+## REQ-REPRO-053 — Environment variables affecting a result SHOULD be identifiable
+
+---
+
+## REQ-REPRO-054 — Environment capture MUST distinguish secret and non-secret variables
+
+---
+
+## REQ-REPRO-055 — Environment variables irrelevant to the operation SHOULD NOT be indiscriminately persisted
+
+Reproducibility should not become uncontrolled environment surveillance.
+
+---
+
+# Locale and timezone
+
+## REQ-REPRO-056 — Locale SHOULD be recorded when it can influence behavior
+
+---
+
+## REQ-REPRO-057 — Timezone SHOULD be recorded when it can influence behavior
+
+---
+
+## REQ-REPRO-058 — Reproducibility-sensitive operations SHOULD prefer unambiguous timestamps
+
+---
+
+# Time
+
+Time itself can be an input.
+
+## REQ-REPRO-059 — Operations whose behavior depends on wall-clock time SHOULD identify that dependency
+
+---
+
+## REQ-REPRO-060 — Time-sensitive external data SHOULD preserve observation time
+
+---
+
+## REQ-REPRO-061 — Historical reproduction SHOULD distinguish recreated execution time from original execution time
+
+---
+
+# Randomness
+
+## REQ-REPRO-062 — Random seeds SHOULD be captured where seeded randomness materially affects reproducibility
+
+---
+
+## REQ-REPRO-063 — Unseeded randomness SHOULD be identified when it prevents deterministic reproduction
+
+---
+
+## REQ-REPRO-064 — Cryptographic randomness SHOULD NOT be weakened solely to improve reproducibility
+
+---
+
+# Network dependencies
+
+## REQ-REPRO-065 — External network dependencies SHOULD be identified when they materially affect a result
+
+---
+
+## REQ-REPRO-066 — Mutable network resources SHOULD be versioned, cached, snapshotted, or otherwise identified where strong reproduction is required
+
+---
+
+## REQ-REPRO-067 — A successful historical network request MUST NOT imply the same external state remains available
+
+---
+
+# External services
+
+## REQ-REPRO-068 — External-service versions or API revisions SHOULD be recorded when their behavior materially affects the result
+
+---
+
+## REQ-REPRO-069 — External service responses MAY need to be captured where exact replay is required and policy permits
+
+---
+
+## REQ-REPRO-070 — Unavailable external services SHOULD result in an explicit reproduction limitation
+
+---
+
+# Containers and virtualized environments
+
+## REQ-REPRO-071 — Container identity MAY be used as part of reproducibility context
+
+---
+
+## REQ-REPRO-072 — Mutable container tags SHOULD NOT be treated as immutable environment identity
+
+For example:
+
+```text
+ubuntu:latest
+```
+
+is weaker than an immutable digest.
+
+---
+
+## REQ-REPRO-073 — Container digests SHOULD be preferred when byte-identical environment identity is required
+
+---
+
+## REQ-REPRO-074 — Containerization MUST NOT be treated as proof of reproducibility by itself
+
+The container may still depend on:
+
+* mutable network services,
+* external volumes,
+* host behavior,
+* secrets,
+* time,
+* runtime state.
+
+---
+
+# Nix and declarative environments
+
+## REQ-REPRO-075 — Declarative environment definitions MAY serve as reproducibility Evidence
+
+---
+
+## REQ-REPRO-076 — Declarative environment definition MUST remain distinguishable from evidence that the environment was actually instantiated
+
+---
+
+## REQ-REPRO-077 — Reproducibility metadata SHOULD identify the specific environment definition revision used
+
+---
+
+# Build reproducibility
+
+## REQ-REPRO-078 — Build reproducibility SHOULD identify source, dependency, toolchain, configuration, and environment state sufficient for the declared equivalence
+
+---
+
+## REQ-REPRO-079 — Byte-reproducible build Claims MUST compare produced artifact digests
+
+---
+
+## REQ-REPRO-080 — Non-byte-identical builds MAY still satisfy a weaker documented reproducibility contract
+
+---
+
+## REQ-REPRO-081 — Build metadata that intentionally varies SHOULD be normalized or excluded only when the reproducibility specification permits it
+
+Examples:
+
+* timestamps,
+* temporary paths,
+* build IDs,
+* nondeterministic archive ordering.
+
+---
+
+# Generated code
+
+## REQ-REPRO-082 — Generated source SHOULD identify the generator and generator version where consequential
+
+---
+
+## REQ-REPRO-083 — Generator inputs SHOULD be identifiable
+
+---
+
+## REQ-REPRO-084 — Generated output SHOULD be reproducible where it is treated as deterministic derived state
+
+---
+
+## REQ-REPRO-085 — Generated output MUST NOT silently become canonical merely because it can be reproduced
+
+---
+
+# Generated documentation
+
+## REQ-REPRO-086 — Documentation generation SHOULD preserve relevant source and toolchain revisions
+
+---
+
+## REQ-REPRO-087 — Documentation projections SHOULD be reproducible from their authoritative sources where practical
+
+---
+
+# Tests
+
+## REQ-REPRO-088 — Test results SHOULD identify the revision and test definition executed
+
+---
+
+## REQ-REPRO-089 — Test environment SHOULD be recorded where environment differences can change outcome
+
+---
+
+## REQ-REPRO-090 — Test data SHOULD be versioned or identifiable where materially relevant
+
+---
+
+## REQ-REPRO-091 — Flaky tests SHOULD NOT be represented as deterministically reproducible
+
+---
+
+## REQ-REPRO-092 — Repeated test results SHOULD preserve individual run identity
+
+---
+
+# Verification
+
+## REQ-REPRO-093 — Verification results SHOULD preserve enough execution context to support independent re-verification where required
+
+---
+
+## REQ-REPRO-094 — Reproducing a Verification result MUST distinguish rerunning the method from reusing historical Evidence
+
+---
+
+## REQ-REPRO-095 — A reproduced Verification SHOULD create a new Verification run rather than overwrite the historical one
+
+---
+
+## REQ-REPRO-096 — Conflicting reproduction results SHOULD be preserved for investigation
+
+---
+
+# Benchmarks
+
+## REQ-REPRO-097 — Benchmark results MUST identify workload, environment, toolchain, dataset, and measurement method sufficient for interpretation
+
+---
+
+## REQ-REPRO-098 — Benchmark reproduction SHOULD account for warmup, caching, concurrency, and sampling where relevant
+
+---
+
+## REQ-REPRO-099 — Benchmark comparisons SHOULD NOT imply equivalence when environment conditions materially differ
+
+---
+
+## REQ-REPRO-100 — Statistical benchmarks SHOULD preserve sample size and distribution information where useful
+
+---
+
+# Experiments
+
+## REQ-REPRO-101 — Experiments SHOULD preserve enough procedure and input information to permit repetition where practical
+
+---
+
+## REQ-REPRO-102 — Experimental Evidence SHOULD identify environment and implementation revision
+
+---
+
+## REQ-REPRO-103 — Repeated experiments SHOULD preserve both the original and repeated results
+
+---
+
+## REQ-REPRO-104 — Failed reproduction SHOULD be treated as Evidence rather than discarded
+
+---
+
+# Migrations
+
+## REQ-REPRO-105 — Consequential migrations SHOULD preserve the source revision, target revision, migration implementation, configuration, and input-state identity
+
+---
+
+## REQ-REPRO-106 — Migration verification SHOULD be reproducible where practical
+
+---
+
+## REQ-REPRO-107 — Migration dry-runs SHOULD preserve execution context when used as Evidence
+
+---
+
+## REQ-REPRO-108 — Reproducing a destructive migration SHOULD be performed against a safe reconstructed environment rather than historical production state
+
+---
+
+# Release reproducibility
+
+## REQ-REPRO-109 — Releases SHOULD preserve enough build provenance to identify how release artifacts were created
+
+---
+
+## REQ-REPRO-110 — A reproducible-release Claim SHOULD identify the exact artifacts being compared
+
+---
+
+## REQ-REPRO-111 — Release artifacts SHOULD have immutable digests where practical
+
+---
+
+## REQ-REPRO-112 — Rebuilding a release SHOULD create Evidence comparing reconstructed artifacts with published artifacts
+
+---
+
+## REQ-REPRO-113 — Failure to reproduce a Release SHOULD NOT silently invalidate the historical Release record
+
+It creates a new assurance concern.
+
+---
+
+# Packaging
+
+## REQ-REPRO-114 — Package generation SHOULD preserve package-manager and packaging-tool versions where relevant
+
+---
+
+## REQ-REPRO-115 — Package metadata intentionally containing timestamps or environment-specific values SHOULD be governed by the declared reproducibility contract
+
+---
+
+# Static analysis
+
+## REQ-REPRO-116 — Static-analysis results SHOULD identify tool version, ruleset, configuration, and source revision
+
+---
+
+## REQ-REPRO-117 — Re-running static analysis with a newer ruleset SHOULD create a new result rather than reinterpret the historical result
+
+---
+
+# Security scanning
+
+## REQ-REPRO-118 — Security-scan Evidence SHOULD preserve scanner version and rules/database revision where available
+
+---
+
+## REQ-REPRO-119 — Reproducing a vulnerability scan SHOULD distinguish historical vulnerability intelligence from current intelligence
+
+A source revision may be unchanged while the vulnerability database evolves.
+
+---
+
+# AI reproducibility
+
+AI introduces a special class of reproducibility problems.
+
+The output may depend on:
+
+* provider,
+* model family,
+* model snapshot,
+* system instructions,
+* user prompt,
+* hidden platform behavior,
+* context,
+* retrieval results,
+* tools,
+* tool results,
+* temperature,
+* sampling configuration,
+* random state,
+* provider updates,
+* safety systems,
+* time,
+* and external information.
+
+Exact reproduction may be impossible.
+
+That does not justify abandoning provenance.
+
+---
+
+## REQ-REPRO-120 — Consequential AI-generated outputs SHOULD preserve the identity of the producing AI Actor
+
+---
+
+## REQ-REPRO-121 — AI provider SHOULD be preserved where relevant
+
+---
+
+## REQ-REPRO-122 — AI model identity SHOULD be preserved where available
+
+---
+
+## REQ-REPRO-123 — Model version or snapshot SHOULD be preserved where available
+
+---
+
+## REQ-REPRO-124 — Prompt material influencing consequential output SHOULD be preserved or durably referenceable where policy permits
+
+---
+
+## REQ-REPRO-125 — Retrieved context materially influencing AI output SHOULD be identifiable where practical
+
+---
+
+## REQ-REPRO-126 — Tool calls materially influencing AI output SHOULD be represented in provenance where appropriate
+
+---
+
+## REQ-REPRO-127 — Tool results materially influencing AI output SHOULD be represented or referenceable where appropriate
+
+---
+
+## REQ-REPRO-128 — AI sampling parameters SHOULD be captured where exposed and materially relevant
+
+---
+
+## REQ-REPRO-129 — AI output MUST NOT be described as exactly reproducible when provider behavior does not support that Claim
+
+---
+
+## REQ-REPRO-130 — AI reproducibility SHOULD support weaker equivalence contracts where exact textual reproduction is unrealistic
+
+Potential contracts include:
+
+* same structured schema,
+* same factual answer set,
+* same acceptance-test result,
+* equivalent code behavior,
+* same classification,
+* bounded quality score.
+
+---
+
+# AI context reconstruction
+
+## REQ-REPRO-131 — Monad SHOULD preserve enough context provenance to explain why consequential AI output was produced
+
+---
+
+## REQ-REPRO-132 — Reconstructed AI context SHOULD distinguish original context from newly retrieved current context
+
+---
+
+## REQ-REPRO-133 — Historical AI outputs SHOULD NOT be silently reevaluated as though produced with current context
+
+---
+
+# AI evaluation reproducibility
+
+## REQ-REPRO-134 — AI evaluation results SHOULD identify the evaluator, evaluation method, dataset, rubric, and model where applicable
+
+---
+
+## REQ-REPRO-135 — LLM-as-judge results SHOULD preserve judge model provenance
+
+---
+
+## REQ-REPRO-136 — Probabilistic evaluation SHOULD preserve repeated samples where statistical interpretation matters
+
+---
+
+# Human operations
+
+Not every engineering action is machine-generated.
+
+## REQ-REPRO-137 — Human decisions SHOULD preserve rationale and Evidence rather than attempting to reproduce human cognition
+
+---
+
+## REQ-REPRO-138 — Human review reproducibility SHOULD focus on reconstructing the reviewed state, criteria, Evidence, and finding rationale
+
+---
+
+## REQ-REPRO-139 — Re-review SHOULD create a new Review rather than pretending the human judgment itself is deterministic
+
+---
+
+# Reproducibility records
+
+A conceptual reproducibility record might contain:
+
+```yaml
+reproduction:
+  id: REPRO-0042
+
+  subject:
+    id: BUILD-0017
+
+  source_revision:
+    commit: abc123
+
+  operation:
+    command: bun run build
+
+  environment:
+    os: linux
+    architecture: x86_64
+
+  tools:
+    bun: 1.x
+    node: 24.x
+
+  dependencies:
+    lock_digest: sha256:...
+
+  configuration:
+    profile: release
+
+  result:
+    artifact_digest: sha256:...
+
+  equivalence:
+    type: byte-identical
+
+  evidence:
+    - EVD-0182
+```
+
+The exact schema belongs in a later Specification.
+
+---
+
+# Reproduction attempts
+
+## REQ-REPRO-140 — Each reproduction attempt SHOULD have independent identity
+
+---
+
+## REQ-REPRO-141 — Reproduction attempts SHOULD reference the original result being reproduced
+
+---
+
+## REQ-REPRO-142 — Reproduction attempts SHOULD preserve their own execution environment
+
+---
+
+## REQ-REPRO-143 — Reproduction attempts SHOULD record success, failure, partial equivalence, or inconclusive outcome explicitly
+
+---
+
+# Reproduction outcomes
+
+A useful conceptual vocabulary may include:
+
+```text
+reproduced
+partially reproduced
+not reproduced
+blocked
+inconclusive
+not attempted
+```
+
+The exact vocabulary remains a specification concern.
+
+---
+
+## REQ-REPRO-144 — `blocked` MUST remain distinguishable from `not reproduced`
+
+---
+
+## REQ-REPRO-145 — `inconclusive` MUST remain distinguishable from successful reproduction
+
+---
+
+## REQ-REPRO-146 — Partial reproduction SHOULD identify which equivalence criteria were satisfied
+
+---
+
+# Evidence
+
+## REQ-REPRO-147 — Reproducibility Evidence SHOULD include the comparison used to determine equivalence
+
+---
+
+## REQ-REPRO-148 — Reproduction Evidence SHOULD preserve both original and reproduced result identities
+
+---
+
+## REQ-REPRO-149 — Reproduction Evidence SHOULD remain inspectable after the original execution environment disappears
+
+---
+
+# Provenance
+
+## REQ-REPRO-150 — Reproduction provenance SHOULD identify who or what initiated the reproduction
+
+---
+
+## REQ-REPRO-151 — Producer identity SHOULD remain distinct from Subject identity
+
+---
+
+## REQ-REPRO-152 — Derived Evidence SHOULD preserve its derivation chain where consequential
+
+---
+
+# Caching
+
+Caches improve performance but can hide reproducibility dependencies.
+
+## REQ-REPRO-153 — Cache use SHOULD be observable when it can materially affect reproduction
+
+---
+
+## REQ-REPRO-154 — Cache keys SHOULD incorporate all inputs required by the cache's correctness contract
+
+---
+
+## REQ-REPRO-155 — Cached output SHOULD retain enough provenance to explain the inputs from which it was derived
+
+---
+
+## REQ-REPRO-156 — Cache hits MUST NOT be interpreted as independent reproduction Evidence unless the verification method explicitly permits it
+
+---
+
+# Remote caches
+
+## REQ-REPRO-157 — Remote cache identity SHOULD be distinct from artifact identity
+
+---
+
+## REQ-REPRO-158 — Loss of a remote cache SHOULD affect performance rather than semantic project correctness where feasible
+
+---
+
+## REQ-REPRO-159 — Cached artifacts used as release inputs SHOULD have verifiable integrity
+
+---
+
+# Incrementality
+
+## REQ-REPRO-160 — Incremental execution SHOULD preserve enough dependency information to explain why work was or was not rerun
+
+---
+
+## REQ-REPRO-161 — Incremental state SHOULD NOT be the sole durable record required to reproduce a result
+
+---
+
+## REQ-REPRO-162 — A clean execution SHOULD be available as a stronger reproduction check where practical
+
+---
+
+# Clean-room reproduction
+
+## REQ-REPRO-163 — High-assurance reproducibility SHOULD support reproduction in a clean environment
+
+---
+
+## REQ-REPRO-164 — Clean reproduction SHOULD avoid accidentally reusing undeclared local state
+
+---
+
+## REQ-REPRO-165 — Differences between clean and incremental execution SHOULD be diagnosable
+
+---
+
+# Hermeticity
+
+Hermetic execution is stronger than general reproducibility.
+
+It attempts to control all relevant inputs.
+
+## REQ-REPRO-166 — Monad MAY support hermetic execution where required
+
+---
+
+## REQ-REPRO-167 — Hermetic execution MUST NOT be required universally merely for architectural purity
+
+---
+
+## REQ-REPRO-168 — The cost of hermeticity SHOULD be justified by the engineering consequence
+
+---
+
+# Reproducibility and local-first operation
+
+## REQ-REPRO-169 — Reproduction metadata SHOULD be locally inspectable where practical
+
+---
+
+## REQ-REPRO-170 — Historical reproduction records SHOULD remain useful when remote services are unavailable
+
+---
+
+## REQ-REPRO-171 — Remote unavailability SHOULD be represented as a reproduction limitation rather than fabricated state
+
+---
+
+# Reproducibility and portability
+
+## REQ-REPRO-172 — Portable exports SHOULD preserve reproducibility-critical metadata when included in scope
+
+---
+
+## REQ-REPRO-173 — Export/import round trips SHOULD preserve original execution provenance
+
+---
+
+## REQ-REPRO-174 — Import time MUST NOT replace original execution time
+
+---
+
+# Reproducibility and traceability
+
+## REQ-REPRO-175 — Reproducibility records SHOULD be traceable to the engineering Claims they support
+
+---
+
+## REQ-REPRO-176 — Reproduced artifacts SHOULD remain traceable to their source revision and operation
+
+---
+
+## REQ-REPRO-177 — Reproduction failures SHOULD be traceable to follow-up work where consequential
+
+---
+
+# Reproducibility and authority
+
+## REQ-REPRO-178 — Successfully reproducing an operation MUST NOT automatically grant authority to publish, deploy, approve, or release its result
+
+---
+
+## REQ-REPRO-179 — Reproduction Evidence MAY satisfy governance obligations when explicitly required by policy
+
+---
+
+# Reproducibility and policy
+
+## REQ-REPRO-180 — Policy MAY require stronger reproducibility for higher-risk operations
+
+---
+
+## REQ-REPRO-181 — Policy SHOULD identify which reproducibility level or Evidence is required where reproduction is a gate
+
+---
+
+## REQ-REPRO-182 — A waived reproducibility requirement MUST remain distinguishable from successful reproduction
+
+---
+
+# Reproducibility and releases
+
+A high-assurance release flow may eventually resemble:
+
+```text
+source revision
+      ↓
+controlled build
+      ↓
+artifact A
+      ↓
+independent rebuild
+      ↓
+artifact B
+      ↓
+equivalence comparison
+      ↓
+Evidence
+      ↓
+release approval
+```
+
+---
+
+## REQ-REPRO-183 — Reproducible-build Evidence SHOULD bind to the Release candidate being evaluated
+
+---
+
+## REQ-REPRO-184 — Changing the candidate revision SHOULD invalidate candidate-specific reproduction Evidence unless equivalence is otherwise established
+
+---
+
+# Historical reproducibility
+
+## REQ-REPRO-185 — Historical reproduction records SHOULD remain immutable as records of what occurred
+
+---
+
+## REQ-REPRO-186 — New reproduction attempts SHOULD supplement rather than overwrite historical attempts
+
+---
+
+## REQ-REPRO-187 — Changes to tools or environments SHOULD not retroactively rewrite historical reproduction outcomes
+
+---
+
+# Freshness
+
+## REQ-REPRO-188 — Reproducibility Evidence SHOULD carry enough revision information to determine whether it applies to the current Subject state
+
+---
+
+## REQ-REPRO-189 — Historical successful reproduction MUST NOT automatically imply current reproducibility after relevant inputs change
+
+---
+
+## REQ-REPRO-190 — Monad SHOULD be able to identify stale reproducibility Evidence where dependency relationships are known
+
+---
+
+# Failure modes
+
+## REQ-REPRO-191 — Reproduction failures SHOULD preserve diagnostics
+
+---
+
+## REQ-REPRO-192 — Monad SHOULD distinguish failures caused by unavailable inputs from failures caused by non-equivalent output
+
+---
+
+## REQ-REPRO-193 — Missing tools SHOULD be distinguishable from incorrect tools
+
+---
+
+## REQ-REPRO-194 — Missing dependency artifacts SHOULD be distinguishable from dependency resolution drift
+
+---
+
+## REQ-REPRO-195 — Environmental mismatch SHOULD be identifiable where detected
+
+---
+
+# Reproduction diagnostics
+
+Useful differences may include:
+
+```text
+source mismatch
+tool mismatch
+dependency mismatch
+configuration mismatch
+environment mismatch
+external-state mismatch
+randomness mismatch
+artifact mismatch
+behavior mismatch
+unknown mismatch
+```
+
+---
+
+## REQ-REPRO-196 — Reproduction comparison SHOULD surface material environmental differences where practical
+
+---
+
+# Deterministic identifiers
+
+## REQ-REPRO-197 — Deterministic identifiers MAY be used for immutable derived artifacts when their semantics support it
+
+---
+
+## REQ-REPRO-198 — Semantic Subject identity MUST NOT be reduced to content digest solely to make reproducibility convenient
+
+---
+
+# Timestamps
+
+Timestamps frequently break byte-identical builds.
+
+## REQ-REPRO-199 — Reproducibility-critical generation SHOULD control or normalize timestamps when allowed by the relevant Specification
+
+---
+
+## REQ-REPRO-200 — Historical event timestamps MUST NOT be falsified merely to make records byte-identical
+
+---
+
+# Filesystem paths
+
+## REQ-REPRO-201 — Build outputs SHOULD avoid embedding machine-specific absolute paths where they are not semantically required
+
+---
+
+## REQ-REPRO-202 — If paths materially affect output, path assumptions SHOULD be represented in reproduction context
+
+---
+
+# Ordering
+
+## REQ-REPRO-203 — Nondeterministic collection ordering SHOULD be normalized where deterministic output is required
+
+---
+
+## REQ-REPRO-204 — Canonical ordering SHOULD be specified rather than accidentally depending on runtime implementation details
+
+---
+
+# Concurrency
+
+## REQ-REPRO-205 — Concurrency-sensitive operations SHOULD identify concurrency configuration where it can affect results
+
+---
+
+## REQ-REPRO-206 — Race-dependent failures SHOULD preserve enough execution context to support investigation even when exact reproduction is difficult
+
+---
+
+# Distributed systems
+
+## REQ-REPRO-207 — Distributed-operation reproduction SHOULD identify participating systems and relevant versions where practical
+
+---
+
+## REQ-REPRO-208 — Exact replay SHOULD NOT be required where distributed external state makes it infeasible unless the requirement explicitly demands it
+
+---
+
+## REQ-REPRO-209 — Distributed nondeterminism SHOULD be acknowledged rather than hidden behind a binary reproducibility label
+
+---
+
+# Data
+
+## REQ-REPRO-210 — Reproducibility-critical datasets SHOULD have stable identities or snapshots
+
+---
+
+## REQ-REPRO-211 — Dataset version SHOULD be preserved for experiments and benchmarks
+
+---
+
+## REQ-REPRO-212 — Sensitive datasets MAY be referenced rather than copied when policy requires
+
+---
+
+## REQ-REPRO-213 — Reproduction limitations caused by unavailable protected data SHOULD remain explicit
+
+---
+
+# Database state
+
+## REQ-REPRO-214 — Operations depending on database contents SHOULD identify the relevant database state or fixture when reproduction is required
+
+---
+
+## REQ-REPRO-215 — Production database snapshots SHOULD NOT be copied for reproduction without appropriate security and privacy controls
+
+---
+
+## REQ-REPRO-216 — Synthetic or sanitized fixtures MAY substitute for production state when the equivalence contract permits it
+
+---
+
+# Fixtures
+
+## REQ-REPRO-217 — Test and experiment fixtures SHOULD have stable identities where they materially affect results
+
+---
+
+## REQ-REPRO-218 — Fixture changes SHOULD invalidate reproduction Evidence dependent on the prior fixture version
+
+---
+
+# Reproducibility manifests
+
+Monad MAY eventually represent execution context through a manifest.
+
+Illustratively:
+
+```yaml
+reproducibility:
+  source:
+    repository: monad-framework/monad
+    revision: abc123
+
+  operation:
+    command:
+      - bun
+      - run
+      - build
+
+  environment:
+    platform: linux
+    architecture: x86_64
+
+  tools:
+    bun: 1.2.3
+
+  dependencies:
+    lockfile_digest: sha256:...
+
+  configuration:
+    profile: production
+
+  external_inputs:
+    - type: schema-registry
+      revision: "42"
+
+  result:
+    digest: sha256:...
+```
+
+This page does not establish that format.
+
+---
+
+# Minimal reproduction record
+
+The minimum useful record for many operations is:
+
+```text
+Subject
++
+source revision
++
+operation
++
+toolchain
++
+dependency state
++
+effective configuration
++
+environment
++
+result identity
++
+time
++
+provenance
+```
+
+---
+
+# Reproducibility anti-patterns
+
+## “Works on my machine”
+
+The machine contains undeclared dependencies.
+
+---
+
+## Branch-name provenance
+
+```text
+built from main
+```
+
+without the immutable revision.
+
+---
+
+## Package manifest without lock state
+
+Declared ranges are mistaken for resolved dependencies.
+
+---
+
+## Container means reproducible
+
+Mutable images and external dependencies remain uncontrolled.
+
+---
+
+## Toolchain assumed
+
+The compiler or runtime version is nowhere recorded.
+
+---
+
+## CI is the environment specification
+
+The build can only be reconstructed by reading an evolving CI implementation.
+
+---
+
+## Logs are enough
+
+Logs describe some events but omit critical inputs.
+
+---
+
+## Cache equals reproduction
+
+A prior artifact is returned from cache and treated as an independent rebuild.
+
+---
+
+## Re-run overwrites history
+
+The previous result disappears.
+
+---
+
+## Exact AI reproduction promised
+
+A probabilistic external model is treated as deterministic.
+
+---
+
+## Prompt only
+
+An AI prompt is preserved but retrieval context, tools, model, and provider state are lost.
+
+---
+
+## Secrets captured wholesale
+
+Reproducibility becomes a credential leak.
+
+---
+
+## Production snapshot everywhere
+
+Sensitive real-world state is copied merely for convenience.
+
+---
+
+## Byte identity everywhere
+
+Expensive deterministic guarantees are imposed where behavioral equivalence would be sufficient.
+
+---
+
+## Behavioral equivalence everywhere
+
+Weak equivalence hides artifact-level nondeterminism where exact builds matter.
+
+---
+
+## Current tools reinterpret history
+
+A new analyzer is run and its results are substituted for the historical analyzer result.
+
+---
+
+## Reproduction success means correctness
+
+The same defect is recreated perfectly.
+
+---
+
+## Reproducible means verified
+
+A repeatable system can still violate its Specification.
+
+---
+
+# Reproducibility invariants
+
+```text
+Reproducible ≠ Correct
+
+Reproducible ≠ Verified
+
+Reproducible ≠ Approved
+
+Reproducible ≠ Authorized
+
+Reproducible ≠ Portable
+
+Reproducible ≠ Deterministic
+
+Deterministic ≠ Correct
+
+Same source ≠ Same build
+
+Same manifest ≠ Same dependency graph
+
+Same command ≠ Same environment
+
+Same environment ≠ Same external state
+
+Same model name ≠ Same AI behavior
+
+Same prompt ≠ Same AI context
+
+Same test ≠ Same test run
+
+Same benchmark ≠ Comparable benchmark
+
+Historical reproduction ≠ Current reproduction
+
+Cached artifact ≠ Independent reproduction
+
+Container tag ≠ Immutable environment
+
+Digest match ≠ Semantic correctness
+
+Byte difference ≠ Behavioral difference
+
+Behavioral equivalence ≠ Byte identity
+
+Re-run ≠ Historical run
+
+Waived ≠ Reproduced
+
+Blocked ≠ Failed reproduction
+
+Inconclusive ≠ Reproduced
+
+Unavailable dependency ≠ Output mismatch
+
+Producer ≠ Subject
+
+Configuration file ≠ Effective configuration
+
+Declared environment ≠ Observed environment
+
+Environment definition ≠ Instantiated environment
+
+Source revision ≠ Working-tree state
+
+Reproduction Evidence ≠ Original Evidence
+
+Reproduction attempt ≠ Verification result
+```
+
+---
+
+# Reproduction example: build
+
+Original:
+
+```text
+Source: abc123
+Bun: 1.2.3
+Lockfile: sha256:111...
+OS: Linux
+Command: bun run build
+Artifact: sha256:999...
+```
+
+Independent reproduction:
+
+```text
+Source: abc123
+Bun: 1.2.3
+Lockfile: sha256:111...
+OS: Linux
+Command: bun run build
+Artifact: sha256:999...
+```
+
+If the contract requires byte equality:
+
+```text
+sha256:999... == sha256:999...
+```
+
+supports the Claim that the artifact was reproduced.
+
+It does not prove that the artifact is correct.
+
+---
+
+# Reproduction example: test
+
+Original:
+
+```text
+Revision: abc123
+Test suite: TESTSET-42
+Environment: Linux
+Result: PASS
+```
+
+Reproduction:
+
+```text
+Revision: abc123
+Test suite: TESTSET-42
+Environment: Linux
+Result: PASS
+```
+
+The repeated result strengthens confidence in reproducibility.
+
+The actual Verification Claim still depends on what those tests establish.
+
+---
+
+# Reproduction example: benchmark
+
+Original:
+
+```text
+Median: 85 ms
+P95: 102 ms
+CPU: X
+Dataset: D42
+Samples: 1000
+```
+
+Reproduction:
+
+```text
+Median: 87 ms
+P95: 104 ms
+CPU: X
+Dataset: D42
+Samples: 1000
+```
+
+The values are not identical.
+
+They may still satisfy a statistical equivalence requirement.
+
+---
+
+# Reproduction example: AI generation
+
+Original:
+
+```text
+Provider: Provider A
+Model: Model X
+Prompt: P
+Context: C
+Tools: T
+Output: O1
+```
+
+Repeated:
+
+```text
+Provider: Provider A
+Model: Model X
+Prompt: P
+Context: C
+Tools: T
+Output: O2
+```
+
+If:
+
+```text
+O1 != O2
+```
+
+textually, both outputs may still satisfy:
+
+```text
+same structured contract
++
+same acceptance tests
++
+same engineering intent
+```
+
+That is a weaker but potentially useful reproducibility contract.
+
+---
+
+# Reproduction example: migration
+
+Original migration:
+
+```text
+Input snapshot: S1
+Migration: M42
+Tool version: V1
+Output state digest: D1
+```
+
+Safe reproduction:
+
+```text
+restore S1
+run M42 with V1
+compare resulting state against D1
+```
+
+The reproduction should not target the historical production system.
+
+---
+
+# Reproduction example: static analysis
+
+Historical scan:
+
+```text
+Revision: abc123
+Analyzer: 3.4
+Ruleset: 2026-01
+Findings: 7
+```
+
+Current scan:
+
+```text
+Revision: abc123
+Analyzer: 4.0
+Ruleset: 2026-08
+Findings: 12
+```
+
+These are not contradictory reproductions of the same operation.
+
+The analysis environment changed.
+
+Both results can be valid within their respective contexts.
+
+---
+
+# Reproducibility diagnostics example
+
+Suppose reproduction fails.
+
+Monad should ideally make visible something like:
+
+```text
+Original                    Reproduction
+
+source abc123        ==      abc123
+runtime 1.2.3        ==      1.2.3
+lock digest A        !=      lock digest B
+OS linux             ==      linux
+config release       ==      release
+artifact digest X    !=      artifact digest Y
+```
+
+The first useful conclusion is not:
+
+```text
+reproducibility broken
+```
+
+but:
+
+```text
+dependency state differs
+```
+
+---
+
+# Reproducibility quality
+
+A high-quality reproducibility record is:
+
+* scoped,
+* revision-aware,
+* environment-aware,
+* dependency-aware,
+* configuration-aware,
+* tool-aware,
+* explicit about equivalence,
+* evidence-backed,
+* security-conscious,
+* historically preserved,
+* and honest about uncertainty.
+
+---
+
+# Risk-proportional reproducibility
+
+Not every operation deserves a hermetic reconstruction system.
+
+A useful progression is:
+
+```text
+low consequence
+→ source + basic tool provenance
+
+moderate consequence
+→ locked dependencies + environment + configuration
+
+high consequence
+→ controlled environment + independent rerun
+
+critical consequence
+→ strongly controlled or independently reproducible process
+```
+
+---
+
+## REQ-REPRO-219 — Reproducibility rigor SHOULD be proportional to engineering consequence
+
+---
+
+## REQ-REPRO-220 — Monad SHOULD NOT require expensive reproducibility controls where they produce little decision value
+
+---
+
+# Reproducibility economy
+
+Capturing everything is not automatically better.
+
+The objective is:
+
+> preserve enough context to answer consequential future questions without turning every execution into an exhaustive forensic snapshot.
+
+Prefer recording information that materially affects:
+
+* equivalence,
+* diagnosis,
+* verification,
+* release confidence,
+* auditability,
+* or future engineering decisions.
+
+---
+
+# Reproducibility review checklist
+
+Before calling an engineering result reproducible, ask:
+
+1. What exactly is being reproduced?
+2. What Subject does the result concern?
+3. Which revision?
+4. Is the working tree clean?
+5. Are uncommitted changes relevant?
+6. Are generated inputs involved?
+7. What are the source inputs?
+8. Which inputs are mutable?
+9. Which inputs are external?
+10. What tool produced the result?
+11. Which tool version?
+12. Which plugins matter?
+13. Which runtime matters?
+14. Which runtime version?
+15. Which dependency graph was used?
+16. Is there a lockfile?
+17. Is the lock state itself identified?
+18. Are mutable dependency selectors present?
+19. Which configuration values affect behavior?
+20. What was the effective configuration?
+21. Where did each configuration value come from?
+22. Which environment variables matter?
+23. Which are secrets?
+24. Are secrets referenced safely?
+25. Which operating system?
+26. Which architecture?
+27. Which system libraries matter?
+28. Does hardware matter?
+29. Does timezone matter?
+30. Does locale matter?
+31. Does wall-clock time matter?
+32. Does randomness matter?
+33. Is a seed available?
+34. Do network resources matter?
+35. Are external services involved?
+36. Can their state be identified?
+37. Does a remote cache influence execution?
+38. Does a local cache influence execution?
+39. Can a clean build be performed?
+40. Is the execution incremental?
+41. Which dependency relationships drove incrementality?
+42. What exact command or operation was performed?
+43. What Actor initiated it?
+44. Where was it executed?
+45. When was it executed?
+46. What output was produced?
+47. Does the output have a stable identity?
+48. Does it have an immutable digest?
+49. What equivalence is required?
+50. Byte equality?
+51. Structural equality?
+52. Behavioral equality?
+53. Statistical equivalence?
+54. Acceptance-test equivalence?
+55. Who decides whether equivalence was achieved?
+56. What comparison method is used?
+57. Is the comparison method itself versioned?
+58. What Evidence records the result?
+59. Was the reproduction independent?
+60. Was a cache used instead of a rerun?
+61. Is the reproduction environment fresh?
+62. Can undeclared machine-local state leak in?
+63. Could a container tag have changed?
+64. Could a package registry have changed?
+65. Could an external API have changed?
+66. Could vulnerability intelligence have changed?
+67. Could AI model behavior have changed?
+68. Is the AI model snapshot known?
+69. Is the AI context known?
+70. Are AI tool calls known?
+71. Are AI retrieval results known?
+72. Does exact AI reproduction make sense?
+73. Should a weaker equivalence contract be used?
+74. Is the dataset version known?
+75. Are fixtures versioned?
+76. Is sensitive data involved?
+77. Can reproduction use sanitized data?
+78. Are policy constraints respected?
+79. Does reproduction itself have side effects?
+80. Does it require destructive operations?
+81. Can those operations be sandboxed?
+82. Does the reproduction produce a new run identity?
+83. Is historical Evidence preserved?
+84. Could new results conflict with old results?
+85. How will conflicts be represented?
+86. Does success prove reproducibility?
+87. Does reproducibility prove correctness?
+88. Does reproducibility prove verification?
+89. Does it confer release authority?
+90. Does policy require independent reproduction?
+91. Does policy require a particular reproduction level?
+92. Is the current Evidence stale?
+93. Which dependency change would invalidate it?
+94. Can the environment be reconstructed on another machine?
+95. Can the operation run without the original CI provider?
+96. Can it run without the original developer workstation?
+97. Can historical results still be inspected offline?
+98. If reproduction fails, can we explain why?
+99. Which differences are visible?
+100. What uncertainty remains?
+
+---
+
+# Definition of Ready
+
+A reproducibility capability is ready for implementation when:
+
+* the target operation is identified,
+* the required equivalence is defined,
+* source revision semantics are known,
+* relevant inputs are known,
+* toolchain requirements are known,
+* dependency-resolution requirements are known,
+* environment requirements are known,
+* configuration precedence is known,
+* secret-handling rules are known,
+* external-state dependencies are understood,
+* randomness requirements are understood,
+* required provenance is defined,
+* Evidence requirements are defined,
+* reproduction outcome semantics are defined,
+* and verification criteria exist.
+
+---
+
+# Definition of Done
+
+A reproducibility capability is complete enough when:
+
+* consequential runs have stable identities,
+* source revision is preserved,
+* relevant working-tree state is represented,
+* input identity is preserved,
+* dependency state is preserved,
+* relevant tool versions are preserved,
+* effective configuration is reconstructable,
+* relevant environment facts are preserved,
+* secret values are not leaked,
+* execution method is known,
+* output identity is preserved,
+* equivalence criteria are explicit,
+* reproduction attempts create separate historical records,
+* result comparisons produce Evidence,
+* conflicting reproductions remain inspectable,
+* stale Evidence can be identified,
+* clean reproduction is possible where required,
+* unsupported reproduction limitations are explicit,
+* and the resulting Claims are no stronger than the Evidence permits.
+
+---
+
+# Governing principle
+
+Monad should always be able to ask:
+
+> Which exact source state produced this result?
+
+> Was the working tree different from the recorded revision?
+
+> Which dependencies were actually resolved?
+
+> Which runtime and tool versions were used?
+
+> Which configuration was effective?
+
+> Which environment assumptions mattered?
+
+> Did a cache supply the output?
+
+> Was the operation actually rerun?
+
+> Did external mutable state influence it?
+
+> Does randomness prevent exact reproduction?
+
+> What does “same result” mean for this operation?
+
+> Do we require identical bytes or equivalent behavior?
+
+> Which Evidence demonstrates equivalence?
+
+> Was the result independently reproduced?
+
+> Does the current environment still match the original one?
+
+> Does historical reproduction Evidence still apply?
+
+> Can this Release be rebuilt?
+
+> Can this migration be reconstructed safely?
+
+> Can this benchmark be compared meaningfully?
+
+> Can this AI output be explained even if it cannot be regenerated exactly?
+
+> If reproduction fails, can we identify what changed?
+
+> If reproduction succeeds, have we accidentally confused repeatability with correctness?
+
+The desired system is not:
+
+```text
+capture every possible environmental fact
+```
+
+and it is not:
+
+```text
+pretend every engineering operation can be made perfectly deterministic
+```
+
+It is:
+
+```text
+known source
+     +
+known inputs
+     +
+known dependencies
+     +
+known tools
+     +
+known configuration
+     +
+known environment
+     +
+known execution method
+     +
+known output
+     +
+explicit equivalence
+     +
+inspectable Evidence
+        ↓
+explainable and repeatable engineering results
+```
+
+> **Monad should preserve enough execution context that consequential engineering results can be explained, reconstructed, compared, and independently challenged without relying on the memory of the machine or engineer that originally produced them.**
+
+---
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/verification" title="Verification Requirements">
+    Define how explicit expectations are evaluated against observed system behavior and Evidence.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/portability" title="Portability Requirements">
+    Define how engineering meaning and project state survive movement across machines, tools, providers, and environments.
+  </Card>
+
+  <Card href="/docs/artifacts/evidence" title="Evidence">
+    See how observations and outputs become inspectable support for engineering Claims.
+  </Card>
+
+  <Card href="/docs/artifacts/experiments" title="Experiments">
+    See how repeatable investigations reduce uncertainty and test consequential assumptions.
+  </Card>
+</Cards>

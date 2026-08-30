@@ -1,0 +1,3138 @@
+---
+title: Integration Requirements
+description: The requirements governing how Monad connects to native engineering systems, preserves their semantics and identity, exposes their capabilities, and avoids replacing mature tools without a justified reason.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-INT
+  </p>
+</div>
+
+# Integration Requirements
+
+Monad exists within an engineering ecosystem that already contains capable systems:
+
+* Git,
+* GitHub and GitLab,
+* filesystems,
+* editors,
+* CI platforms,
+* package managers,
+* artifact registries,
+* databases,
+* cloud providers,
+* deployment systems,
+* issue trackers,
+* observability platforms,
+* documentation systems,
+* security scanners,
+* build systems,
+* and many others.
+
+Monad should not recreate those systems merely to gain control over them.
+
+Its role is different.
+
+Monad adds a semantic and governance layer that can connect engineering facts across otherwise separate systems:
+
+```text
+native systems
+      ↓
+integrations
+      ↓
+semantic identity
+relationships
+authority
+provenance
+evidence
+governance
+context
+      ↓
+Monad
+```
+
+The governing default is therefore:
+
+> **If another system already owns a capability well, Monad should integrate with it before attempting to reimplement it.**
+
+Integration is not a thin API wrapper.
+
+A useful integration must preserve enough native meaning that Monad can understand what the external system knows, what it can do, what it owns, what changed, and which parts of that information Monad may safely rely upon.
+
+---
+
+# Requirement family scope
+
+The `REQ-INT-*` family governs integration with:
+
+* source-control systems,
+* hosting platforms,
+* filesystems,
+* issue trackers,
+* CI and build systems,
+* package managers,
+* artifact registries,
+* deployment platforms,
+* infrastructure providers,
+* cloud APIs,
+* databases,
+* observability systems,
+* identity providers,
+* security tooling,
+* documentation platforms,
+* communication systems,
+* project-management tools,
+* AI providers,
+* and future engineering systems.
+
+These requirements concern:
+
+* discovery,
+* connection,
+* authentication,
+* native identity,
+* capability modeling,
+* observation,
+* mutation,
+* event ingestion,
+* translation,
+* normalization,
+* provenance,
+* consistency,
+* failure handling,
+* reconciliation,
+* compatibility,
+* portability,
+* extensibility,
+* security,
+* and lifecycle.
+
+---
+
+# Foundational integration requirements
+
+## REQ-INT-001 — Monad SHOULD integrate before reimplementing mature native capability
+
+When an external system already provides a capability effectively, Monad SHOULD prefer using that capability rather than creating a competing implementation without sufficient justification.
+
+Examples include:
+
+```text
+version control       → Git
+issue tracking        → GitHub / GitLab / Jira
+package publication   → npm / crates.io / OCI registries
+deployment execution  → native deployment platforms
+cloud provisioning    → provider-native APIs / established tools
+```
+
+---
+
+## REQ-INT-002 — Reimplementation MUST require an explicit engineering justification when a suitable native capability already exists
+
+Potential justification MAY include:
+
+* native capability is unavailable locally,
+* required semantics cannot be represented,
+* unacceptable reliability constraints,
+* unacceptable security constraints,
+* portability requirements,
+* reproducibility requirements,
+* unacceptable lock-in,
+* unavailable automation interface,
+* unacceptable operational complexity,
+* or demonstrated architectural incompatibility.
+
+Convenience alone SHOULD NOT automatically justify replacement.
+
+---
+
+## REQ-INT-003 — Monad MUST distinguish integration from ownership
+
+Being connected to a native system does not mean Monad owns that system's data or semantics.
+
+---
+
+## REQ-INT-004 — Monad MUST distinguish integration from synchronization
+
+An integration provides access to a system.
+
+Synchronization and reconciliation are behaviors built upon that access.
+
+---
+
+## REQ-INT-005 — Monad MUST distinguish integration from semantic identity
+
+Native references identify native resources.
+
+Monad semantic identity MAY span multiple native systems.
+
+---
+
+## REQ-INT-006 — Monad MUST distinguish integration capability from governance authority
+
+An adapter being technically capable of deleting a repository does not imply that any Actor is authorized to delete it.
+
+---
+
+# Native systems remain first-class
+
+## REQ-INT-007 — Native engineering systems MUST remain first-class sources of native facts
+
+Monad SHOULD NOT fabricate native state when the source system can provide it.
+
+---
+
+## REQ-INT-008 — Native systems SHOULD retain ownership of the capabilities they are explicitly integrated to provide
+
+Examples:
+
+```text
+Git:
+  owns commit identity and repository history
+
+GitHub:
+  owns native issue and pull-request state
+
+OCI registry:
+  owns publication state for OCI artifacts
+
+deployment platform:
+  owns native deployment records
+```
+
+---
+
+## REQ-INT-009 — Monad SHOULD preserve access to native tools independently of Monad where practical
+
+Monad SHOULD avoid creating an architecture in which ordinary engineering work becomes impossible merely because the semantic control layer is unavailable.
+
+---
+
+## REQ-INT-010 — Direct native-system use MAY remain valid unless governance explicitly prohibits it
+
+This allows engineers to continue using:
+
+* Git CLI,
+* native web interfaces,
+* IDE integrations,
+* package-manager commands,
+* infrastructure tools,
+* and provider consoles.
+
+Monad must be capable of reconciling externally initiated changes.
+
+---
+
+# Integration boundaries
+
+## REQ-INT-011 — Every integration SHOULD define its responsibility boundary
+
+An integration SHOULD make clear:
+
+* what it observes,
+* what it can mutate,
+* what native concepts it understands,
+* which native concepts it intentionally ignores,
+* what events it consumes,
+* what guarantees it provides,
+* and what it does not own.
+
+---
+
+## REQ-INT-012 — Integration boundaries SHOULD be narrower than the native provider's entire API where only a subset is needed
+
+Monad SHOULD avoid importing unnecessary capability.
+
+---
+
+## REQ-INT-013 — Integration boundaries SHOULD reflect engineering semantics rather than provider marketing categories
+
+---
+
+## REQ-INT-014 — Native-provider details SHOULD remain encapsulated behind provider-specific adapters where appropriate
+
+---
+
+## REQ-INT-015 — Provider abstraction MUST NOT erase native semantics that materially affect correctness
+
+---
+
+# Integration architecture
+
+A conceptual integration architecture may resemble:
+
+```text
+Monad
+  │
+  ├── semantic integration contract
+  │
+  ├── capability model
+  │
+  ├── policy / authority evaluation
+  │
+  └── reconciliation
+          │
+          ▼
+     provider adapter
+          │
+          ▼
+      native system
+```
+
+The semantic contract defines what Monad means.
+
+The provider adapter defines how that meaning maps to a specific system.
+
+---
+
+# Integration contracts
+
+## REQ-INT-016 — Integrations SHOULD expose explicit contracts
+
+A contract MAY define:
+
+* operations,
+* input semantics,
+* output semantics,
+* capability requirements,
+* permissions,
+* errors,
+* consistency expectations,
+* native references,
+* side effects,
+* event behavior,
+* rate limits,
+* idempotency,
+* and compatibility constraints.
+
+---
+
+## REQ-INT-017 — Integration contracts SHOULD be independent of transport where practical
+
+For example:
+
+```text
+observe repository
+```
+
+is a semantic operation.
+
+Whether the adapter uses:
+
+* local Git,
+* REST,
+* GraphQL,
+* SSH,
+* subprocess execution,
+
+is an implementation detail unless that choice changes semantics.
+
+---
+
+## REQ-INT-018 — Integration contract versions SHOULD be explicit when compatibility matters
+
+---
+
+## REQ-INT-019 — Breaking integration-contract changes SHOULD be identifiable
+
+---
+
+# Native references
+
+## REQ-INT-020 — Integrations MUST preserve native identifiers where they exist
+
+Examples include:
+
+* repository IDs,
+* issue IDs,
+* pull-request numbers,
+* commit SHAs,
+* branch refs,
+* package names,
+* artifact digests,
+* deployment IDs,
+* CI run IDs,
+* cloud-resource IDs.
+
+---
+
+## REQ-INT-021 — Native references SHOULD contain enough information to resolve the native resource unambiguously
+
+A reference MAY require:
+
+```text
+provider
+organization
+repository
+resource type
+native ID
+```
+
+rather than only:
+
+```text
+42
+```
+
+---
+
+## REQ-INT-022 — Monad semantic identity MUST remain distinct from native references
+
+---
+
+## REQ-INT-023 — A Subject MAY have multiple native references
+
+Example:
+
+```text
+Subject: Feature X
+
+GitHub issue:
+  repo-a#42
+
+GitHub pull request:
+  repo-a#91
+
+deployment:
+  deployment-1802
+```
+
+---
+
+## REQ-INT-024 — Native references MAY change without changing semantic identity
+
+---
+
+## REQ-INT-025 — Integrations SHOULD preserve immutable native identifiers preferentially over mutable display names
+
+---
+
+# Resource discovery
+
+## REQ-INT-026 — Integrations SHOULD support discovery where the native system exposes enumerable resources
+
+Discovery MAY include:
+
+* repositories,
+* projects,
+* branches,
+* issues,
+* workflows,
+* deployments,
+* packages,
+* environments,
+* databases,
+* schemas,
+* cloud resources.
+
+---
+
+## REQ-INT-027 — Discovery SHOULD distinguish resource enumeration from resource authorization
+
+A resource may exist but remain inaccessible.
+
+---
+
+## REQ-INT-028 — Discovery SHOULD expose partial results when provider limitations prevent complete enumeration
+
+---
+
+## REQ-INT-029 — Integration discovery MUST NOT silently treat inaccessible resources as nonexistent
+
+---
+
+## REQ-INT-030 — Discovery MAY be scoped to reduce cost and exposure
+
+---
+
+# Capability discovery
+
+## REQ-INT-031 — Integrations SHOULD expose supported capabilities explicitly
+
+Example:
+
+```yaml
+capabilities:
+  repository:
+    read: true
+    create: false
+    delete: false
+  issues:
+    read: true
+    create: true
+    update: true
+    close: true
+```
+
+---
+
+## REQ-INT-032 — Provider capability MUST remain distinct from current credential permission
+
+A provider may support an operation that the configured credentials cannot perform.
+
+---
+
+## REQ-INT-033 — Credential permission MUST remain distinct from Monad authority
+
+---
+
+## REQ-INT-034 — Capability discovery SHOULD be dynamic where provider configuration can change
+
+---
+
+## REQ-INT-035 — Unsupported capability SHOULD fail explicitly
+
+---
+
+# Authentication
+
+## REQ-INT-036 — Integrations SHOULD use provider-supported authentication mechanisms
+
+---
+
+## REQ-INT-037 — Authentication material MUST be protected as sensitive information
+
+---
+
+## REQ-INT-038 — Long-lived credentials SHOULD be avoided where shorter-lived mechanisms provide sufficient capability
+
+---
+
+## REQ-INT-039 — Integrations SHOULD support credential rotation without changing semantic identity
+
+---
+
+## REQ-INT-040 — Authentication failure MUST remain distinguishable from resource absence
+
+---
+
+## REQ-INT-041 — Authentication status SHOULD be diagnosable without exposing secrets
+
+---
+
+# Authorization
+
+## REQ-INT-042 — Native-provider authorization SHOULD be treated as one constraint on execution
+
+---
+
+## REQ-INT-043 — Native authorization MUST NOT replace Monad governance
+
+The full permission question may be:
+
+```text
+provider supports operation
++
+credentials permit operation
++
+Monad Actor has capability
++
+Monad authority permits operation
++
+policy permits operation
+```
+
+---
+
+## REQ-INT-044 — Integrations SHOULD operate with least privilege
+
+---
+
+## REQ-INT-045 — Read and write permissions SHOULD be separable where the provider supports that distinction
+
+---
+
+# Observation
+
+## REQ-INT-046 — Integrations SHOULD expose native state in an observable form
+
+---
+
+## REQ-INT-047 — Observations SHOULD preserve their time
+
+---
+
+## REQ-INT-048 — Observations SHOULD preserve native revision, version, digest, etag, or equivalent concurrency identifier where available
+
+---
+
+## REQ-INT-049 — Integrations SHOULD identify whether observations are complete or partial
+
+---
+
+## REQ-INT-050 — Observation failure MUST remain distinct from an observed negative result
+
+---
+
+## REQ-INT-051 — Integrations SHOULD avoid mutating native state during ordinary read operations
+
+---
+
+# Requested versus resolved references
+
+## REQ-INT-052 — Integrations SHOULD distinguish mutable requested references from immutable resolved state
+
+Example:
+
+```yaml
+requested:
+  branch: main
+
+resolved:
+  commit: 81d91ef
+```
+
+---
+
+## REQ-INT-053 — Consequential operations SHOULD use resolved references where mutable references create ambiguity
+
+---
+
+## REQ-INT-054 — Provenance SHOULD preserve both requested and resolved references where they differ materially
+
+---
+
+# Mutations
+
+## REQ-INT-055 — Native mutations SHOULD occur through explicit operations
+
+---
+
+## REQ-INT-056 — Integration mutation operations SHOULD declare their side effects
+
+---
+
+## REQ-INT-057 — Mutation operations SHOULD expose whether they are idempotent
+
+---
+
+## REQ-INT-058 — Consequential mutations SHOULD support revision or precondition checks where the provider permits them
+
+---
+
+## REQ-INT-059 — Stale mutation preconditions SHOULD fail rather than silently overwrite newer state where practical
+
+---
+
+## REQ-INT-060 — Mutation responses SHOULD preserve native operation results
+
+---
+
+# Execution boundary
+
+## REQ-INT-061 — Consequential integration mutations SHOULD execute through the governed execution boundary
+
+Conceptually:
+
+```text
+Intent
+  ↓
+Plan
+  ↓
+Policy
+  ↓
+Authority
+  ↓
+Capability
+  ↓
+Approval if required
+  ↓
+Revalidation
+  ↓
+Integration operation
+  ↓
+Native system
+```
+
+---
+
+## REQ-INT-062 — Integrations MUST NOT bypass governance merely because a provider API is available
+
+---
+
+## REQ-INT-063 — Execution provenance SHOULD identify the adapter and native operation used
+
+---
+
+# Events
+
+## REQ-INT-064 — Integrations MAY consume native events
+
+Examples include:
+
+* webhook events,
+* Git hooks,
+* file-watch events,
+* CI events,
+* deployment events,
+* audit-log events,
+* message-stream events.
+
+---
+
+## REQ-INT-065 — Event ingestion SHOULD preserve native event identity where available
+
+---
+
+## REQ-INT-066 — Event ingestion SHOULD preserve event-production time where available
+
+---
+
+## REQ-INT-067 — Event receipt time SHOULD remain distinct from event-production time
+
+---
+
+## REQ-INT-068 — Events MUST NOT automatically be treated as complete current state
+
+---
+
+## REQ-INT-069 — Integrations SHOULD tolerate duplicate events
+
+---
+
+## REQ-INT-070 — Integrations SHOULD tolerate delayed events
+
+---
+
+## REQ-INT-071 — Integrations SHOULD account for event reordering where the provider does not guarantee order
+
+---
+
+## REQ-INT-072 — Event loss SHOULD be detectable or recoverable through authoritative observation where practical
+
+---
+
+# Polling
+
+## REQ-INT-073 — Integrations MAY use polling when native event delivery is unavailable or insufficient
+
+---
+
+## REQ-INT-074 — Polling intervals SHOULD reflect provider limits, freshness requirements, and engineering consequence
+
+---
+
+## REQ-INT-075 — Polling SHOULD avoid unnecessary full rescans where reliable incremental mechanisms exist
+
+---
+
+# Hybrid observation
+
+## REQ-INT-076 — Integrations MAY combine events with periodic authoritative polling
+
+This pattern is often useful:
+
+```text
+events
+  ↓
+fast incremental updates
+
+periodic authoritative scan
+  ↓
+detect missed events / drift
+```
+
+---
+
+# Normalization
+
+## REQ-INT-077 — Integrations MAY normalize native representations into provider-neutral concepts
+
+---
+
+## REQ-INT-078 — Normalization SHOULD preserve native source references
+
+---
+
+## REQ-INT-079 — Normalization MUST NOT discard provider-specific information required for correct interpretation
+
+---
+
+## REQ-INT-080 — Provider-neutral concepts SHOULD represent semantic commonality rather than superficial field similarity
+
+---
+
+# Translation
+
+## REQ-INT-081 — Integration translation rules SHOULD be explicit enough to test
+
+---
+
+## REQ-INT-082 — Lossy translations SHOULD be identifiable
+
+---
+
+## REQ-INT-083 — Round-trip translation SHOULD NOT be assumed to be lossless unless demonstrated
+
+---
+
+## REQ-INT-084 — Provider-specific extension data MAY be preserved alongside normalized state
+
+---
+
+# Semantic modeling
+
+## REQ-INT-085 — Integrations SHOULD map native resources to Monad concepts only when the mapping is semantically defensible
+
+---
+
+## REQ-INT-086 — Native resource type MUST NOT automatically become semantic Subject type
+
+A GitHub issue may represent:
+
+* defect,
+* requirement,
+* task,
+* question,
+* risk,
+* experiment,
+* decision proposal.
+
+The native type alone may be insufficient.
+
+---
+
+## REQ-INT-087 — Semantic classification SHOULD remain distinguishable from native metadata
+
+---
+
+# Native labels and metadata
+
+## REQ-INT-088 — Native labels, tags, fields, and metadata SHOULD be preserved as native facts where relevant
+
+---
+
+## REQ-INT-089 — Monad MAY interpret native metadata into semantic Claims
+
+---
+
+## REQ-INT-090 — Inferred semantic meaning SHOULD remain distinguishable from native fact
+
+Example:
+
+```text
+native fact:
+  GitHub label = "bug"
+
+semantic inference:
+  Subject type = Defect
+```
+
+The inference may be useful.
+
+It is not the same Claim.
+
+---
+
+# Integration state
+
+## REQ-INT-091 — Integrations SHOULD expose operational lifecycle state
+
+A conceptual lifecycle MAY include:
+
+```text
+configured
+connecting
+connected
+degraded
+authentication-failed
+unavailable
+disabled
+unsupported
+```
+
+---
+
+## REQ-INT-092 — Integration state SHOULD remain separate from resource state
+
+A GitHub integration may be degraded while previously observed repositories remain valid historical records.
+
+---
+
+## REQ-INT-093 — Disabled integration SHOULD NOT imply deletion of previously observed native resources
+
+---
+
+# Integration health
+
+## REQ-INT-094 — Integrations SHOULD expose enough health information for operators to diagnose failures
+
+Possible indicators include:
+
+* authentication validity,
+* API reachability,
+* rate-limit status,
+* event-delivery status,
+* last successful observation,
+* last reconciliation,
+* adapter compatibility,
+* credential expiration.
+
+---
+
+## REQ-INT-095 — Healthy transport MUST NOT automatically imply semantically correct integration
+
+---
+
+# Errors
+
+## REQ-INT-096 — Integrations SHOULD normalize broad error categories while preserving provider-native details
+
+Potential normalized categories include:
+
+* authentication failure,
+* authorization failure,
+* not found,
+* validation failure,
+* rate limited,
+* conflict,
+* stale revision,
+* unsupported capability,
+* provider unavailable,
+* timeout,
+* transport failure,
+* partial failure,
+* unknown provider error.
+
+---
+
+## REQ-INT-097 — Provider-native error codes SHOULD remain inspectable where useful
+
+---
+
+## REQ-INT-098 — Unknown provider errors SHOULD NOT be misclassified merely to fit a normalized taxonomy
+
+---
+
+# Rate limiting
+
+## REQ-INT-099 — Integrations SHOULD respect provider rate limits
+
+---
+
+## REQ-INT-100 — Rate-limit state SHOULD be observable where the provider exposes it
+
+---
+
+## REQ-INT-101 — Rate limiting SHOULD remain distinguishable from provider failure
+
+---
+
+## REQ-INT-102 — Backoff SHOULD avoid creating unnecessary load
+
+---
+
+# Retries
+
+## REQ-INT-103 — Integrations SHOULD retry transient failures where safe
+
+---
+
+## REQ-INT-104 — Retry behavior SHOULD account for operation idempotency
+
+---
+
+## REQ-INT-105 — Unknown mutation outcome SHOULD trigger observation before retry where duplicate effects are possible
+
+---
+
+## REQ-INT-106 — Permanent failures SHOULD NOT be retried indefinitely
+
+---
+
+# Timeouts
+
+## REQ-INT-107 — External operations SHOULD use bounded timeouts where practical
+
+---
+
+## REQ-INT-108 — Timeout MUST NOT automatically imply the native operation failed
+
+The provider may have completed the operation after the client stopped waiting.
+
+---
+
+## REQ-INT-109 — Timed-out consequential operations SHOULD be reconciled before unsafe retry
+
+---
+
+# Partial failure
+
+## REQ-INT-110 — Integrations MUST represent partial success when operations span multiple resources or systems
+
+---
+
+## REQ-INT-111 — Partial failure SHOULD preserve per-item result where material
+
+---
+
+## REQ-INT-112 — Batch interfaces MUST NOT flatten partial failure into binary success
+
+---
+
+# Idempotency
+
+## REQ-INT-113 — Integration contracts SHOULD identify idempotent operations
+
+---
+
+## REQ-INT-114 — Monad SHOULD prefer idempotent native operations where equivalent capability exists
+
+---
+
+## REQ-INT-115 — Idempotency keys SHOULD be used where supported and useful
+
+---
+
+# Concurrency
+
+## REQ-INT-116 — Integrations SHOULD use provider-native optimistic concurrency mechanisms where available
+
+Examples include:
+
+* etags,
+* revision numbers,
+* object versions,
+* commit SHAs,
+* resource generations.
+
+---
+
+## REQ-INT-117 — Concurrency failure SHOULD trigger re-observation before retry
+
+---
+
+## REQ-INT-118 — Blind overwrite SHOULD be avoided where concurrent native edits are possible
+
+---
+
+# Consistency
+
+## REQ-INT-119 — Integrations SHOULD document native consistency assumptions
+
+Examples:
+
+* strongly consistent,
+* read-after-write,
+* eventually consistent,
+* event-driven,
+* best effort.
+
+---
+
+## REQ-INT-120 — Monad MUST NOT present stronger consistency than the native provider offers
+
+---
+
+## REQ-INT-121 — Eventual consistency SHOULD be accounted for in verification and reconciliation
+
+---
+
+# Provenance
+
+## REQ-INT-122 — Integration observations SHOULD preserve source provenance
+
+---
+
+## REQ-INT-123 — Integration mutations SHOULD preserve execution provenance
+
+---
+
+## REQ-INT-124 — Provenance SHOULD identify the native provider and resource
+
+---
+
+## REQ-INT-125 — Provenance SHOULD identify the adapter or integration implementation where meaningful
+
+---
+
+## REQ-INT-126 — Requested origin and resolved origin SHOULD remain distinguishable when they differ
+
+---
+
+# Evidence
+
+## REQ-INT-127 — Native integration outputs MAY serve as Evidence
+
+---
+
+## REQ-INT-128 — Native output SHOULD remain distinguishable from Monad interpretation
+
+---
+
+## REQ-INT-129 — Provider responses MAY be retained or referenced where required for forensic or verification purposes
+
+---
+
+## REQ-INT-130 — Native evidence SHOULD retain revision or digest information when available
+
+---
+
+# Authority
+
+## REQ-INT-131 — Integrations SHOULD declare which native facts the provider is authoritative for
+
+---
+
+## REQ-INT-132 — Native authority SHOULD be property-scoped where necessary
+
+---
+
+## REQ-INT-133 — Integration adapters MUST NOT assign themselves semantic authority merely because they produced a normalized representation
+
+---
+
+## REQ-INT-134 — Conflicting native authority SHOULD be surfaced to governance rather than silently resolved
+
+---
+
+# Reconciliation
+
+## REQ-INT-135 — Mutable native integrations SHOULD support reconciliation
+
+---
+
+## REQ-INT-136 — Reconciliation SHOULD compare observed native state with relevant Monad state
+
+---
+
+## REQ-INT-137 — Integration reconciliation SHOULD respect authority
+
+---
+
+## REQ-INT-138 — Direct native-system changes SHOULD be incorporable where legitimate
+
+---
+
+## REQ-INT-139 — Reconciliation MUST NOT overwrite valid native state merely to preserve internal consistency
+
+---
+
+# Provider drift
+
+## REQ-INT-140 — Integrations SHOULD detect material provider changes that invalidate adapter assumptions
+
+Examples include:
+
+* API removal,
+* renamed fields,
+* permission-model changes,
+* webhook format changes,
+* authentication changes,
+* changed pagination,
+* changed consistency semantics.
+
+---
+
+## REQ-INT-141 — Provider drift SHOULD trigger compatibility evaluation
+
+---
+
+# Version compatibility
+
+## REQ-INT-142 — Integrations SHOULD define supported provider versions where relevant
+
+---
+
+## REQ-INT-143 — Compatibility SHOULD be tested rather than assumed
+
+---
+
+## REQ-INT-144 — Unsupported provider versions SHOULD fail explicitly or operate in an explicitly degraded mode
+
+---
+
+# Adapter lifecycle
+
+## REQ-INT-145 — Adapter lifecycle SHOULD be independently versionable where practical
+
+---
+
+## REQ-INT-146 — Adapter upgrades SHOULD preserve semantic identity
+
+---
+
+## REQ-INT-147 — Adapter migration SHOULD preserve historical native references
+
+---
+
+## REQ-INT-148 — Deprecated adapters SHOULD remain distinguishable from temporarily unavailable adapters
+
+---
+
+# Integration portability
+
+## REQ-INT-149 — Core Monad concepts SHOULD remain independent of any single provider
+
+A Requirement should not become:
+
+```text
+GitHubIssue
+```
+
+merely because GitHub is the first implementation.
+
+Prefer concepts such as:
+
+```text
+Work Item
+Native Reference
+Review
+Change
+Repository
+```
+
+with provider-specific bindings where useful.
+
+---
+
+## REQ-INT-150 — Provider-specific capability MAY remain provider-specific
+
+Provider neutrality does not require lowest-common-denominator abstraction.
+
+---
+
+## REQ-INT-151 — Monad SHOULD allow provider-specific extensions without contaminating unrelated provider contracts
+
+---
+
+# Avoiding lowest-common-denominator design
+
+## REQ-INT-152 — Provider-neutral abstractions SHOULD represent useful common semantics
+
+---
+
+## REQ-INT-153 — Capabilities unique to a provider MAY remain exposed through provider-specific interfaces
+
+---
+
+## REQ-INT-154 — Monad SHOULD NOT discard useful native functionality solely to make every provider look identical
+
+---
+
+# Local-first integration
+
+## REQ-INT-155 — Local native tools SHOULD be usable without remote service access where practical
+
+Examples include:
+
+* local Git,
+* filesystem inspection,
+* local build tools,
+* local databases,
+* local artifact stores.
+
+---
+
+## REQ-INT-156 — Remote-provider unavailability SHOULD NOT make locally available native systems unusable
+
+---
+
+## REQ-INT-157 — Cached remote observations SHOULD preserve their freshness and source
+
+---
+
+## REQ-INT-158 — Offline operation MUST NOT fabricate current remote state
+
+---
+
+# Local and remote views
+
+## REQ-INT-159 — Integrations SHOULD distinguish local state from remote state where both exist
+
+Example:
+
+```text
+local branch:
+  main → commit A
+
+remote branch:
+  origin/main → commit B
+```
+
+---
+
+## REQ-INT-160 — Local and remote divergence SHOULD NOT automatically be treated as error
+
+---
+
+# Filesystem integration
+
+## REQ-INT-161 — Filesystem integration SHOULD treat files as native resources, not automatically as semantic Subjects
+
+---
+
+## REQ-INT-162 — Paths SHOULD be treated as locators rather than durable identity
+
+---
+
+## REQ-INT-163 — Filesystem integration SHOULD detect relevant create, update, move, rename, and delete events where practical
+
+---
+
+## REQ-INT-164 — Symlinks SHOULD be handled explicitly where they affect identity or traversal
+
+---
+
+## REQ-INT-165 — Generated files SHOULD be distinguishable from authored files where known
+
+---
+
+## REQ-INT-166 — Ignored or excluded paths SHOULD be configurable
+
+---
+
+# Git integration
+
+## REQ-INT-167 — Git integration MUST preserve commit SHA identity
+
+---
+
+## REQ-INT-168 — Git branches and tags SHOULD remain distinct from commits
+
+---
+
+## REQ-INT-169 — Mutable refs SHOULD resolve to immutable commits for consequential reasoning
+
+---
+
+## REQ-INT-170 — Repository working-tree state SHOULD remain distinguishable from committed history
+
+---
+
+## REQ-INT-171 — Git integration SHOULD support rename and move reasoning without assuming paths are identity
+
+---
+
+## REQ-INT-172 — Force-push and rewritten refs SHOULD be detectable where relevant
+
+---
+
+# Repository-hosting integration
+
+## REQ-INT-173 — Hosting-platform integration SHOULD preserve native repository identity
+
+---
+
+## REQ-INT-174 — Issues, pull requests, reviews, comments, workflows, releases, and branches SHOULD retain their native types
+
+---
+
+## REQ-INT-175 — Monad semantic concepts SHOULD NOT be collapsed into hosting-platform types
+
+---
+
+## REQ-INT-176 — Native review state SHOULD remain distinguishable from semantic Review and governance Approval
+
+---
+
+## REQ-INT-177 — Native labels SHOULD remain distinguishable from semantic classification
+
+---
+
+# Issue-tracker integration
+
+## REQ-INT-178 — Work-item integration SHOULD preserve native issue identity and lifecycle
+
+---
+
+## REQ-INT-179 — Monad MAY attach semantic relationships to native work items
+
+---
+
+## REQ-INT-180 — Native issue closure SHOULD not automatically imply semantic requirement satisfaction
+
+---
+
+## REQ-INT-181 — Native issue assignment SHOULD remain distinguishable from broader responsibility or authority
+
+---
+
+# CI integration
+
+## REQ-INT-182 — CI integrations SHOULD preserve workflow, job, and run identity where exposed
+
+---
+
+## REQ-INT-183 — CI outputs MAY provide Evidence
+
+---
+
+## REQ-INT-184 — CI success MUST NOT automatically mean release readiness
+
+---
+
+## REQ-INT-185 — Re-run results SHOULD preserve run identity and provenance
+
+---
+
+## REQ-INT-186 — CI logs SHOULD remain distinguishable from verification conclusions
+
+---
+
+# Build-system integration
+
+## REQ-INT-187 — Build integrations SHOULD preserve tool-native task identity where useful
+
+---
+
+## REQ-INT-188 — Build output identity SHOULD include sufficient provenance to understand its inputs
+
+---
+
+## REQ-INT-189 — Build success MUST remain distinguishable from artifact verification
+
+---
+
+## REQ-INT-190 — Build caching SHOULD preserve the relationship between cache hit and underlying input identity
+
+---
+
+# Package-manager integration
+
+## REQ-INT-191 — Package integrations SHOULD preserve package coordinates and resolved versions
+
+---
+
+## REQ-INT-192 — Mutable version ranges SHOULD remain distinguishable from resolved dependency versions
+
+---
+
+## REQ-INT-193 — Lockfile state SHOULD be treated as native dependency-resolution Evidence where applicable
+
+---
+
+## REQ-INT-194 — Dependency metadata SHOULD preserve package-manager-native semantics where material
+
+---
+
+# Registry integration
+
+## REQ-INT-195 — Registry integrations SHOULD preserve package version and immutable artifact digest where available
+
+---
+
+## REQ-INT-196 — Publication SHOULD be confirmed through native registry observation where practical
+
+---
+
+## REQ-INT-197 — Package yanking, withdrawal, or deletion SHOULD remain distinct states where the registry distinguishes them
+
+---
+
+## REQ-INT-198 — Registry metadata mutation SHOULD NOT silently redefine artifact byte identity
+
+---
+
+# Deployment integration
+
+## REQ-INT-199 — Deployment integrations SHOULD preserve native deployment identity
+
+---
+
+## REQ-INT-200 — Deployment intent SHOULD remain distinct from observed deployment state
+
+---
+
+## REQ-INT-201 — Deployment success SHOULD remain distinct from application health
+
+---
+
+## REQ-INT-202 — Release identity SHOULD remain distinct from deployment identity
+
+One release may be deployed many times.
+
+---
+
+## REQ-INT-203 — Environment identity SHOULD remain explicit
+
+---
+
+# Infrastructure integration
+
+## REQ-INT-204 — Infrastructure integrations SHOULD preserve provider-native resource IDs
+
+---
+
+## REQ-INT-205 — Desired infrastructure configuration SHOULD remain distinct from provider-observed state
+
+---
+
+## REQ-INT-206 — Imported native resources SHOULD be representable without recreating them
+
+---
+
+## REQ-INT-207 — Provider-side drift SHOULD remain observable
+
+---
+
+# Database integration
+
+## REQ-INT-208 — Database integrations SHOULD distinguish schema inspection from data inspection
+
+---
+
+## REQ-INT-209 — Database credentials SHOULD follow least-privilege principles
+
+---
+
+## REQ-INT-210 — Schema metadata SHOULD preserve native database identity and namespaces
+
+---
+
+## REQ-INT-211 — Data access SHOULD be explicitly scoped because databases may contain sensitive information
+
+---
+
+# Observability integration
+
+## REQ-INT-212 — Observability systems SHOULD remain authoritative for their native telemetry records
+
+---
+
+## REQ-INT-213 — Telemetry observations MAY become Evidence for Monad Claims
+
+---
+
+## REQ-INT-214 — Aggregated metrics SHOULD preserve enough source information to interpret their scope
+
+---
+
+## REQ-INT-215 — Absence of telemetry MUST NOT automatically imply absence of the underlying condition
+
+---
+
+# Security-tool integration
+
+## REQ-INT-216 — Security scanners SHOULD preserve native finding identity where available
+
+---
+
+## REQ-INT-217 — Scanner findings SHOULD remain distinguishable from confirmed vulnerabilities
+
+---
+
+## REQ-INT-218 — False-positive and accepted-risk dispositions SHOULD remain representable
+
+---
+
+## REQ-INT-219 — Sensitive security findings MAY require restricted visibility
+
+---
+
+# Documentation-system integration
+
+## REQ-INT-220 — Documentation platforms SHOULD preserve document identity independent of generated site location where possible
+
+---
+
+## REQ-INT-221 — Source documentation SHOULD remain distinguishable from generated documentation
+
+---
+
+## REQ-INT-222 — Generated documentation SHOULD be traceable to its source where practical
+
+---
+
+# Communication-system integration
+
+## REQ-INT-223 — Chat or communication messages SHOULD NOT automatically become authoritative engineering records
+
+---
+
+## REQ-INT-224 — Relevant communication MAY be captured as Evidence, provenance, or a Representation
+
+---
+
+## REQ-INT-225 — Semantic promotion from transient communication to durable artifact SHOULD be explicit where consequential
+
+---
+
+# Project-management integration
+
+## REQ-INT-226 — Project-management systems MAY provide native coordination state
+
+---
+
+## REQ-INT-227 — Coordination state SHOULD remain distinguishable from engineering truth
+
+Example:
+
+```text
+task = Done
+```
+
+does not establish:
+
+```text
+Requirement = satisfied
+```
+
+---
+
+# Identity-provider integration
+
+## REQ-INT-228 — Identity-provider integrations SHOULD preserve native principal identity
+
+---
+
+## REQ-INT-229 — Native authentication identity MAY bind to Monad Actor identity
+
+---
+
+## REQ-INT-230 — Identity binding SHOULD be explicit enough to prevent accidental actor conflation
+
+---
+
+## REQ-INT-231 — Revoked native identities SHOULD not erase historical Actor provenance
+
+---
+
+# AI-provider integration
+
+## REQ-INT-232 — AI providers SHOULD be integrated through explicit capability contracts
+
+Potential capabilities include:
+
+* text generation,
+* structured output,
+* tool calling,
+* embeddings,
+* image generation,
+* reranking,
+* reasoning,
+* streaming.
+
+---
+
+## REQ-INT-233 — AI provider identity SHOULD be preserved
+
+---
+
+## REQ-INT-234 — Model identity and version SHOULD be retained where material to reproducibility or Evidence
+
+---
+
+## REQ-INT-235 — Provider-neutral AI capability SHOULD not assume identical model behavior across providers
+
+---
+
+## REQ-INT-236 — AI fallback behavior SHOULD reflect actual capability differences
+
+---
+
+## REQ-INT-237 — AI provider integration MUST NOT itself grant operational authority
+
+---
+
+## REQ-INT-238 — Model output SHOULD remain distinguishable from authoritative engineering state
+
+---
+
+# Integration configuration
+
+## REQ-INT-239 — Integration configuration SHOULD be explicit
+
+Configuration MAY include:
+
+* provider,
+* endpoint,
+* authentication mechanism,
+* enabled capabilities,
+* observation scope,
+* write scope,
+* event configuration,
+* reconciliation policy,
+* timeouts,
+* retries.
+
+---
+
+## REQ-INT-240 — Integration configuration SHOULD be versionable where behavior depends on it
+
+---
+
+## REQ-INT-241 — Secrets SHOULD be referenced rather than embedded in ordinary configuration where practical
+
+---
+
+## REQ-INT-242 — Invalid configuration SHOULD fail visibly
+
+---
+
+# Multiple accounts and organizations
+
+## REQ-INT-243 — A provider MAY have multiple configured connections
+
+Example:
+
+```text
+GitHub
+  ├── organization A
+  ├── organization B
+  └── personal account
+```
+
+---
+
+## REQ-INT-244 — Native references SHOULD identify which connection or namespace resolves them where ambiguity exists
+
+---
+
+# Multiple providers for one capability
+
+## REQ-INT-245 — Monad SHOULD support multiple providers implementing similar capability
+
+Examples:
+
+```text
+GitHub + GitLab
+AWS + Azure
+npm + private registry
+OpenAI + another AI provider
+```
+
+---
+
+## REQ-INT-246 — Provider selection SHOULD be explicit when execution outcome depends on it
+
+---
+
+## REQ-INT-247 — Similar providers SHOULD NOT be assumed semantically identical
+
+---
+
+# Integration routing
+
+## REQ-INT-248 — Monad MAY route operations among providers when policy permits
+
+---
+
+## REQ-INT-249 — Routing decisions SHOULD be explainable
+
+---
+
+## REQ-INT-250 — Routing SHOULD preserve the actual provider used in provenance
+
+---
+
+# Integration extensibility
+
+## REQ-INT-251 — New integrations SHOULD be addable without modifying unrelated provider implementations
+
+---
+
+## REQ-INT-252 — Extension contracts SHOULD define lifecycle and capability boundaries
+
+---
+
+## REQ-INT-253 — Third-party adapters SHOULD be distinguishable from built-in adapters
+
+---
+
+## REQ-INT-254 — Adapter trust SHOULD be explicit where code can access credentials or mutate native systems
+
+---
+
+# Plugin integrations
+
+## REQ-INT-255 — Plugin capability SHOULD be declared before use
+
+---
+
+## REQ-INT-256 — Plugin installation MUST NOT automatically grant all available capabilities
+
+---
+
+## REQ-INT-257 — Plugin execution SHOULD remain governed by the same authority model as built-in integrations
+
+---
+
+## REQ-INT-258 — Plugin provenance SHOULD be inspectable
+
+---
+
+# Integration sandboxing
+
+## REQ-INT-259 — Untrusted integration code SHOULD be isolated where feasible
+
+---
+
+## REQ-INT-260 — Integration execution SHOULD minimize unnecessary filesystem, network, credential, and process access
+
+---
+
+# Data minimization
+
+## REQ-INT-261 — Integrations SHOULD retrieve only the data necessary for their intended purpose where practical
+
+---
+
+## REQ-INT-262 — Sensitive provider data SHOULD not be imported merely because the API exposes it
+
+---
+
+## REQ-INT-263 — Retention policy SHOULD apply to imported native data
+
+---
+
+# Privacy
+
+## REQ-INT-264 — Integrations MUST respect applicable privacy requirements
+
+---
+
+## REQ-INT-265 — Imported personal data SHOULD retain its source context where needed for governance
+
+---
+
+## REQ-INT-266 — Redaction SHOULD preserve the existence and provenance of a record where full content cannot be retained
+
+---
+
+# Secret handling
+
+## REQ-INT-267 — Secrets MUST NOT be written into ordinary logs
+
+---
+
+## REQ-INT-268 — Secrets SHOULD NOT be persisted in semantic records unless explicitly required and securely protected
+
+---
+
+## REQ-INT-269 — Error messages SHOULD be sanitized where providers may echo credentials
+
+---
+
+# Auditability
+
+## REQ-INT-270 — Consequential integration operations SHOULD be auditable
+
+An engineer SHOULD be able to determine:
+
+```text
+which integration
+which provider
+which native resource
+which Actor
+which capability
+which authority
+which operation
+which revision
+when
+what result
+```
+
+---
+
+# Integration testing
+
+## REQ-INT-271 — Integration adapters SHOULD have conformance tests
+
+---
+
+## REQ-INT-272 — Integration tests SHOULD cover translation behavior
+
+---
+
+## REQ-INT-273 — Integration tests SHOULD cover error normalization
+
+---
+
+## REQ-INT-274 — Integration tests SHOULD cover authentication and permission failures
+
+---
+
+## REQ-INT-275 — Integration tests SHOULD cover concurrency where relevant
+
+---
+
+## REQ-INT-276 — Integration tests SHOULD cover retry and partial-failure behavior
+
+---
+
+## REQ-INT-277 — Integration tests SHOULD avoid destructive production operations
+
+---
+
+# Contract tests
+
+## REQ-INT-278 — Provider-neutral integration contracts SHOULD support adapter conformance testing
+
+A provider adapter claiming:
+
+```text
+IssueReader
+```
+
+should satisfy the semantic contract defined for that capability.
+
+---
+
+## REQ-INT-279 — Passing generic contract tests MUST NOT replace provider-specific testing
+
+---
+
+# Fixtures
+
+## REQ-INT-280 — Integration fixtures SHOULD preserve representative provider responses where licensing and privacy permit
+
+---
+
+## REQ-INT-281 — Fixtures SHOULD include edge cases and malformed responses
+
+---
+
+## REQ-INT-282 — Fixture freshness SHOULD be considered when provider APIs evolve
+
+---
+
+# Sandboxes
+
+## REQ-INT-283 — Provider sandboxes SHOULD be used where available for destructive integration testing
+
+---
+
+## REQ-INT-284 — Lack of sandbox SHOULD NOT justify unsafe production testing
+
+---
+
+# Reproducibility
+
+## REQ-INT-285 — Integration-derived Evidence SHOULD preserve enough context to reproduce or explain the observation where practical
+
+---
+
+## REQ-INT-286 — Provider API instability SHOULD be acknowledged where exact replay is impossible
+
+---
+
+## REQ-INT-287 — Cached native responses MAY be retained for historical reproducibility where appropriate
+
+---
+
+# Integration observability
+
+## REQ-INT-288 — Integration operations SHOULD produce operational telemetry sufficient for diagnosis
+
+Potential fields include:
+
+* provider,
+* adapter,
+* operation,
+* duration,
+* outcome,
+* retry count,
+* rate-limit state,
+* error category.
+
+---
+
+## REQ-INT-289 — Telemetry SHOULD NOT expose secrets
+
+---
+
+## REQ-INT-290 — Provider health SHOULD not be inferred from a single successful request
+
+---
+
+# Performance
+
+## REQ-INT-291 — Integrations SHOULD avoid unnecessary provider calls
+
+---
+
+## REQ-INT-292 — Batch APIs SHOULD be used where they improve efficiency without obscuring item-level outcomes
+
+---
+
+## REQ-INT-293 — Pagination MUST be handled correctly
+
+---
+
+## REQ-INT-294 — Incomplete pagination MUST NOT be presented as complete enumeration
+
+---
+
+# Caching
+
+## REQ-INT-295 — Integration caches SHOULD preserve freshness metadata
+
+---
+
+## REQ-INT-296 — Cached state SHOULD remain distinguishable from fresh native observation
+
+---
+
+## REQ-INT-297 — Cache invalidation SHOULD reflect native mutability
+
+---
+
+## REQ-INT-298 — Immutable native resources MAY be cached more aggressively
+
+---
+
+# Incremental integration
+
+## REQ-INT-299 — Integrations SHOULD support incremental ingestion where reliable native change indicators exist
+
+---
+
+## REQ-INT-300 — Incremental processing MUST remain semantically equivalent to full refresh within the defined consistency model
+
+---
+
+# Integration ownership
+
+## REQ-INT-301 — Every production integration SHOULD have identifiable operational ownership
+
+---
+
+## REQ-INT-302 — Every production integration SHOULD have identifiable semantic ownership where mapping rules matter
+
+---
+
+## REQ-INT-303 — Unowned integrations SHOULD be discoverable as engineering risk
+
+---
+
+# Failure isolation
+
+## REQ-INT-304 — Failure of one integration SHOULD NOT unnecessarily disable unrelated integrations
+
+---
+
+## REQ-INT-305 — Provider degradation SHOULD remain scoped where possible
+
+---
+
+## REQ-INT-306 — Integration failures SHOULD propagate only to dependent capabilities
+
+---
+
+# Dependency modeling
+
+## REQ-INT-307 — Integrations SHOULD declare dependencies needed for operation
+
+Examples include:
+
+* network access,
+* credentials,
+* native CLI,
+* runtime,
+* local daemon,
+* API endpoint.
+
+---
+
+## REQ-INT-308 — Missing dependency SHOULD produce an actionable diagnostic
+
+---
+
+# Integration startup
+
+## REQ-INT-309 — Monad SHOULD be able to start when optional integrations are unavailable
+
+---
+
+## REQ-INT-310 — Required integration failure SHOULD be explicit
+
+---
+
+## REQ-INT-311 — Optional integration degradation SHOULD not masquerade as complete system health
+
+---
+
+# Integration shutdown
+
+## REQ-INT-312 — Long-running integrations SHOULD shut down cleanly where practical
+
+---
+
+## REQ-INT-313 — Shutdown SHOULD avoid losing acknowledged-but-unprocessed native events where durable processing is required
+
+---
+
+# Event durability
+
+## REQ-INT-314 — Consequential event ingestion SHOULD define durability semantics
+
+---
+
+## REQ-INT-315 — Event acknowledgment SHOULD occur only when required durability expectations are satisfied
+
+---
+
+# Event replay
+
+## REQ-INT-316 — Integration event processing SHOULD tolerate replay where practical
+
+---
+
+## REQ-INT-317 — Replay SHOULD preserve original event identity and timestamp
+
+---
+
+# Ordering
+
+## REQ-INT-318 — Integration contracts SHOULD document event-ordering assumptions
+
+---
+
+## REQ-INT-319 — Native events SHOULD NOT be assumed globally ordered without provider guarantees
+
+---
+
+# Integration migrations
+
+## REQ-INT-320 — Changes to integration storage or bindings SHOULD be migratable
+
+---
+
+## REQ-INT-321 — Migration SHOULD preserve native references and semantic identity
+
+---
+
+## REQ-INT-322 — Migration failure SHOULD leave recoverable state where practical
+
+---
+
+# Provider replacement
+
+## REQ-INT-323 — Replacing one provider with another SHOULD not require changing unrelated semantic identity
+
+Example:
+
+```text
+GitHub issue tracker
+      ↓ migration
+GitLab issue tracker
+```
+
+The underlying Requirement Subject MAY remain the same.
+
+---
+
+## REQ-INT-324 — Provider migration SHOULD preserve historical native references
+
+---
+
+## REQ-INT-325 — Old native references SHOULD remain interpretable as historical representations where possible
+
+---
+
+# Integration decommissioning
+
+## REQ-INT-326 — Disabling or removing an integration SHOULD preserve relevant historical records
+
+---
+
+## REQ-INT-327 — Decommissioning SHOULD distinguish:
+
+* provider no longer used,
+* provider inaccessible,
+* integration disabled,
+* adapter unsupported,
+* resource deleted.
+
+---
+
+# Integration invariants
+
+The integration system SHOULD preserve these distinctions:
+
+```text
+Integration ≠ Ownership
+
+Integration ≠ Synchronization
+
+Integration ≠ Reconciliation
+
+Integration ≠ Semantic identity
+
+Native identity ≠ Semantic identity
+
+Native state ≠ Monad interpretation
+
+Native metadata ≠ Semantic classification
+
+Provider capability ≠ Credential permission
+
+Credential permission ≠ Monad capability
+
+Capability ≠ Authority
+
+Authority ≠ Native permission
+
+Native API success ≠ Verified outcome
+
+Event ≠ Current state
+
+Event received ≠ Complete history
+
+Transport success ≠ Semantic correctness
+
+Normalized representation ≠ Native source
+
+Derived representation ≠ Authority
+
+Provider-neutral ≠ Lowest common denominator
+
+Local state ≠ Remote state
+
+Requested ref ≠ Resolved revision
+
+Issue closed ≠ Requirement satisfied
+
+CI green ≠ Release ready
+
+Deployment complete ≠ Application healthy
+
+Package version ≠ Artifact digest
+
+Scanner finding ≠ Confirmed vulnerability
+
+Chat message ≠ Durable decision
+
+Task done ≠ Engineering claim verified
+
+AI output ≠ Engineering truth
+
+Adapter availability ≠ Authorization
+
+Provider unavailable ≠ Resource absent
+
+Timeout ≠ Operation failed
+
+Retry ≠ Safe automatically
+
+Cached state ≠ Fresh observation
+
+Integration removed ≠ Historical resource deleted
+```
+
+---
+
+# Integration anti-patterns
+
+## Reimplement everything
+
+This creates unnecessary complexity and weak native-tool compatibility.
+
+---
+
+## Wrapper equals integration
+
+An API client with no semantic mapping, provenance, error model, or authority boundary is incomplete.
+
+---
+
+## Lowest-common-denominator abstraction
+
+Useful provider capability disappears in pursuit of superficial uniformity.
+
+---
+
+## Provider concepts become the domain model
+
+The first integration accidentally defines Monad's ontology.
+
+---
+
+## Credentials equal authority
+
+Technical permission bypasses governance.
+
+---
+
+## Event equals truth
+
+Webhook payloads become the only model of native state.
+
+---
+
+## Poll everything
+
+Scalability and provider limits are ignored.
+
+---
+
+## Cache forever
+
+Mutable native state becomes stale while appearing current.
+
+---
+
+## Ignore native IDs
+
+Reconciliation and forensic inspection become unnecessarily difficult.
+
+---
+
+## Path equals identity
+
+Moves and renames produce false semantic churn.
+
+---
+
+## Provider-specific fields everywhere
+
+The core model becomes coupled to one external system.
+
+---
+
+## Hide provider-specific differences
+
+Critical semantics disappear behind an abstraction.
+
+---
+
+## Green API response means done
+
+Native state is not re-observed.
+
+---
+
+## Retry until success
+
+Non-idempotent operations produce duplicate side effects.
+
+---
+
+## Import all available data
+
+Privacy, security, and storage risk expand without engineering value.
+
+---
+
+## Plugin installed means trusted
+
+Third-party code gains excessive privilege.
+
+---
+
+## Direct native edits are corruption
+
+Engineers lose the ability to use their normal tools.
+
+---
+
+## Monad becomes a mandatory proxy
+
+Every native operation unnecessarily depends on Monad availability.
+
+---
+
+# Progressive integration maturity
+
+Integration should grow only as needed.
+
+## Stage 1 — Native references
+
+Monad can link to external resources.
+
+```text
+Subject
+  ↓
+Native Reference
+```
+
+---
+
+## Stage 2 — Read-only observation
+
+Monad can inspect native state.
+
+---
+
+## Stage 3 — Structured normalization
+
+Native observations map into stable semantic concepts.
+
+---
+
+## Stage 4 — Event ingestion
+
+Monad learns about external changes incrementally.
+
+---
+
+## Stage 5 — Reconciliation
+
+Monad detects and explains divergence.
+
+---
+
+## Stage 6 — Governed mutation
+
+Authorized operations can change native state.
+
+---
+
+## Stage 7 — Capability-aware orchestration
+
+Multiple providers participate in engineering workflows.
+
+---
+
+## Stage 8 — Cross-system reasoning
+
+Monad can answer questions across systems using semantic identity and relationships.
+
+---
+
+## Stage 9 — Governed engineering control plane
+
+Humans and AI can act across native systems through explicit capability, authority, policy, provenance, and verification.
+
+---
+
+# Minimal useful integration model
+
+A first useful integration model may require only:
+
+```text
+Integration
+Provider
+Native Reference
+Capability
+Observation
+Operation
+Provenance
+```
+
+plus enough error and reconciliation semantics to avoid misleading state.
+
+An illustrative record might resemble:
+
+```yaml
+id: INT-GITHUB-01
+
+provider: github
+
+scope:
+  organization: monad-framework
+
+capabilities:
+  repositories:
+    observe: true
+  issues:
+    observe: true
+    update: true
+
+authentication:
+  mechanism: token-reference
+
+status: connected
+```
+
+The exact schema remains a separate design concern.
+
+---
+
+# Native reference example
+
+```yaml
+subject: REQ-AUTH-003
+
+representation:
+  type: native-work-item
+
+native_reference:
+  provider: github
+  organization: monad-framework
+  repository: monad
+  type: issue
+  number: 42
+```
+
+The issue is a Representation or related native record.
+
+It does not become the semantic identity of the Requirement.
+
+---
+
+# Capability example
+
+Suppose the GitHub adapter exposes:
+
+```yaml
+capabilities:
+  issues:
+    read: true
+    create: true
+    update: true
+    close: true
+```
+
+The configured credentials expose:
+
+```yaml
+permissions:
+  issues:
+    read: true
+    write: true
+```
+
+The Actor has:
+
+```yaml
+capabilities:
+  issue_update: true
+```
+
+But policy says:
+
+```yaml
+close_release_blocker:
+  requires: release_manager_approval
+```
+
+Therefore:
+
+```text
+adapter can close
++
+credential can close
++
+Actor can request close
++
+approval missing
+=
+operation not authorized
+```
+
+This is the intended distinction.
+
+---
+
+# Direct native-change example
+
+A maintainer closes a GitHub issue through GitHub's own UI.
+
+Monad later observes:
+
+```text
+previous:
+  open
+
+native now:
+  closed
+```
+
+The integration should provide enough information for reconciliation to decide whether that change:
+
+* should update Monad,
+* violates policy,
+* creates a conflict,
+* invalidates another state,
+* or requires review.
+
+The integration itself should not assume the answer.
+
+---
+
+# Git example
+
+Requested input:
+
+```text
+repository:
+  monad
+
+ref:
+  main
+```
+
+Integration resolution:
+
+```text
+requested:
+  main
+
+resolved:
+  81d91ef
+```
+
+Downstream verification should generally bind to:
+
+```text
+81d91ef
+```
+
+rather than assuming `main` still means the same thing later.
+
+---
+
+# CI example
+
+Native CI result:
+
+```yaml
+workflow: verify
+run_id: 9371
+commit: 81d91ef
+conclusion: success
+```
+
+Monad MAY represent:
+
+```text
+Evidence:
+  CI workflow succeeded for commit 81d91ef
+```
+
+It MUST NOT automatically infer:
+
+```text
+Release is correct.
+```
+
+That broader Claim requires its own Verification.
+
+---
+
+# Registry example
+
+Publish command returns:
+
+```text
+success
+```
+
+The integration then observes:
+
+```yaml
+package: "@monad/core"
+version: "0.4.0"
+digest: sha256:...
+```
+
+The observed registry state is stronger Evidence of actual publication than the original command response alone.
+
+---
+
+# Deployment example
+
+A release:
+
+```text
+REL-0.4.0
+```
+
+may have deployments:
+
+```text
+DEP-staging-812
+DEP-production-902
+DEP-production-918
+```
+
+The integration must preserve the distinction:
+
+```text
+Release
+  ≠
+Deployment
+```
+
+---
+
+# AI provider example
+
+A provider integration may expose:
+
+```yaml
+provider: example-ai
+
+model:
+  requested: reasoning-model
+  resolved: reasoning-model-2026-08
+
+capabilities:
+  structured_output: true
+  tools: true
+  embeddings: false
+```
+
+Monad can use these facts for capability selection.
+
+They do not imply:
+
+```text
+model may modify production
+```
+
+Operational authority remains a separate concern.
+
+---
+
+# Integration review checklist
+
+Before treating an integration as production-ready, ask:
+
+1. What native system is being integrated?
+2. What capability does that system already own?
+3. Why is integration preferable to reimplementation?
+4. What would justify reimplementation instead?
+5. What is the integration boundary?
+6. Which native concepts are in scope?
+7. Which native concepts are deliberately out of scope?
+8. What native identifiers exist?
+9. Are immutable identifiers preserved?
+10. Are mutable names being mistaken for identity?
+11. Which semantic Subjects bind to which native resources?
+12. Could one Subject have multiple native references?
+13. Could a native reference change without changing the Subject?
+14. What capabilities does the provider expose?
+15. What capabilities does the adapter expose?
+16. What permissions do the credentials expose?
+17. What authority does Monad grant?
+18. Are those distinctions preserved?
+19. What authentication mechanism is used?
+20. Is credential rotation supported?
+21. Are secrets protected?
+22. Is least privilege possible?
+23. Can reads occur without write permission?
+24. How is native state observed?
+25. Is observation timestamped?
+26. Are revisions or digests preserved?
+27. Can observations be partial?
+28. Can inaccessible resources look absent?
+29. How does pagination work?
+30. How is completeness established?
+31. Are native events available?
+32. Can events be duplicated?
+33. Can events be delayed?
+34. Can events be reordered?
+35. Can events be lost?
+36. Is authoritative polling also required?
+37. What normalization occurs?
+38. Is any translation lossy?
+39. Are provider-specific semantics preserved?
+40. Is the domain model accidentally mirroring provider fields?
+41. What operations mutate native state?
+42. Are side effects explicit?
+43. Are operations idempotent?
+44. Are concurrency controls available?
+45. What happens on timeout?
+46. What happens on partial failure?
+47. What happens if the API says success but state did not change?
+48. Is post-operation observation required?
+49. What consistency model does the provider offer?
+50. How are retries bounded?
+51. How are rate limits handled?
+52. How are provider errors normalized?
+53. Are native error details preserved?
+54. Is reconciliation supported?
+55. Which properties are native-authoritative?
+56. Which properties are Monad-authoritative?
+57. Can direct native changes be incorporated?
+58. Can valid native work be accidentally overwritten?
+59. Can provider drift break assumptions?
+60. How is adapter compatibility tested?
+61. Are contract tests available?
+62. Are provider-specific tests available?
+63. Are destructive tests isolated?
+64. Can the integration operate locally?
+65. What happens offline?
+66. Is cached state visibly stale?
+67. Can one provider be replaced later?
+68. Would provider migration preserve semantic identity?
+69. Are historical native references preserved?
+70. Can multiple providers coexist?
+71. Does abstraction collapse to the lowest common denominator?
+72. Are provider-specific capabilities still accessible?
+73. Who owns the integration operationally?
+74. Who owns its semantic mappings?
+75. What sensitive data does it retrieve?
+76. Is all retrieved data actually necessary?
+77. What gets retained?
+78. What gets logged?
+79. What happens when the integration is disabled?
+80. Does historical state remain available?
+81. Can a plugin gain more privilege than intended?
+82. Can AI invoke the integration?
+83. If so, what exact capability and authority apply?
+84. Can the native operation be traced to an Actor?
+85. Can the result be verified?
+86. Can a future engineer understand what the integration did?
+87. Can the integration fail without taking unrelated systems down?
+88. Can important state be reconciled after outages?
+89. Can Monad continue useful local work if the remote provider disappears?
+90. Is this integration actually reducing complexity—or merely relocating it?
+
+---
+
+# Relationship to the system model
+
+Integrations provide representations of native reality.
+
+They do not define the entire system model.
+
+Conceptually:
+
+```text
+Native system
+    ↓
+Integration
+    ↓
+Native observations
+    ↓
+Semantic binding
+    ↓
+System model
+```
+
+The semantic layer may then connect:
+
+```text
+Git commit
+    ↓ implements
+
+Requirement
+    ↓ verified-by
+
+CI run
+    ↓ supports
+
+Release
+```
+
+No individual native system needs to understand the whole relationship graph.
+
+That cross-system meaning is one of Monad's primary responsibilities.
+
+---
+
+# Relationship to authority
+
+Integration enables action.
+
+Authority legitimizes action.
+
+Those are different.
+
+```text
+Provider capability
+      ↓
+Adapter capability
+      ↓
+Actor capability
+      ↓
+Authority
+      ↓
+Policy
+      ↓
+Authorized operation
+```
+
+Skipping any of these distinctions risks turning technical reach into uncontrolled power.
+
+---
+
+# Relationship to reconciliation
+
+Integration supplies:
+
+```text
+what the native system says
+```
+
+Reconciliation determines:
+
+```text
+how that state relates to what Monad believes
+```
+
+Therefore:
+
+```text
+Integration
+    ↓
+Observation
+    ↓
+Reconciliation
+    ↓
+Possible governed remediation
+```
+
+---
+
+# Relationship to provenance
+
+Every integration is a provenance boundary.
+
+A normalized Claim should be able to retain:
+
+```text
+native provider
+native resource
+native revision
+observation time
+adapter
+transformation
+```
+
+Otherwise the semantic model becomes disconnected from the source that justified it.
+
+---
+
+# Relationship to Evidence
+
+Native systems frequently produce Evidence:
+
+```text
+Git
+  → commit state
+
+CI
+  → test results
+
+registry
+  → published digest
+
+deployment platform
+  → deployment state
+
+observability system
+  → runtime measurements
+```
+
+Integration makes that Evidence addressable.
+
+It does not automatically establish the Claim that the Evidence is sufficient to prove.
+
+---
+
+# Relationship to execution
+
+Mutating native systems through integrations should fit the same execution model as other consequential operations:
+
+```text
+Intent
+  ↓
+Resolve target
+  ↓
+Gather context
+  ↓
+Analyze impact
+  ↓
+Plan
+  ↓
+Evaluate policy
+  ↓
+Authorize
+  ↓
+Revalidate
+  ↓
+Invoke integration
+  ↓
+Native operation
+  ↓
+Observe
+  ↓
+Verify
+  ↓
+Evidence
+  ↓
+Reconcile
+```
+
+---
+
+# Relationship to portability
+
+Provider-neutral architecture matters because native systems change.
+
+A repository may move.
+
+A company may replace issue trackers.
+
+A package may move registries.
+
+An AI provider may change.
+
+Monad should preserve engineering meaning through those changes wherever the underlying Subject remains the same.
+
+---
+
+# Relationship to local-first operation
+
+Integration should not force the entire engineering environment into remote dependency.
+
+A healthy architecture may support:
+
+```text
+local native systems
+    +
+optional remote integrations
+    +
+cached remote knowledge
+    +
+explicit freshness
+```
+
+rather than:
+
+```text
+remote provider unavailable
+    =
+engineering system unusable
+```
+
+---
+
+# Definition of Ready
+
+An integration is ready for implementation when:
+
+* the native system is identified,
+* the engineering capability it owns is understood,
+* integration has been justified against reimplementation,
+* scope is defined,
+* semantic boundaries are defined,
+* native identity is understood,
+* supported capabilities are defined,
+* authentication requirements are known,
+* permission requirements are known,
+* expected authority boundaries are known,
+* observation semantics are defined,
+* mutation semantics are defined where applicable,
+* event behavior is understood,
+* consistency guarantees are known,
+* failure modes are identified,
+* reconciliation expectations are defined,
+* provider compatibility is understood,
+* security constraints are known,
+* and verification criteria exist.
+
+---
+
+# Definition of Done
+
+An integration is complete enough when:
+
+* native resources retain native identity,
+* semantic identity remains separate,
+* capability boundaries are explicit,
+* credential permissions are explicit,
+* authority remains separately governed,
+* observations preserve source and freshness,
+* mutations expose side effects,
+* errors are structured,
+* provider-native error details remain inspectable,
+* retry behavior is safe,
+* partial failure is explicit,
+* concurrency is handled appropriately,
+* event semantics are defined,
+* reconciliation works where required,
+* adapter compatibility is tested,
+* sensitive data is protected,
+* operational health is observable,
+* native-system use remains possible where intended,
+* provider-specific semantics are not silently erased,
+* and the integration can be traced from Monad operation to native outcome.
+
+---
+
+# Governing principle
+
+Monad should always be able to ask:
+
+> Which system owns this native capability?
+
+> What native resource are we actually talking about?
+
+> What immutable identifier does that system provide?
+
+> Which semantic Subject does the resource represent?
+
+> Which properties belong to the provider?
+
+> Which properties belong to Monad?
+
+> What can this adapter technically do?
+
+> What can the configured credentials do?
+
+> What may this Actor legitimately do?
+
+> Which policy governs the operation?
+
+> What native state was actually observed?
+
+> When was it observed?
+
+> Which revision did it represent?
+
+> Was the observation complete?
+
+> Was it cached or current?
+
+> What transformation produced the normalized state?
+
+> Did that transformation lose information?
+
+> What happened when Monad attempted a native operation?
+
+> Was the provider response successful?
+
+> Did the native state actually change?
+
+> Can that result be verified?
+
+> What happens if an engineer changes the native system directly?
+
+> Can Monad reconcile the difference without destroying legitimate work?
+
+> Could this provider be replaced without destroying semantic identity?
+
+> Does this abstraction preserve useful provider-specific capability?
+
+> Is the integration giving Monad new semantic value—or merely duplicating the external system?
+
+The desired architecture is therefore not:
+
+```text
+Monad replaces engineering tools
+```
+
+but:
+
+```text
+Native engineering systems
+        ↕
+Explicit integration contracts
+        ↕
+Semantic identity + provenance
+        ↕
+Authority + policy
+        ↕
+Reconciliation + verification
+        ↕
+Monad
+```
+
+> **Monad should integrate with native systems deeply enough to understand and govern engineering reality, but lightly enough that those systems remain first-class, independently useful, and authoritative for the capabilities they already own.**
+
+---
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/reconciliation" title="Reconciliation Requirements">
+    Define how Monad detects and resolves divergence between its semantic model and the native systems it integrates with.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/portability" title="Portability Requirements">
+    Define how Monad preserves engineering meaning across providers, environments, repositories, tools, and deployment contexts.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/authority" title="Authority Requirements">
+    Define the distinction between technical capability, native permissions, and legitimate engineering authority.
+  </Card>
+
+  <Card href="/docs/system/integrations" title="Integrations">
+    Read the current authoritative explanation of Monad's integration architecture and native-system doctrine.
+  </Card>
+</Cards>

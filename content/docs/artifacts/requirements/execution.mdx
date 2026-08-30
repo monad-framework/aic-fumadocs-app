@@ -1,0 +1,1281 @@
+---
+title: Execution Requirements
+description: The requirements governing how Monad turns authorized engineering intent into controlled side effects while preserving preconditions, authority, provenance, observed outcomes, failure state, and verification boundaries.
+---
+
+<div className="mb-8 text-sm font-medium text-fd-muted-foreground">
+  Requirement family · REQ-EXEC
+</div>
+
+# Execution Requirements
+
+Execution is the boundary at which engineering intent begins changing reality.
+
+Before execution, Monad may reason about:
+
+* intent,
+* context,
+* Requirements,
+* Specifications,
+* current state,
+* impact,
+* policy,
+* authority,
+* plans,
+* and expected outcomes.
+
+Execution converts some of that reasoning into effects on native systems.
+
+That boundary must remain explicit.
+
+> **Monad must distinguish what was intended, what was authorized, what was attempted, what actually happened, and what was subsequently verified.**
+
+<Callout type="info" title="Scope of this requirement family">
+These requirements govern execution semantics. CLI commands, APIs, transaction mechanisms, adapters, workflow engines, sandbox technologies, rollback implementations, and native-provider details belong in Specifications and Architecture Decisions.
+</Callout>
+
+---
+
+# Core execution requirements
+
+## REQ-EXEC-001 — Execution MUST be modeled explicitly
+
+Monad MUST represent consequential execution as an identifiable operation rather than treating side effects as invisible implementation details.
+
+---
+
+## REQ-EXEC-002 — Execution MUST remain distinct from intent
+
+The desire to perform an operation MUST NOT imply that the operation occurred.
+
+```text
+Intent ≠ Execution
+```
+
+---
+
+## REQ-EXEC-003 — Execution MUST remain distinct from planning
+
+A plan describes proposed operations.
+
+It MUST NOT itself prove that those operations occurred.
+
+---
+
+## REQ-EXEC-004 — Execution MUST remain distinct from authorization
+
+An authorized operation has permission to proceed.
+
+It has not necessarily executed.
+
+---
+
+## REQ-EXEC-005 — Execution MUST remain distinct from verification
+
+Successful execution MUST NOT imply that the desired engineering outcome was achieved correctly.
+
+```text
+Execution Success ≠ Verification Success
+```
+
+---
+
+## REQ-EXEC-006 — Requested effects MUST remain distinguishable from observed effects
+
+Monad SHOULD preserve:
+
+```text
+requested operation
+attempted operation
+observed effect
+```
+
+as distinct concepts where they differ.
+
+---
+
+# Operation identity
+
+## REQ-EXEC-007 — Consequential operations SHOULD have stable execution identities
+
+A material execution attempt SHOULD be uniquely identifiable for:
+
+* provenance,
+* retries,
+* diagnostics,
+* reconciliation,
+* verification,
+* and auditability.
+
+---
+
+## REQ-EXEC-008 — Retries MUST remain distinguishable from the original attempt
+
+A retry MAY belong to the same logical operation.
+
+It SHOULD still remain identifiable as a separate execution attempt where side effects may differ.
+
+---
+
+## REQ-EXEC-009 — Logical operations MAY contain multiple execution steps
+
+Monad SHOULD support operations composed of multiple native actions without pretending those actions are necessarily atomic.
+
+---
+
+# Inputs and context
+
+## REQ-EXEC-010 — Execution inputs MUST be explicit enough to determine the requested operation
+
+Consequential execution SHOULD have identifiable:
+
+* target,
+* operation,
+* parameters,
+* relevant revision,
+* Actor,
+* and execution context.
+
+---
+
+## REQ-EXEC-011 — Execution SHOULD bind to semantic Subjects where applicable
+
+Operations SHOULD refer to stable semantic Subjects when the target has semantic identity.
+
+Native references MAY additionally identify the actual execution target.
+
+---
+
+## REQ-EXEC-012 — Native execution targets MUST be resolvable before side effects
+
+Where an operation affects a native system, Monad MUST resolve the intended native target before performing the side effect.
+
+---
+
+## REQ-EXEC-013 — Ambiguous targets MUST NOT be silently selected for consequential operations
+
+If multiple possible targets remain materially ambiguous, Monad SHOULD require resolution before execution.
+
+---
+
+## REQ-EXEC-014 — Execution context SHOULD be bounded
+
+Monad SHOULD provide an operation with the context needed to execute correctly without unnecessarily granting unrelated access or state.
+
+---
+
+# Preconditions
+
+## REQ-EXEC-015 — Consequential operations SHOULD define preconditions
+
+Preconditions may include:
+
+* expected revision,
+* lifecycle state,
+* branch state,
+* dependency state,
+* authority,
+* approval,
+* environment,
+* resource existence,
+* lock state,
+* or policy conditions.
+
+---
+
+## REQ-EXEC-016 — Preconditions MUST be evaluated sufficiently close to execution
+
+A precondition checked too early may become stale.
+
+Monad SHOULD re-evaluate material preconditions near the side-effect boundary.
+
+---
+
+## REQ-EXEC-017 — Failed preconditions MUST prevent execution where required
+
+Monad MUST NOT proceed merely because an earlier plan assumed the precondition would hold.
+
+---
+
+## REQ-EXEC-018 — Preconditions MUST NOT silently mutate to satisfy the operation
+
+If execution requires changing a failed precondition, that change SHOULD itself be represented as an operation unless explicitly part of the authorized plan.
+
+---
+
+## REQ-EXEC-019 — Unknown precondition state MUST remain distinguishable from satisfied state
+
+```text
+unknown ≠ satisfied
+```
+
+Policy determines whether unknown state blocks execution.
+
+---
+
+# Authority
+
+## REQ-EXEC-020 — Consequential execution MUST satisfy applicable authority requirements
+
+Execution MUST NOT rely solely on technical ability.
+
+---
+
+## REQ-EXEC-021 — Actor identity MUST be resolved before authority-dependent execution
+
+Monad MUST know which Actor is exercising authority before evaluating an authority-sensitive operation.
+
+---
+
+## REQ-EXEC-022 — Native permission MUST NOT substitute for Monad authority
+
+The ability to perform a native operation does not independently authorize it semantically.
+
+---
+
+## REQ-EXEC-023 — Authorization MUST be scoped to the operation
+
+Authority for one operation MUST NOT imply authority for unrelated operations.
+
+---
+
+## REQ-EXEC-024 — Authorization SHOULD bind to relevant target state
+
+Where target revision affects the meaning of approval, authorization SHOULD identify the revision or equivalent state to which it applies.
+
+---
+
+## REQ-EXEC-025 — Stale authorization MUST be re-evaluated where material
+
+If target state changes after authorization, Monad SHOULD determine whether the previous authorization remains valid.
+
+---
+
+## REQ-EXEC-026 — Execution MUST NOT increase its own authority
+
+An execution engine MUST NOT silently grant itself additional authority to complete a requested operation.
+
+---
+
+# Policy
+
+## REQ-EXEC-027 — Execution MUST evaluate applicable policies
+
+Applicable policies SHOULD be resolved before consequential side effects.
+
+---
+
+## REQ-EXEC-028 — Policy evaluation SHOULD use current relevant state
+
+Where policy depends on dynamic conditions, stale policy inputs SHOULD NOT be treated as current without justification.
+
+---
+
+## REQ-EXEC-029 — Policy obligations MUST remain distinguishable from permissions
+
+A policy may allow an operation while also requiring:
+
+* logging,
+* approval,
+* verification,
+* notification,
+* evidence collection,
+* or later review.
+
+Those obligations MUST remain explicit.
+
+---
+
+## REQ-EXEC-030 — Policy denial MUST prevent execution unless an authorized exception applies
+
+A denied operation MUST NOT proceed merely because the underlying tool permits it.
+
+---
+
+# Planning and impact
+
+## REQ-EXEC-031 — Consequential execution SHOULD be preceded by sufficient impact analysis
+
+The amount of analysis MAY scale with risk.
+
+Monad SHOULD support identifying materially affected:
+
+* Subjects,
+* representations,
+* dependencies,
+* Requirements,
+* Specifications,
+* policies,
+* environments,
+* and integrations.
+
+---
+
+## REQ-EXEC-032 — Expected side effects SHOULD be known before execution where practical
+
+Monad SHOULD be able to represent the side effects an operation is expected to produce.
+
+---
+
+## REQ-EXEC-033 — Unexpected side effects MUST remain representable
+
+Observed effects outside the expected set SHOULD be retained rather than discarded from the execution record.
+
+---
+
+## REQ-EXEC-034 — Destructive operations SHOULD receive stronger execution controls
+
+Operations such as:
+
+* deletion,
+* force replacement,
+* irreversible migration,
+* secret rotation,
+* production modification,
+* or history rewriting
+
+SHOULD receive controls proportional to their consequences.
+
+---
+
+# Execution boundaries
+
+## REQ-EXEC-035 — Consequential side effects SHOULD pass through explicit execution boundaries
+
+An execution boundary SHOULD provide a place to evaluate:
+
+```text
+identity
+target
+authority
+policy
+preconditions
+revision
+expected effects
+```
+
+before invoking the native capability.
+
+---
+
+## REQ-EXEC-036 — Execution boundaries SHOULD expose typed contracts
+
+An execution interface SHOULD specify:
+
+* operation identity,
+* input,
+* output,
+* errors,
+* side effects,
+* preconditions,
+* postconditions,
+* authority,
+* and consistency expectations.
+
+---
+
+## REQ-EXEC-037 — Semantic execution contracts SHOULD precede transport contracts
+
+The meaning of an operation SHOULD NOT depend unnecessarily on whether it is invoked through:
+
+* CLI,
+* API,
+* UI,
+* agent tool,
+* message bus,
+* or direct library call.
+
+---
+
+## REQ-EXEC-038 — All execution surfaces SHOULD preserve equivalent governance semantics
+
+A UI button MUST NOT bypass controls applied to the CLI merely because it uses another transport.
+
+Likewise for AI tools or APIs.
+
+---
+
+# Native systems
+
+## REQ-EXEC-039 — Monad SHOULD execute native capabilities through native systems where appropriate
+
+Monad SHOULD not reimplement well-owned native capabilities merely to control execution.
+
+---
+
+## REQ-EXEC-040 — Native adapters MUST preserve native semantics where material
+
+Monad SHOULD avoid pretending that different native operations are identical when they have materially different effects.
+
+---
+
+## REQ-EXEC-041 — Native execution results SHOULD be observed independently of requested results
+
+Where possible, Monad SHOULD inspect what the native system reports after execution.
+
+---
+
+## REQ-EXEC-042 — Native success responses MUST NOT be treated as universal semantic success
+
+For example:
+
+```text
+HTTP 200
+```
+
+or:
+
+```text
+process exit 0
+```
+
+may indicate successful native execution.
+
+They do not inherently prove that the Requirement was satisfied.
+
+---
+
+## REQ-EXEC-043 — Direct native writes MAY remain possible
+
+Monad MAY permit engineers or external systems to modify native systems outside Monad execution paths.
+
+The architecture MUST be able to reconcile those changes rather than assuming all reality originates through Monad.
+
+---
+
+## REQ-EXEC-044 — Out-of-band changes SHOULD be observable through reconciliation
+
+Native state that changes outside Monad SHOULD eventually be observable where that state matters to the semantic model.
+
+---
+
+# Side effects
+
+## REQ-EXEC-045 — Side effects SHOULD be explicitly classified where useful
+
+Possible classifications include:
+
+```text
+read-only
+local mutation
+remote mutation
+reversible mutation
+destructive mutation
+external publication
+deployment
+notification
+credential change
+```
+
+The exact taxonomy remains a specification concern.
+
+---
+
+## REQ-EXEC-046 — Read operations MUST NOT be assumed side-effect-free without evidence
+
+Some native reads may:
+
+* create audit events,
+* consume quotas,
+* update timestamps,
+* trigger workflows,
+* or reveal sensitive information.
+
+Tool contracts SHOULD describe meaningful effects.
+
+---
+
+## REQ-EXEC-047 — Side effects outside the requested scope MUST be surfaced
+
+If execution changes additional Subjects or resources, Monad SHOULD expose those effects.
+
+---
+
+# Partial failure
+
+## REQ-EXEC-048 — Multi-step execution MUST support partial failure
+
+Monad MUST NOT assume that a sequence of native operations is atomic unless atomicity is actually guaranteed.
+
+---
+
+## REQ-EXEC-049 — Partial success MUST remain distinguishable from complete success
+
+For example:
+
+```text
+Step 1 succeeded
+Step 2 succeeded
+Step 3 failed
+Step 4 not attempted
+```
+
+MUST NOT be represented simply as:
+
+```text
+operation succeeded
+```
+
+---
+
+## REQ-EXEC-050 — Partial failure SHOULD preserve completed effects
+
+Monad SHOULD retain what succeeded before the failure.
+
+---
+
+## REQ-EXEC-051 — Partial failure SHOULD identify uncertain effects
+
+If an execution attempt times out after sending a request, Monad SHOULD be able to represent:
+
+```text
+effect unknown
+```
+
+rather than assuming failure or success.
+
+---
+
+## REQ-EXEC-052 — Recovery from partial failure SHOULD be explicit
+
+Recovery MAY involve:
+
+* retry,
+* compensation,
+* rollback,
+* manual repair,
+* reconciliation,
+* or acceptance of the partial result.
+
+Monad SHOULD NOT silently invent atomicity.
+
+---
+
+# Idempotency and retries
+
+## REQ-EXEC-053 — Retriable operations SHOULD define idempotency semantics
+
+Where repeated execution may cause duplicate effects, the operation contract SHOULD describe whether retries are safe.
+
+---
+
+## REQ-EXEC-054 — Execution SHOULD avoid duplicate effects where practical
+
+Monad SHOULD use available native idempotency mechanisms when appropriate.
+
+---
+
+## REQ-EXEC-055 — Retry policy SHOULD be operation-specific
+
+A failed read and a failed destructive mutation may require different retry behavior.
+
+---
+
+## REQ-EXEC-056 — Automatic retries MUST NOT bypass authorization
+
+A retry remains an execution attempt.
+
+It must remain within the authority granted for the logical operation.
+
+---
+
+# Rollback and compensation
+
+## REQ-EXEC-057 — Rollback MUST be treated as execution
+
+Rollback is not the erasure of execution history.
+
+It is another operation with its own:
+
+* authority,
+* preconditions,
+* effects,
+* failures,
+* provenance,
+* and verification needs.
+
+---
+
+## REQ-EXEC-058 — Reversibility MUST NOT be assumed
+
+An operation MUST NOT be labeled reversible unless a credible recovery path exists.
+
+---
+
+## REQ-EXEC-059 — Compensation MUST remain distinguishable from true reversal
+
+A compensating operation may restore acceptable business state without literally restoring the prior system state.
+
+---
+
+## REQ-EXEC-060 — Rollback success MUST be verified where consequential
+
+Executing a rollback command does not independently prove successful restoration.
+
+---
+
+# Concurrency
+
+## REQ-EXEC-061 — Execution MUST account for concurrent state changes where material
+
+Monad SHOULD avoid applying an operation against assumptions that have become invalid because another Actor changed the target.
+
+---
+
+## REQ-EXEC-062 — Revision-aware execution SHOULD be supported
+
+Where native systems expose revisions, versions, hashes, ETags, or equivalent concurrency controls, Monad SHOULD use them when appropriate.
+
+---
+
+## REQ-EXEC-063 — Lost-update scenarios SHOULD be detectable where practical
+
+A newer write SHOULD NOT silently erase an intervening material change merely because both operations targeted the same resource.
+
+---
+
+## REQ-EXEC-064 — Concurrency conflict MUST remain distinguishable from authorization or validation failure
+
+Different failure classes require different recovery.
+
+---
+
+# Provenance
+
+## REQ-EXEC-065 — Consequential execution MUST retain provenance
+
+Monad SHOULD be able to determine:
+
+* who or what requested the operation,
+* who or what authorized it,
+* which Actor executed it,
+* when it occurred,
+* where it executed,
+* what inputs were used,
+* and which effects were observed.
+
+---
+
+## REQ-EXEC-066 — Requested origin and execution location MUST remain distinguishable
+
+For example:
+
+```text
+requested from developer laptop
+executed in remote CI
+```
+
+is materially different from:
+
+```text
+requested and executed locally
+```
+
+where provenance matters.
+
+---
+
+## REQ-EXEC-067 — Execution environment SHOULD be retained where relevant
+
+Material environment information MAY include:
+
+* operating system,
+* architecture,
+* runtime versions,
+* dependency state,
+* container image,
+* environment class,
+* or deployment target.
+
+---
+
+# Postconditions
+
+## REQ-EXEC-068 — Consequential operations SHOULD define expected postconditions
+
+Postconditions make the expected state after execution explicit.
+
+---
+
+## REQ-EXEC-069 — Postconditions MUST NOT be assumed solely because the operation returned success
+
+Where practical, consequential postconditions SHOULD be observed.
+
+---
+
+## REQ-EXEC-070 — Failed postconditions MUST remain visible
+
+An operation MAY report technical success while failing to establish the expected semantic result.
+
+That state must remain representable.
+
+---
+
+# Verification and evidence
+
+## REQ-EXEC-071 — Execution SHOULD produce evidence suitable for subsequent verification
+
+Relevant evidence MAY include:
+
+* command output,
+* native responses,
+* resulting state,
+* build artifacts,
+* logs,
+* checksums,
+* test results,
+* deployment observations,
+* or state snapshots.
+
+---
+
+## REQ-EXEC-072 — Execution evidence MUST remain distinguishable from verification conclusions
+
+Evidence is input to verification.
+
+It is not automatically the conclusion.
+
+---
+
+## REQ-EXEC-073 — Verification SHOULD evaluate the actual resulting revision
+
+Where implementation changes between execution and verification, Monad SHOULD preserve which revision was actually verified.
+
+---
+
+# Local and remote execution
+
+## REQ-EXEC-074 — Execution location SHOULD be explicit where material
+
+Monad SHOULD distinguish:
+
+```text
+local
+remote
+CI
+agent worker
+production environment
+external service
+```
+
+where execution location affects meaning.
+
+---
+
+## REQ-EXEC-075 — Remote execution MUST NOT weaken authority requirements
+
+Moving the operation to CI or another remote executor MUST NOT bypass governance.
+
+---
+
+## REQ-EXEC-076 — Offline execution MAY proceed when locally resolvable requirements are satisfied
+
+Monad MAY permit local execution while disconnected if applicable:
+
+* authority,
+* policy,
+* context,
+* and preconditions
+
+can be resolved locally.
+
+---
+
+## REQ-EXEC-077 — Deferred remote execution SHOULD be revalidated before side effects
+
+A plan constructed offline SHOULD NOT blindly execute after reconnection if material state may have changed.
+
+---
+
+# Security
+
+## REQ-EXEC-078 — Execution SHOULD use least privilege
+
+Execution environments and credentials SHOULD possess no more technical privilege than reasonably required.
+
+---
+
+## REQ-EXEC-079 — Secrets SHOULD be scoped to operations
+
+Executors SHOULD receive only the credentials required for the authorized operation where practical.
+
+---
+
+## REQ-EXEC-080 — Execution logs MUST protect sensitive information
+
+Provenance and auditability requirements MUST NOT justify uncontrolled disclosure of:
+
+* passwords,
+* tokens,
+* private keys,
+* personal information,
+* or other protected data.
+
+---
+
+## REQ-EXEC-081 — Untrusted inputs MUST NOT silently become executable instructions
+
+Data originating from repositories, web pages, generated content, or external integrations MUST NOT automatically acquire execution authority.
+
+---
+
+# AI execution
+
+## REQ-EXEC-082 — AI-executed operations MUST follow the same execution semantics
+
+AI Actors MUST NOT receive a separate path that bypasses:
+
+* identity,
+* authority,
+* policy,
+* preconditions,
+* provenance,
+* failure handling,
+* or verification.
+
+---
+
+## REQ-EXEC-083 — AI planning MUST remain separable from AI execution
+
+Monad SHOULD support an AI that can plan an operation without being permitted to execute it.
+
+---
+
+## REQ-EXEC-084 — AI execution authority SHOULD be narrow by default
+
+AI autonomy MAY increase as evidence, policy, and system maturity justify it.
+
+It SHOULD NOT be assumed merely because an AI can invoke tools.
+
+---
+
+# Emergency execution
+
+## REQ-EXEC-085 — Emergency operations SHOULD be explicitly modeled
+
+Where break-glass execution exists, Monad SHOULD identify:
+
+* who invoked it,
+* why,
+* what normal control was bypassed,
+* its scope,
+* its duration,
+* and required retrospective obligations.
+
+---
+
+## REQ-EXEC-086 — Emergency authority MUST NOT silently become ordinary authority
+
+A temporary exceptional capability SHOULD expire or be explicitly revoked according to its governing rules.
+
+---
+
+# Observability
+
+## REQ-EXEC-087 — Material execution SHOULD be observable
+
+Operators SHOULD be able to determine whether an execution is:
+
+```text
+planned
+authorized
+running
+succeeded
+failed
+partially succeeded
+cancelled
+unknown
+```
+
+where relevant.
+
+---
+
+## REQ-EXEC-088 — Unknown execution outcome MUST remain representable
+
+Network failures or executor crashes may leave Monad unable to determine whether an effect occurred.
+
+```text
+unknown
+```
+
+MUST remain a valid outcome until reconciliation resolves it.
+
+---
+
+## REQ-EXEC-089 — Execution status MUST NOT replace lifecycle state
+
+An operation succeeding does not inherently advance the lifecycle of every affected Subject.
+
+Lifecycle transitions remain governed separately.
+
+---
+
+# Explainability
+
+## REQ-EXEC-090 — Consequential execution decisions SHOULD be explainable
+
+Monad SHOULD be able to answer questions such as:
+
+```text
+Why was this operation permitted?
+Who authorized it?
+What policy applied?
+What revision was targeted?
+What was expected to change?
+What actually changed?
+What verification followed?
+```
+
+---
+
+# Non-requirements
+
+This requirement family does **not** require Monad to:
+
+* implement a distributed transaction manager,
+* make all operations atomic,
+* provide rollback for every action,
+* replace native execution systems,
+* require approval for every command,
+* route every local shell command through Monad,
+* prevent direct interaction with Git or GitHub,
+* require event sourcing,
+* require workflow orchestration infrastructure,
+* use containers for every operation,
+* prevent autonomous execution,
+* or guarantee that external systems behave deterministically.
+
+The requirement is controlled, inspectable, governed execution.
+
+---
+
+# Conformance scenarios
+
+## Scenario — Capability without authority
+
+An Actor can invoke a deployment tool but lacks deployment authority.
+
+Expected:
+
+```text
+capability discovered
+        ↓
+authority evaluated
+        ↓
+execution denied
+```
+
+---
+
+## Scenario — Target revision changed
+
+An operation was approved for revision:
+
+```text
+abc123
+```
+
+The target is now:
+
+```text
+def456
+```
+
+Expected:
+
+```text
+precondition failure
+or
+reauthorization / revalidation
+```
+
+not blind execution.
+
+---
+
+## Scenario — Partial failure
+
+A four-step operation produces:
+
+```text
+1 succeeded
+2 succeeded
+3 failed
+4 not attempted
+```
+
+Expected:
+
+```text
+partial failure preserved
+completed effects retained
+recovery decision required
+```
+
+---
+
+## Scenario — Network timeout after write
+
+The native API times out after receiving a mutation.
+
+Expected state:
+
+```text
+execution outcome = unknown
+```
+
+until the native state is observed.
+
+---
+
+## Scenario — Rollback
+
+A deployment fails and a prior version is redeployed.
+
+Expected:
+
+```text
+deployment execution
+        ↓
+failure
+        ↓
+rollback execution
+        ↓
+rollback result
+        ↓
+verification
+```
+
+The failed deployment remains part of history.
+
+---
+
+## Scenario — Out-of-band native change
+
+A developer modifies a repository directly.
+
+Expected:
+
+```text
+native state changes
+        ↓
+Monad later observes difference
+        ↓
+reconciliation
+        ↓
+semantic state updated as appropriate
+```
+
+---
+
+## Scenario — Successful command, failed outcome
+
+A migration process exits successfully but the required invariant is not satisfied.
+
+Expected:
+
+```text
+execution = succeeded
+verification = failed
+```
+
+---
+
+# Open specification questions
+
+## Operation model
+
+What is the minimum persisted representation of an execution operation?
+
+Possible fields include:
+
+```text
+operation_id
+Actor
+target
+native target
+requested action
+inputs
+authority decision
+policy decision
+preconditions
+expected effects
+attempts
+observed effects
+result
+verification links
+```
+
+---
+
+## Execution states
+
+What canonical execution state machine should Monad use?
+
+A likely starting point:
+
+```text
+proposed
+  ↓
+planned
+  ↓
+authorized
+  ↓
+ready
+  ↓
+running
+  ↓
+succeeded / failed / partial / unknown / cancelled
+```
+
+The exact model requires specification.
+
+---
+
+## Atomicity
+
+Which operations require transactional semantics, and which should explicitly support partial results?
+
+---
+
+## Compensation
+
+How should compensating actions be related to their original execution?
+
+---
+
+## Idempotency
+
+How should idempotency keys and retry identity be represented consistently across native systems?
+
+---
+
+## Concurrency
+
+What concurrency-control abstractions should exist above provider-specific:
+
+* hashes,
+* revisions,
+* lock files,
+* ETags,
+* compare-and-swap,
+* branch protections,
+* and database transactions?
+
+---
+
+## Execution plans
+
+Should plans be first-class persisted artifacts or transient execution inputs?
+
+Likely both should be possible depending on consequence.
+
+---
+
+## Native bypass
+
+Which changes made directly in native systems require immediate reconciliation versus eventual observation?
+
+---
+
+## Sandboxing
+
+Which execution classes should support:
+
+* process isolation,
+* filesystem isolation,
+* network restrictions,
+* temporary worktrees,
+* containers,
+* or disposable environments?
+
+---
+
+## Cancellation
+
+What does cancellation mean once external side effects have already occurred?
+
+---
+
+## Emergency execution
+
+What minimum retrospective evidence and review should break-glass operations require?
+
+---
+
+# Minimum execution model
+
+A first useful execution path should support:
+
+```text
+Intent
+  ↓
+Resolve Target
+  ↓
+Observe Current State
+  ↓
+Construct Context
+  ↓
+Impact Analysis
+  ↓
+Execution Plan
+  ↓
+Authority
+  ↓
+Policy
+  ↓
+Preconditions
+  ↓
+Authorized Operation
+  ↓
+Execution Boundary
+  ↓
+Native Capability
+  ↓
+Observed Result
+  ↓
+Evidence
+  ↓
+Verification
+  ↓
+Reconciliation
+  ↓
+Updated System State
+```
+
+This does not require a heavyweight workflow engine.
+
+It requires preserving the boundaries.
+
+---
+
+# Execution invariants
+
+```text
+Intent ≠ Execution
+Plan ≠ Execution
+Authorization ≠ Execution
+Capability ≠ Authority
+Native Permission ≠ Monad Authority
+Requested Effect ≠ Observed Effect
+Execution Success ≠ Verification Success
+Rollback ≠ Erased History
+Compensation ≠ Reversal
+Retry ≠ Original Attempt
+Partial Success ≠ Complete Success
+Unknown Outcome ≠ Failure
+Unknown Outcome ≠ Success
+Direct Native Change ≠ Invalid Change
+Technical Success ≠ Requirement Satisfaction
+```
+
+---
+
+# Governing principle
+
+> **Execution is where governed engineering intent meets mutable reality. Monad must preserve enough structure around that boundary to know what was requested, why it was allowed, what was attempted, what actually changed, what failed, and what evidence demonstrates the resulting state.**
+
+Execution should be powerful.
+
+It should never be semantically invisible.

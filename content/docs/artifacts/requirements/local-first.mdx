@@ -1,0 +1,1963 @@
+---
+title: Local-First Requirements
+description: The requirements governing Monad's ability to remain useful, inspectable, operable, recoverable, and intelligible without continuous dependence on remote services.
+---
+
+<div className="mb-8 text-sm font-medium text-fd-muted-foreground">
+  Requirement family · REQ-LOCAL
+</div>
+
+# Local-First Requirements
+
+Monad is intended to remain useful even when remote services are unavailable, disconnected, degraded, rate-limited, revoked, or intentionally absent.
+
+Local-first does **not** mean that every capability must operate entirely offline.
+
+It means that the system's essential engineering knowledge, identity, state, reasoning, and control mechanisms must not disappear merely because a network connection or third-party service is unavailable.
+
+> **Remote systems may extend Monad, but they must not become the sole location of the engineering understanding required to operate, inspect, recover, or continue the project.**
+
+<Callout type="info" title="Scope of this requirement family">
+These requirements define the local-first obligations of Monad. Exact persistence formats, synchronization protocols, caching strategies, replication mechanisms, storage engines, and transport protocols belong in Specifications and Architecture Decisions.
+</Callout>
+
+---
+
+## Why local-first matters
+
+Modern engineering environments routinely depend on remote systems:
+
+* Git hosting platforms
+* CI providers
+* issue trackers
+* package registries
+* artifact registries
+* observability platforms
+* cloud databases
+* hosted AI providers
+* documentation services
+* project-management systems
+* secrets platforms
+* identity providers
+
+Those systems can be extremely valuable.
+
+They can also become unavailable.
+
+A project should not become unintelligible because GitHub is unreachable.
+
+An engineer should not lose the ability to determine why a requirement exists because a project-management API is down.
+
+An AI system should not require unrestricted access to every remote service merely to reconstruct basic project context.
+
+A recovery operation should not depend on the continued existence of the service that failed.
+
+Local-first architecture therefore establishes a boundary:
+
+```text
+Local engineering state
+        │
+        ├── identity
+        ├── canonical project knowledge
+        ├── specifications
+        ├── governance state
+        ├── provenance
+        ├── traceability
+        ├── configuration
+        ├── executable tooling
+        └── sufficient historical context
+        │
+        ▼
+Remote systems
+        │
+        ├── extend
+        ├── synchronize
+        ├── publish
+        ├── execute
+        ├── observe
+        └── collaborate
+```
+
+Remote systems can be important.
+
+They should not silently become existential dependencies for the core system.
+
+---
+
+# Core local-first requirements
+
+## REQ-LOCAL-001 — Core engineering state MUST be locally inspectable
+
+Monad MUST preserve enough local state for an authorized engineer to inspect the core engineering model without requiring continuous access to remote services.
+
+At minimum, the locally inspectable state SHOULD include the information necessary to understand:
+
+* important Subjects,
+* their identities,
+* important Relationships,
+* current Requirements,
+* active Specifications,
+* consequential Decisions,
+* governance-relevant state,
+* provenance,
+* traceability,
+* and known synchronization state.
+
+This requirement does not imply that every remote artifact must be fully mirrored locally.
+
+---
+
+## REQ-LOCAL-002 — Loss of remote connectivity MUST NOT make core project knowledge unintelligible
+
+Temporary or prolonged loss of remote connectivity MUST NOT prevent engineers from understanding the locally governed portions of the system.
+
+For example, loss of access to a remote issue tracker MUST NOT inherently erase the local understanding of:
+
+* which Requirement an implementation satisfies,
+* which Decision justified an architecture choice,
+* which Specification governs an interface,
+* or which Verification obligation remains outstanding.
+
+Remote-native detail may become unavailable.
+
+Core semantic meaning must remain.
+
+---
+
+## REQ-LOCAL-003 — Core semantic identity MUST NOT depend on continuous remote availability
+
+Stable semantic identity MUST remain resolvable for locally retained Subjects even when remote systems are unavailable.
+
+A remote native identifier MAY participate in identity binding.
+
+It MUST NOT be the only means by which Monad understands the semantic identity of a locally governed Subject.
+
+This requirement complements the identity requirements defined in:
+
+<Card href="/docs/artifacts/requirements/identity" title="Identity Requirements">
+  Stable semantic identity must remain distinct from paths, representations, and native-system identifiers.
+</Card>
+
+---
+
+## REQ-LOCAL-004 — Remote native references MUST remain meaningful when temporarily unresolved
+
+Monad MUST be capable of retaining a native reference even when the referenced remote object cannot currently be retrieved.
+
+For example, a reference to:
+
+```text
+GitHub issue #417
+```
+
+may remain meaningful as a known native reference even if GitHub cannot currently be contacted.
+
+Monad SHOULD preserve sufficient context to distinguish:
+
+```text
+known reference
+temporarily unresolved reference
+deleted reference
+unauthorized reference
+unknown reference
+invalid reference
+```
+
+where those distinctions can be determined.
+
+---
+
+## REQ-LOCAL-005 — Remote unavailability MUST be represented explicitly
+
+Monad MUST NOT silently treat remote unavailability as equivalent to:
+
+```text
+object does not exist
+object is deleted
+claim is false
+synchronization is complete
+verification passed
+state is current
+```
+
+Remote availability is an observation condition.
+
+It is not evidence of absence.
+
+---
+
+## REQ-LOCAL-006 — Unknown remote state MUST remain representable
+
+When remote state cannot be observed, Monad MUST be able to represent that state as unknown, unavailable, stale, or unresolved rather than coercing it into a definitive value.
+
+For example:
+
+```text
+remote_issue_state = unknown
+```
+
+is preferable to incorrectly assuming:
+
+```text
+remote_issue_state = closed
+```
+
+or:
+
+```text
+remote_issue_state = absent
+```
+
+> **Unknown is not false. Unreachable is not deleted.**
+
+---
+
+# Local operation
+
+## REQ-LOCAL-007 — Essential local operations SHOULD remain available offline
+
+Operations that depend only on locally available state SHOULD remain usable without network connectivity.
+
+Depending on the configured system, these MAY include:
+
+* inspecting the semantic model,
+* querying Requirements,
+* traversing traceability,
+* reviewing Decisions,
+* validating local schemas,
+* evaluating locally resolvable policies,
+* inspecting provenance,
+* analyzing impact,
+* preparing execution plans,
+* reviewing synchronization status,
+* running local verification,
+* and generating local projections.
+
+An operation that inherently requires a remote system MAY remain unavailable offline.
+
+The dependency MUST be explicit.
+
+---
+
+## REQ-LOCAL-008 — Offline operation MUST NOT imply unrestricted authority
+
+Loss of connectivity MUST NOT automatically relax governance.
+
+For example:
+
+```text
+remote approval service unavailable
+```
+
+MUST NOT silently become:
+
+```text
+approval granted
+```
+
+Local policy may define:
+
+* fail-open behavior,
+* fail-closed behavior,
+* degraded operation,
+* emergency authority,
+* deferred approval,
+* or restricted local operation.
+
+The behavior MUST be explicit and proportional to consequence.
+
+---
+
+## REQ-LOCAL-009 — Local authority MUST remain distinguishable from remote authority
+
+Monad MUST distinguish authority that can be established locally from authority that depends on remote systems.
+
+For example:
+
+```text
+local policy permits operation
+```
+
+does not necessarily imply:
+
+```text
+remote repository permits push
+```
+
+Likewise:
+
+```text
+GitHub permits branch deletion
+```
+
+does not imply:
+
+```text
+Monad governance authorizes branch deletion
+```
+
+Authority remains scoped.
+
+---
+
+## REQ-LOCAL-010 — Offline capability MUST remain distinguishable from offline permission
+
+A capability being technically executable while offline MUST NOT imply that the Actor is authorized to perform it.
+
+This preserves the broader invariant:
+
+> **Capability is not authority.**
+
+---
+
+# Local persistence
+
+## REQ-LOCAL-011 — Core local state MUST use durable persistence
+
+Core locally governed state MUST survive normal process termination, machine restart, and supported tool upgrades.
+
+Transient in-memory state MUST NOT be the sole repository for information whose loss would materially impair:
+
+* identity,
+* governance,
+* traceability,
+* provenance,
+* recovery,
+* or continued engineering work.
+
+---
+
+## REQ-LOCAL-012 — Critical local state MUST be recoverable from supported backups or versioned representations
+
+Monad MUST support a recovery strategy for locally authoritative state.
+
+The exact mechanism MAY include:
+
+* Git,
+* snapshots,
+* append-only logs,
+* export bundles,
+* database backups,
+* content-addressed objects,
+* versioned files,
+* or other durable representations.
+
+The implementation is not prescribed here.
+
+The recovery property is.
+
+---
+
+## REQ-LOCAL-013 — Local persistence MUST NOT require a specific storage engine
+
+The local-first requirement MUST remain independent of a particular database technology.
+
+Monad MAY use:
+
+* ordinary files,
+* SQLite,
+* embedded databases,
+* object stores,
+* event logs,
+* graph stores,
+* or combinations of these.
+
+Local-first is an architectural property, not a database selection.
+
+---
+
+## REQ-LOCAL-014 — Local persistence SHOULD remain inspectable using ordinary engineering tools where practical
+
+Monad SHOULD prefer representations that can be inspected, exported, validated, or recovered without requiring opaque hosted infrastructure.
+
+This does not require all internal storage to be human-readable text.
+
+It does require a credible inspection and recovery path.
+
+---
+
+## REQ-LOCAL-015 — Locally authoritative state MUST be exportable
+
+Monad MUST provide a supported means to export locally authoritative project knowledge into a durable representation suitable for:
+
+* backup,
+* migration,
+* inspection,
+* archival,
+* disaster recovery,
+* and interoperability.
+
+The export format MAY differ from the active persistence format.
+
+---
+
+# Remote dependency boundaries
+
+## REQ-LOCAL-016 — Remote dependencies MUST be explicit
+
+Monad MUST make consequential remote dependencies identifiable.
+
+An engineer SHOULD be able to determine that an operation requires, for example:
+
+```text
+GitHub
+OpenAI API
+package registry
+remote CI
+artifact registry
+cloud database
+```
+
+rather than discovering the dependency only after failure.
+
+---
+
+## REQ-LOCAL-017 — Remote dependency failure MUST produce explicit failure states
+
+When an operation cannot proceed because a required remote dependency is unavailable, Monad MUST report that condition explicitly.
+
+It SHOULD distinguish, when possible:
+
+```text
+network unavailable
+authentication unavailable
+authorization denied
+rate limited
+service unavailable
+resource missing
+timeout
+remote inconsistency
+unsupported capability
+```
+
+These conditions MUST NOT collapse into a generic success or misleading absence.
+
+---
+
+## REQ-LOCAL-018 — Failure of one remote integration SHOULD NOT unnecessarily disable unrelated local capabilities
+
+A failure in one integration SHOULD be isolated to the capabilities that depend on that integration.
+
+For example:
+
+```text
+GitHub unavailable
+```
+
+SHOULD NOT inherently disable:
+
+```text
+local requirements queries
+local schema validation
+local architecture inspection
+local provenance inspection
+local traceability traversal
+```
+
+when those operations do not require GitHub.
+
+---
+
+## REQ-LOCAL-019 — Remote systems SHOULD be treated as bounded capability providers
+
+Monad SHOULD interact with remote systems through explicit integration boundaries.
+
+A remote system may provide:
+
+* storage,
+* execution,
+* collaboration,
+* publication,
+* identity,
+* observation,
+* notification,
+* computation,
+* or other native capabilities.
+
+Monad SHOULD avoid allowing incidental integration behavior to become an undocumented architectural dependency.
+
+---
+
+## REQ-LOCAL-020 — Remote service replacement SHOULD be possible without redefining core semantics
+
+Replacing a remote provider SHOULD NOT require redefining the meaning of core Monad concepts.
+
+For example, moving from one Git hosting service to another SHOULD preserve semantic concepts such as:
+
+```text
+Subject
+Requirement
+Decision
+Specification
+Verification
+Evidence
+Release
+```
+
+even if native references and integration details change.
+
+---
+
+# Synchronization
+
+## REQ-LOCAL-021 — Local and remote state MUST NOT be assumed identical
+
+Monad MUST treat synchronization as an explicit process.
+
+The existence of both local and remote representations does not imply that they are current, equivalent, or consistent.
+
+---
+
+## REQ-LOCAL-022 — Synchronization state SHOULD be inspectable
+
+Where local and remote representations are synchronized, Monad SHOULD expose enough state to determine:
+
+```text
+last known synchronization
+source revision
+target revision
+pending changes
+known divergence
+conflicts
+unresolved failures
+```
+
+where technically available and proportionate.
+
+---
+
+## REQ-LOCAL-023 — Synchronization MUST preserve directionality
+
+Monad MUST be able to distinguish, where relevant:
+
+```text
+local → remote
+remote → local
+bidirectional
+observation only
+publication only
+execution only
+```
+
+A synchronization relationship MUST NOT be assumed bidirectional merely because data appears in both systems.
+
+---
+
+## REQ-LOCAL-024 — Synchronization failure MUST NOT silently destroy valid local state
+
+Failure to synchronize with a remote system MUST NOT inherently remove locally valid information.
+
+For example:
+
+```text
+failed GitHub update
+```
+
+must not imply:
+
+```text
+delete local Requirement
+```
+
+unless an explicit authoritative rule requires that result.
+
+---
+
+## REQ-LOCAL-025 — Remote state MUST NOT silently overwrite higher-authority local state
+
+Synchronization MUST respect authority.
+
+Remote observations MAY:
+
+* update,
+* challenge,
+* conflict with,
+* or trigger reconciliation of local state.
+
+They MUST NOT silently overwrite higher-authority information merely because the remote system is newer.
+
+---
+
+## REQ-LOCAL-026 — Local state MUST NOT silently overwrite higher-authority remote state
+
+The reverse is equally important.
+
+If a remote native system is authoritative for a particular fact, Monad MUST NOT silently overwrite it with lower-authority local information.
+
+Authority is scoped to the fact being synchronized.
+
+---
+
+## REQ-LOCAL-027 — Synchronization conflicts MUST be representable
+
+Monad MUST be able to preserve situations in which local and remote systems disagree.
+
+A conflict MUST NOT require immediate destructive resolution.
+
+The system SHOULD retain:
+
+* both observed values,
+* their sources,
+* their provenance,
+* relevant timestamps or revisions,
+* and the authority context necessary for reconciliation.
+
+---
+
+## REQ-LOCAL-028 — Synchronization MUST preserve provenance where material
+
+Material changes resulting from synchronization SHOULD remain attributable to:
+
+* the remote source,
+* the observed state,
+* the synchronization operation,
+* the Actor or integration responsible,
+* and any transformation applied.
+
+---
+
+# Reconnection and reconciliation
+
+## REQ-LOCAL-029 — Reconnection MUST NOT assume remote continuity
+
+After a period of disconnection, Monad MUST NOT assume that the remote system remained unchanged.
+
+It MUST treat the remote state as potentially divergent until observed.
+
+---
+
+## REQ-LOCAL-030 — Reconnection SHOULD trigger appropriate freshness evaluation
+
+Previously observed remote state SHOULD be evaluated for freshness after connectivity is restored.
+
+Cached or previously synchronized data MUST NOT silently regain current status merely because the connection returned.
+
+---
+
+## REQ-LOCAL-031 — Reconnection MUST support reconciliation
+
+When local and remote states diverge, Monad MUST support reconciliation rather than blindly selecting whichever copy was observed most recently.
+
+Reconciliation should consider:
+
+* authority,
+* provenance,
+* revision,
+* temporal context,
+* operation history,
+* known policy,
+* and confidence.
+
+The detailed reconciliation requirements are defined separately.
+
+---
+
+## REQ-LOCAL-032 — Reconciliation MUST preserve uncertainty
+
+When divergence cannot be safely resolved, Monad MUST retain uncertainty or conflict rather than inventing agreement.
+
+---
+
+## REQ-LOCAL-033 — Reconciliation MUST NOT erase valid offline work
+
+Legitimate work performed while disconnected MUST remain representable after reconnection.
+
+Remote divergence may require:
+
+* merge,
+* review,
+* conflict resolution,
+* revalidation,
+* reauthorization,
+* or supersession.
+
+It MUST NOT automatically imply that offline work was invalid.
+
+---
+
+# Cached and replicated state
+
+## REQ-LOCAL-034 — Cached state MUST remain distinguishable from authoritative state
+
+Monad MUST NOT treat cached remote data as inherently authoritative merely because it is locally available.
+
+Cached state SHOULD preserve metadata sufficient to understand:
+
+* its source,
+* observation time,
+* source revision where available,
+* freshness,
+* and authority relationship.
+
+---
+
+## REQ-LOCAL-035 — Cached state MUST support staleness
+
+Monad MUST be capable of representing cached remote information as stale.
+
+A stale value MAY remain useful.
+
+It MUST NOT masquerade as freshly observed state.
+
+---
+
+## REQ-LOCAL-036 — Replication MUST preserve semantic source identity
+
+When remote information is replicated locally, Monad SHOULD preserve the identity of the native source rather than treating the local copy as if it originated locally.
+
+For example:
+
+```text
+GitHub issue → local cached representation
+```
+
+should preserve that GitHub remains the native source of the replicated issue state where applicable.
+
+---
+
+## REQ-LOCAL-037 — Replication MUST NOT imply transfer of authority
+
+Copying remote information locally MUST NOT automatically make the local copy authoritative.
+
+Likewise, publishing local information remotely MUST NOT automatically transfer semantic authority to the remote platform.
+
+---
+
+# Local execution
+
+## REQ-LOCAL-038 — Execution location MUST be explicit where material
+
+Monad SHOULD preserve whether an operation executed:
+
+```text
+locally
+in CI
+on a remote worker
+through a hosted API
+inside another managed environment
+```
+
+when execution location affects interpretation, reproducibility, provenance, security, or verification.
+
+---
+
+## REQ-LOCAL-039 — Local execution SHOULD be preferred when it provides equivalent capability without material disadvantage
+
+For operations where local and remote execution are materially equivalent, Monad SHOULD permit local execution.
+
+This supports:
+
+* faster feedback,
+* reduced dependency,
+* privacy,
+* reproducibility,
+* debugging,
+* cost control,
+* and resilience.
+
+This requirement does not prohibit remote execution.
+
+---
+
+## REQ-LOCAL-040 — Remote execution MUST remain distinguishable from local execution
+
+Results produced by remote execution MUST preserve their execution origin.
+
+A remote CI verification result, for example, MUST NOT masquerade as a local verification run.
+
+---
+
+## REQ-LOCAL-041 — Local execution MUST produce equivalent semantic results where equivalence is claimed
+
+If Monad claims that a local operation is equivalent to a remote operation, that claim SHOULD be verifiable.
+
+Differences in:
+
+* platform,
+* environment,
+* dependency versions,
+* architecture,
+* configuration,
+* credentials,
+* or external state
+
+must be accounted for where they affect the result.
+
+---
+
+# Local verification
+
+## REQ-LOCAL-042 — Locally executable verification SHOULD remain available where practical
+
+Verification methods that require only locally available inputs SHOULD remain executable locally.
+
+Examples may include:
+
+* schema validation,
+* invariant checking,
+* static analysis,
+* unit tests,
+* contract checks,
+* artifact validation,
+* local build verification,
+* repository policy checks.
+
+---
+
+## REQ-LOCAL-043 — Local verification MUST NOT be represented as broader than its scope
+
+A locally executed check MUST NOT be interpreted as verification of remote conditions it did not observe.
+
+For example:
+
+```text
+local branch policy validation passed
+```
+
+does not prove:
+
+```text
+GitHub branch protection is configured correctly
+```
+
+unless GitHub was actually observed.
+
+---
+
+## REQ-LOCAL-044 — Remote-only verification obligations MUST remain visible offline
+
+If a Requirement cannot be fully verified without a remote system, Monad SHOULD still preserve the verification obligation locally.
+
+For example:
+
+```text
+Verification status: blocked
+Reason: remote integration unavailable
+```
+
+is preferable to removing the Verification record.
+
+---
+
+# Local provenance and history
+
+## REQ-LOCAL-045 — Material local changes MUST remain attributable
+
+Changes made while offline MUST preserve sufficient provenance to determine:
+
+* what changed,
+* who or what changed it,
+* when it changed,
+* why it changed where available,
+* and which prior state it derived from.
+
+---
+
+## REQ-LOCAL-046 — Offline history MUST remain distinguishable from later synchronized history
+
+Monad SHOULD preserve the sequence:
+
+```text
+local change
+remote observation
+conflict
+reconciliation
+result
+```
+
+rather than rewriting the historical record as if the final state had always been true.
+
+---
+
+## REQ-LOCAL-047 — Synchronization MUST NOT rewrite history solely for convenience
+
+Where material history is retained, synchronization SHOULD append, supersede, reconcile, or otherwise preserve change lineage rather than destructively rewriting prior engineering facts.
+
+---
+
+# Portability and migration
+
+## REQ-LOCAL-048 — Locally governed project state MUST be portable
+
+Monad MUST support moving locally governed project state between supported environments without requiring the continued availability of the original remote service.
+
+For example, a project SHOULD remain recoverable if:
+
+```text
+hosting provider disappears
+organization account is revoked
+service subscription expires
+remote workspace is deleted
+```
+
+provided the required local state and backups have been retained.
+
+---
+
+## REQ-LOCAL-049 — Remote provider migration MUST preserve semantic continuity
+
+Changing remote providers SHOULD preserve stable semantic identity and locally governed engineering meaning.
+
+Native identifiers MAY change.
+
+Semantic identity SHOULD remain continuous where the underlying engineering Subject remains the same.
+
+---
+
+## REQ-LOCAL-050 — Migration MUST NOT require semantic reinterpretation merely because storage location changed
+
+Moving a project between:
+
+```text
+laptops
+servers
+containers
+operating systems
+Git hosts
+CI providers
+cloud accounts
+```
+
+MUST NOT inherently redefine the meaning of locally governed engineering concepts.
+
+---
+
+# AI and local-first operation
+
+## REQ-LOCAL-051 — Core project understanding MUST NOT require continuous access to a hosted AI provider
+
+Monad MUST NOT depend on a hosted language model merely to reconstruct the authoritative meaning of core project artifacts.
+
+AI may assist with:
+
+* interpretation,
+* summarization,
+* planning,
+* search,
+* inference,
+* transformation,
+* and analysis.
+
+Authoritative project meaning must remain independently inspectable.
+
+---
+
+## REQ-LOCAL-052 — AI-generated state MUST be persisted independently when it becomes engineering state
+
+If AI output becomes a consequential engineering artifact, it MUST be persisted as ordinary governed project state rather than existing only inside a transient remote conversation.
+
+Examples include:
+
+* accepted Requirements,
+* approved Specifications,
+* Decisions,
+* review Findings,
+* generated migration plans,
+* accepted architecture proposals,
+* verification conclusions.
+
+---
+
+## REQ-LOCAL-053 — AI provider unavailability MUST degrade capability explicitly
+
+Loss of an AI provider MUST be represented as loss of that AI capability.
+
+It MUST NOT imply loss of unrelated project knowledge.
+
+For example:
+
+```text
+AI summarization unavailable
+```
+
+SHOULD NOT imply:
+
+```text
+Requirements unavailable
+Traceability unavailable
+Identity unavailable
+```
+
+---
+
+## REQ-LOCAL-054 — Local AI providers SHOULD be substitutable where capability permits
+
+Monad SHOULD permit local or alternative AI providers to satisfy an AI capability where the provider contract allows it.
+
+The semantic operation should be defined independently of a specific provider where practical.
+
+---
+
+# Security and privacy
+
+## REQ-LOCAL-055 — Local-first operation MUST NOT require unnecessary data disclosure
+
+Monad SHOULD minimize transmission of project information to remote services when the operation can be performed locally without meaningful loss of capability.
+
+This is especially important for:
+
+* proprietary source code,
+* credentials,
+* security findings,
+* personal information,
+* regulated data,
+* unpublished product strategy,
+* and sensitive operational information.
+
+---
+
+## REQ-LOCAL-056 — Remote transmission MUST be governed
+
+Sending project data to a remote service MUST remain subject to applicable policy and authority.
+
+The fact that an integration technically supports transmission does not authorize the transmission.
+
+---
+
+## REQ-LOCAL-057 — Secrets MUST NOT be embedded into portable local artifacts without explicit design
+
+Local exportability MUST NOT result in uncontrolled persistence of credentials or sensitive secrets.
+
+Portable project knowledge and secret management SHOULD remain separable.
+
+---
+
+## REQ-LOCAL-058 — Offline operation SHOULD support least privilege
+
+Local tools SHOULD operate with the least privilege reasonably required for their function.
+
+Local-first does not mean unrestricted access to the machine, repository, credentials, or external integrations.
+
+---
+
+# Failure and degradation
+
+## REQ-LOCAL-059 — Monad MUST support degraded operation
+
+When some dependencies are unavailable, Monad SHOULD continue operating with the subset of capabilities whose prerequisites remain satisfied.
+
+The system SHOULD be able to distinguish:
+
+```text
+fully operational
+degraded
+offline-capable
+blocked
+partially synchronized
+stale
+```
+
+where those distinctions are useful.
+
+---
+
+## REQ-LOCAL-060 — Degradation MUST be inspectable
+
+An engineer SHOULD be able to determine which capabilities are impaired and why.
+
+For example:
+
+```text
+Local model: available
+Traceability: available
+Git repository: available
+GitHub synchronization: unavailable
+Hosted AI: unavailable
+Remote CI verification: stale
+```
+
+This is preferable to a single undifferentiated failure state.
+
+---
+
+## REQ-LOCAL-061 — Failure recovery MUST NOT depend solely on the failed service
+
+Where practical, recovery from a remote-service failure MUST NOT require exclusive access to that same failed service.
+
+For example, recovery of core project knowledge SHOULD remain possible from locally retained state and backups.
+
+---
+
+## REQ-LOCAL-062 — Partial synchronization failure MUST remain explicit
+
+If only part of a synchronization operation succeeds, Monad MUST represent the partial result.
+
+It MUST NOT report the overall operation as wholly successful unless the success semantics explicitly permit partial completion.
+
+---
+
+# Freshness
+
+## REQ-LOCAL-063 — Local remote-derived state MUST carry enough metadata to reason about freshness
+
+Where local state is derived from remote observations, Monad SHOULD preserve enough information to reason about whether that state may still be current.
+
+Potential metadata includes:
+
+```text
+observed_at
+source_revision
+sync_revision
+source_etag
+source_event_id
+known_dependency_revision
+```
+
+The exact mechanism belongs in Specifications.
+
+---
+
+## REQ-LOCAL-064 — Freshness MUST be scoped
+
+Freshness SHOULD be determined relative to the fact or projection being considered.
+
+A local project snapshot may be:
+
+```text
+fresh for local files
+stale for GitHub issues
+unknown for CI state
+current for Requirements
+```
+
+at the same time.
+
+---
+
+## REQ-LOCAL-065 — Stale state MAY remain usable
+
+Monad MUST NOT assume that stale state is useless.
+
+Stale state may remain useful for:
+
+* historical reasoning,
+* planning,
+* offline inspection,
+* impact estimation,
+* recovery,
+* and provisional analysis.
+
+Its staleness MUST remain visible.
+
+---
+
+# Native systems
+
+## REQ-LOCAL-066 — Local-first MUST NOT require reimplementation of remote native systems
+
+Monad MUST NOT interpret local-first as a requirement to clone every remote platform locally.
+
+For example, Monad need not implement its own:
+
+```text
+Git hosting platform
+CI service
+issue tracker
+artifact registry
+cloud provider
+```
+
+simply to satisfy local-first principles.
+
+It should instead preserve the local engineering knowledge needed to survive temporary or permanent absence of those systems.
+
+---
+
+## REQ-LOCAL-067 — Native systems MUST remain first-class even when remote
+
+Remote native systems SHOULD remain the source of truth for the native capabilities they legitimately own.
+
+Monad's local representation SHOULD preserve the distinction between:
+
+```text
+native system reality
+locally observed state
+locally governed semantic state
+derived projection
+```
+
+---
+
+## REQ-LOCAL-068 — Local-first MUST coexist with integration-first architecture
+
+Monad's local-first architecture MUST remain compatible with the principle:
+
+> **If another system already owns a capability well, integrate with it before attempting to reimplement it.**
+
+Local resilience and native-system integration are complementary requirements, not competing philosophies.
+
+---
+
+# Repository and filesystem considerations
+
+## REQ-LOCAL-069 — A project checkout SHOULD contain sufficient information to begin understanding the system
+
+Where practical, a freshly obtained supported project checkout SHOULD provide enough locally available material to determine:
+
+* what the project is,
+* how it is structured,
+* where canonical engineering artifacts live,
+* how to validate them,
+* and what additional remote integrations are optional or required.
+
+---
+
+## REQ-LOCAL-070 — Repository cloning SHOULD NOT require immediate remote API access for basic inspection
+
+After obtaining the repository contents, an engineer SHOULD be able to inspect locally retained project knowledge without requiring additional API calls solely to reconstruct its basic meaning.
+
+---
+
+## REQ-LOCAL-071 — Locally generated derived state SHOULD be reconstructable where practical
+
+Caches, indexes, search databases, projections, and other derived local state SHOULD be reconstructable from canonical or sufficiently authoritative retained inputs where reasonable.
+
+Non-reconstructable state should be treated more carefully and backed up accordingly.
+
+---
+
+## REQ-LOCAL-072 — Reconstructable derived state SHOULD NOT be mistaken for canonical state
+
+The fact that a local search index or graph projection is convenient does not make it authoritative.
+
+Canonical and derived state MUST remain distinguishable.
+
+---
+
+# Configuration
+
+## REQ-LOCAL-073 — Local configuration SHOULD be separable from machine-specific configuration
+
+Monad SHOULD distinguish:
+
+```text
+project configuration
+workspace configuration
+user configuration
+machine configuration
+secret configuration
+remote integration configuration
+```
+
+where these distinctions prevent accidental coupling or disclosure.
+
+---
+
+## REQ-LOCAL-074 — Local project configuration SHOULD be portable
+
+Project-level configuration required to understand or operate the project SHOULD remain portable across supported environments where possible.
+
+---
+
+## REQ-LOCAL-075 — Machine-specific configuration MUST NOT silently become project truth
+
+Paths, credentials, local ports, device-specific settings, or environment-specific values MUST NOT silently become canonical project meaning unless explicitly modeled as such.
+
+---
+
+# Collaboration
+
+## REQ-LOCAL-076 — Local-first MUST support collaboration rather than imply single-user isolation
+
+Local-first architecture MUST remain compatible with collaborative development.
+
+Multiple engineers MAY each maintain local working state while synchronizing through:
+
+* Git,
+* remote services,
+* peer synchronization,
+* shared repositories,
+* or other supported mechanisms.
+
+Local-first is not synonymous with single-user.
+
+---
+
+## REQ-LOCAL-077 — Collaboration conflicts MUST remain reconcilable
+
+Where multiple Actors independently modify synchronized state, Monad MUST preserve enough provenance and identity to support conflict detection and reconciliation.
+
+---
+
+# Eventual connectivity
+
+## REQ-LOCAL-078 — Temporary disconnection SHOULD be a normal operating condition
+
+Monad SHOULD treat temporary loss of connectivity as an expected condition rather than an exceptional corruption event.
+
+---
+
+## REQ-LOCAL-079 — Offline work MUST have a defined path back to synchronized operation
+
+Capabilities that permit offline mutation SHOULD define how those mutations later:
+
+* synchronize,
+* conflict,
+* reconcile,
+* verify,
+* and become visible to collaborators.
+
+---
+
+## REQ-LOCAL-080 — Reconnection MUST NOT automatically authorize deferred side effects
+
+An operation planned while offline MUST NOT necessarily execute automatically when connectivity returns.
+
+If execution requires authorization, freshness checks, policy evaluation, or revision validation, those checks MUST occur at the appropriate execution boundary.
+
+---
+
+# Historical operation
+
+## REQ-LOCAL-081 — Historical project state SHOULD remain inspectable without contacting obsolete remote systems
+
+Where project history has been retained, engineers SHOULD be able to understand important historical states even when the remote tools used at that time no longer exist.
+
+For example, a historical Decision should not become meaningless merely because the issue tracker that originally hosted its discussion has been retired.
+
+---
+
+## REQ-LOCAL-082 — Historical native references SHOULD remain preserved even when no longer resolvable
+
+A native reference MAY remain part of historical provenance even after the native object or platform is gone.
+
+The unresolved reference SHOULD remain distinguishable from fabricated or invalid data.
+
+---
+
+# Progressive formalization
+
+## REQ-LOCAL-083 — Local-first guarantees SHOULD grow with system consequence
+
+Early or low-risk projects MAY satisfy local-first requirements with relatively simple mechanisms such as:
+
+```text
+Git
+Markdown
+structured files
+local validation
+exportable indexes
+```
+
+Higher-consequence systems MAY require:
+
+```text
+durable embedded persistence
+event history
+cryptographic integrity
+replication
+structured reconciliation
+backup verification
+disaster recovery procedures
+```
+
+Monad SHOULD allow progressive strengthening rather than requiring maximal infrastructure from the beginning.
+
+---
+
+## REQ-LOCAL-084 — Local-first complexity MUST earn its cost
+
+Monad MUST NOT add synchronization layers, replicas, caches, event logs, embedded databases, peer protocols, or conflict-resolution machinery solely because they are theoretically desirable.
+
+Each mechanism SHOULD address a demonstrated requirement, risk, or operational need.
+
+---
+
+# Non-requirements
+
+This requirement family does **not** require Monad to:
+
+* operate every integration fully offline,
+* reproduce GitHub locally,
+* reproduce CI platforms locally,
+* mirror every remote artifact,
+* maintain a peer-to-peer network,
+* use a distributed database,
+* use CRDTs,
+* use event sourcing,
+* use SQLite,
+* use a graph database,
+* keep every historical observation forever,
+* guarantee conflict-free synchronization,
+* eliminate cloud services,
+* reject hosted AI providers,
+* avoid remote execution,
+* or make every project artifact human-readable text.
+
+The requirement is resilience of engineering meaning and essential operation.
+
+The implementation remains open.
+
+---
+
+# Example scenarios
+
+## Scenario 1 — GitHub unavailable
+
+A developer loses connectivity while working on Monad.
+
+Locally available:
+
+```text
+Requirements
+Specifications
+ADRs
+semantic identities
+local source
+local traceability
+local verification methods
+cached native references
+```
+
+Unavailable:
+
+```text
+GitHub issue updates
+pull request status
+remote branch protection state
+remote Actions runs
+```
+
+Monad should represent:
+
+```text
+Local engineering state: available
+GitHub state: unavailable
+Previously observed GitHub state: stale
+```
+
+rather than making the entire project unusable.
+
+---
+
+## Scenario 2 — AI provider unavailable
+
+A hosted AI provider becomes inaccessible.
+
+Monad should still permit:
+
+```text
+requirements inspection
+architecture inspection
+local queries
+schema validation
+traceability traversal
+policy inspection
+manual engineering work
+local verification
+```
+
+AI-assisted capabilities may become unavailable.
+
+The project itself should remain intelligible.
+
+---
+
+## Scenario 3 — Remote issue deleted
+
+Monad contains:
+
+```text
+Subject: requirement-17
+Native Reference: GitHub issue #217
+```
+
+GitHub issue #217 later disappears.
+
+Monad should not conclude:
+
+```text
+Subject requirement-17 no longer exists
+```
+
+Instead it might represent:
+
+```text
+Subject: exists
+Native Reference: historically known
+Remote resolution: missing
+Reconciliation required: yes
+```
+
+subject to authority and lifecycle rules.
+
+---
+
+## Scenario 4 — Offline implementation work
+
+An engineer makes a legitimate implementation change while disconnected.
+
+During that time, the remote branch also changes.
+
+After reconnection Monad should preserve:
+
+```text
+local change
+remote change
+common prior revision
+conflict or divergence
+required reconciliation
+required reverification
+```
+
+rather than selecting one side merely because it was observed last.
+
+---
+
+## Scenario 5 — Stale verification
+
+A locally cached CI result says:
+
+```text
+PASS
+```
+
+The implementation has changed since the result was produced.
+
+Monad should represent the result as historical or stale rather than as current verification.
+
+---
+
+## Scenario 6 — Provider migration
+
+A project moves from GitHub to another Git hosting provider.
+
+Native references change.
+
+The underlying semantic Subjects remain the same.
+
+Monad should preserve:
+
+```text
+semantic identity continuity
+old native bindings
+new native bindings
+migration provenance
+historical traceability
+```
+
+---
+
+## Scenario 7 — Hosted service disappears
+
+A third-party planning service permanently shuts down.
+
+The service previously contained useful coordination information.
+
+If that information had become important engineering knowledge, Monad should already have preserved the consequential parts locally or through durable export.
+
+The project's core engineering narrative should survive the service.
+
+---
+
+# Verification themes
+
+The following scenarios should eventually be covered by conformance or acceptance verification.
+
+### Offline inspection
+
+Disconnect remote services and verify that locally retained:
+
+```text
+Requirements
+Decisions
+Specifications
+semantic identities
+traceability
+provenance
+```
+
+remain inspectable.
+
+---
+
+### Remote reference persistence
+
+Create a native remote reference, make the remote service unavailable, and verify that the reference remains locally meaningful.
+
+---
+
+### Unknown remote state
+
+Prevent remote observation and verify that Monad reports unknown or unavailable state rather than fabricated absence.
+
+---
+
+### Stale cache behavior
+
+Observe remote state, allow it to become stale, and verify that the cached value remains visible but is not presented as fresh.
+
+---
+
+### Offline mutation
+
+Perform an authorized local change while disconnected and verify that it remains present after reconnection.
+
+---
+
+### Divergent mutation
+
+Modify equivalent state both locally and remotely during disconnection and verify that Monad surfaces a reconciliation condition.
+
+---
+
+### Provider replacement
+
+Replace one supported remote provider with another and verify that semantic identities remain stable where the engineering Subjects remain the same.
+
+---
+
+### Remote AI outage
+
+Disable the AI provider and verify that non-AI local capabilities continue operating.
+
+---
+
+### Remote CI outage
+
+Disable remote CI access and verify that locally retained verification obligations and historical results remain visible.
+
+---
+
+### Partial synchronization failure
+
+Force one part of a synchronization operation to fail and verify that partial completion remains explicit.
+
+---
+
+### Local recovery
+
+Restore a project from supported local backup or export and verify that core semantic state remains intelligible.
+
+---
+
+### Stale verification
+
+Change a dependency after a previously passing verification result and verify that current assurance is not incorrectly inherited.
+
+---
+
+# Open specification questions
+
+These requirements intentionally leave several implementation questions unresolved.
+
+## Canonical local persistence
+
+What is the minimum canonical local representation?
+
+Candidates may include:
+
+```text
+structured files
+embedded database
+event log
+content-addressed object store
+hybrid file/database model
+```
+
+---
+
+## Synchronization protocol
+
+How should local and remote state exchange changes?
+
+Possible approaches include:
+
+```text
+pull-based observation
+push publication
+event ingestion
+periodic reconciliation
+webhooks
+operation logs
+provider-specific adapters
+hybrid synchronization
+```
+
+---
+
+## Conflict model
+
+Which classes of conflict require:
+
+```text
+automatic resolution
+authority-based resolution
+manual review
+policy evaluation
+explicit supersession
+```
+
+---
+
+## Freshness model
+
+How should Monad represent freshness for:
+
+```text
+native references
+projections
+remote CI results
+issue state
+deployment state
+AI-derived context
+```
+
+---
+
+## Offline authority
+
+Which operations may proceed without online confirmation?
+
+Which must:
+
+```text
+fail closed
+defer
+require local emergency authority
+require later retrospective review
+```
+
+---
+
+## Replication depth
+
+How much native-system information should be retained locally?
+
+The likely answer is:
+
+> only enough to preserve meaningful engineering continuity, provenance, traceability, and recovery.
+
+But the exact threshold requires specification.
+
+---
+
+## Export format
+
+What portable representation should be guaranteed for long-term recovery?
+
+The format must balance:
+
+* completeness,
+* inspectability,
+* stability,
+* portability,
+* and implementation complexity.
+
+---
+
+## Cached remote data retention
+
+How long should remote observations remain locally available?
+
+Retention may depend on:
+
+* project policy,
+* artifact importance,
+* reproducibility,
+* security,
+* storage cost,
+* and legal constraints.
+
+---
+
+## Local AI
+
+Which AI capabilities should support fully local providers?
+
+This should be capability-driven rather than ideological.
+
+---
+
+## Multi-machine synchronization
+
+Should Monad eventually support direct local-to-local synchronization, or should Git and native systems remain the primary collaboration mechanism?
+
+This should remain open until a real requirement justifies additional complexity.
+
+---
+
+# Relationship to other requirement families
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/identity" title="Identity">
+    Local-first operation depends on semantic identity remaining independent of remote native identifiers and locations.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/integrations" title="Integrations">
+    Native-system integrations define how Monad observes and invokes remote capabilities without unnecessarily reimplementing them.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/reconciliation" title="Reconciliation">
+    Reconciliation governs how divergent local and native-system state is compared, interpreted, and resolved.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/provenance" title="Provenance">
+    Offline work, synchronization, replication, and recovery must preserve where engineering information came from.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/authority" title="Authority">
+    Offline availability and technical capability do not determine whether an operation is authorized.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/reproducibility" title="Reproducibility">
+    Local execution and recovery are strengthened when environments and verification results can be reproduced.
+  </Card>
+</Cards>
+
+---
+
+# Traceability example
+
+A future trace may look like:
+
+```text
+REQ-LOCAL-002
+Loss of remote connectivity must not make
+core project knowledge unintelligible
+        │
+        ▼
+Local State Model
+        │
+        ▼
+Local Persistence Specification
+        │
+        ▼
+Portable Project Store
+        │
+        ▼
+Offline Inspection Conformance Test
+        │
+        ▼
+Verification Result
+        │
+        ▼
+Evidence Bundle
+```
+
+A synchronization-oriented trace may look like:
+
+```text
+REQ-LOCAL-027
+Synchronization conflicts must be representable
+        │
+        ▼
+Reconciliation Model
+        │
+        ▼
+Synchronization Conflict Specification
+        │
+        ▼
+Integration Adapter
+        │
+        ▼
+Divergence Scenario Test
+        │
+        ▼
+Verification Evidence
+```
+
+---
+
+# Local-first invariants
+
+The following distinctions should remain true throughout the system:
+
+```text
+Local ≠ Canonical by definition
+Remote ≠ Authoritative by definition
+Cached ≠ Current
+Unavailable ≠ Absent
+Unknown ≠ False
+Synchronized ≠ Equivalent forever
+Replicated ≠ Authoritative
+Capability ≠ Authority
+Offline ≠ Ungoverned
+Online ≠ Trusted
+Native Identity ≠ Semantic Identity
+Remote Execution ≠ Local Execution
+Execution Success ≠ Verification
+Historical Observation ≠ Current State
+Derived State ≠ Canonical State
+Recovery Copy ≠ Original Provenance
+```
+
+These distinctions are more important than any particular storage or synchronization technology.
+
+---
+
+# Minimum viable local-first behavior
+
+A first useful Monad implementation does not need sophisticated distributed-systems machinery.
+
+It should be sufficient for a developer to:
+
+```text
+clone or restore the project
+        ↓
+inspect core engineering artifacts locally
+        ↓
+resolve stable semantic identities
+        ↓
+query important traceability
+        ↓
+run locally available validation
+        ↓
+see which remote capabilities are unavailable
+        ↓
+continue permitted local work
+        ↓
+reconnect later
+        ↓
+observe divergence
+        ↓
+reconcile deliberately
+```
+
+That is already a meaningful local-first system.
+
+---
+
+# Maturity path
+
+A practical progression may be:
+
+```text
+1. Local artifacts
+   ↓
+2. Stable local identity
+   ↓
+3. Local validation
+   ↓
+4. Explicit remote references
+   ↓
+5. Cached observations + freshness
+   ↓
+6. Synchronization status
+   ↓
+7. Conflict representation
+   ↓
+8. Reconciliation
+   ↓
+9. Portable backup/export
+   ↓
+10. Verified recovery
+   ↓
+11. Selective replication
+   ↓
+12. Advanced multi-environment continuity
+```
+
+Monad should not jump to the later stages before the earlier ones prove insufficient.
+
+---
+
+# Governing principle
+
+> **A Monad project should remain intelligible, inspectable, and meaningfully operable from locally retained state even when remote systems disappear, while still integrating deeply with those systems whenever they provide valuable native capabilities.**
+
+Local-first is therefore not an anti-cloud position.
+
+It is a resilience and ownership property.
+
+The project should be able to use remote systems without becoming conceptually dependent on their continued existence.

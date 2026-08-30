@@ -1,0 +1,460 @@
+---
+title: Placeholder/Template Idea.md
+description: Self-Documenting Placeholder/Template for idea.md
+---
+
+A good placeholder `idea.md` should be **self-documenting**: readable as a template, but also explanatory enough that someone understands what belongs in each section and what does not.
+
+```markdown
+# Project Idea
+
+> This document captures the original concept, motivation, possibilities, and unresolved thinking behind the project.
+>
+> It is intentionally exploratory.
+>
+> Use this document to describe **why the project should exist, what problem or opportunity inspired it, and what it might become**.
+>
+> Do not treat ideas written here as final requirements or architectural commitments. Once an idea becomes a deliberate project decision, it should be reflected in the appropriate authoritative document such as `project.md`, `requirements.md`, or `architecture.md`.
+
+---
+
+## 1. Origin
+
+### Purpose
+
+Describe what caused the project idea to emerge.
+
+This section should answer questions such as:
+
+* What experience, observation, frustration, opportunity, or curiosity led to the idea?
+* Was there an existing problem that repeatedly appeared?
+* Was there something you wished already existed?
+* Did another project expose the need for this one?
+* Why are you considering this project now?
+
+### Example
+
+> While working on several software projects, we repeatedly encountered difficulty keeping architectural decisions, requirements, implementation plans, and project knowledge synchronized. Existing tools solved pieces of the problem but did not provide a coherent model of the project as a whole.
+>
+> This led to the idea of creating a system that could represent project knowledge, engineering decisions, and implementation state in a unified and machine-readable way.
+
+### Write the actual project origin here
+
+> Replace this paragraph with the real origin story of the project.
+
+---
+
+## 2. Problem or Opportunity
+
+### Purpose
+
+Describe the underlying problem, unmet need, or opportunity.
+
+Focus on the problem itself rather than immediately describing a solution.
+
+A useful problem description explains:
+
+* what is happening today;
+* why the current situation is inadequate;
+* who experiences the problem;
+* what consequences result;
+* why existing approaches are insufficient.
+
+### Example
+
+> Complex engineering projects generate information across source code, issue trackers, documentation, architecture records, chat conversations, planning systems, and external services.
+>
+> These sources frequently become inconsistent or disconnected. Developers must reconstruct context manually, and automation systems often lack enough structured knowledge to reason safely about the project.
+
+### Write the actual problem here
+
+> Replace this paragraph with the real problem or opportunity the project addresses.
+
+---
+
+## 3. Core Idea
+
+### Purpose
+
+Describe the central concept of the proposed solution.
+
+This is not yet a detailed specification. It should communicate the essential idea clearly enough that another person could explain the project back to you.
+
+### Example
+
+> Build a project intelligence system that maintains a structured representation of the important entities, relationships, decisions, artifacts, and lifecycle state of a software project.
+>
+> The system would connect human-readable project artifacts with machine-readable structures so humans and automated tools can operate from the same project model.
+
+### Write the actual core idea here
+
+> Replace this paragraph with the central idea of the project.
+
+---
+
+## 4. Vision
+
+### Purpose
+
+Describe what the project could become if it succeeds.
+
+The vision may be substantially broader than the first implementation.
+
+This section can include ambitious possibilities without committing the project to implementing all of them.
+
+Consider:
+
+* What would the mature version of the project look like?
+* What becomes possible if the core idea works?
+* How might people interact with it?
+* How might the project evolve over several years?
+* What larger ecosystem could eventually emerge?
+
+### Example
+
+> The long-term vision is for the system to become an intelligent project substrate through which developers, automated agents, CI systems, documentation systems, and project-management tools can understand and modify a software project safely.
+>
+> Instead of each tool maintaining an isolated interpretation of the project, they would operate against a shared semantic model.
+
+### Write the actual vision here
+
+> Replace this paragraph with the long-term vision for the project.
+
+---
+
+## 5. Intended Users
+
+### Purpose
+
+Identify the people, teams, systems, or organizations that might benefit from the project.
+
+Users may include both humans and software systems.
+
+Do not worry yet about defining formal personas.
+
+### Example
+
+Potential users might include:
+
+* individual software developers;
+* engineering teams;
+* technical leads and architects;
+* project maintainers;
+* AI coding agents;
+* CI/CD systems;
+* documentation tooling;
+* engineering-management systems.
+
+### Write the actual intended users here
+
+> Replace this paragraph or list with the expected users of the project.
+
+---
+
+## 6. Desired Capabilities
+
+### Purpose
+
+Record capabilities that seem valuable based on the current idea.
+
+These are **possibilities**, not yet formal requirements.
+
+A capability describes something the system may eventually be able to do.
+
+### Example
+
+The project might eventually be able to:
+
+* discover the structure of an existing software project;
+* represent important project entities and relationships;
+* associate requirements with implementation artifacts;
+* trace architectural decisions to affected code;
+* detect inconsistencies between project artifacts;
+* expose project knowledge to automation systems;
+* explain why parts of the system exist;
+* calculate the likely impact of proposed changes;
+* maintain historical project context;
+* support automated engineering workflows.
+
+### Write the actual desired capabilities here
+
+* Replace this item.
+* Add additional capabilities.
+* Remove capabilities that do not apply.
+
+---
+
+## 7. Guiding Principles
+
+### Purpose
+
+Capture qualities that should influence future decisions.
+
+Principles help guide the project when multiple technically valid approaches exist.
+
+They should express preferences or values rather than implementation details.
+
+### Example
+
+Possible principles include:
+
+* **Human-understandable** — important project state should remain understandable without specialized infrastructure.
+* **Machine-readable** — important concepts should be representable in structured form.
+* **Deterministic where possible** — identical inputs should produce predictable results.
+* **Explicit over implicit** — important assumptions should be represented rather than hidden.
+* **Local-first** — essential project functionality should not require remote infrastructure.
+* **Composable** — capabilities should integrate without forcing unnecessary coupling.
+* **Extensible** — the system should support future domains without redesigning the foundation.
+* **Interoperable** — existing engineering tools should be integrated rather than unnecessarily replaced.
+* **Auditable** — important decisions and changes should be traceable.
+* **Progressive complexity** — simple use cases should remain simple while advanced capabilities remain possible.
+
+### Write the actual principles here
+
+* Replace this item.
+* Add project-specific principles.
+* Remove example principles that do not apply.
+
+---
+
+## 8. Possible Directions
+
+### Purpose
+
+Preserve promising ideas that are worth remembering but are not yet commitments.
+
+This section prevents speculative ideas from accidentally becoming requirements while ensuring they are not lost.
+
+### Example
+
+Possible future directions might include:
+
+* a command-line interface;
+* a desktop application;
+* a web interface;
+* a project graph database;
+* IDE integrations;
+* autonomous engineering agents;
+* repository analysis;
+* policy enforcement;
+* project visualization;
+* distributed project knowledge;
+* integrations with external development platforms.
+
+### Write possible directions here
+
+* Replace this item.
+* Add experimental or speculative directions worth preserving.
+
+---
+
+## 9. Assumptions
+
+### Purpose
+
+Record assumptions currently influencing the idea.
+
+Assumptions should remain visible because later discovery may prove them wrong.
+
+### Example
+
+Current assumptions might include:
+
+* software projects benefit from having an explicit structural model;
+* important engineering knowledge can be represented sufficiently well for automation;
+* developers will prefer integration with existing tools over replacing all of them;
+* human-readable artifacts should remain first-class;
+* automation should operate under explicit governance boundaries.
+
+### Write current assumptions here
+
+* Replace this item.
+* Record assumptions that should eventually be validated.
+
+---
+
+## 10. Unknowns
+
+### Purpose
+
+Record important questions that have not yet been answered.
+
+Unknowns are expected at this stage.
+
+Do not prematurely resolve them merely to make the document look complete.
+
+### Example
+
+Open questions might include:
+
+* What is the smallest useful version of the system?
+* What information should be authoritative?
+* What should the canonical data model contain?
+* Should project state live primarily in files, a database, or both?
+* Which capabilities belong in the core?
+* What should remain optional?
+* How should existing repositories be imported?
+* What level of automation should be permitted?
+* What programming languages or runtimes are appropriate?
+
+### Write the actual unknowns here
+
+* Replace this item.
+* Add unresolved questions as they are discovered.
+
+---
+
+## 11. Risks and Concerns
+
+### Purpose
+
+Capture reasons the idea might fail or become unnecessarily difficult.
+
+Identifying risks here does not mean solving them yet.
+
+### Example
+
+Possible risks include:
+
+* attempting to model too much too early;
+* creating excessive project-management overhead;
+* building infrastructure before validating the core value;
+* introducing abstractions developers cannot easily understand;
+* duplicating capabilities that mature tools already provide;
+* creating a system that only works well on itself.
+
+### Write the actual risks here
+
+* Replace this item.
+* Add technical, product, organizational, adoption, or conceptual risks.
+
+---
+
+## 12. Non-Goals
+
+### Purpose
+
+Record things the project currently does **not** intend to become.
+
+Non-goals prevent adjacent ideas from silently expanding the project's scope.
+
+These can change later.
+
+### Example
+
+At this stage, the project is not intended to:
+
+* replace every existing development tool;
+* prescribe one programming language;
+* require a specific cloud provider;
+* automatically make every engineering decision;
+* eliminate human review;
+* solve every category of software-project management.
+
+### Write the actual non-goals here
+
+* Replace this item.
+* Add boundaries that help clarify the project.
+
+---
+
+## 13. Inspiration and Related Ideas
+
+### Purpose
+
+Record projects, technologies, concepts, research, or experiences that influenced the idea.
+
+This section is for inspiration and comparison, not dependency declarations.
+
+### Example
+
+Potential sources of inspiration might include:
+
+* build systems;
+* knowledge graphs;
+* compiler intermediate representations;
+* infrastructure-as-code systems;
+* package managers;
+* software architecture models;
+* digital twins;
+* policy engines;
+* project-management systems;
+* AI agent architectures.
+
+### Write relevant inspirations here
+
+* Replace this item.
+* Add references or related concepts as they become relevant.
+
+---
+
+## 14. Initial Hypothesis
+
+### Purpose
+
+Summarize the central hypothesis that makes the project worth investigating.
+
+A useful form is:
+
+> If we create **X**, then **Y** should become possible or substantially better because **Z**.
+
+### Example
+
+> If software projects maintain a structured and continuously reconciled representation of their important engineering knowledge, then both humans and automated systems should be able to understand and modify those projects more reliably because critical context will no longer be scattered across disconnected artifacts.
+
+### Write the actual hypothesis here
+
+> Replace this paragraph with the project's current central hypothesis.
+
+---
+
+## 15. One-Paragraph Summary
+
+### Purpose
+
+End the document with a concise description of the idea.
+
+Someone unfamiliar with the project should be able to read this paragraph and understand the basic concept.
+
+### Example
+
+> This project explores whether a software project's important knowledge, structure, decisions, and implementation state can be represented as a coherent system that both humans and automation can understand. The goal is not merely to create another project-management tool, but to investigate whether a shared project model can serve as a foundation for better engineering coordination, traceability, automation, and intelligent development systems.
+
+### Write the actual summary here
+
+> Replace this paragraph with a concise summary of the project idea.
+```
+
+---
+
+## Document Lifecycle
+
+This document should evolve as the idea develops.
+
+New possibilities, observations, questions, and hypotheses may be added freely.
+
+However, this document should **not become the authoritative specification of the project**.
+
+As ideas mature:
+
+```text
+idea.md
+   ├── validated project decisions ────────> project.md
+   ├── required system behavior ──────────> requirements/
+   ├── architectural decisions ───────────> architecture.md / ADRs
+   ├── engineering organization ──────────> workspace.md
+   └── unresolved possibilities ──────────> remain here
+```
+
+The purpose of `idea.md` is to preserve and develop the project's **conceptual origin and possibility space** without confusing exploration with commitment.
+
+Use this rather than a mostly empty template as it shows the author the distinction between **exploration, assumptions, hypotheses, commitments, and requirements** while they fill it out.
+
+After saving it, commit it separately:
+
+```bash
+git add docs/idea.md
+git commit -m "docs: add self-documenting project idea template"
+```
+
+The next useful move is to do the same thing to `project.md`: turn it from the small placeholder we created earlier into a self-documenting template that makes very clear what constitutes **committed project truth** versus material that still belongs in `idea.md`.

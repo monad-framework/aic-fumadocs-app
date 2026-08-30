@@ -1,0 +1,2182 @@
+---
+title: Provenance Requirements
+description: The requirements governing how Monad records, preserves, distinguishes, and reasons about the origin, derivation, observation, production, transformation, and recording history of engineering information.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-PROV
+  </p>
+</div>
+
+# Provenance Requirements
+
+Engineering information rarely appears from nowhere.
+
+A requirement may originate in a conversation, become a structured artifact, be transformed into a specification, influence implementation, produce verification results, and later appear in a generated report.
+
+An observed fact may come from Git, GitHub, CI, a local filesystem, a deployment platform, a database, a human reviewer, or an AI system.
+
+A generated claim may depend on several earlier observations.
+
+A projection may itself be derived from semantic state that was derived from native systems.
+
+Monad needs to preserve enough of that lineage to answer a deceptively simple question:
+
+> **Where did this information come from?**
+
+That question is different from:
+
+> Is it true?
+
+> Is it authoritative?
+
+> Is it current?
+
+> Is it relevant?
+
+> Is it permitted?
+
+Those concerns interact with provenance, but they are not provenance.
+
+<Callout type="info" title="Core distinction">
+Provenance explains the origin and derivation of information. It does not, by itself, establish truth, authority, permission, correctness, or trustworthiness.
+</Callout>
+
+---
+
+# Requirement family scope
+
+The `REQ-PROV-*` family governs provenance associated with:
+
+* Subjects,
+* Representations,
+* Claims,
+* Evidence,
+* observations,
+* inferences,
+* generated artifacts,
+* projections,
+* imports,
+* native-system references,
+* transformations,
+* execution,
+* verification,
+* reconciliation,
+* migrations,
+* human actions,
+* AI actions,
+* tool operations,
+* and historical records.
+
+It includes requirements for distinguishing:
+
+* origin,
+* producer,
+* observer,
+* recorder,
+* transformation,
+* derivation,
+* source material,
+* execution location,
+* requested origin,
+* resolved origin,
+* and current storage location.
+
+It does not independently define:
+
+* whether information is authoritative,
+* whether a Claim is true,
+* whether an actor was permitted to act,
+* whether evidence is sufficient,
+* whether a source should be trusted,
+* or whether a lifecycle transition was valid.
+
+Those are governed by related requirement families.
+
+---
+
+# Foundational provenance requirements
+
+## REQ-PROV-001 — Monad MUST preserve material provenance
+
+Monad MUST preserve provenance for information where origin or derivation materially affects:
+
+* interpretation,
+* verification,
+* authority resolution,
+* debugging,
+* reconciliation,
+* reproducibility,
+* auditability,
+* historical reconstruction,
+* AI reasoning,
+* or governance.
+
+Provenance capture SHOULD be proportional to engineering value.
+
+Not every transient value requires a full lineage graph.
+
+---
+
+## REQ-PROV-002 — Provenance MUST remain distinct from content
+
+The information:
+
+```text
+Component A depends on Component B.
+```
+
+is distinct from:
+
+```text
+This assertion was produced by dependency scanner X
+from source files Y and Z
+during execution E
+at time T.
+```
+
+Monad MUST be able to preserve that distinction.
+
+---
+
+## REQ-PROV-003 — Provenance MUST remain distinct from authority
+
+Monad MUST preserve:
+
+```text
+Provenance ≠ Authority
+```
+
+A source may be identifiable without being authoritative.
+
+An authoritative source may also produce an incorrect or stale assertion.
+
+The system MUST NOT infer authority solely from origin.
+
+---
+
+## REQ-PROV-004 — Provenance MUST remain distinct from trust
+
+Knowing where information originated MUST NOT automatically determine whether it should be trusted.
+
+For example:
+
+```text
+source: CI system
+```
+
+does not necessarily mean:
+
+```text
+result: correct
+```
+
+The CI configuration itself may have been defective.
+
+---
+
+## REQ-PROV-005 — Provenance MUST remain distinct from evidence
+
+Provenance describes how information came to exist.
+
+Evidence supports or challenges a proposition.
+
+The same artifact MAY participate in both roles, but those semantic roles MUST remain distinguishable.
+
+---
+
+# Origin
+
+## REQ-PROV-006 — Monad SHOULD record origin where origin affects interpretation
+
+Where meaningful, Monad SHOULD preserve the origin from which information first entered the relevant engineering process.
+
+Possible origins include:
+
+* a human-authored artifact,
+* native engineering system,
+* imported repository,
+* external service,
+* experiment,
+* execution,
+* verification activity,
+* AI generation,
+* observation,
+* or derived semantic process.
+
+---
+
+## REQ-PROV-007 — Requested origin MUST be distinguishable from resolved origin where they differ
+
+An operation may request:
+
+```text
+repository default branch
+```
+
+while actually resolving to:
+
+```text
+commit 8f36...
+```
+
+Monad SHOULD support distinguishing:
+
+```text
+requested origin
+```
+
+from:
+
+```text
+resolved origin
+```
+
+when reproducibility or interpretation depends on the distinction.
+
+---
+
+## REQ-PROV-008 — Original origin SHOULD remain distinguishable from current storage location
+
+Moving information into Monad MUST NOT rewrite its provenance as though Monad created it.
+
+For example:
+
+```text
+origin:
+  GitHub issue
+```
+
+may coexist with:
+
+```text
+currently persisted in:
+  Monad semantic store
+```
+
+---
+
+# Producer
+
+## REQ-PROV-009 — Monad MUST be capable of identifying the producer of derived information
+
+Where information is created through an operation, Monad SHOULD be able to identify the producer.
+
+A producer may be:
+
+* a human,
+* an AI agent,
+* a compiler,
+* a parser,
+* a scanner,
+* a generator,
+* a CI job,
+* a verification harness,
+* an import process,
+* or another system component.
+
+---
+
+## REQ-PROV-010 — Producer identity MUST be distinguishable from source identity
+
+A tool may produce a Claim using information from another source.
+
+For example:
+
+```text
+source:
+  package-lock.json
+
+producer:
+  dependency analyzer
+```
+
+Those are different provenance roles.
+
+---
+
+## REQ-PROV-011 — Intermediate producers SHOULD be preserved where material
+
+When information passes through several transformations, Monad SHOULD preserve intermediate producers if omitting them would make the result difficult to:
+
+* reproduce,
+* explain,
+* debug,
+* verify,
+* or correct.
+
+---
+
+# Observer
+
+## REQ-PROV-012 — Observation provenance MUST identify the observer where meaningful
+
+An observation SHOULD identify what system or actor performed the observation when that fact matters.
+
+Example:
+
+```text
+Observer:
+  Git integration
+
+Observed:
+  commit abc123 exists
+```
+
+---
+
+## REQ-PROV-013 — Observer MUST be distinguishable from observed source
+
+If Monad observes GitHub through an integration, then:
+
+```text
+observer:
+  Monad GitHub integration
+```
+
+is distinct from:
+
+```text
+observed system:
+  GitHub
+```
+
+---
+
+## REQ-PROV-014 — Observation MUST NOT be represented as direct creation by the observer
+
+If Monad detects an external fact, it MUST NOT imply that Monad produced that fact.
+
+---
+
+# Recorder
+
+## REQ-PROV-015 — Monad SHOULD distinguish recorder from producer
+
+The system that records information may not be the system that created it.
+
+For example:
+
+```text
+producer:
+  test runner
+
+recorder:
+  verification service
+```
+
+Monad SHOULD preserve the distinction where it affects lineage.
+
+---
+
+## REQ-PROV-016 — Recording time MUST be distinguishable from production time where necessary
+
+An artifact may be produced at one time and recorded by Monad later.
+
+Where timing matters, Monad SHOULD preserve both.
+
+---
+
+# Derivation
+
+## REQ-PROV-017 — Derived information MUST be traceable to material inputs
+
+When Monad derives information algorithmically, it SHOULD preserve references to the material inputs that contributed to the result.
+
+Example:
+
+```text
+files
+  ↓
+parser
+  ↓
+symbols
+  ↓
+dependency analysis
+  ↓
+relationship
+```
+
+---
+
+## REQ-PROV-018 — Derivation SHOULD identify the transformation
+
+Where practical, Monad SHOULD record the mechanism responsible for transforming inputs into outputs.
+
+This may include:
+
+* parser identity,
+* algorithm,
+* rule,
+* model,
+* prompt,
+* generator,
+* command,
+* version,
+* or execution record.
+
+---
+
+## REQ-PROV-019 — Derivation MUST NOT imply correctness
+
+A complete derivation chain proves lineage.
+
+It does not necessarily prove that the transformation was correct.
+
+---
+
+## REQ-PROV-020 — Multi-source derivation MUST be representable
+
+A derived artifact or Claim MAY depend on multiple sources.
+
+Monad MUST support provenance in which one result depends on:
+
+```text
+Source A
+Source B
+Source C
+   ↓
+Transformation
+   ↓
+Derived Result
+```
+
+---
+
+# Transformation
+
+## REQ-PROV-021 — Transformations SHOULD be identifiable where they can change meaning
+
+Transformations such as:
+
+* normalization,
+* summarization,
+* parsing,
+* conversion,
+* migration,
+* inference,
+* compilation,
+* aggregation,
+* or projection
+
+SHOULD be represented when they materially affect the relationship between source and result.
+
+---
+
+## REQ-PROV-022 — Lossy transformations MUST be distinguishable from lossless transformations where relevant
+
+Monad SHOULD be capable of indicating whether a transformation preserves all information required to reconstruct its source.
+
+For example:
+
+```text
+Markdown → summary
+```
+
+is typically lossy.
+
+```text
+canonical record → alternate serialization
+```
+
+may be intended to be lossless.
+
+---
+
+## REQ-PROV-023 — Semantic normalization MUST retain lineage to native form
+
+If Monad normalizes a native concept into a semantic representation, the normalized result SHOULD remain traceable to the native data from which it was derived.
+
+---
+
+# AI provenance
+
+## REQ-PROV-024 — AI-generated information MUST retain AI provenance
+
+Claims, summaries, relationships, classifications, specifications, code, or other artifacts generated by AI MUST be attributable to the AI operation that produced them when persisted as meaningful engineering state.
+
+---
+
+## REQ-PROV-025 — AI provenance SHOULD identify the generation context needed for interpretation
+
+Where materially useful, Monad SHOULD preserve information such as:
+
+* producing actor or agent,
+* model/provider identity,
+* prompt or instruction reference,
+* source context,
+* tool calls,
+* relevant configuration,
+* generation time,
+* and resulting artifact.
+
+Exact retention requirements SHOULD account for privacy, cost, reproducibility, and provider constraints.
+
+---
+
+## REQ-PROV-026 — AI-generated content MUST NOT lose source attribution during promotion
+
+If AI-generated material is later:
+
+* reviewed,
+* accepted,
+* edited,
+* approved,
+* or made authoritative,
+
+its earlier provenance SHOULD remain recoverable where useful.
+
+Approval changes governance status.
+
+It does not rewrite history.
+
+---
+
+## REQ-PROV-027 — Human editing of AI-generated material SHOULD be distinguishable from original AI generation
+
+Where meaningful, provenance SHOULD be able to show:
+
+```text
+AI produced draft
+      ↓
+human edited
+      ↓
+human approved
+```
+
+rather than collapsing the sequence into a single unexplained artifact.
+
+---
+
+# Human provenance
+
+## REQ-PROV-028 — Human-authored consequential changes SHOULD retain actor provenance
+
+Changes affecting important engineering semantics SHOULD be attributable to the responsible human actor where practical.
+
+Examples include:
+
+* requirement acceptance,
+* architecture decisions,
+* policy changes,
+* authority grants,
+* release approvals,
+* manual identity merges,
+* and exception approvals.
+
+---
+
+## REQ-PROV-029 — Human provenance MUST NOT imply exclusive authorship when work is collaborative
+
+Monad SHOULD support multiple contributing actors or transformation stages where a single-author model would be misleading.
+
+---
+
+# Native-system provenance
+
+## REQ-PROV-030 — Native-system facts SHOULD retain native provenance
+
+When Monad imports or observes information from native systems, it SHOULD preserve enough provenance to determine which native system supplied the information.
+
+Examples include:
+
+* Git,
+* GitHub,
+* CI,
+* package registries,
+* deployment platforms,
+* issue trackers,
+* databases,
+* and cloud systems.
+
+---
+
+## REQ-PROV-031 — Native object identifiers SHOULD be preserved
+
+Where available and stable enough, provenance SHOULD retain native identifiers necessary to revisit the original source.
+
+Examples include:
+
+* commit SHA,
+* issue ID,
+* run ID,
+* deployment ID,
+* package version,
+* artifact digest,
+* or database key.
+
+---
+
+## REQ-PROV-032 — Native-system provenance SHOULD preserve version or revision where interpretation depends on it
+
+A GitHub issue observed today may differ from the same issue observed yesterday.
+
+A file path may refer to different contents across commits.
+
+Where interpretation depends on versioned state, provenance SHOULD include a stable revision or snapshot reference.
+
+---
+
+# Execution provenance
+
+## REQ-PROV-033 — Consequential executions MUST retain execution provenance
+
+Operations that modify state or produce evidence SHOULD retain enough provenance to determine:
+
+* what was requested,
+* what actually executed,
+* which actor initiated it,
+* which tool performed it,
+* which environment executed it,
+* which inputs were used,
+* and what outputs resulted.
+
+---
+
+## REQ-PROV-034 — Requested operation MUST be distinguishable from executed operation
+
+An execution system may resolve, expand, modify, or partially perform the requested operation.
+
+Monad MUST be capable of distinguishing:
+
+```text
+requested action
+```
+
+from:
+
+```text
+actual executed action
+```
+
+where correctness or auditability depends on it.
+
+---
+
+## REQ-PROV-035 — Execution environment SHOULD be recordable
+
+Where results depend on environment, provenance SHOULD be able to identify relevant execution context such as:
+
+* operating system,
+* architecture,
+* runtime,
+* dependency versions,
+* repository revision,
+* environment profile,
+* container image,
+* toolchain,
+* or build configuration.
+
+---
+
+## REQ-PROV-036 — Execution location SHOULD be distinguishable from artifact origin
+
+A source artifact may originate locally while execution occurs remotely.
+
+For example:
+
+```text
+source origin:
+  local repository
+
+execution location:
+  hosted CI runner
+```
+
+Monad SHOULD preserve this distinction where useful.
+
+---
+
+## REQ-PROV-037 — Partial execution MUST preserve provenance for completed effects
+
+If an operation partially succeeds, Monad MUST retain provenance for what actually occurred rather than recording only the intended operation.
+
+---
+
+# Verification provenance
+
+## REQ-PROV-038 — Verification results MUST identify the verification activity that produced them
+
+Evidence created by:
+
+* tests,
+* reviews,
+* inspections,
+* static analysis,
+* experiments,
+* benchmarks,
+* or formal checks
+
+SHOULD be traceable to the activity that produced the evidence.
+
+---
+
+## REQ-PROV-039 — Verification provenance SHOULD include evaluated subject and revision
+
+Where possible, Monad SHOULD preserve exactly what was evaluated.
+
+Examples:
+
+```text
+requirement revision
+specification revision
+source commit
+binary digest
+configuration
+environment
+```
+
+This prevents later evidence from appearing to verify a different state than the one actually tested.
+
+---
+
+## REQ-PROV-040 — Verification reruns MUST remain distinguishable
+
+Two executions of the same test suite MUST remain distinguishable when their outputs may differ.
+
+---
+
+# Evidence provenance
+
+## REQ-PROV-041 — Evidence MUST retain source provenance
+
+Evidence MUST provide enough provenance to determine how it was obtained.
+
+---
+
+## REQ-PROV-042 — Evidence copied or imported from another system SHOULD preserve original provenance
+
+Importing evidence into Monad MUST NOT make Monad appear to be its producer.
+
+---
+
+## REQ-PROV-043 — Derived evidence MUST preserve the relationship to its source evidence
+
+If one evidence artifact is aggregated, summarized, normalized, or transformed into another, that derivation SHOULD be retained.
+
+---
+
+# Claim provenance
+
+## REQ-PROV-044 — Persisted Claims SHOULD identify their asserting source
+
+Where Claims are first-class artifacts, Monad SHOULD preserve who or what asserted them.
+
+---
+
+## REQ-PROV-045 — Repeated assertions of the same proposition MAY retain distinct provenance
+
+Two sources may independently assert:
+
+```text
+Requirement R is satisfied.
+```
+
+Monad SHOULD be able to retain both assertion histories even if the proposition is semantically equivalent.
+
+---
+
+## REQ-PROV-046 — Claim correction MUST preserve prior provenance
+
+Correcting a Claim SHOULD NOT erase:
+
+* who made the earlier assertion,
+* when it was made,
+* what evidence supported it,
+* or why it was later corrected.
+
+---
+
+# Representation provenance
+
+## REQ-PROV-047 — Generated Representations SHOULD retain derivation provenance
+
+Generated documentation, indexes, dashboards, reports, or visualizations SHOULD be traceable to the semantic or native information from which they were produced when the relationship matters.
+
+---
+
+## REQ-PROV-048 — Authored and generated Representations MUST remain distinguishable
+
+Monad SHOULD be capable of determining whether a Representation was:
+
+* authored directly,
+* generated,
+* imported,
+* mirrored,
+* transformed,
+* or reconstructed.
+
+---
+
+## REQ-PROV-049 — Regeneration SHOULD NOT destroy historical provenance where retained history matters
+
+If a generated artifact changes after regeneration, Monad SHOULD preserve enough information to understand the prior generated state when required for:
+
+* release reconstruction,
+* audit,
+* debugging,
+* or evidence.
+
+---
+
+# Import provenance
+
+## REQ-PROV-050 — Imported information MUST retain source-system provenance
+
+Importing a repository, dataset, artifact collection, or external knowledge base MUST preserve enough metadata to identify the source.
+
+---
+
+## REQ-PROV-051 — Import time MUST NOT be mistaken for creation time
+
+If an artifact was created years before Monad imported it, the import operation MUST NOT silently overwrite the artifact's historical origin.
+
+---
+
+## REQ-PROV-052 — Import transformations SHOULD be recorded
+
+If an import process:
+
+* renames,
+* restructures,
+* normalizes,
+* filters,
+* deduplicates,
+* merges,
+* or enriches
+
+the imported material, those transformations SHOULD be traceable.
+
+---
+
+# Migration provenance
+
+## REQ-PROV-053 — Schema or storage migrations SHOULD preserve semantic provenance
+
+Changing storage representation MUST NOT unnecessarily destroy provenance relationships.
+
+---
+
+## REQ-PROV-054 — Migration-produced state SHOULD be distinguishable from originally authored state
+
+When a migration rewrites records, Monad SHOULD be able to identify the migration as the immediate producer without losing the original semantic origin.
+
+Conceptually:
+
+```text
+Original Author
+     ↓
+Original Record
+     ↓
+Migration
+     ↓
+Migrated Record
+```
+
+---
+
+## REQ-PROV-055 — Lossy migrations MUST be detectable
+
+If a migration cannot preserve all prior information, the loss SHOULD be explicit and evidenced.
+
+---
+
+# Reconciliation provenance
+
+## REQ-PROV-056 — Reconciliation changes MUST retain reconciliation provenance
+
+When Monad updates semantic state because native state has changed, the resulting update MUST be distinguishable from:
+
+* direct human editing,
+* AI inference,
+* execution,
+* import,
+* or ordinary authored changes.
+
+---
+
+## REQ-PROV-057 — Reconciliation SHOULD preserve both prior observation and new observation
+
+Where historical reasoning matters, Monad SHOULD retain enough provenance to show:
+
+```text
+previously observed state
+      ↓
+new native observation
+      ↓
+reconciliation result
+```
+
+---
+
+## REQ-PROV-058 — Reconciliation conflicts MUST retain the competing sources
+
+If reconciliation reveals incompatible state from multiple sources, Monad MUST preserve the provenance of those sources rather than collapsing them prematurely.
+
+---
+
+# Time
+
+## REQ-PROV-059 — Provenance timestamps MUST have explicit semantics
+
+A timestamp associated with provenance MUST have a defined meaning.
+
+Possible meanings include:
+
+* source creation time,
+* observation time,
+* production time,
+* execution time,
+* recording time,
+* import time,
+* transformation time,
+* or reconciliation time.
+
+---
+
+## REQ-PROV-060 — Distinct provenance times MUST NOT be collapsed when their difference matters
+
+For example:
+
+```text
+source event occurred: 10:00
+observed by Monad:      10:03
+recorded locally:       10:04
+```
+
+may be materially different.
+
+---
+
+## REQ-PROV-061 — Unknown source time MUST remain distinguishable from recording time
+
+If Monad does not know when an external artifact was originally created, it MUST NOT substitute import or observation time and present it as source creation time.
+
+---
+
+# Identity
+
+## REQ-PROV-062 — Provenance MUST refer to stable semantic or native identity where available
+
+Provenance relationships SHOULD avoid relying solely on mutable labels or paths when more durable identifiers are available.
+
+---
+
+## REQ-PROV-063 — Provenance MUST survive Representation relocation where identity survives
+
+If a Representation moves from:
+
+```text
+docs/old-name.md
+```
+
+to:
+
+```text
+docs/new-name.md
+```
+
+its earlier provenance SHOULD remain connected to the same semantic Subject where identity continuity has been established.
+
+---
+
+## REQ-PROV-064 — Identity merge and split operations MUST retain provenance
+
+When two identities are merged or one identity is split, the operation SHOULD preserve:
+
+* prior identities,
+* initiating actor,
+* rationale,
+* evidence,
+* time,
+* and resulting identity relationships.
+
+---
+
+# Versioning
+
+## REQ-PROV-065 — Provenance SHOULD identify source revision where mutable sources are involved
+
+For mutable sources, provenance SHOULD reference a revision, version, snapshot, digest, timestamped observation, or equivalent boundary where necessary to reproduce interpretation.
+
+---
+
+## REQ-PROV-066 — Artifact version and provenance event MUST remain distinct
+
+A document revision is not the same thing as a provenance event.
+
+One artifact revision may participate in many provenance relationships.
+
+One provenance event may produce several artifacts.
+
+---
+
+# Reproducibility
+
+## REQ-PROV-067 — Provenance SHOULD support reproducibility where reproducibility is required
+
+For reproducible operations, provenance SHOULD retain enough information to reconstruct:
+
+* inputs,
+* tool versions,
+* configuration,
+* source revision,
+* environment,
+* execution procedure,
+* and resulting outputs.
+
+---
+
+## REQ-PROV-068 — Reproducibility claims MUST NOT exceed retained provenance
+
+Monad MUST NOT claim an operation is reproducible if essential inputs or execution details required for reproduction were not retained.
+
+---
+
+## REQ-PROV-069 — Non-reproducible operations MAY still have useful provenance
+
+Perfect reproducibility is not required for provenance to be valuable.
+
+For example, a human architectural review may not be mechanically reproducible but should still retain:
+
+* participants,
+* reviewed material,
+* outcome,
+* and rationale.
+
+---
+
+# Local-first provenance
+
+## REQ-PROV-070 — Core provenance SHOULD remain inspectable locally
+
+Provenance necessary to understand the project's retained semantic state SHOULD be locally inspectable without requiring continuous access to external services.
+
+---
+
+## REQ-PROV-071 — Remote provenance references MUST degrade intelligibly when remote systems are unavailable
+
+If an external reference cannot be resolved, Monad SHOULD still preserve:
+
+* the reference itself,
+* known identity,
+* last observed metadata,
+* provenance relationship,
+* and resolution status.
+
+---
+
+## REQ-PROV-072 — Provenance capture SHOULD avoid unnecessary dependency on centralized services
+
+Local engineering activity SHOULD NOT require a remote provenance service merely to record core lineage.
+
+---
+
+# Privacy and sensitive information
+
+## REQ-PROV-073 — Provenance capture MUST respect privacy and secret-handling boundaries
+
+Monad MUST NOT indiscriminately preserve every input merely because it may improve provenance.
+
+Sensitive data may include:
+
+* credentials,
+* private prompts,
+* personal information,
+* confidential source material,
+* environment secrets,
+* proprietary external content,
+* and regulated data.
+
+---
+
+## REQ-PROV-074 — Provenance SHOULD support redacted references where full source retention is inappropriate
+
+Where the source itself cannot safely be retained, Monad MAY retain:
+
+* digest,
+* identifier,
+* metadata,
+* classification,
+* redacted reference,
+* or other non-sensitive lineage information.
+
+---
+
+## REQ-PROV-075 — Diagnostic output MUST NOT unnecessarily disclose sensitive provenance
+
+Errors and reports SHOULD provide enough provenance for debugging without leaking secrets or private content.
+
+---
+
+# Integrity
+
+## REQ-PROV-076 — Provenance records SHOULD be tamper-evident where integrity requirements justify it
+
+High-assurance workflows MAY require provenance records to support mechanisms such as:
+
+* hashes,
+* signatures,
+* immutable logs,
+* signed attestations,
+* or externally verifiable references.
+
+The exact mechanism is a specification and architecture concern.
+
+---
+
+## REQ-PROV-077 — Provenance integrity MUST NOT be confused with source correctness
+
+A cryptographically intact provenance record can faithfully prove that a bad source produced a bad result.
+
+Integrity validates lineage, not necessarily truth.
+
+---
+
+# Granularity
+
+## REQ-PROV-078 — Provenance granularity SHOULD match the reasoning need
+
+Monad SHOULD capture provenance at the smallest level that provides material value without imposing excessive capture cost.
+
+Possible levels include:
+
+* artifact,
+* Subject,
+* Representation,
+* Claim,
+* relationship,
+* field,
+* execution,
+* evidence item,
+* or transformation.
+
+---
+
+## REQ-PROV-079 — Field-level provenance SHOULD be available where whole-object provenance is insufficient
+
+For some merged or synthesized records, individual properties may originate from different sources.
+
+Monad SHOULD support finer-grained provenance where the distinction matters.
+
+Example:
+
+```text
+Component:
+  name        ← package manifest
+  owner       ← governance file
+  health      ← derived analysis
+  deployment  ← deployment platform
+```
+
+---
+
+## REQ-PROV-080 — Provenance detail SHOULD NOT exceed sustainable maintenance cost without justification
+
+Monad SHOULD avoid provenance models so exhaustive that capture friction causes engineers or systems to bypass them.
+
+---
+
+# Progressive formalization
+
+## REQ-PROV-081 — Provenance MAY begin coarse and become more precise
+
+Early capture MAY record:
+
+```text
+source: GitHub
+```
+
+while later formalization may record:
+
+```text
+repository
+issue
+revision
+observer
+timestamp
+adapter
+transformation
+```
+
+where the additional precision earns its cost.
+
+---
+
+## REQ-PROV-082 — Coarse provenance MUST NOT masquerade as precise provenance
+
+If source lineage is only known approximately, Monad MUST preserve that uncertainty.
+
+---
+
+# Provenance chains
+
+## REQ-PROV-083 — Monad MUST support multi-stage provenance chains
+
+Engineering information may move through:
+
+```text
+native source
+   ↓
+observation
+   ↓
+normalization
+   ↓
+semantic claim
+   ↓
+inference
+   ↓
+generated projection
+```
+
+The model SHOULD preserve enough of that chain to explain consequential derived results.
+
+---
+
+## REQ-PROV-084 — Provenance chains SHOULD remain navigable in both directions where practical
+
+It SHOULD be possible to ask:
+
+> What produced this artifact?
+
+and:
+
+> What artifacts were derived from this source?
+
+where the retained data supports both questions.
+
+---
+
+## REQ-PROV-085 — Provenance chains MUST NOT imply causality beyond recorded derivation
+
+A provenance link may show that information was used as an input.
+
+It does not necessarily establish broader causal meaning.
+
+---
+
+# Provenance and deletion
+
+## REQ-PROV-086 — Deleting a Representation SHOULD NOT unnecessarily erase lineage
+
+Where history or auditability matters, deleting an active Representation SHOULD preserve enough provenance to explain:
+
+* that it existed,
+* what Subject it represented,
+* and what later happened to it.
+
+---
+
+## REQ-PROV-087 — Retention policies MAY limit provenance history
+
+Monad MAY support policies that:
+
+* compact,
+* expire,
+* redact,
+* summarize,
+* archive,
+* or delete
+
+provenance records.
+
+Such behavior MUST be explicit where it affects auditability or reproducibility.
+
+---
+
+# Provenance and derived projections
+
+## REQ-PROV-088 — Projections SHOULD expose derivation provenance when decisions may rely on them
+
+A generated dashboard or AI context package SHOULD be able to indicate its source state or generation revision where stale or misleading projections could cause incorrect action.
+
+---
+
+## REQ-PROV-089 — Projection regeneration SHOULD create a distinguishable provenance event
+
+If the same projection is generated twice, the two generation events SHOULD remain distinguishable where reproducibility or freshness matters.
+
+---
+
+# Provenance and releases
+
+## REQ-PROV-090 — Release artifacts SHOULD be traceable to their production inputs
+
+A release SHOULD be able to reference relevant:
+
+* source revision,
+* build inputs,
+* build execution,
+* toolchain,
+* generated artifacts,
+* verification,
+* approvals,
+* and resulting distributable.
+
+---
+
+## REQ-PROV-091 — Release provenance SHOULD support historical reconstruction
+
+Where practical, Monad SHOULD preserve enough lineage to answer:
+
+> What exactly produced release R?
+
+---
+
+# Provenance and decisions
+
+## REQ-PROV-092 — Consequential decisions SHOULD retain decision provenance
+
+A Decision SHOULD be traceable to relevant:
+
+* context,
+* participants,
+* source requirements,
+* alternatives,
+* evidence,
+* experiments,
+* review,
+* and approval activity.
+
+---
+
+## REQ-PROV-093 — Decision provenance MUST NOT imply decision correctness
+
+A perfectly documented decision may still prove wrong.
+
+Provenance preserves reasoning history.
+
+It does not sanctify the outcome.
+
+---
+
+# Provenance and requirements
+
+## REQ-PROV-094 — Requirements SHOULD preserve source provenance
+
+Where known, a Requirement SHOULD be traceable to the source from which the obligation arose.
+
+Possible sources include:
+
+* stakeholder need,
+* regulation,
+* architecture constraint,
+* prior decision,
+* experiment,
+* user observation,
+* operational incident,
+* or project principle.
+
+---
+
+## REQ-PROV-095 — Derived Requirements SHOULD retain their derivation
+
+If a Requirement is decomposed or derived from another obligation, Monad SHOULD preserve that relationship.
+
+---
+
+# Provenance and evidence-backed reasoning
+
+## REQ-PROV-096 — Reasoning chains SHOULD preserve both evidentiary and provenance relationships
+
+Consider:
+
+```text
+Test Run
+   ↓ produced
+Evidence
+   ↓ supports
+Claim
+   ↓ concerns
+Requirement
+```
+
+The system SHOULD preserve both:
+
+* **provenance**: the test run produced the evidence,
+* **epistemic relationship**: the evidence supports the Claim.
+
+Those relationships are not interchangeable.
+
+---
+
+# Provenance queries
+
+## REQ-PROV-097 — Monad SHOULD support provenance-oriented queries
+
+The system SHOULD eventually support questions such as:
+
+* Where did this Claim come from?
+* Which actor produced this artifact?
+* Which source revision was used?
+* What transformation created this value?
+* Which evidence came from this verification run?
+* Which AI operation proposed this relationship?
+* What was the original native object?
+* What generated this page?
+* Which artifacts depend on this source?
+* Which migration rewrote this record?
+* Was this value authored, observed, inferred, or derived?
+* When did Monad first observe this state?
+* What changed between the source and the current Representation?
+
+---
+
+## REQ-PROV-098 — Provenance queries MUST preserve uncertainty
+
+If Monad cannot determine a source or transformation with confidence, it SHOULD return an explicit unknown or partial answer rather than inventing lineage.
+
+---
+
+# Provenance representation
+
+## REQ-PROV-099 — Provenance SHOULD be machine-readable where automation depends on it
+
+Consequential provenance SHOULD be represented in structured form when automated:
+
+* verification,
+* reconciliation,
+* traceability,
+* impact analysis,
+* security,
+* or AI reasoning
+
+depends on it.
+
+---
+
+## REQ-PROV-100 — Provenance MAY have human-readable Representations
+
+Structured provenance MAY be rendered as:
+
+* timelines,
+* lineage graphs,
+* audit trails,
+* generated reports,
+* execution traces,
+* or artifact histories.
+
+Those Representations MUST remain distinguishable from the provenance model itself.
+
+---
+
+# Illustrative provenance chain
+
+The following is explanatory rather than canonical serialization.
+
+Suppose an AI system proposes a relationship between two components.
+
+```text
+Git repository at commit abc123
+          ↓ observed by
+Repository Scanner v2
+          ↓ produced
+Parsed dependency facts
+          ↓ supplied to
+AI analysis operation
+          ↓ produced
+Candidate Relationship
+          ↓ reviewed by
+Human engineer
+          ↓ approved as
+Authoritative Relationship
+```
+
+A useful provenance record might answer:
+
+```text
+Original native source:
+  Git repository
+
+Resolved source revision:
+  abc123
+
+Observer:
+  Repository Scanner v2
+
+Intermediate result:
+  parsed dependency facts
+
+Inference producer:
+  AI analysis operation
+
+Candidate assertion:
+  Component A depends on Component B
+
+Reviewer:
+  human engineer
+
+Governance outcome:
+  approved
+```
+
+The chain explains how the relationship entered the system.
+
+It still does not imply that every step had equal authority.
+
+---
+
+# Provenance role matrix
+
+| Role             | Question                                           |
+| ---------------- | -------------------------------------------------- |
+| Origin           | Where did this information begin?                  |
+| Source           | What input supplied the information?               |
+| Producer         | Who or what created this result?                   |
+| Observer         | Who or what detected the source state?             |
+| Recorder         | Who or what persisted the record?                  |
+| Transformer      | What changed the representation or meaning?        |
+| Derivation input | What prior information contributed to this result? |
+| Execution        | What operation produced the outcome?               |
+| Environment      | Where and under what conditions did it happen?     |
+| Revision         | Which version of the source was involved?          |
+| Time             | When did the relevant provenance event occur?      |
+| Actor            | Who or what participated?                          |
+
+These roles MAY overlap in simple cases.
+
+Monad SHOULD preserve their distinction where collapsing them would lose important information.
+
+---
+
+# Provenance event model
+
+A useful conceptual model is:
+
+```text
+Inputs
+  ↓
+Provenance Event
+  ↓
+Outputs
+```
+
+A provenance event may include:
+
+```text
+actor
+operation
+tool
+environment
+time
+inputs
+outputs
+source revisions
+transformations
+```
+
+This does not require every provenance relationship to become a heavyweight event record.
+
+It provides a consistent way to reason about consequential transformations.
+
+---
+
+# Provenance versus neighboring concepts
+
+## Provenance versus authority
+
+```text
+Provenance:
+  Who said this?
+
+Authority:
+  Whose statement governs?
+```
+
+---
+
+## Provenance versus evidence
+
+```text
+Provenance:
+  Where did this artifact come from?
+
+Evidence:
+  What proposition does it support or challenge?
+```
+
+---
+
+## Provenance versus identity
+
+```text
+Identity:
+  What thing is this?
+
+Provenance:
+  How did this information about that thing arise?
+```
+
+---
+
+## Provenance versus history
+
+History records what happened over time.
+
+Provenance records how one information state derives from another.
+
+They overlap but are not identical.
+
+---
+
+## Provenance versus causality
+
+```text
+Artifact B derived from Artifact A
+```
+
+is a provenance relationship.
+
+It does not necessarily prove:
+
+```text
+A is the root cause of some broader system behavior.
+```
+
+---
+
+# Capture strategy
+
+Monad SHOULD favor provenance capture that can be produced automatically from normal engineering activity.
+
+Examples include:
+
+* execution wrappers,
+* integration adapters,
+* Git revisions,
+* tool invocation records,
+* structured AI calls,
+* generated artifact metadata,
+* verification harnesses,
+* and reconciliation events.
+
+Manual provenance entry SHOULD be reserved for information that cannot reasonably be captured automatically.
+
+> **The best provenance system is one engineers do not have to remember to maintain by hand.**
+
+---
+
+# Minimal capture
+
+At minimum, a consequential provenance record will often need enough information to identify:
+
+```text
+what
+came from
+where
+through what operation
+performed by whom or what
+at approximately what time
+```
+
+More detail should be added only when the engineering benefit justifies it.
+
+---
+
+# Validation themes
+
+The provenance requirement family should eventually be exercised through conformance scenarios including:
+
+## Imported artifact
+
+Import an external artifact.
+
+Expected:
+
+```text
+current storage:
+  Monad
+
+origin:
+  external system
+
+original source identity:
+  preserved
+```
+
+---
+
+## Generated artifact
+
+Generate documentation from semantic state.
+
+Expected:
+
+```text
+generated artifact
+  → generation event
+  → source semantic revision
+```
+
+---
+
+## AI inference
+
+Produce a relationship through AI analysis.
+
+Expected:
+
+```text
+candidate relationship retains:
+  AI producer
+  source context
+  generation event
+  epistemic status
+```
+
+---
+
+## Human approval
+
+Approve the AI relationship.
+
+Expected:
+
+```text
+AI provenance preserved
+human review provenance added
+authority status changes
+history not rewritten
+```
+
+---
+
+## Migration
+
+Migrate persisted semantic data.
+
+Expected:
+
+```text
+migrated record
+  → migration event
+  → previous record
+  → original source lineage
+```
+
+---
+
+## Reconciliation
+
+Observe a changed native object.
+
+Expected:
+
+```text
+prior observation preserved where required
+new observation recorded
+reconciliation event recorded
+resulting semantic update traceable
+```
+
+---
+
+## Partial execution
+
+Execute three operations, two succeed and one fails.
+
+Expected:
+
+```text
+requested plan preserved
+actual successful effects preserved
+failed effect recorded
+execution provenance reflects partial reality
+```
+
+---
+
+# Open specification questions
+
+Several important provenance questions remain intentionally unresolved.
+
+## Provenance granularity
+
+Which entities require:
+
+* object-level,
+* field-level,
+* claim-level,
+* relationship-level,
+* or event-level
+
+provenance?
+
+---
+
+## Provenance persistence
+
+Should provenance be represented as:
+
+* first-class Subjects,
+* typed relationships,
+* append-only events,
+* embedded metadata,
+* dedicated records,
+* or a hybrid?
+
+---
+
+## Provenance retention
+
+How much history should be retained?
+
+What may be compacted?
+
+What may be summarized?
+
+What must remain permanently inspectable?
+
+---
+
+## AI context retention
+
+How much of an AI generation operation should be retained?
+
+Potential candidates include:
+
+* full prompt,
+* prompt digest,
+* source references,
+* model name,
+* provider,
+* tool calls,
+* output,
+* token accounting,
+* or only a compact generation record.
+
+Privacy, cost, reproducibility, and provider behavior must all be considered.
+
+---
+
+## Execution environment
+
+What is the minimum useful environment fingerprint for reproducibility?
+
+---
+
+## Source snapshots
+
+When should Monad retain full source snapshots versus stable references or digests?
+
+---
+
+## Tamper evidence
+
+Which provenance classes warrant:
+
+* hashes,
+* signatures,
+* attestations,
+* transparency logs,
+* or stronger immutable history?
+
+---
+
+## Field-level lineage
+
+When is field-level provenance worth its complexity?
+
+---
+
+# Requirement relationships
+
+The provenance family is closely connected to:
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/semantic-model" title="Semantic Model Requirements">
+    Defines the semantic entities and distinctions to which provenance attaches.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/identity" title="Identity Requirements">
+    Ensures provenance points to durable semantic and native identities rather than unstable locations alone.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/evidence" title="Evidence Requirements">
+    Defines how evidence supports engineering claims while provenance explains where that evidence came from.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/authority" title="Authority Requirements">
+    Separates information origin from the right to establish authoritative state.
+  </Card>
+</Cards>
+
+Provenance also constrains:
+
+* execution,
+* AI interaction,
+* verification,
+* releases,
+* imports,
+* reconciliation,
+* migration,
+* traceability,
+* projections,
+* and historical reconstruction.
+
+---
+
+# Traceability expectations
+
+Accepted provenance requirements should eventually trace to explicit model, specification, implementation, and verification artifacts.
+
+Illustratively:
+
+```text
+REQ-PROV-024
+  ↓ refined-by
+AI Provenance Model
+  ↓ specified-by
+AI Generation Record Specification
+  ↓ encoded-by
+Generation Record Schema
+  ↓ implemented-by
+AI Execution Boundary
+  ↓ verified-by
+AI Provenance Conformance Test
+  ↓ evidenced-by
+Verification Result
+```
+
+The identifiers are illustrative.
+
+Actual traceability should reflect implemented artifacts rather than invented completeness.
+
+---
+
+# Review questions
+
+A provenance design should be challenged with questions such as:
+
+1. What question does this provenance data allow us to answer?
+2. Is this origin, authority, evidence, identity, or something else?
+3. Do we know the original source?
+4. Do we know only the immediate producer?
+5. Are those different?
+6. What was requested?
+7. What actually resolved?
+8. What actually executed?
+9. When did the source state exist?
+10. When did Monad observe it?
+11. When did Monad record it?
+12. Which source revision was used?
+13. Was the transformation lossy?
+14. Can the result be reproduced?
+15. If not, what provenance is still useful?
+16. Is lineage preserved through migration?
+17. Is lineage preserved through regeneration?
+18. Are AI-generated assertions identifiable?
+19. Are human modifications identifiable?
+20. Does imported data preserve native origin?
+21. Could this provenance expose secrets?
+22. Is field-level provenance justified?
+23. Can this be captured automatically?
+24. Will retaining it create unsustainable storage or capture cost?
+25. Are we preserving provenance because it matters, or merely because we can?
+
+---
+
+# Failure modes
+
+## Treating storage as origin
+
+```text
+stored in Monad
+```
+
+does not mean:
+
+```text
+created by Monad
+```
+
+---
+
+## Treating provenance as authority
+
+```text
+came from GitHub
+```
+
+does not mean:
+
+```text
+GitHub governs this semantic claim
+```
+
+---
+
+## Losing revision identity
+
+```text
+source: README.md
+```
+
+may be insufficient if the file changed between observation and use.
+
+---
+
+## Overwriting historical provenance
+
+Updating current state must not make old information appear to have originated differently.
+
+---
+
+## AI provenance collapse
+
+AI-generated content must not become indistinguishable from human-authored or verified content merely because it was accepted.
+
+---
+
+## Provenance theater
+
+Recording enormous amounts of metadata that nobody can query, interpret, or maintain is not useful provenance.
+
+---
+
+## Lossy migration without disclosure
+
+Transforming data while silently discarding lineage undermines historical trust.
+
+---
+
+## Capture burden
+
+A provenance system that requires constant manual annotation is likely to decay.
+
+---
+
+## Network-dependent lineage
+
+Core provenance should not become unintelligible merely because a hosted service is temporarily unavailable.
+
+---
+
+# Maturity path
+
+A practical provenance capability may mature through stages.
+
+## Stage 1 — Source attribution
+
+Record:
+
+```text
+where information came from
+```
+
+---
+
+## Stage 2 — Actor and operation attribution
+
+Add:
+
+```text
+who or what produced it
+through which operation
+```
+
+---
+
+## Stage 3 — Revision-aware provenance
+
+Add:
+
+```text
+specific source versions
+observed revisions
+execution inputs
+```
+
+---
+
+## Stage 4 — Derivation chains
+
+Connect:
+
+```text
+inputs → transformations → outputs
+```
+
+---
+
+## Stage 5 — Reproducible execution provenance
+
+Capture enough environment and tool state to reconstruct consequential operations.
+
+---
+
+## Stage 6 — Governed provenance
+
+Apply:
+
+* validation,
+* retention,
+* privacy,
+* integrity,
+* policy,
+* and audit requirements.
+
+---
+
+## Stage 7 — Provenance-aware reasoning
+
+Use lineage for:
+
+* trust analysis,
+* impact analysis,
+* reconciliation,
+* evidence assessment,
+* AI context selection,
+* debugging,
+* and release reconstruction.
+
+---
+
+# Falsifiability
+
+Provenance is valuable only when it improves engineering outcomes.
+
+Monad SHOULD reject provenance detail that:
+
+* is never queried,
+* cannot affect a decision,
+* does not improve reproducibility,
+* does not improve debugging,
+* does not improve traceability,
+* does not improve governance,
+* and imposes meaningful maintenance cost.
+
+The system SHOULD seek the smallest provenance model sufficient for the reasoning it needs.
+
+> **More lineage is not automatically more knowledge.**
+
+---
+
+# Governing principle
+
+Monad should preserve enough provenance that consequential engineering information can answer:
+
+> Where did this come from?
+
+> Who or what produced it?
+
+> What source revision was involved?
+
+> What transformation occurred?
+
+> What was observed versus inferred?
+
+> When did it happen?
+
+> Where did it execute?
+
+> What did it depend on?
+
+> What was changed along the way?
+
+> Can the result be reproduced or independently checked?
+
+But provenance must remain what it is:
+
+> **a record of lineage, not a substitute for truth, authority, evidence, or judgment.**

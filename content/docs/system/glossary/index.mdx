@@ -1,0 +1,2350 @@
+---
+title: Glossary
+description: Canonical definitions for the terms used throughout Monad's System documentation.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    Canonical terminology
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    This glossary provides concise reference definitions for the vocabulary used throughout Monad. It is a terminology index, not a substitute for the deeper conceptual, architectural, governance, and execution documentation.
+  </p>
+</div>
+
+## How to use this glossary
+
+The definitions here describe the **current intended meaning** of Monad terminology.
+
+For deeper explanations, use:
+
+<Cards>
+  <Card
+    title="Concepts & Principles"
+    href="/docs/system/concepts"
+  >
+    Understand why the foundational distinctions exist and how they relate.
+  </Card>
+
+<Card
+title="Architecture"
+href="/docs/system/architecture"
+>
+See how the concepts are assigned to architectural responsibilities and boundaries.
+</Card>
+
+<Card
+title="Components"
+href="/docs/system/components"
+>
+See which logical components own each responsibility.
+</Card>
+
+<Card
+title="Interfaces"
+href="/docs/system/interfaces"
+>
+Review how those responsibilities are exposed through explicit contracts.
+</Card>
+</Cards>
+
+<Callout type="info" title="Terminology is part of the system contract">
+
+Terms in this glossary should be used consistently across System documentation.
+
+If a foundational term changes meaning, the change should be deliberate and reflected in the corresponding concepts, architecture, specifications, and artifacts.
+
+</Callout>
+
+---
+
+# A
+
+## Actor
+
+An identifiable participant capable of requesting, performing, reviewing, approving, or otherwise participating in engineering activity.
+
+Examples include:
+
+* human engineers,
+* maintainers,
+* AI agents,
+* automation,
+* CI systems,
+* release services,
+* and external systems.
+
+An Actor may possess Capabilities and Authority within a defined Scope.
+
+**Distinct from:** Role, Capability, Authority.
+
+See [Governance](/docs/system/governance).
+
+---
+
+## Adapter
+
+An implementation that connects Monad to a particular Native System or native capability.
+
+An Adapter translates between Monad interfaces and provider-specific APIs, CLIs, protocols, files, or events.
+
+Examples include:
+
+* Filesystem Adapter,
+* Git Adapter,
+* GitHub Adapter,
+* CI Adapter,
+* Deployment Adapter.
+
+Adapters should remain semantically narrow.
+
+They know **how to interact with the native system**, not independently what Monad concepts mean.
+
+See [Integrations](/docs/system/integrations).
+
+---
+
+## Approval
+
+An explicit governance decision made by an Actor with sufficient Authority over a defined Scope.
+
+An Approval should be associated with the thing that was actually reviewed, including its relevant revision or state.
+
+Approval does not by itself constitute Evidence that the approved system is correct.
+
+**Distinct from:** Review, Evidence, Authorization.
+
+See [Governance](/docs/system/governance).
+
+---
+
+## Artifact
+
+A durable engineering record produced or maintained because it preserves useful engineering knowledge.
+
+Examples include:
+
+* requirements,
+* specifications,
+* ADRs,
+* policies,
+* experiments,
+* schemas,
+* verification records,
+* evidence,
+* reviews,
+* and release records.
+
+Artifacts may be authoritative, provisional, derived, or historical depending on their role and lifecycle.
+
+See [Artifacts](/docs/artifacts).
+
+---
+
+## Authority
+
+The basis on which an Actor, Claim, Representation, Artifact, or source is entitled to govern a defined question or Scope.
+
+Authority is contextual.
+
+A source may be authoritative for one property without being authoritative for another.
+
+Examples:
+
+```text
+Requirement
+  authoritative for required outcome
+
+Specification
+  authoritative for expected behavior
+
+Source code
+  authoritative for current implementation
+
+Runtime observation
+  authoritative for what was observed
+```
+
+**Distinct from:** Capability, existence, provenance.
+
+See [Concepts & Principles](/docs/system/concepts) and [Governance](/docs/system/governance).
+
+---
+
+## Authorization
+
+A governance result permitting an Actor to perform a particular Operation within a particular Scope and under defined conditions.
+
+Authorization may bind to:
+
+* a Plan,
+* a target revision,
+* a policy version,
+* an expiration,
+* obligations,
+* and the current Constitution.
+
+Authorization is narrower than general Authority.
+
+Conceptually:
+
+```text
+Authority
+  supports the right to decide or act
+
+Authorization
+  permits this concrete operation
+```
+
+See [Execution](/docs/system/execution).
+
+---
+
+## Autonomy Envelope
+
+The explicit boundary within which an Actor—especially an AI agent or automation—may act without further approval.
+
+An autonomy envelope may define:
+
+* Scope,
+* permitted Capabilities,
+* allowed Operations,
+* maximum risk,
+* required Evidence,
+* escalation conditions,
+* and expiration.
+
+See [Governance](/docs/system/governance).
+
+---
+
+# B
+
+## Binding
+
+A semantic connection between Monad state and a Representation or Native Reference.
+
+Bindings allow Monad to state that:
+
+```text
+this Representation
+```
+
+or:
+
+```text
+this native resource
+```
+
+corresponds to:
+
+```text
+this Subject
+```
+
+A Binding may itself have provenance, lifecycle, confidence, revision, or confirmation state.
+
+See [Integrations](/docs/system/integrations).
+
+---
+
+## Bounded Autonomy
+
+Automation in which an Actor is allowed to act independently within explicit limits.
+
+Bounded autonomy is preferred to unrestricted automation because it preserves:
+
+* Scope,
+* Authority,
+* policy,
+* verification requirements,
+* and escalation behavior.
+
+See [Governance](/docs/system/governance).
+
+---
+
+# C
+
+## Canonical
+
+Designated as authoritative for a specific defined Scope.
+
+Canonical does **not** mean:
+
+```text
+globally authoritative for everything
+```
+
+Nor does it require all canonical information to live in one physical store.
+
+Examples:
+
+```text
+source file
+  canonical for implementation
+
+requirement artifact
+  canonical for required outcome
+
+external API
+  canonical for external service state
+```
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Canonical System Model
+
+Monad's durable semantic representation of the engineering reality it understands.
+
+The Canonical System Model may contain:
+
+* Subjects,
+* Representations,
+* Claims,
+* Relationships,
+* Authority,
+* Provenance,
+* Evidence,
+* Lifecycle state,
+* Actors,
+* Policies,
+* and Bindings.
+
+It is canonical for Monad's semantic interpretation.
+
+It does not automatically replace native Authority.
+
+See [Architecture](/docs/system/architecture).
+
+---
+
+## Capability
+
+A technical ability possessed by an Actor, component, Adapter, provider, or system.
+
+Examples include:
+
+```text
+read source
+modify source
+run test
+query graph
+publish package
+deploy service
+```
+
+A Capability describes what can technically be done.
+
+It does not establish that the Operation is permitted.
+
+> **Capability does not imply Authority.**
+
+See [Governance](/docs/system/governance).
+
+---
+
+## Claim
+
+An assertion about the engineering system.
+
+Examples:
+
+```text
+Component A depends on Component B.
+
+Requirement R governs behavior X.
+
+Deployment D runs version V.
+```
+
+A Claim can be:
+
+* observed,
+* proposed,
+* inferred,
+* contested,
+* confirmed,
+* historical,
+* or authoritative.
+
+The existence of a Claim does not make it true.
+
+**Distinct from:** Evidence, Observation, Authority.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Command
+
+A request that may change Monad state or Native System state.
+
+Examples include:
+
+```text
+bind Representation
+transition Lifecycle
+execute Plan
+publish Projection
+release version
+```
+
+Commands are subject to side-effect, revision, governance, and failure semantics.
+
+**Distinct from:** Query.
+
+See [Interfaces](/docs/system/interfaces).
+
+---
+
+## Compensation
+
+A new Operation intended to reduce or reverse the consequences of an earlier Operation.
+
+Examples include:
+
+* rollback deployment,
+* revert commit,
+* remove a generated projection.
+
+Compensation does not erase the original execution history and is not necessarily a perfect reversal.
+
+See [Execution](/docs/system/execution).
+
+---
+
+## Component
+
+A logical unit of responsibility within Monad.
+
+A Component has:
+
+* clear ownership,
+* explicit inputs and outputs,
+* defined dependencies,
+* known side effects,
+* and a cohesive purpose.
+
+A Component is not necessarily a:
+
+* service,
+* process,
+* package,
+* repository,
+* or deployment unit.
+
+See [Components](/docs/system/components).
+
+---
+
+## Constitution
+
+The highest-order rules governing the structure and evolution of a Monad system.
+
+The Constitution may define:
+
+* foundational semantic primitives,
+* invariants,
+* authority hierarchy,
+* extension constraints,
+* governance boundaries,
+* and amendment rules.
+
+Conceptually:
+
+```text
+Constitution
+   constrains
+System Model
+```
+
+The Constitution should remain deliberately small.
+
+See [Architecture](/docs/system/architecture) and [Governance](/docs/system/governance).
+
+---
+
+## Constitutional Amendment
+
+A governed change to the Constitution.
+
+Because constitutional rules govern ordinary system behavior, changing them should require stronger Authority and review than ordinary engineering change.
+
+See [Governance](/docs/system/governance).
+
+---
+
+## Context
+
+A purpose-specific subset of engineering information assembled for a particular Actor, task, target, or Operation.
+
+Context may include:
+
+* requirements,
+* specifications,
+* implementation,
+* dependencies,
+* decisions,
+* policies,
+* tests,
+* history,
+* risks,
+* and Authority.
+
+Context is generally a Projection of the larger system model.
+
+See [Concepts & Principles](/docs/system/concepts) and [Execution](/docs/system/execution).
+
+---
+
+## Context Projection
+
+A derived package of engineering information assembled for a specific purpose.
+
+An AI agent's task context is one example.
+
+A Context Projection should preserve information such as:
+
+* source,
+* Authority,
+* Freshness,
+* Provenance,
+* and relevance.
+
+See [Interfaces](/docs/system/interfaces).
+
+---
+
+## Correction
+
+An explicit change to Monad's understanding when earlier information is discovered to be wrong or incomplete.
+
+A Correction should preserve enough history to distinguish:
+
+```text
+what was previously believed
+```
+
+from:
+
+```text
+what is now authoritative
+```
+
+rather than rewriting the past as though the error never existed.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Current State
+
+Monad's present interpreted understanding of the engineering system.
+
+Current State may be derived from multiple authoritative and observed sources.
+
+It should preserve:
+
+* conflicts,
+* uncertainty,
+* provenance,
+* and freshness
+
+rather than manufacturing a falsely clean single truth.
+
+---
+
+# D
+
+## Delegation
+
+The bounded transfer of Authority from one Actor or governing source to another Actor.
+
+Delegation may constrain:
+
+* Scope,
+* Capabilities,
+* Operations,
+* duration,
+* risk,
+* and verification requirements.
+
+Delegation should normally be revocable or expirable.
+
+See [Governance](/docs/system/governance).
+
+---
+
+## Derived
+
+Produced from other information rather than independently authoritative.
+
+Examples include:
+
+* generated documentation,
+* indexes,
+* dashboards,
+* context bundles,
+* dependency views,
+* impact reports.
+
+Derived information should preserve enough Provenance to identify its source and generation conditions.
+
+**Distinct from:** Canonical.
+
+---
+
+## Diagnostic
+
+A structured description of a system condition requiring attention or interpretation.
+
+A Diagnostic may include:
+
+* code,
+* severity,
+* message,
+* target,
+* source,
+* evidence,
+* and recommended action.
+
+Diagnostics are especially useful for preserving failure meaning across interfaces.
+
+See [Interfaces](/docs/system/interfaces).
+
+---
+
+## Discovery
+
+The process of identifying native resources that may be relevant to Monad.
+
+Examples include discovering:
+
+* files,
+* repositories,
+* packages,
+* schemas,
+* workflows,
+* issues,
+* deployments,
+* or services.
+
+Discovery identifies **what exists**.
+
+It does not by itself establish semantic identity or meaning.
+
+See [Integrations](/docs/system/integrations).
+
+---
+
+# E
+
+## Engine
+
+A capability that interprets Monad state to perform a defined class of reasoning or work.
+
+Examples include:
+
+* Query Engine,
+* Policy Engine,
+* Impact Engine,
+* Planning Engine,
+* Execution Engine,
+* Verification Engine,
+* Projection Engine,
+* Reconciliation Engine.
+
+"Engine" describes architectural responsibility rather than necessarily a separate runtime process.
+
+See [Architecture](/docs/system/architecture).
+
+---
+
+## Evidence
+
+Information used to support, weaken, or challenge a Claim.
+
+Examples include:
+
+* test output,
+* experiments,
+* benchmarks,
+* runtime observations,
+* review findings,
+* reproducibility results,
+* security scans.
+
+Evidence should be interpreted with its conditions and Provenance.
+
+Evidence is not the same thing as Approval.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Event
+
+A normalized notification that something meaningful occurred.
+
+Examples may include:
+
+```text
+subject.created
+execution.completed
+verification.failed
+projection.stale
+```
+
+An Event may be operational and transient.
+
+It becomes a durable Artifact only when its engineering value justifies preservation.
+
+See [Interfaces](/docs/system/interfaces).
+
+---
+
+## Execution
+
+The governed transition from authorized intent into actual side effects against Monad or Native Systems.
+
+Execution may include:
+
+* precondition checks,
+* tool invocation,
+* state mutation,
+* observation,
+* error handling,
+* and execution records.
+
+Execution does not establish correctness.
+
+Verification does.
+
+See [Execution](/docs/system/execution).
+
+---
+
+## Execution Boundary
+
+The architectural boundary separating reasoning or authorization from actual mutation of engineering reality.
+
+Conceptually:
+
+```text
+Plan
+   ↓
+Authorization
+   ↓
+EXECUTION BOUNDARY
+   ↓
+Native Side Effect
+```
+
+This is a major Monad trust boundary.
+
+See [Architecture](/docs/system/architecture).
+
+---
+
+## Execution Record
+
+A durable or transient record describing a meaningful Execution.
+
+It may include:
+
+* Execution identity,
+* Plan identity,
+* Actor,
+* Authorization,
+* input state,
+* native Operations,
+* outputs,
+* errors,
+* environment,
+* timestamps,
+* and tool versions.
+
+---
+
+## Extension
+
+A governed mechanism for adding capabilities or domain behavior without expanding Monad's core indefinitely.
+
+An Extension may contribute:
+
+* Adapters,
+* Subject types,
+* Relationship types,
+* validators,
+* Policies,
+* lifecycle rules,
+* Projections,
+* AI capability providers,
+* or interfaces.
+
+Extensions remain constrained by the Constitution and governance model.
+
+See [Components](/docs/system/components).
+
+---
+
+# F
+
+## Freshness
+
+The degree to which derived or cached information still corresponds to the source state from which it was produced.
+
+Freshness may depend on:
+
+* source revision,
+* observed revision,
+* generation time,
+* cache age,
+* and source changes.
+
+A Projection may remain structurally valid while being stale.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+# G
+
+## Governance
+
+The mechanisms through which significant engineering actions, changes, state transitions, and uses of Authority become legitimate.
+
+Governance includes concepts such as:
+
+* Policy,
+* Authority,
+* Capability,
+* Approval,
+* obligations,
+* Scope,
+* lifecycle gates,
+* exceptions,
+* and constitutional rules.
+
+Governance should be proportional to consequence rather than maximize ceremony.
+
+See [Governance](/docs/system/governance).
+
+---
+
+## Governance Decision
+
+The structured result of evaluating a proposed Operation against applicable Authority, Policy, Scope, state, risk, and obligations.
+
+Possible decisions include:
+
+```text
+permit
+deny
+permit-with-obligations
+require-approval
+require-evidence
+require-escalation
+```
+
+A Governance Decision should be explainable.
+
+---
+
+# H
+
+## Historical State
+
+A previously valid system state preserved for temporal or explanatory purposes.
+
+Historical State may remain correct about the past without governing the present.
+
+**Distinct from:** Current State.
+
+---
+
+## Historical Truth
+
+A Claim that accurately describes the system during a past period but is not necessarily current.
+
+Historical Truth should not be deleted merely because it was superseded.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+# I
+
+## Identity
+
+The continuity by which Monad recognizes something as the same underlying Subject across change.
+
+Monad distinguishes semantic Identity from location and Native References.
+
+See **Semantic Identity**.
+
+---
+
+## Idempotency
+
+The property that repeating an Operation does not produce unintended duplicate effects.
+
+For example:
+
+```text
+ensure binding exists
+```
+
+can be designed idempotently.
+
+```text
+append binding
+```
+
+may not be.
+
+Idempotency is particularly important for retries, automation, and distributed execution.
+
+See [Execution](/docs/system/execution).
+
+---
+
+## Impact
+
+The known, probable, inferred, or unresolved consequences of a proposed change.
+
+Impact may include effects on:
+
+* Subjects,
+* dependencies,
+* requirements,
+* specifications,
+* tests,
+* consumers,
+* policies,
+* releases,
+* and derived views.
+
+See [Execution](/docs/system/execution).
+
+---
+
+## Inference
+
+A conclusion derived from other information rather than explicitly asserted by an authoritative source.
+
+Examples include:
+
+* candidate identity,
+* likely dependency,
+* suspected duplicate,
+* inferred relationship,
+* probable affected Subject.
+
+Inference must preserve uncertainty.
+
+> **Inference is not confirmation.**
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Integration
+
+The architectural mechanism through which Monad connects to Native Systems.
+
+Integration includes:
+
+* Adapters,
+* Native References,
+* Bindings,
+* observation,
+* native Operations,
+* synchronization,
+* and reconciliation.
+
+See [Integrations](/docs/system/integrations).
+
+---
+
+## Interface
+
+An explicit contract through which Components, Native Systems, humans, agents, extensions, or external tools communicate.
+
+An Interface may define:
+
+* input,
+* output,
+* preconditions,
+* postconditions,
+* side effects,
+* errors,
+* Authority requirements,
+* consistency,
+* and versioning.
+
+See [Interfaces](/docs/system/interfaces).
+
+---
+
+## Invariant
+
+A condition that must remain true across relevant system states.
+
+Examples might include:
+
+```text
+confirmed Subject identities are unique within scope
+```
+
+or:
+
+```text
+ordinary Authority cannot amend the Constitution
+```
+
+An Invariant differs from a Precondition because it is expected to remain true broadly, not only before one Operation.
+
+See [Governance](/docs/system/governance).
+
+---
+
+# L
+
+## Lifecycle
+
+The meaningful states and permitted transitions associated with a kind of Subject or Artifact.
+
+Examples:
+
+```text
+Specification:
+draft → proposed → accepted → active → superseded
+```
+
+```text
+Work Package:
+planned → authorized → executing → verifying → complete
+```
+
+Different Subject types may have different lifecycles.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Lifecycle Gate
+
+A governance condition that must be satisfied before a Lifecycle transition may occur.
+
+A gate may require:
+
+* Authority,
+* Approval,
+* Evidence,
+* Verification,
+* or another prerequisite.
+
+See [Governance](/docs/system/governance).
+
+---
+
+# M
+
+## Managed Integration
+
+An Integration through which Monad is permitted to actively read, observe, or mutate Native System state according to its declared Capabilities and governance.
+
+**Distinct from:** Referenced Integration.
+
+See [Integrations](/docs/system/integrations).
+
+---
+
+## Model
+
+A structured representation of some part of engineering reality.
+
+Within Monad, "model" may refer to:
+
+* domain model,
+* semantic model,
+* lifecycle model,
+* authority model,
+* relationship model,
+* or other formal interpretation.
+
+The Model is not identical to native reality.
+
+See [Architecture](/docs/system/architecture).
+
+---
+
+# N
+
+## Native Authority
+
+Authority retained by a Native System over information or state that it legitimately owns.
+
+Examples:
+
+```text
+Git
+  authoritative for Git history
+
+Deployment platform
+  authoritative for native deployment state
+```
+
+Monad may interpret this state without replacing its Authority.
+
+---
+
+## Native Identity
+
+An identifier defined and owned by a Native System.
+
+Examples:
+
+* Git commit SHA,
+* issue number,
+* database primary key,
+* deployment ID,
+* filesystem path.
+
+Native Identity is not automatically Semantic Identity.
+
+---
+
+## Native Operation
+
+An Operation executed by or against a Native System.
+
+Examples include:
+
+* writing a file,
+* creating a Git commit,
+* updating a GitHub issue,
+* triggering CI,
+* publishing a package,
+* deploying a service.
+
+---
+
+## Native Reference
+
+A structured reference to a native resource using its Native System's own identity model.
+
+Examples include:
+
+```text
+packages/auth/src/api.ts
+```
+
+```text
+commit abc123
+```
+
+```text
+monad-framework/monad#187
+```
+
+Native References may be bound to Representations or Subjects.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Native System
+
+An existing or external engineering system that independently owns some part of engineering reality.
+
+Examples include:
+
+* filesystem,
+* Git,
+* GitHub,
+* CI,
+* package registries,
+* databases,
+* deployment platforms,
+* observability systems.
+
+Monad integrates with Native Systems rather than treating them as disposable implementation details.
+
+See [Integrations](/docs/system/integrations).
+
+---
+
+# O
+
+## Obligation
+
+A governance requirement that must be satisfied as a condition of an Operation or Lifecycle transition.
+
+Examples:
+
+```text
+run compatibility tests
+obtain architecture review
+update specification
+record evidence
+```
+
+A Governance Decision may permit an Operation while attaching Obligations.
+
+See [Governance](/docs/system/governance).
+
+---
+
+## Observation
+
+A recorded perception of engineering reality.
+
+Examples:
+
+```text
+file exists
+test failed
+service returned 500
+deployment runs version 4
+```
+
+An Observation describes what was perceived under particular conditions.
+
+It is distinct from:
+
+* Specification,
+* Inference,
+* Claim,
+* and desired state.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Operation
+
+A discrete requested or performed action.
+
+Examples include:
+
+```text
+modify Subject
+run test
+publish package
+transition lifecycle
+update binding
+```
+
+An Operation may have:
+
+* an Actor,
+* Scope,
+* Authorization,
+* preconditions,
+* side effects,
+* and an Execution result.
+
+---
+
+# P
+
+## Plan
+
+An inspectable proposal describing how a desired engineering outcome should be achieved.
+
+A Plan may contain:
+
+* Operations,
+* ordering,
+* target Subjects,
+* Scope,
+* tools,
+* expected outputs,
+* required approvals,
+* and verification obligations.
+
+A Plan is not Authorization.
+
+See [Execution](/docs/system/execution).
+
+---
+
+## Policy
+
+A rule constraining behavior under defined conditions.
+
+A Policy may consider:
+
+* Actor,
+* Capability,
+* Operation,
+* Subject,
+* Scope,
+* Lifecycle,
+* risk,
+* Approval,
+* and Evidence.
+
+Policies may permit, deny, or impose Obligations.
+
+See [Governance](/docs/system/governance).
+
+---
+
+## Precondition
+
+A condition that must be true before a particular Operation proceeds.
+
+Examples:
+
+```text
+repository revision matches expected revision
+```
+
+```text
+required approval exists
+```
+
+```text
+target Subject is in expected lifecycle state
+```
+
+**Distinct from:** Invariant.
+
+---
+
+## Projection
+
+A derived representation of authoritative system state optimized for a particular use.
+
+Examples include:
+
+* generated documentation,
+* AI context,
+* dashboards,
+* dependency diagrams,
+* indexes,
+* release summaries.
+
+A Projection should remain distinguishable from its authoritative sources.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Projection Definition
+
+The rules describing how a Projection is produced.
+
+A Projection Definition may contain:
+
+* source Scope,
+* selection rules,
+* transformation rules,
+* target format,
+* destination,
+* and Freshness policy.
+
+---
+
+## Provenance
+
+Information describing where something came from and how it came to exist.
+
+Provenance may include:
+
+* Actor,
+* producer,
+* source,
+* tool,
+* derivation,
+* input state,
+* environment,
+* time,
+* and transformation history.
+
+> **Provenance answers where information came from. Authority answers why it should govern.**
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+# Q
+
+## Query
+
+A read-only request for information about the current or historical system model.
+
+Examples:
+
+```text
+What represents Subject A?
+
+What depends on Component B?
+
+Which policy governs this operation?
+```
+
+A Query should not produce governed side effects.
+
+**Distinct from:** Command.
+
+See [Interfaces](/docs/system/interfaces).
+
+---
+
+# R
+
+## Read Model
+
+A derived structure optimized for efficient access to canonical state.
+
+Examples include:
+
+* graph indexes,
+* search indexes,
+* dependency indexes,
+* provenance indexes,
+* authority indexes.
+
+A Read Model should normally be reconstructable from authoritative sources.
+
+See [Architecture](/docs/system/architecture).
+
+---
+
+## Reconciliation
+
+The process of comparing Monad's semantic understanding with observed Native System reality and determining what disagreement means.
+
+Possible outcomes include:
+
+* confirmed state,
+* updated Binding,
+* identity proposal,
+* stale Projection,
+* conflict,
+* review request,
+* unresolved discrepancy.
+
+Reconciliation is not blind synchronization.
+
+See [Integrations](/docs/system/integrations).
+
+---
+
+## Referenced Integration
+
+An Integration Monad can identify or inspect but does not actively manage as an authoritative writable system.
+
+A Referenced Integration may expose only:
+
+* identifiers,
+* limited observation,
+* links,
+* or external facts.
+
+**Distinct from:** Managed Integration.
+
+See [Integrations](/docs/system/integrations).
+
+---
+
+## Relationship
+
+A typed semantic connection between meaningful entities.
+
+Examples include:
+
+```text
+depends-on
+implements
+specified-by
+verified-by
+supersedes
+represented-by
+derived-from
+governed-by
+```
+
+Typed Relationships make graph traversal meaningful.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Representation
+
+A concrete manifestation of a Subject.
+
+Examples include:
+
+* source file,
+* Markdown document,
+* database row,
+* GitHub issue,
+* generated documentation page,
+* API resource.
+
+A Subject may have multiple Representations.
+
+> **Representation is not Subject.**
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Representation Role
+
+The semantic purpose a Representation serves.
+
+Common roles may include:
+
+* canonical,
+* authored,
+* generated,
+* coordination,
+* external,
+* transient.
+
+The Representation Role helps determine its Authority and synchronization behavior.
+
+---
+
+## Request Identity
+
+A stable identifier attached to a meaningful command or Operation.
+
+Request Identity supports:
+
+* retries,
+* idempotency,
+* provenance,
+* correlation,
+* debugging,
+* and distributed execution.
+
+---
+
+## Revision
+
+A value identifying a particular state of a mutable resource, Artifact, model, Plan, Policy, or Native System resource.
+
+Examples include:
+
+* Git commit,
+* file hash,
+* model revision,
+* policy revision,
+* ETag,
+* schema version.
+
+Revision awareness prevents stale assumptions from being applied silently.
+
+---
+
+## Review
+
+An examination of an Artifact, Plan, change, or result intended to provide independent scrutiny.
+
+A Review may produce findings or Evidence.
+
+A Review is not necessarily an Approval.
+
+See [Governance](/docs/system/governance).
+
+---
+
+## Risk
+
+An assessment of the potential consequence or uncertainty associated with an Operation or change.
+
+Risk may consider:
+
+* blast radius,
+* reversibility,
+* security,
+* compatibility,
+* data loss,
+* Authority sensitivity,
+* and constitutional significance.
+
+Governance should generally become stronger as risk increases.
+
+---
+
+## Role
+
+A named function or responsibility associated with an Actor.
+
+Examples:
+
+```text
+Maintainer
+Reviewer
+Implementation Agent
+Release Authority
+```
+
+A Role may contribute to Authority.
+
+It should not replace Actor identity.
+
+---
+
+# S
+
+## Scope
+
+The explicit boundary within which information, Authority, Capability, Policy, or an Operation applies.
+
+Scope may be defined by:
+
+* project,
+* workspace,
+* repository,
+* path,
+* Subject,
+* Subject type,
+* environment,
+* Operation,
+* time,
+* or Work Package.
+
+Authority should usually be scoped rather than universal.
+
+---
+
+## Semantic Graph
+
+The graph-shaped interpretation of Monad's engineering model.
+
+The Semantic Graph represents:
+
+* Subjects,
+* Claims,
+* Relationships,
+* Authority,
+* Provenance,
+* Evidence,
+* and other meaningful connections.
+
+"Graph" describes semantic structure.
+
+It does not require a graph database.
+
+See [Architecture](/docs/system/architecture).
+
+---
+
+## Semantic Identity
+
+The identity of an underlying Subject independent of any particular Representation or Native Reference.
+
+Semantic Identity answers:
+
+> **Is this still the same underlying engineering thing?**
+
+It should be capable of surviving:
+
+* rename,
+* move,
+* representation changes,
+* migration,
+* and regeneration
+
+when semantic continuity remains intact.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Side Effect
+
+A change to observable system state caused by an Operation.
+
+Examples include:
+
+* writing a file,
+* changing a database,
+* creating a commit,
+* publishing a package,
+* updating an issue,
+* deploying a service.
+
+Side effects cross the Execution Boundary.
+
+---
+
+## Stale
+
+No longer corresponding to the relevant current authoritative source state.
+
+A:
+
+* Projection,
+* Plan,
+* Authorization,
+* Binding,
+* cache,
+* or read model
+
+may become stale.
+
+Stale does not necessarily mean incorrect in all contexts.
+
+It means the information can no longer safely be assumed current.
+
+---
+
+## State Snapshot
+
+A bounded description of the system revisions or conditions against which a Plan, Authorization, Execution, or Verification was created.
+
+A snapshot may reference:
+
+* repository revision,
+* specification revision,
+* policy revision,
+* model revision,
+* Constitution version,
+* Native System revision.
+
+See [Execution](/docs/system/execution).
+
+---
+
+## Subject
+
+The underlying semantic entity Monad is describing.
+
+Examples include:
+
+* Requirement,
+* Component,
+* Interface,
+* Policy,
+* Specification,
+* Release,
+* Service,
+* Decision.
+
+A Subject possesses Semantic Identity independent of any single Representation.
+
+> **Subject is not Representation.**
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Synchronization
+
+The process of intentionally moving or aligning state between systems or Representations.
+
+Synchronization answers:
+
+> How should these states correspond?
+
+Reconciliation answers:
+
+> What does their disagreement mean?
+
+The distinction is important.
+
+See [Integrations](/docs/system/integrations).
+
+---
+
+## System Graph
+
+The graph-shaped representation of Monad's interpreted engineering reality.
+
+In current architecture, the System Graph sits below the Constitution and is interpreted by engines.
+
+Conceptually:
+
+```text
+Constitution
+   ↓
+System Graph
+   ↓
+Engines
+```
+
+See [System Overview](/docs/system).
+
+---
+
+# T
+
+## Traceability
+
+The ability to traverse meaningful engineering relationships across intent, decision, implementation, and evidence.
+
+Example:
+
+```text
+Problem
+  ↓
+Requirement
+  ↓
+Specification
+  ↓
+Implementation
+  ↓
+Verification
+  ↓
+Evidence
+```
+
+Traceability allows questions such as:
+
+> Why does this implementation exist?
+
+and:
+
+> What demonstrates that this requirement is satisfied?
+
+See [Artifacts](/docs/artifacts/traceability).
+
+---
+
+## Transaction Boundary
+
+The limit within which a set of changes can genuinely be committed atomically.
+
+Monad should not pretend distributed Native Systems share a global transaction when they do not.
+
+See [Execution](/docs/system/execution).
+
+---
+
+# U
+
+## Uncertainty
+
+Explicit state representing that Monad does not fully know or confirm something.
+
+Possible forms include:
+
+* unknown,
+* inferred,
+* probable,
+* ambiguous,
+* contested,
+* unresolved.
+
+> **Unknown is a valid result.**
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+# V
+
+## Valid Time
+
+The period during which a Claim or state is considered true in the engineering reality being modeled.
+
+Valid Time may differ from:
+
+* when Monad observed the state,
+* when the state was recorded,
+* when a repository commit was created.
+
+See [Concepts & Principles](/docs/system/concepts).
+
+---
+
+## Verification
+
+The process of evaluating whether implementation or observed state satisfies a governing contract, Claim, requirement, specification, invariant, or policy condition.
+
+Verification should produce or reference Evidence.
+
+Possible outcomes include:
+
+* passed,
+* failed,
+* incomplete,
+* blocked,
+* requires review,
+* not applicable.
+
+Execution answers:
+
+> Did the Operation occur?
+
+Verification answers:
+
+> Did the result satisfy the contract?
+
+See [Execution](/docs/system/execution).
+
+---
+
+## Verification Method
+
+The procedure used to evaluate a Claim or contract.
+
+Examples include:
+
+* unit test,
+* acceptance test,
+* compatibility test,
+* benchmark,
+* security review,
+* reproducibility test,
+* manual review,
+* runtime observation.
+
+The method should be appropriate to the Claim being evaluated.
+
+---
+
+# W
+
+## Work Package
+
+A bounded unit of engineering delivery with sufficient structure to plan, govern, execute, and verify coherently.
+
+A Work Package may define:
+
+* Goal,
+* Scope,
+* inputs,
+* outputs,
+* Requirements,
+* Specifications,
+* Authority,
+* acceptance criteria,
+* verification obligations,
+* and Definition of Done.
+
+Work Packages are useful execution boundaries for both humans and agents.
+
+See [Project](/docs/project) and [Execution](/docs/system/execution).
+
+---
+
+# Cross-reference: terms that must not collapse
+
+Several Monad concepts are intentionally similar enough that they are easy to misuse.
+
+This table summarizes the most important distinctions.
+
+| Term                  | Not equivalent to | Why                                                                  |
+| --------------------- | ----------------- | -------------------------------------------------------------------- |
+| **Subject**           | Representation    | The underlying thing can survive representation change.              |
+| **Semantic Identity** | Native Identity   | Native identifiers belong to a particular external system.           |
+| **Claim**             | Truth             | A claim can be proposed, wrong, historical, or contested.            |
+| **Claim**             | Evidence          | Assertions and support for assertions are different records.         |
+| **Authority**         | Provenance        | Origin does not determine governing legitimacy by itself.            |
+| **Authority**         | Capability        | Technical ability does not establish permission.                     |
+| **Capability**        | Authorization     | A system can technically do something it is not authorized to do.    |
+| **Review**            | Approval          | Review supplies scrutiny; Approval expresses authorized judgment.    |
+| **Execution**         | Verification      | Performing an action does not prove its result is correct.           |
+| **Observation**       | Specification     | Observed reality may disagree with desired behavior.                 |
+| **Inference**         | Confirmation      | Automated conclusions may remain uncertain.                          |
+| **Projection**        | Canonical source  | A derived view depends on its inputs and generation rules.           |
+| **Synchronization**   | Reconciliation    | Synchronization moves state; reconciliation interprets disagreement. |
+| **Historical Truth**  | Current Truth     | Something may have been true without remaining true now.             |
+| **Unknown**           | False             | Lack of evidence is not evidence of falsity.                         |
+| **Native Authority**  | Monad Authority   | Different systems can legitimately govern different scopes.          |
+| **Plan**              | Authorization     | A proposed action is not permission to perform it.                   |
+| **Credential**        | Authority         | Possession of access credentials does not establish legitimate use.  |
+
+---
+
+# Core vocabulary by concern
+
+Another way to navigate the terminology is by system concern.
+
+## Semantic model
+
+```text
+Subject
+Semantic Identity
+Representation
+Representation Role
+Native Reference
+Claim
+Relationship
+Observation
+Inference
+Conflict
+Uncertainty
+```
+
+## Trust and knowledge
+
+```text
+Authority
+Native Authority
+Provenance
+Evidence
+Freshness
+Current State
+Historical Truth
+Valid Time
+Correction
+```
+
+## Governance
+
+```text
+Actor
+Role
+Capability
+Authority
+Delegation
+Scope
+Policy
+Governance Decision
+Obligation
+Review
+Approval
+Authorization
+Risk
+Invariant
+Autonomy Envelope
+```
+
+## Execution
+
+```text
+Plan
+State Snapshot
+Precondition
+Operation
+Execution
+Execution Boundary
+Side Effect
+Execution Record
+Transaction Boundary
+Compensation
+Idempotency
+```
+
+## Native integration
+
+```text
+Native System
+Native Identity
+Native Reference
+Native Operation
+Adapter
+Integration
+Managed Integration
+Referenced Integration
+Binding
+Discovery
+Synchronization
+Reconciliation
+```
+
+## Derived systems
+
+```text
+Projection
+Projection Definition
+Context
+Context Projection
+Read Model
+Freshness
+Event
+```
+
+## System architecture
+
+```text
+Constitution
+Canonical System Model
+System Graph
+Semantic Graph
+Engine
+Component
+Interface
+Extension
+```
+
+## Engineering program
+
+```text
+Artifact
+Requirement
+Specification
+Work Package
+Verification
+Evidence
+Review
+Release
+Traceability
+```
+
+---
+
+# Canonical naming conventions
+
+The System documentation should use these names consistently.
+
+Prefer:
+
+```text
+Subject
+Representation
+Native Reference
+Claim
+Relationship
+Authority
+Provenance
+Evidence
+Observation
+Inference
+Actor
+Capability
+Policy
+Projection
+Lifecycle
+Constitution
+```
+
+when referring to the Monad concepts themselves.
+
+Lowercase usage is appropriate when the word is used generically.
+
+For example:
+
+```text
+A Subject may have several Representations.
+```
+
+but:
+
+```text
+The source file is one representation of the interface.
+```
+
+This distinction helps readers identify when a word refers to a specific Monad concept.
+
+---
+
+# Terms that remain provisional
+
+Not every term used during Monad's development should automatically enter this glossary.
+
+A term belongs here when it is:
+
+* part of the current authoritative model,
+* used across multiple System pages,
+* semantically important,
+* stable enough to warrant canonical meaning,
+* and likely to cause ambiguity if left undefined.
+
+Experimental terminology should remain in:
+
+* Building Monad,
+* open questions,
+* proposals,
+* experiments,
+* or Artifacts
+
+until the project deliberately adopts it.
+
+---
+
+# Adding a glossary term
+
+A new canonical term should generally answer:
+
+1. What does it mean?
+2. Why is it needed?
+3. What existing term does it differ from?
+4. Which architectural responsibility depends on the distinction?
+5. Is the term already defined elsewhere?
+6. Does introducing it simplify the model or merely expand vocabulary?
+
+The glossary should not become a taxonomy of every noun used in the project.
+
+Its purpose is to stabilize the language required to understand Monad.
+
+---
+
+# Changing a glossary term
+
+Changing the meaning of a foundational term can have wide consequences.
+
+For example, changing:
+
+```text
+Subject
+```
+
+may affect:
+
+* identity,
+* storage,
+* schemas,
+* interfaces,
+* policies,
+* documentation,
+* migrations,
+* and existing Artifacts.
+
+Conceptually:
+
+```text
+Terminology Change
+      │
+      ▼
+Conceptual Impact
+      │
+      ▼
+Architecture Impact
+      │
+      ▼
+Schema / Interface Impact
+      │
+      ▼
+Migration
+      │
+      ▼
+Verification
+```
+
+A terminology change should therefore be treated as an engineering change when it alters system semantics.
+
+---
+
+# Relationship to Concepts & Principles
+
+This glossary gives concise definitions.
+
+[Concepts & Principles](/docs/system/concepts) explains why the distinctions exist.
+
+For example:
+
+```text
+Glossary:
+Subject = underlying semantic entity.
+
+Concepts:
+explains why Subject must remain distinct
+from Representation and Native Reference.
+```
+
+Use the glossary when you need a definition.
+
+Use Concepts when you need the reasoning behind it.
+
+---
+
+# Relationship to Architecture
+
+[Architecture](/docs/system/architecture) assigns these concepts to system responsibilities.
+
+For example:
+
+```text
+Concept:
+Policy
+
+Architecture:
+Policy Engine
+
+Component:
+Policy Component
+
+Interface:
+evaluate_policy(...)
+```
+
+The glossary therefore sits at the vocabulary layer beneath architecture.
+
+---
+
+# Relationship to Artifacts
+
+Precise machine-readable definitions eventually belong in specifications and schemas under [Artifacts](/docs/artifacts).
+
+For example:
+
+```text
+Glossary:
+Native Reference
+  conceptual definition
+
+Specification:
+Native Reference Specification
+  exact fields and semantics
+
+Schema:
+native-reference.schema.json
+  machine-readable structure
+```
+
+The glossary should not duplicate those formal contracts.
+
+---
+
+# The governing rule
+
+The glossary exists to preserve one simple property:
+
+> **When Monad uses an important term, humans and machines should be able to determine what that term means without reconstructing its definition from scattered documents.**
+
+Stable language is itself part of making the engineering system legible.
+
+---
+
+## Continue exploring
+
+<Cards>
+  <Card
+    title="Concepts & Principles"
+    href="/docs/system/concepts"
+  >
+    Go deeper into the semantic distinctions summarized in this glossary.
+  </Card>
+
+<Card
+title="Architecture"
+href="/docs/system/architecture"
+>
+See how the vocabulary maps onto concrete system responsibilities.
+</Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+>
+Explore Actor, Capability, Authority, Policy, Approval, Scope, and bounded autonomy in detail.
+</Card>
+
+<Card
+title="Execution"
+href="/docs/system/execution"
+>
+See how Plan, Authorization, Operation, Verification, Evidence, and Reconciliation compose during engineering work.
+</Card>
+
+<Card
+title="Integrations"
+href="/docs/system/integrations"
+>
+Explore Native Systems, Adapters, Bindings, Native References, synchronization, and reconciliation.
+</Card>
+
+<Card
+title="System Overview"
+href="/docs/system"
+>
+Return to the current authoritative explanation of Monad as a whole.
+</Card>
+</Cards>

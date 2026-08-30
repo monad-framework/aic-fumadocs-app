@@ -1,0 +1,2325 @@
+---
+title: Authority Requirements
+description: The requirements governing who or what may establish, modify, approve, supersede, or act upon authoritative engineering state within Monad, and how that authority is scoped, delegated, evidenced, constrained, and revoked.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Requirement family · REQ-AUTH
+  </p>
+</div>
+
+# Authority Requirements
+
+Engineering systems contain many statements.
+
+Not all statements have the same standing.
+
+A source file may claim one thing.
+
+A generated report may claim another.
+
+An AI system may infer something else.
+
+A human reviewer may approve a change.
+
+A native platform may permit an operation.
+
+A policy may require additional evidence before that operation is allowed.
+
+The central question is therefore not merely:
+
+> **What does the system say?**
+
+It is also:
+
+> **Who or what is entitled to establish what the system currently accepts as authoritative within this scope?**
+
+Authority determines which actors, artifacts, systems, processes, or rules are entitled to:
+
+* establish accepted state,
+* make decisions,
+* approve changes,
+* authorize actions,
+* resolve conflicts,
+* delegate authority,
+* or supersede earlier authoritative state.
+
+<Callout type="info" title="Core distinction">
+Authority is the legitimate right to establish or authorize state within a defined scope. It is not the same as capability, permission, provenance, ownership, truth, or technical access.
+</Callout>
+
+A recurring Monad invariant is:
+
+```text
+Capability ≠ Authority
+```
+
+Something may be technically capable of changing a repository without being authorized to do so.
+
+Likewise:
+
+```text
+Permission ≠ Authority
+```
+
+A GitHub token may permit a push.
+
+That does not establish that the push is legitimate under the engineering system's governance rules.
+
+---
+
+# Requirement family scope
+
+The `REQ-AUTH-*` family governs authority associated with:
+
+* Subjects,
+* Claims,
+* properties,
+* relationships,
+* Requirements,
+* Decisions,
+* Specifications,
+* Policies,
+* lifecycle transitions,
+* releases,
+* identity changes,
+* execution,
+* verification,
+* evidence acceptance,
+* native-system reconciliation,
+* AI-generated proposals,
+* human approvals,
+* delegation,
+* exceptions,
+* and constitutional change.
+
+The family defines requirements for determining:
+
+* who holds authority,
+* over what scope,
+* for which actions,
+* under what conditions,
+* for how long,
+* subject to which higher-order constraints,
+* and with what evidence.
+
+It does not independently define every policy by which authority is exercised.
+
+Those rules belong in the policy and governance layers.
+
+---
+
+# Foundational authority requirements
+
+## REQ-AUTH-001 — Authority MUST be explicit for consequential state
+
+Where engineering state materially affects:
+
+* correctness,
+* architecture,
+* security,
+* governance,
+* release,
+* identity,
+* evidence,
+* lifecycle,
+* or execution,
+
+Monad MUST be capable of determining the authority under which that state became accepted.
+
+Authority MAY be implicit only where an explicit governing rule intentionally defines that default.
+
+---
+
+## REQ-AUTH-002 — Authority MUST be scoped
+
+Authority MUST NOT be treated as an undifferentiated global property.
+
+An authority grant SHOULD identify applicable scope such as:
+
+* project,
+* repository,
+* domain,
+* component,
+* artifact,
+* Subject,
+* property,
+* Claim type,
+* operation,
+* lifecycle transition,
+* environment,
+* release,
+* policy domain,
+* or constitutional concern.
+
+---
+
+## REQ-AUTH-003 — Capability MUST NOT imply authority
+
+The ability to perform an operation MUST NOT by itself establish authorization to perform it.
+
+For example:
+
+```text
+actor can push to main
+```
+
+does not imply:
+
+```text
+actor is authorized to approve architecture changes
+```
+
+---
+
+## REQ-AUTH-004 — Technical permission MUST NOT imply semantic authority
+
+Native system permissions MAY participate in enforcement.
+
+They MUST NOT be treated as the complete authority model unless that equivalence has been explicitly established for the relevant scope.
+
+---
+
+## REQ-AUTH-005 — Provenance MUST NOT imply authority
+
+Knowing that information originated from:
+
+* Git,
+* GitHub,
+* CI,
+* a human,
+* an AI model,
+* an external database,
+* or Monad itself
+
+MUST NOT automatically make that information authoritative.
+
+---
+
+## REQ-AUTH-006 — Ownership MUST NOT automatically imply authority
+
+An artifact owner MAY have authority over some changes.
+
+Ownership alone MUST NOT establish unlimited authority unless the governing model explicitly grants it.
+
+---
+
+## REQ-AUTH-007 — Authority MUST NOT imply truth
+
+An authoritative Claim may later prove incorrect.
+
+Authority determines which Claim governs accepted system state.
+
+It does not guarantee objective correctness.
+
+---
+
+# Authority hierarchy
+
+## REQ-AUTH-008 — Higher-order authority constraints MUST be representable
+
+Monad MUST support governance structures in which one authority layer constrains another.
+
+The conceptual hierarchy is:
+
+```text
+Constitution
+    ↓ constrains
+Authority
+    ↓ governs
+Policies and Decisions
+    ↓ authorize or constrain
+Operations and State Changes
+```
+
+The exact representation belongs to the architecture and specifications.
+
+---
+
+## REQ-AUTH-009 — Lower-scope authority MUST NOT override higher-order constraints without explicit permission
+
+A project-level authority MUST NOT silently override a constitutional rule.
+
+A component-level authority MUST NOT silently override a project-level prohibition.
+
+Overrides MUST be explicitly defined by the governing authority structure.
+
+---
+
+## REQ-AUTH-010 — Authority precedence MUST be deterministic
+
+Where multiple authorities apply to the same question, Monad MUST have a deterministic means of establishing:
+
+* precedence,
+* composition,
+* conflict,
+* or unresolved status.
+
+The system MUST NOT silently choose whichever authority happens to be evaluated first.
+
+---
+
+# Authority scope
+
+## REQ-AUTH-011 — Authority scope SHOULD be no broader than necessary
+
+Authority SHOULD follow least-authority principles.
+
+A grant permitting:
+
+```text
+approve release evidence for service A
+```
+
+SHOULD NOT automatically grant:
+
+```text
+modify all project policies
+```
+
+---
+
+## REQ-AUTH-012 — Authority MAY be scoped to properties or Claims
+
+Monad SHOULD support cases in which different sources govern different aspects of the same Subject.
+
+Illustratively:
+
+```text
+Component A
+  name         ← repository manifest authority
+  owner        ← governance authority
+  deployment   ← deployment platform authority
+  health       ← derived observation
+```
+
+Whole-object authority MUST NOT be assumed where finer scope is necessary.
+
+---
+
+## REQ-AUTH-013 — Authority MAY be action-specific
+
+Authority to:
+
+```text
+propose
+```
+
+does not necessarily imply authority to:
+
+```text
+approve
+```
+
+Likewise:
+
+```text
+approve
+```
+
+does not necessarily imply authority to:
+
+```text
+execute
+```
+
+---
+
+## REQ-AUTH-014 — Authority MAY be lifecycle-state-specific
+
+An actor MAY have authority while an artifact is:
+
+```text
+draft
+```
+
+but not after it becomes:
+
+```text
+approved
+```
+
+or:
+
+```text
+released
+```
+
+---
+
+## REQ-AUTH-015 — Authority MAY be environment-specific
+
+Authority in:
+
+```text
+development
+```
+
+MUST NOT automatically imply authority in:
+
+```text
+production
+```
+
+---
+
+# Authority subjects
+
+## REQ-AUTH-016 — Monad MUST be able to represent authority held by different actor classes
+
+Possible authority holders include:
+
+* individual humans,
+* teams,
+* roles,
+* organizations,
+* services,
+* automated systems,
+* native platforms,
+* policy engines,
+* delegated agents,
+* and AI systems operating under bounded authority.
+
+---
+
+## REQ-AUTH-017 — Actor identity MUST be durable enough for authority evaluation
+
+Authority MUST NOT depend solely on unstable display names.
+
+Where possible, grants SHOULD reference stable actor or role identities.
+
+---
+
+## REQ-AUTH-018 — Role authority and individual authority MUST remain distinguishable
+
+An individual may act because:
+
+```text
+Alice has release-manager role
+```
+
+rather than because:
+
+```text
+Alice personally holds permanent release authority
+```
+
+Monad SHOULD preserve that distinction.
+
+---
+
+# Authority grants
+
+## REQ-AUTH-019 — Authority grants MUST identify what is granted
+
+A consequential authority grant SHOULD define:
+
+* grantee,
+* scope,
+* permitted authoritative actions,
+* constraints,
+* source of the grant,
+* effective time,
+* expiration if any,
+* and applicable policy or constitutional bounds.
+
+---
+
+## REQ-AUTH-020 — Authority grants MUST have provenance
+
+Monad MUST be capable of answering:
+
+> Who or what granted this authority?
+
+> Under which rule?
+
+> When?
+
+> For what scope?
+
+---
+
+## REQ-AUTH-021 — A grant MUST originate from sufficient authority
+
+An actor MUST NOT create authority greater than the authority it legitimately possesses unless a higher-order rule explicitly permits that delegation.
+
+---
+
+## REQ-AUTH-022 — Invalid grants MUST NOT become valid merely because they were persisted
+
+A structurally valid authority record is not necessarily an authorized authority record.
+
+> **A valid rule is not necessarily an authorized rule.**
+
+---
+
+# Delegation
+
+## REQ-AUTH-023 — Delegated authority MUST remain bounded
+
+Delegation SHOULD support restrictions such as:
+
+* scope,
+* action,
+* target,
+* duration,
+* environment,
+* resource,
+* risk level,
+* approval requirement,
+* or maximum delegation depth.
+
+---
+
+## REQ-AUTH-024 — Delegation MUST NOT silently expand authority
+
+A delegate MUST NOT gain powers that the delegating authority did not possess or could not legitimately delegate.
+
+---
+
+## REQ-AUTH-025 — Delegation chains SHOULD be inspectable
+
+Monad SHOULD be capable of explaining:
+
+```text
+Constitutional authority
+       ↓
+Project authority
+       ↓
+Release manager role
+       ↓
+Temporary delegate
+```
+
+for consequential actions.
+
+---
+
+## REQ-AUTH-026 — Delegated authority SHOULD support expiration
+
+Temporary authority SHOULD be capable of expiring automatically.
+
+---
+
+## REQ-AUTH-027 — Delegated authority SHOULD support revocation
+
+A grant SHOULD be revocable where the governing rules permit revocation.
+
+---
+
+## REQ-AUTH-028 — Revocation MUST affect future authority evaluation
+
+Once a grant is revoked, future authorization MUST NOT continue to rely on that grant.
+
+Historical actions SHOULD still retain the fact that the grant existed when they were performed.
+
+---
+
+# Time
+
+## REQ-AUTH-029 — Authority MUST support temporal validity
+
+Monad SHOULD be capable of determining:
+
+* when an authority grant became valid,
+* when it ceased to be valid,
+* and whether it was valid at the time of a historical action.
+
+---
+
+## REQ-AUTH-030 — Current authority MUST remain distinguishable from historical authority
+
+An actor who once had authority may no longer have it.
+
+Historical records SHOULD preserve:
+
+```text
+authorized at time T
+```
+
+without implying:
+
+```text
+authorized now
+```
+
+---
+
+## REQ-AUTH-031 — Expired authority MUST NOT authorize new actions
+
+An expired grant MUST NOT be accepted for a new governed operation.
+
+---
+
+# Revision-aware authority
+
+## REQ-AUTH-032 — Authorization SHOULD bind to relevant state revisions
+
+Where authorization depends on a proposed change, approval SHOULD identify the specific relevant revision.
+
+For example:
+
+```text
+approve release plan revision 17
+```
+
+rather than:
+
+```text
+approve release plan forever
+```
+
+---
+
+## REQ-AUTH-033 — Material revision after approval SHOULD invalidate or re-evaluate authorization
+
+If the approved artifact or plan changes materially, prior approval SHOULD NOT automatically remain valid.
+
+The rules determining materiality belong in policy or specification.
+
+---
+
+## REQ-AUTH-034 — Historical authorization MUST retain the governing revision
+
+Monad SHOULD preserve which:
+
+* policy version,
+* authority grant,
+* artifact revision,
+* and relevant system state
+
+were used to authorize a consequential action.
+
+---
+
+# Authority over Claims
+
+## REQ-AUTH-035 — Monad MUST support authoritative Claims
+
+Where multiple Claims concern the same proposition, Monad SHOULD be able to determine which Claim, if any, is currently authoritative within a scope.
+
+---
+
+## REQ-AUTH-036 — Conflicting Claims MUST NOT be collapsed before authority is evaluated
+
+If two sources assert:
+
+```text
+Component A owner = Team X
+```
+
+and:
+
+```text
+Component A owner = Team Y
+```
+
+Monad MUST preserve the conflict long enough to reason about:
+
+* provenance,
+* authority,
+* time,
+* and possible reconciliation.
+
+---
+
+## REQ-AUTH-037 — Multiple Claims MAY each be authoritative in different scopes
+
+For example:
+
+```text
+Team X owns runtime implementation
+Team Y owns operational deployment
+```
+
+Both may be authoritative if their scopes differ.
+
+---
+
+## REQ-AUTH-038 — Authority conflicts MUST be explicit
+
+If two equally applicable authorities produce incompatible accepted Claims, the system MUST expose the conflict rather than silently selecting one.
+
+---
+
+# Property-level authority
+
+## REQ-AUTH-039 — Property-level authority SHOULD be supported where needed
+
+Different properties of one Subject MAY legitimately be governed by different systems.
+
+Example:
+
+```text
+Repository
+  default branch   ← GitHub
+  semantic owner   ← Monad governance
+  current commit   ← Git
+  release status   ← release system
+```
+
+---
+
+## REQ-AUTH-040 — Property authority MUST NOT implicitly extend to unrelated properties
+
+An authoritative source for:
+
+```text
+deployment URL
+```
+
+MUST NOT automatically become authoritative for:
+
+```text
+architecture owner
+```
+
+---
+
+# Authority over identity
+
+## REQ-AUTH-041 — Identity-changing operations MUST require appropriate authority
+
+Operations such as:
+
+* merging semantic identities,
+* splitting identities,
+* rebinding native references,
+* declaring equivalence,
+* superseding identity,
+* or replacing canonical bindings
+
+SHOULD be treated as consequential governed operations.
+
+---
+
+## REQ-AUTH-042 — Inferred identity MUST NOT automatically become authoritative identity
+
+AI or automated systems MAY propose identity bindings.
+
+Such inference MUST remain distinguishable from confirmed authoritative identity unless explicitly permitted by policy.
+
+---
+
+## REQ-AUTH-043 — Identity correction MUST retain historical authority context
+
+If an earlier identity binding is corrected, Monad SHOULD preserve:
+
+* the previous binding,
+* the authority under which it was accepted,
+* the correcting authority,
+* rationale,
+* and evidence.
+
+---
+
+# Authority over lifecycle transitions
+
+## REQ-AUTH-044 — Lifecycle transitions MAY require distinct authority
+
+Authority to create an artifact does not necessarily imply authority to:
+
+* approve it,
+* activate it,
+* release it,
+* deprecate it,
+* supersede it,
+* or delete it.
+
+---
+
+## REQ-AUTH-045 — Invalid lifecycle transitions MUST NOT become valid through technical execution alone
+
+If an actor technically changes:
+
+```text
+draft → released
+```
+
+without required authority, Monad SHOULD be capable of recognizing the transition as unauthorized even if the underlying file or platform accepted it.
+
+---
+
+# Authority over Requirements
+
+## REQ-AUTH-046 — Requirement acceptance SHOULD identify accepting authority
+
+A proposed requirement SHOULD NOT become accepted merely because it exists in the repository.
+
+Where acceptance matters, Monad SHOULD preserve:
+
+* who accepted it,
+* under which authority,
+* at what revision,
+* and when.
+
+---
+
+## REQ-AUTH-047 — Requirement modification after acceptance SHOULD respect requirement authority
+
+Accepted Requirements MAY require stronger authority to modify than draft Requirements.
+
+---
+
+# Authority over Decisions
+
+## REQ-AUTH-048 — Architecture Decisions SHOULD identify the authority responsible for acceptance
+
+An ADR SHOULD distinguish:
+
+```text
+authored by
+```
+
+from:
+
+```text
+accepted by
+```
+
+where those roles differ.
+
+---
+
+## REQ-AUTH-049 — Decision authorship MUST NOT imply decision authority
+
+The person or AI system that drafts an ADR does not automatically possess authority to accept the decision.
+
+---
+
+## REQ-AUTH-050 — Superseding a Decision SHOULD require appropriate authority
+
+A Decision SHOULD NOT be considered superseded merely because another document disagrees with it.
+
+---
+
+# Authority over Specifications
+
+## REQ-AUTH-051 — Specification approval SHOULD be distinguishable from specification authorship
+
+A specification MAY be drafted collaboratively or by AI.
+
+Its normative standing SHOULD arise from an explicit acceptance process where governance requires one.
+
+---
+
+## REQ-AUTH-052 — Implementation MUST NOT silently redefine authoritative specification
+
+If implementation diverges from an approved Specification, Monad SHOULD represent the divergence rather than silently treating implementation behavior as the new normative contract.
+
+---
+
+# Authority over Policies
+
+## REQ-AUTH-053 — Policy creation and activation MUST require legitimate policy authority
+
+A policy MUST NOT become authoritative simply because it is structurally valid or loaded by an engine.
+
+---
+
+## REQ-AUTH-054 — Policy authority SHOULD be distinguishable from policy evaluation capability
+
+A policy engine may technically evaluate any policy text.
+
+That capability does not establish that the policy itself has legitimate authority.
+
+---
+
+## REQ-AUTH-055 — Policy changes MUST NOT silently authorize their own activation
+
+A policy that broadens its own creator's authority SHOULD require independent authorization where self-escalation would otherwise occur.
+
+---
+
+# Authority over execution
+
+## REQ-AUTH-056 — Consequential execution MUST be authorized before execution where governance requires it
+
+The execution pipeline SHOULD distinguish:
+
+```text
+can execute
+```
+
+from:
+
+```text
+is authorized to execute
+```
+
+---
+
+## REQ-AUTH-057 — Authorization MUST apply to the concrete resolved operation where necessary
+
+A broad request such as:
+
+```text
+deploy service
+```
+
+may resolve into multiple concrete actions.
+
+Authorization SHOULD apply to the resolved operation when material differences affect risk or scope.
+
+---
+
+## REQ-AUTH-058 — Authorization SHOULD be revalidated near the execution boundary
+
+Where state can change between approval and execution, Monad SHOULD re-evaluate relevant:
+
+* authority,
+* policy,
+* target state,
+* artifact revision,
+* environment,
+* and preconditions
+
+immediately before consequential execution.
+
+This reduces time-of-check/time-of-use risk.
+
+---
+
+## REQ-AUTH-059 — Execution success MUST NOT retroactively validate unauthorized action
+
+An operation that succeeds technically without legitimate authority remains unauthorized.
+
+---
+
+# Authority over verification
+
+## REQ-AUTH-060 — Verification execution and verification acceptance MAY require different authority
+
+An automated test system may be authorized to execute tests.
+
+A release authority may separately determine whether the resulting evidence is sufficient for release.
+
+---
+
+## REQ-AUTH-061 — Evidence producer MUST NOT automatically control evidence acceptance
+
+The system producing evidence SHOULD NOT automatically become the sole authority deciding whether that evidence satisfies a requirement.
+
+---
+
+# Authority over releases
+
+## REQ-AUTH-062 — Release authorization MUST be explicit for governed releases
+
+Where releases are governed, Monad SHOULD preserve:
+
+* approving authority,
+* approved revision,
+* required evidence,
+* policy state,
+* and authorization time.
+
+---
+
+## REQ-AUTH-063 — Release authority SHOULD be separable from deployment capability
+
+An actor or tool capable of deploying production software MUST NOT automatically be treated as authorized to approve the release.
+
+---
+
+# Native-system authority
+
+## REQ-AUTH-064 — Native systems MUST remain authoritative for capabilities they legitimately own
+
+Where a native system is the intended source of truth for a native property, Monad SHOULD respect that authority.
+
+Examples may include:
+
+* Git for commit identity,
+* package registries for published package versions,
+* deployment systems for observed deployment identifiers.
+
+---
+
+## REQ-AUTH-065 — Native authority MUST be scoped to native concerns
+
+Git being authoritative for commit identity does not make Git authoritative for:
+
+* business requirements,
+* architecture rationale,
+* semantic ownership,
+* or release approval.
+
+---
+
+## REQ-AUTH-066 — Monad SHOULD model native authority rather than pretending to replace it
+
+Where external systems legitimately govern facts, Monad SHOULD integrate, bind, observe, and reconcile with them.
+
+It SHOULD NOT manufacture duplicate authority merely to centralize control.
+
+---
+
+## REQ-AUTH-067 — Native permission MUST NOT be treated as Monad governance authority
+
+A cloud provider may accept an API call.
+
+GitHub may accept a merge.
+
+The filesystem may permit a write.
+
+Those outcomes MUST NOT be treated as proof that Monad governance authorized the action.
+
+---
+
+# Filesystem authority
+
+## REQ-AUTH-068 — Filesystem authority MUST be explicit by artifact class
+
+Monad MUST NOT assume either:
+
+```text
+filesystem is always authoritative
+```
+
+or:
+
+```text
+filesystem is never authoritative
+```
+
+Authority SHOULD be defined by artifact or semantic scope.
+
+---
+
+## REQ-AUTH-069 — Ordinary authored source MAY remain directly editable
+
+Monad's authority model SHOULD permit normal engineering workflows where direct source modification remains legitimate.
+
+Governance SHOULD be proportional to consequence.
+
+---
+
+## REQ-AUTH-070 — Generated Representations MUST NOT become authoritative merely because they exist on disk
+
+If a file is generated from authoritative semantic state, the generated file SHOULD remain a Representation unless explicitly granted separate authority.
+
+---
+
+# AI authority
+
+## REQ-AUTH-071 — AI capability MUST NOT imply AI authority
+
+An AI system MAY be capable of:
+
+* editing code,
+* modifying architecture documents,
+* creating policies,
+* changing schemas,
+* triggering deployment,
+* or approving work.
+
+That technical ability MUST NOT itself grant authority.
+
+---
+
+## REQ-AUTH-072 — AI authority MUST be explicitly bounded
+
+Where an AI actor receives authority, its scope SHOULD be defined in terms such as:
+
+* permitted actions,
+* target scope,
+* lifecycle states,
+* tools,
+* environments,
+* resource bounds,
+* time bounds,
+* review requirements,
+* and escalation conditions.
+
+---
+
+## REQ-AUTH-073 — AI-generated proposals SHOULD default to proposal status unless explicitly authorized otherwise
+
+AI MAY generate:
+
+* Requirements,
+* Decisions,
+* Claims,
+* relationships,
+* specifications,
+* code changes,
+* policies,
+* or identity bindings.
+
+Those outputs SHOULD remain proposed or inferred unless governing rules explicitly grant the AI authority to establish them.
+
+---
+
+## REQ-AUTH-074 — AI MUST NOT silently expand its own authority
+
+An AI actor MUST NOT create, modify, reinterpret, or exploit governance state in order to gain broader authority unless that operation itself is explicitly authorized.
+
+---
+
+## REQ-AUTH-075 — AI authority SHOULD be revocable independently of AI capability
+
+The system SHOULD be able to remove authority from an AI actor without necessarily disabling the underlying technical capability or model integration.
+
+---
+
+## REQ-AUTH-076 — Model identity SHOULD NOT be treated as sufficient authority identity
+
+Authority SHOULD attach to the governed actor, agent, or execution context rather than simply to a provider model name.
+
+For example:
+
+```text
+GPT-X
+```
+
+is not, by itself, an authority principal.
+
+---
+
+# Human and AI governance
+
+## REQ-AUTH-077 — Humans and AI SHOULD share the same conceptual authority model
+
+Monad SHOULD NOT require fundamentally separate metaphysical notions of authority for humans and AI.
+
+Both SHOULD be modeled through concepts such as:
+
+* Actor,
+* Capability,
+* Authority,
+* Scope,
+* Policy,
+* Approval,
+* Obligation,
+* and Evidence.
+
+Different default restrictions MAY apply.
+
+---
+
+## REQ-AUTH-078 — Human involvement MUST NOT automatically make an action authoritative
+
+A human clicking a button does not establish that the human had sufficient authority.
+
+Authority evaluation still applies.
+
+---
+
+# Approvals
+
+## REQ-AUTH-079 — Approval MUST identify the approving authority
+
+A consequential approval SHOULD record:
+
+* approver,
+* authority basis,
+* target,
+* relevant revision,
+* scope,
+* time,
+* and conditions.
+
+---
+
+## REQ-AUTH-080 — Approval MUST NOT be broader than its target
+
+Approval of:
+
+```text
+release candidate 12
+```
+
+SHOULD NOT silently authorize:
+
+```text
+all future releases
+```
+
+---
+
+## REQ-AUTH-081 — Approval MAY expire
+
+Approval SHOULD support expiration when delayed execution could invalidate its assumptions.
+
+---
+
+## REQ-AUTH-082 — Approval SHOULD become stale when material context changes
+
+Relevant context may include:
+
+* target revision,
+* policy revision,
+* environment,
+* dependencies,
+* evidence,
+* execution plan,
+* or security posture.
+
+---
+
+## REQ-AUTH-083 — Self-approval restrictions SHOULD be expressible
+
+Monad SHOULD support policies requiring separation of duties where appropriate.
+
+For example:
+
+```text
+author ≠ approver
+```
+
+for high-risk operations.
+
+This SHOULD NOT be mandatory for all workflows.
+
+---
+
+# Conflicts
+
+## REQ-AUTH-084 — Conflicting authority claims MUST be detectable
+
+Monad MUST be capable of representing situations in which multiple actors or systems claim authority over the same scope.
+
+---
+
+## REQ-AUTH-085 — Authority conflict resolution MUST be explicit
+
+Resolution MAY depend on:
+
+* constitutional hierarchy,
+* specificity,
+* scope,
+* time,
+* policy,
+* delegation chain,
+* or explicit adjudication.
+
+The system MUST NOT hide unresolved conflict.
+
+---
+
+## REQ-AUTH-086 — Unresolved authority conflict SHOULD fail safely for consequential operations
+
+Where an operation requires authoritative resolution and no valid resolution exists, Monad SHOULD refuse or defer the operation rather than invent authority.
+
+The exact fail behavior SHOULD be policy-defined.
+
+---
+
+# Exceptions
+
+## REQ-AUTH-087 — Exceptions MUST be authorized
+
+An exception to normal governance is still a governed action.
+
+> **An exception is part of governance, not the absence of it.**
+
+---
+
+## REQ-AUTH-088 — Exception authority SHOULD be narrowly scoped
+
+An exception SHOULD identify:
+
+* what rule is being bypassed,
+* why,
+* by whose authority,
+* for what target,
+* for how long,
+* and what compensating obligations apply.
+
+---
+
+## REQ-AUTH-089 — Exceptions SHOULD NOT permanently mutate ordinary authority
+
+A temporary exception SHOULD NOT silently become a standing authority grant.
+
+---
+
+# Emergency authority
+
+## REQ-AUTH-090 — Break-glass authority MUST be explicitly modeled where supported
+
+Emergency authority SHOULD NOT be implemented as an undocumented bypass.
+
+---
+
+## REQ-AUTH-091 — Emergency authority SHOULD be stronger in evidence and review obligations
+
+Break-glass actions MAY reduce pre-execution constraints.
+
+They SHOULD typically increase requirements for:
+
+* attribution,
+* evidence,
+* audit,
+* notification,
+* retrospective review,
+* and expiration.
+
+---
+
+## REQ-AUTH-092 — Emergency authority MUST be bounded
+
+Emergency grants SHOULD be constrained by:
+
+* scope,
+* duration,
+* action,
+* and triggering conditions.
+
+---
+
+# Authority and obligations
+
+## REQ-AUTH-093 — Authorization MAY create obligations
+
+An operation MAY be permitted only if additional obligations are attached.
+
+Examples:
+
+* run verification,
+* collect evidence,
+* notify an owner,
+* reconcile state,
+* create an audit record,
+* or perform post-execution review.
+
+---
+
+## REQ-AUTH-094 — Satisfied authorization MUST NOT imply satisfied obligations
+
+An action may have been legitimately authorized and executed while follow-up governance obligations remain incomplete.
+
+---
+
+# Authority evaluation
+
+## REQ-AUTH-095 — Authority evaluation SHOULD be explainable
+
+For consequential decisions, Monad SHOULD be able to explain:
+
+* which authority grants applied,
+* which actor was evaluated,
+* which scope matched,
+* which higher-order constraints applied,
+* and why authority was or was not sufficient.
+
+---
+
+## REQ-AUTH-096 — Authority evaluation SHOULD be deterministic for the same relevant state
+
+Given the same:
+
+* authority records,
+* policy revisions,
+* actor,
+* operation,
+* scope,
+* and relevant system state,
+
+the result SHOULD be deterministic unless the governing specification explicitly permits otherwise.
+
+---
+
+## REQ-AUTH-097 — Authority evaluation MUST distinguish unknown from unauthorized
+
+These are different states:
+
+```text
+authority = no
+```
+
+and:
+
+```text
+authority = cannot determine
+```
+
+Monad MUST NOT collapse uncertainty into a false factual claim.
+
+A policy MAY still require safe failure when authority is unknown.
+
+---
+
+# Authorization results
+
+## REQ-AUTH-098 — Authorization results SHOULD be structured
+
+A consequential authorization evaluation SHOULD be capable of returning information such as:
+
+```text
+authorized:
+  true | false | unresolved
+
+authority:
+  ...
+
+scope:
+  ...
+
+basis:
+  ...
+
+conditions:
+  ...
+
+obligations:
+  ...
+
+approvals:
+  ...
+
+evaluated_revision:
+  ...
+```
+
+The exact schema belongs to specification work.
+
+---
+
+## REQ-AUTH-099 — Authorization decision MUST remain distinct from execution result
+
+```text
+authorized
+```
+
+does not mean:
+
+```text
+executed
+```
+
+and:
+
+```text
+executed successfully
+```
+
+does not mean:
+
+```text
+authorized
+```
+
+---
+
+# Authority freshness
+
+## REQ-AUTH-100 — Cached authority decisions MUST account for staleness
+
+Authority may change through:
+
+* revocation,
+* expiration,
+* policy change,
+* role change,
+* scope change,
+* or constitutional amendment.
+
+Cached decisions MUST NOT be reused beyond their valid assumptions.
+
+---
+
+## REQ-AUTH-101 — Long-running workflows SHOULD re-evaluate authority at material boundaries
+
+A workflow lasting hours or days SHOULD NOT assume that authority valid at initiation remains valid indefinitely.
+
+---
+
+# Authority and reconciliation
+
+## REQ-AUTH-102 — Reconciliation MUST respect authority boundaries
+
+When native and semantic state differ, Monad MUST determine which source has authority over the disputed scope before automatically overwriting state.
+
+---
+
+## REQ-AUTH-103 — Reconciliation SHOULD NOT use "last write wins" as implicit authority
+
+Temporal recency alone MUST NOT determine semantic authority unless the governing specification explicitly defines that rule.
+
+---
+
+## REQ-AUTH-104 — Conflicting authoritative sources MUST produce explicit reconciliation conflict
+
+Where both sources appear legitimately authoritative, Monad SHOULD preserve the conflict for resolution rather than guessing.
+
+---
+
+# Authority and generated artifacts
+
+## REQ-AUTH-105 — Generated output MUST inherit authority only according to explicit rules
+
+A projection produced from authoritative source state MAY faithfully represent that state.
+
+The generated artifact MUST NOT automatically acquire independent authority.
+
+---
+
+## REQ-AUTH-106 — Generated artifacts SHOULD expose authority lineage where decisions depend on them
+
+If a generated dashboard or report is used for consequential decisions, it SHOULD be possible to trace the report back to the authoritative source state it represents.
+
+---
+
+# Authority and derived state
+
+## REQ-AUTH-107 — Derived state MUST distinguish computation from authoritative acceptance
+
+Monad may derive:
+
+```text
+Component A is high risk
+```
+
+from several observations.
+
+The derived value SHOULD remain distinguishable from an authoritative risk classification established by an authorized actor.
+
+---
+
+## REQ-AUTH-108 — Automated derivation MAY be authoritative where explicitly governed
+
+Not all authority requires human intervention.
+
+A deterministic engine MAY be authorized to establish state when:
+
+* its scope is explicit,
+* the governing rule permits it,
+* required inputs are authoritative,
+* and verification obligations are satisfied.
+
+---
+
+# Authority and local-first operation
+
+## REQ-AUTH-109 — Core authority state SHOULD be locally inspectable
+
+A local user SHOULD be able to understand the authority governing retained project state without requiring continuous access to a hosted control plane.
+
+---
+
+## REQ-AUTH-110 — Offline operation MUST NOT silently manufacture authority
+
+If required remote authority information is unavailable, Monad MUST NOT simply assume authorization.
+
+The appropriate behavior MAY be:
+
+* deny,
+* defer,
+* use a locally valid cached grant,
+* or allow under an explicit offline policy.
+
+---
+
+## REQ-AUTH-111 — Offline-valid authority SHOULD have explicit validity bounds
+
+Cached or portable authority records SHOULD define enough context to determine when they remain legitimate offline.
+
+---
+
+# Authority integrity
+
+## REQ-AUTH-112 — Authority records SHOULD be protected against unauthorized modification
+
+Because authority controls governance, authority records SHOULD receive protection proportional to their consequence.
+
+Possible mechanisms include:
+
+* repository review,
+* signatures,
+* access controls,
+* attestations,
+* immutable history,
+* or stronger approval requirements.
+
+The specific mechanism is an architectural decision.
+
+---
+
+## REQ-AUTH-113 — Authority changes SHOULD have stronger governance than ordinary low-risk content edits
+
+Broad authority grants, constitutional changes, or production authority SHOULD require proportionally stronger review than routine documentation edits.
+
+---
+
+# Authority portability
+
+## REQ-AUTH-114 — Authority semantics SHOULD remain portable across native tools
+
+Monad SHOULD avoid defining authority solely in terms of one vendor's permission model.
+
+For example:
+
+```text
+release approver
+```
+
+is a semantic authority concept.
+
+Its enforcement MAY involve:
+
+* GitHub,
+* GitLab,
+* CI,
+* deployment platforms,
+* local tooling,
+* or another system.
+
+---
+
+## REQ-AUTH-115 — Native bindings SHOULD preserve semantic authority identity
+
+Changing the native account or platform through which an authority operates SHOULD NOT necessarily require redefining the semantic authority itself.
+
+---
+
+# Authority observability
+
+## REQ-AUTH-116 — Consequential authority changes SHOULD be observable
+
+Changes such as:
+
+* grant,
+* delegation,
+* revocation,
+* expiration,
+* suspension,
+* scope modification,
+* or role reassignment
+
+SHOULD produce inspectable state transitions.
+
+---
+
+## REQ-AUTH-117 — Authority use SHOULD be attributable
+
+For high-consequence operations, Monad SHOULD preserve which authority grant or chain was exercised.
+
+---
+
+# Authority lifecycle
+
+A conceptual authority lifecycle may include:
+
+```text
+proposed
+   ↓
+approved
+   ↓
+active
+   ↓
+suspended
+   ↓
+revoked
+```
+
+or:
+
+```text
+active
+   ↓
+expired
+```
+
+This is illustrative.
+
+Exact lifecycle semantics belong in the lifecycle and authority specifications.
+
+---
+
+# Authority model
+
+A useful conceptual authority grant may contain:
+
+```text
+Authority Grant
+├─ identity
+├─ grantee
+├─ authority source
+├─ scope
+├─ permitted actions
+├─ constraints
+├─ effective time
+├─ expiration
+├─ delegation rules
+├─ policy relationships
+├─ provenance
+└─ status
+```
+
+This model is intentionally more precise than:
+
+```text
+user = admin
+```
+
+because "admin" usually collapses several unrelated concerns.
+
+---
+
+# Authority composition
+
+Authority may need to combine multiple dimensions.
+
+For example:
+
+```text
+Actor
+  has Role
+      ↓
+Role has Authority
+      ↓
+Authority applies to Scope
+      ↓
+Policy allows Operation
+      ↓
+Required Approval exists
+      ↓
+Operation becomes authorized
+```
+
+No single edge necessarily proves authorization.
+
+---
+
+# Illustrative authorization case
+
+Suppose an AI agent proposes changing a production deployment policy.
+
+The agent may possess:
+
+```text
+capability:
+  edit policy file
+```
+
+but only:
+
+```text
+authority:
+  propose policy change
+```
+
+The flow might be:
+
+```text
+AI proposes revision
+       ↓
+policy owner reviews
+       ↓
+authorized approver accepts revision
+       ↓
+new policy revision becomes active
+       ↓
+execution engine uses active revision
+```
+
+If the AI directly writes the file without approval, the filesystem may contain the change.
+
+But the change has not necessarily become authoritative.
+
+That distinction is fundamental to Monad.
+
+---
+
+# Illustrative scoped authority
+
+Consider:
+
+```text
+Subject:
+  Service A
+```
+
+Different authoritative domains may exist:
+
+| Property or action          | Potential authority    |
+| --------------------------- | ---------------------- |
+| Source revision             | Git                    |
+| Repository settings         | Git hosting platform   |
+| Semantic ownership          | Project governance     |
+| Deployment identity         | Deployment platform    |
+| Production release approval | Release authority      |
+| Architecture direction      | Architecture authority |
+| Runtime health observation  | Monitoring system      |
+| Risk classification         | Governance process     |
+
+This demonstrates why:
+
+```text
+authority = source-of-truth-for-everything
+```
+
+is usually too coarse.
+
+---
+
+# Authority resolution questions
+
+A practical authority resolver should eventually be able to answer questions such as:
+
+* Who may modify this property?
+* Who may accept this Requirement?
+* Who may approve this release?
+* Which system governs this native fact?
+* Which authority applies to this environment?
+* Is this grant still valid?
+* Was this actor authorized at the time of the historical action?
+* Which policy constrains this authority?
+* Is delegation permitted?
+* Is this approval stale?
+* Are two authorities in conflict?
+* Which authority supersedes the other?
+* Is authority unknown or actually absent?
+* Can this AI actor perform this action autonomously?
+* Does native permission align with semantic authority?
+* What authority chain justified this operation?
+
+---
+
+# Authority review checklist
+
+For any consequential authority rule, ask:
+
+1. Who or what holds the authority?
+2. Who granted it?
+3. Did the grantor have authority to grant it?
+4. What exact scope does it cover?
+5. What actions does it permit?
+6. What actions does it not permit?
+7. Does it apply to properties, artifacts, or entire Subjects?
+8. Does it apply only in certain lifecycle states?
+9. Does it apply only in certain environments?
+10. When does it become valid?
+11. When does it expire?
+12. Can it be revoked?
+13. Can it be delegated?
+14. Can a delegate delegate again?
+15. Which higher-order rule constrains it?
+16. Which policies apply?
+17. Does approval bind to a specific revision?
+18. What happens if the revision changes?
+19. What happens if authority changes before execution?
+20. Can conflicting authorities exist?
+21. How are conflicts exposed?
+22. What happens when authority cannot be determined?
+23. Is the native platform enforcing the same thing as Monad authority?
+24. Is technical capability being mistaken for authority?
+25. Could an actor escalate its own authority?
+26. Can an AI actor rewrite the rule governing itself?
+27. Is historical authority preserved?
+28. Is authority use attributable?
+29. Can authority be understood offline?
+30. Is the complexity proportional to the risk?
+
+---
+
+# Failure modes
+
+## Global admin authority
+
+```text
+role: admin
+scope: everything
+```
+
+creates excessive authority and weakens explainability.
+
+---
+
+## Capability-as-authority
+
+```text
+tool can deploy
+therefore tool may deploy
+```
+
+is invalid reasoning.
+
+---
+
+## Permission-as-authority
+
+```text
+GitHub allowed the merge
+therefore the merge was authorized
+```
+
+is also invalid.
+
+---
+
+## Provenance-as-authority
+
+```text
+GitHub said it
+therefore it governs
+```
+
+collapses origin and authority.
+
+---
+
+## Ownership-as-authority
+
+```text
+team owns component
+therefore team may change global security policy
+```
+
+overextends scope.
+
+---
+
+## AI self-authorization
+
+An AI system MUST NOT broaden its own authority by modifying the policies that constrain it unless that meta-operation is itself explicitly governed.
+
+---
+
+## Stale approval
+
+Approval of revision 4 must not silently authorize materially different revision 9.
+
+---
+
+## Last-write-wins governance
+
+The most recent value is not necessarily the authoritative value.
+
+---
+
+## Hidden delegation
+
+Authority that can be delegated without explicit lineage becomes difficult to reason about.
+
+---
+
+## Permanent emergency authority
+
+A break-glass mechanism that never expires becomes ordinary unchecked authority.
+
+---
+
+## Authority without provenance
+
+If Monad cannot explain where authority came from, governance becomes opaque.
+
+> **Enforcement without provenance creates opaque power.**
+
+---
+
+## Native-control duplication
+
+Monad should not rebuild GitHub permissions, operating-system permissions, or cloud IAM merely to own another permission engine.
+
+It should model their relationship to semantic authority where useful.
+
+---
+
+## Governance theater
+
+Requiring approvals and authority records for every trivial source edit can increase ceremony without improving control.
+
+Governance must remain proportional.
+
+---
+
+# Progressive formalization
+
+Authority MAY mature incrementally.
+
+## Stage 1 — Explicit owners
+
+Record basic responsibility and authority for major domains.
+
+---
+
+## Stage 2 — Scoped grants
+
+Define authority over specific:
+
+* artifacts,
+* domains,
+* properties,
+* and actions.
+
+---
+
+## Stage 3 — Revision-aware approvals
+
+Tie consequential approvals to exact proposed states.
+
+---
+
+## Stage 4 — Delegation and revocation
+
+Model bounded delegation, expiration, and revocation.
+
+---
+
+## Stage 5 — Policy integration
+
+Evaluate authority together with policy, obligations, and context.
+
+---
+
+## Stage 6 — Native-system reconciliation
+
+Relate Monad authority to:
+
+* Git permissions,
+* GitHub settings,
+* CI,
+* deployment systems,
+* and external identity providers.
+
+---
+
+## Stage 7 — Governed autonomous actors
+
+Allow human and AI actors to exercise narrowly scoped authority under explicit policy, evidence, and audit constraints.
+
+---
+
+# Minimal useful authority model
+
+Monad does not need a massive enterprise entitlement platform to begin.
+
+A useful first authority model may only need:
+
+```text
+Actor
+Authority Grant
+Scope
+Action
+Validity
+Provenance
+Approval
+```
+
+combined with deterministic evaluation.
+
+More complexity should be introduced when concrete engineering problems require it.
+
+---
+
+# Falsifiability
+
+The authority model must justify its complexity.
+
+If native protections such as:
+
+* repository permissions,
+* branch protection,
+* code review,
+* CI gates,
+* and deployment controls
+
+are sufficient for a project, Monad SHOULD use them rather than recreating equivalent mechanisms.
+
+Monad's authority model becomes valuable where engineering governance requires semantics that cross native systems, such as:
+
+* property-level authority,
+* cross-tool scope,
+* semantic identity,
+* delegated AI authority,
+* revision-aware approval,
+* explainable authorization,
+* current versus historical authority,
+* or reconciliation of competing authoritative sources.
+
+If those needs do not exist, the simpler system may be preferable.
+
+---
+
+# Relationship to governance
+
+Authority is one layer of governance.
+
+A useful conceptual stack is:
+
+```text
+Constitution
+    ↓
+Authority
+    ↓
+Capabilities
+    ↓
+Policies
+    ↓
+Obligations
+    ↓
+Approvals and Evidence
+    ↓
+Authorized Operation
+    ↓
+Execution
+```
+
+The exact evaluation order may be more nuanced than this diagram.
+
+The important invariant is that these concepts remain distinct.
+
+---
+
+# Requirement relationships
+
+The authority family is closely connected to:
+
+<Cards>
+  <Card href="/docs/artifacts/requirements/provenance" title="Provenance Requirements">
+    Records where authority grants and authoritative Claims came from without confusing lineage with legitimacy.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/identity" title="Identity Requirements">
+    Provides durable identities for actors, Subjects, native references, and the targets of authority.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/governance" title="Governance Requirements">
+    Defines the larger system in which authority, policy, approvals, obligations, and exceptions operate.
+  </Card>
+
+  <Card href="/docs/artifacts/requirements/execution" title="Execution Requirements">
+    Ensures consequential operations are evaluated against authority before and near the execution boundary.
+  </Card>
+</Cards>
+
+Authority also directly constrains:
+
+* Policies,
+* Decisions,
+* Requirements,
+* Specifications,
+* lifecycle transitions,
+* releases,
+* AI behavior,
+* native integrations,
+* reconciliation,
+* evidence acceptance,
+* and identity operations.
+
+---
+
+# Traceability expectations
+
+Accepted authority requirements should eventually trace to explicit architecture, specification, implementation, policy, and verification artifacts.
+
+Illustratively:
+
+```text
+REQ-AUTH-003
+  ↓ refined-by
+Actor and Capability Model
+  ↓ specified-by
+Authority Evaluation Specification
+  ↓ constrained-by
+Execution Authorization Policy
+  ↓ implemented-by
+Authorization Engine
+  ↓ verified-by
+Capability-vs-Authority Conformance Test
+  ↓ evidenced-by
+Verification Result
+```
+
+This chain is illustrative.
+
+Actual traces should be created only when corresponding artifacts exist.
+
+---
+
+# Validation themes
+
+The authority family should eventually be exercised through scenarios such as:
+
+## Capability without authority
+
+Given:
+
+```text
+AI agent:
+  capability: repository.write
+  authority: documentation.propose
+```
+
+Attempt:
+
+```text
+modify production deployment policy
+```
+
+Expected:
+
+```text
+technically possible
+governance authorization denied
+```
+
+---
+
+## Scoped authority
+
+Given:
+
+```text
+Team A:
+  authority:
+    component: A
+```
+
+Attempt:
+
+```text
+modify Component B ownership
+```
+
+Expected:
+
+```text
+authority insufficient
+```
+
+---
+
+## Expired delegation
+
+Given:
+
+```text
+temporary release authority:
+  expires: T
+```
+
+Attempt execution after `T`.
+
+Expected:
+
+```text
+authorization rejected or unresolved according to policy
+```
+
+---
+
+## Stale approval
+
+Approve:
+
+```text
+release plan revision 8
+```
+
+Then materially modify the plan.
+
+Expected:
+
+```text
+prior approval no longer silently applies
+```
+
+---
+
+## Conflicting authorities
+
+Two legitimate sources claim authority over the same property.
+
+Expected:
+
+```text
+explicit authority conflict
+no silent last-write-wins resolution
+```
+
+---
+
+## Native permission mismatch
+
+GitHub permits a merge.
+
+Monad governance does not.
+
+Expected:
+
+```text
+native action may occur
+Monad records governance violation or unauthorized state
+reconciliation does not reinterpret permission as authority
+```
+
+---
+
+## Historical authority
+
+Actor had authority at time `T1` and was revoked at `T2`.
+
+Query the action performed at `T1`.
+
+Expected:
+
+```text
+historically authorized
+currently not authorized
+```
+
+---
+
+## AI proposal
+
+AI drafts an ADR.
+
+Expected:
+
+```text
+AI = producer
+ADR = proposed
+no implicit acceptance authority
+```
+
+---
+
+## AI self-escalation
+
+AI proposes a policy granting itself deployment authority.
+
+Expected:
+
+```text
+proposal allowed if within capability
+activation requires independent legitimate authority
+```
+
+---
+
+# Governing principle
+
+Monad should make authority sufficiently explicit that consequential engineering state can answer:
+
+> Who or what was entitled to establish this?
+
+> Over exactly what scope?
+
+> Under which higher-order rule?
+
+> Was that authority valid at the time?
+
+> Was it delegated?
+
+> Was the delegation still active?
+
+> Did the actor merely have capability, or actual authority?
+
+> Was the approval tied to this exact revision?
+
+> Did native permission agree with semantic authority?
+
+> Which authority wins if legitimate sources conflict?
+
+> Can the decision be explained afterward?
+
+The objective is not centralized control for its own sake.
+
+It is governed engineering in which legitimate control is visible, bounded, traceable, and proportional.
+
+> **Authority should be explicit enough to govern consequential action without turning ordinary engineering into ceremony.**

@@ -1,0 +1,2460 @@
+---
+title: ADR-0002 — Semantic Model Persistence Strategy
+description: Defines how Monad persists authoritative semantic state while preserving local-first operation, native-system interoperability, reconstructability, and separation between canonical state and derived projections.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Architecture Decision Record · ADR-0002
+  </p>
+</div>
+
+# ADR-0002 — Semantic Model Persistence Strategy
+
+**Status:** Accepted
+**Decision type:** Foundational architecture
+**Requirements baseline:** RB-001
+**Traceability artifact:** RTM-001
+**Primary requirement families:** `REQ-SEM`, `REQ-ID`, `REQ-PROV`, `REQ-REC`, `REQ-INT`
+**Consequential consumers:** `REQ-AUTH`, `REQ-GOV`, `REQ-EXEC`, `REQ-EVD`, `REQ-AI`, `REQ-VFY`
+
+---
+
+# Decision
+
+Monad will persist its semantic model using a **hybrid local-first persistence architecture** composed of:
+
+1. **authoritative semantic records**, which express Monad-governed meaning and durable relationships,
+2. **native engineering artifacts**, which remain authoritative for the native concerns explicitly assigned to them,
+3. **derived local indexes and read models**, which accelerate queries but do not independently establish semantic truth,
+4. **provider bindings and observations**, which preserve external-system state without silently promoting that state into Monad authority,
+5. **reconstructable projections**, which may be regenerated from authoritative inputs,
+6. and **explicit reconciliation**, which detects and governs divergence between representations.
+
+Monad will **not** make an embedded graph database, relational database, generated index, external SaaS system, or filesystem path universally authoritative by default.
+
+Instead, authority is attached explicitly to the relevant Subject, property, artifact class, or operation.
+
+The canonical architectural model is:
+
+```text id="e1ejd0"
+             Authoritative Semantic Records
+                        │
+          ┌─────────────┼─────────────┐
+          │             │             │
+          ▼             ▼             ▼
+   Native Artifacts   Bindings   Provenance
+          │             │             │
+          └──────┬──────┴──────┬──────┘
+                 │             │
+                 ▼             ▼
+            Local Read Model   Derived Projections
+                 │
+                 ▼
+               Query
+```
+
+Where external systems participate:
+
+```text id="91g7n2"
+Monad Semantic State
+        │
+        │ binding / declared authority
+        ▼
+Native Engineering System
+        │
+        │ observation
+        ▼
+Reconciliation
+        │
+        ├── equivalent
+        ├── expected drift
+        ├── unresolved divergence
+        └── remediation required
+```
+
+<Callout type="info" title="Core rule">
+Monad must be able to explain which persisted state is authoritative, which state is observed, which state is derived, and which state can be safely rebuilt.
+
+Persistence alone does not create authority. 
+</Callout>
+
+---
+
+# Context
+
+Monad represents engineering knowledge that already exists across heterogeneous systems.
+
+Examples include:
+
+* source files,
+* Markdown and MDX documents,
+* Git repositories,
+* requirements catalogs,
+* ADRs,
+* specifications,
+* source-code manifests,
+* package manager metadata,
+* databases,
+* GitHub Issues,
+* GitHub Projects,
+* CI systems,
+* deployment platforms,
+* cloud resources,
+* test results,
+* release records,
+* generated indexes,
+* AI-generated analysis,
+* and semantic relationships that no native tool currently stores directly.
+
+This creates a fundamental architectural question:
+
+> Where does the semantic system itself live?
+
+A simplistic answer such as:
+
+```text id="gp2j20"
+the graph database
+```
+
+is insufficient.
+
+So is:
+
+```text id="2x2xkc"
+the filesystem
+```
+
+or:
+
+```text id="2jo7if"
+GitHub
+```
+
+because each may be authoritative for some facts while merely reflecting other facts.
+
+The persistence architecture must therefore preserve semantic authority without forcing every engineering concern into one storage engine.
+
+---
+
+# Problem
+
+Monad needs durable storage for semantic entities and relationships while satisfying several competing constraints:
+
+* local-first operation,
+* inspectability,
+* interoperability with existing engineering tools,
+* source-control friendliness,
+* offline operation,
+* reconstructability,
+* high-performance graph and relationship queries,
+* migration safety,
+* long-lived identity,
+* provenance,
+* native-system authority,
+* and future extensibility.
+
+A single persistence substrate does not optimally satisfy all of these concerns.
+
+---
+
+# Decision drivers
+
+The persistence strategy must optimize for the following.
+
+## Local-first operation
+
+Core semantic state must remain usable without a permanent network connection.
+
+---
+
+## Native-system preservation
+
+Monad should integrate with engineering systems instead of unnecessarily reimplementing them.
+
+---
+
+## Explicit authority
+
+Storage location must not silently imply authority.
+
+---
+
+## Reconstructability
+
+Derived data should be regenerable from durable authoritative inputs whenever feasible.
+
+---
+
+## Inspectability
+
+Users must be able to inspect important system state without opaque infrastructure.
+
+---
+
+## Portability
+
+A project should not become inseparable from one hosted database or SaaS provider.
+
+---
+
+## Performance
+
+Fast traversal, search, indexing, and impact analysis remain necessary.
+
+---
+
+## Evolution
+
+Schemas and persistence implementations will evolve.
+
+The model must permit migration without redefining semantic identity.
+
+---
+
+## Resilience
+
+Corruption or deletion of a derived read model should not destroy the authoritative engineering record.
+
+---
+
+# Persistence layers
+
+Monad defines several logical persistence layers.
+
+They may share a physical storage technology in some implementations, but their semantics remain distinct.
+
+---
+
+# Layer 1 — Authoritative semantic records
+
+Authoritative semantic records persist concepts that Monad itself owns.
+
+Examples may include:
+
+* Subjects,
+* explicit semantic relationships,
+* Claims,
+* Representation bindings,
+* Native References,
+* identity equivalence records,
+* provenance relationships,
+* authority assignments,
+* governance state,
+* reconciliation policies,
+* verification obligations,
+* and other Monad-native semantic constructs.
+
+Conceptually:
+
+```yaml id="gfn62u"
+subject:
+  id: sub:0191f574-b9c7-7c1d-a7db-38ca251bd192
+  kind: requirement
+
+relationships:
+  - type: satisfies
+    from: impl:...
+    to: req:...
+```
+
+These records express information that cannot be assumed to exist correctly in an external engineering system.
+
+---
+
+# Layer 2 — Native engineering artifacts
+
+Existing engineering systems continue to own state where their semantics are naturally authoritative.
+
+Examples:
+
+```text id="rjlyfa"
+Git
+  → commits
+  → trees
+  → branches
+
+package manager
+  → lockfile
+
+CI provider
+  → execution result
+
+deployment platform
+  → deployment instance
+
+source filesystem
+  → editable source artifacts
+
+GitHub
+  → issue-native fields assigned to GitHub authority
+```
+
+Monad references and interprets this state.
+
+It does not automatically duplicate it into a competing authoritative representation.
+
+---
+
+# Layer 3 — Observed native state
+
+Monad may persist snapshots or observations from native systems.
+
+Example:
+
+```yaml id="d98pl6"
+observation:
+  subject: req:0191...
+  provider: github
+  observed_at: 2026-08-29T03:14:32Z
+
+  state:
+    issue_number: 142
+    status: open
+    assignees:
+      - alice
+```
+
+This is an observation.
+
+It is not automatically canonical semantic truth.
+
+---
+
+# Layer 4 — Derived read models
+
+Monad MAY maintain optimized read models for:
+
+* graph traversal,
+* full-text search,
+* reverse relationships,
+* impact analysis,
+* dependency queries,
+* aggregation,
+* filtering,
+* indexing,
+* dashboards,
+* and diagnostics.
+
+Examples include:
+
+* SQLite,
+* embedded PostgreSQL-compatible models,
+* graph indexes,
+* search indexes,
+* materialized relationship tables,
+* caches,
+* or future embedded database engines.
+
+These structures are **derived operational state** unless explicitly declared otherwise.
+
+---
+
+# Layer 5 — Generated projections
+
+Monad MAY generate:
+
+* Markdown indexes,
+* documentation pages,
+* dependency visualizations,
+* project reports,
+* status summaries,
+* generated manifests,
+* release reports,
+* artifact maps,
+* or external provider updates.
+
+Generated projections are representations of semantic or native state.
+
+They do not automatically become authoritative merely because humans consume them.
+
+---
+
+# Layer 6 — Historical event and provenance records
+
+Some state must preserve how the current model came to exist.
+
+Examples:
+
+```text id="8x0epv"
+identity binding created
+authority changed
+representation moved
+claim superseded
+reconciliation resolved
+verification executed
+native mutation performed
+```
+
+Where these transitions are consequential, Monad SHOULD preserve explicit historical records rather than only current snapshots.
+
+---
+
+# Canonical state is not one file or database
+
+Monad deliberately rejects this model:
+
+```text id="zxlvnq"
+one physical database
+=
+all truth
+```
+
+Instead:
+
+```text id="l8dw7q"
+canonical state
+=
+the set of authoritative records and authoritative native facts
+under declared authority rules
+```
+
+This is a semantic definition rather than a storage-location definition.
+
+---
+
+# Authority determines canonicality
+
+For a particular property:
+
+```text id="w8ttcp"
+Subject.status
+```
+
+the authority model may establish:
+
+```text id="t5dk4x"
+Monad semantic state
+```
+
+as authoritative.
+
+For another property:
+
+```text id="epft8z"
+pull_request.merge_commit
+```
+
+GitHub or Git may be authoritative.
+
+For:
+
+```text id="wvig31"
+test run exit code
+```
+
+the executing test system may be authoritative.
+
+Therefore:
+
+```text id="q42jra"
+canonical
+≠
+stored in Monad database
+```
+
+and:
+
+```text id="n7z31h"
+native
+≠
+authoritative automatically
+```
+
+---
+
+# Filesystem role
+
+The filesystem remains a first-class engineering substrate.
+
+Monad will **not** adopt a model in which all ordinary source and documentation files are generated from an internal database.
+
+Developers must continue to be able to edit ordinary engineering artifacts directly where policy permits.
+
+Examples:
+
+```text id="kawdjl"
+source code
+Markdown
+MDX
+configuration
+specifications
+ADRs
+requirements
+manifests
+```
+
+may remain direct filesystem artifacts.
+
+---
+
+# Files are not universally authoritative
+
+A file may represent:
+
+* authoritative authored content,
+* a generated projection,
+* cached external state,
+* or an export.
+
+Its mere existence on disk does not determine authority.
+
+Metadata or schema must identify the role.
+
+Example:
+
+```yaml id="dd3hcn"
+representation:
+  kind: mdx
+  role: authoritative-authored
+```
+
+versus:
+
+```yaml id="whro71"
+representation:
+  kind: mdx
+  role: generated-projection
+```
+
+---
+
+# Human-authored semantic artifacts
+
+Human-authored artifacts such as:
+
+```text id="wjr5r5"
+ADR-0001
+SPEC-EXEC-001
+REQ-AUTH-042
+```
+
+MAY remain authoritative authored representations for their governed content.
+
+Monad's semantic layer may index and bind them without converting their prose into a database-only source of truth.
+
+---
+
+# Structured semantic state
+
+Some semantic relationships cannot reliably live only in prose.
+
+For example:
+
+```text id="ct94yf"
+SUB-A satisfies REQ-B
+CLAIM-X supported-by EVIDENCE-Y
+REP-Z represents SUBJECT-Q
+ACTOR-A authorized-for OPERATION-B
+```
+
+Such structured relationships SHOULD be persisted in machine-addressable semantic records.
+
+---
+
+# Hybrid authority example
+
+A Requirement might use:
+
+```text id="vhr9p3"
+MDX file
+→ authoritative wording
+
+Monad semantic record
+→ stable identity
+
+Monad graph
+→ relationship to Specification
+
+GitHub Project
+→ operational scheduling
+
+CI
+→ observed verification Evidence
+```
+
+No single storage system owns all facets.
+
+---
+
+# Local semantic store
+
+Monad SHOULD maintain a local semantic persistence store for structured state that is not naturally represented by ordinary files.
+
+The foundational implementation SHOULD favor an embedded local database or equivalent durable local substrate.
+
+This store must support:
+
+* offline operation,
+* transactional updates,
+* stable identity,
+* relationship indexing,
+* schema migration,
+* queryability,
+* and recoverability.
+
+---
+
+# Initial embedded database direction
+
+The initial implementation SHOULD use **SQLite as the default local structured persistence and read-model substrate**, unless implementation evidence demonstrates a stronger alternative.
+
+SQLite is selected provisionally because it provides:
+
+* single-file portability,
+* mature transactional semantics,
+* broad language support,
+* local-first operation,
+* excellent deployment characteristics,
+* inspectability,
+* backup simplicity,
+* and sufficient capability for the initial semantic kernel.
+
+This ADR establishes SQLite as the **initial persistence substrate**, not as an irreversible semantic dependency.
+
+---
+
+# SQLite is not the semantic model
+
+The model must remain portable.
+
+```text id="ulip5c"
+Semantic Model
+      ↓
+Persistence Contract
+      ↓
+SQLite implementation
+```
+
+not:
+
+```text id="4idyrn"
+Semantic Model = SQLite schema forever
+```
+
+The logical model must be expressible independently of SQLite-specific behavior.
+
+---
+
+# Graph model versus graph database
+
+Monad's semantic model is graph-shaped.
+
+That does not require a native graph database.
+
+A relational store can represent:
+
+```text id="z2ymhr"
+nodes
+edges
+properties
+provenance
+identity
+```
+
+effectively.
+
+Therefore:
+
+```text id="5w098j"
+semantic graph
+≠
+mandatory graph database
+```
+
+---
+
+# Why no dedicated graph database initially
+
+A dedicated graph database would add:
+
+* deployment complexity,
+* operational dependencies,
+* backup requirements,
+* synchronization concerns,
+* additional schema tooling,
+* and greater friction for local-first use.
+
+Monad should first prove that its semantic workload requires graph-database-specific capabilities.
+
+---
+
+# Future graph database support
+
+A dedicated graph engine MAY later be introduced as:
+
+* a read projection,
+* an optional query backend,
+* a hosted collaboration service,
+* or a scaled deployment substrate.
+
+Semantic identity and authority rules must remain unchanged.
+
+---
+
+# Source-controlled state
+
+Important declarative Monad configuration and durable authored artifacts SHOULD be source-control friendly where practical.
+
+Examples may include:
+
+```text id="naxcmo"
+monad.toml
+policy files
+schema definitions
+requirements
+ADRs
+specifications
+provider mappings
+governance configuration
+```
+
+This provides:
+
+* diffability,
+* review,
+* branching,
+* audit history,
+* reproducibility,
+* and ordinary developer ergonomics.
+
+---
+
+# Not all database state belongs in Git
+
+Monad will not serialize every internal database table into source control.
+
+Examples of state that may remain local or reconstructable:
+
+* indexes,
+* search caches,
+* temporary observations,
+* query acceleration structures,
+* sync checkpoints,
+* transient locks,
+* derived graph statistics.
+
+---
+
+# Authoritative versus reconstructable
+
+Each persisted data class SHOULD be classified as one of:
+
+```text id="fxxdso"
+authoritative
+
+externally authoritative
+
+historical authoritative record
+
+derived
+
+cached
+
+ephemeral
+```
+
+This classification determines backup and recovery behavior.
+
+---
+
+# Rebuildability
+
+If a data structure is declared derived, Monad SHOULD provide a deterministic or sufficiently controlled rebuild path.
+
+Example:
+
+```text id="421dbj"
+authoritative artifacts
+       +
+semantic records
+       +
+provider snapshots
+       ↓
+rebuild
+       ↓
+local graph index
+```
+
+---
+
+# Rebuild does not mean identical bytes
+
+Reconstructability may mean semantic equivalence rather than byte-for-byte identity.
+
+Examples:
+
+* database page layout may differ,
+* index order may differ,
+* caches may differ,
+* timestamps generated during rebuild may differ.
+
+Where exact reproducibility matters, the contract must state so explicitly.
+
+---
+
+# Startup behavior
+
+Monad SHOULD be able to determine at startup whether its local read model is:
+
+* current,
+* stale,
+* partially built,
+* incompatible,
+* corrupt,
+* or absent.
+
+It SHOULD NOT silently treat a stale index as complete current state.
+
+---
+
+# Missing read model
+
+If the derived read model is deleted:
+
+```text id="mffg9j"
+rm .monad/index.db
+```
+
+the system SHOULD be able to reconstruct it from authoritative persisted state where the required sources remain available.
+
+Loss of the read model must not inherently imply loss of the engineering model.
+
+---
+
+# `.monad/` working state
+
+Implementations MAY use a project-local directory such as:
+
+```text id="8cjbpj"
+.monad/
+```
+
+for runtime and local structured state.
+
+A possible layout:
+
+```text id="gpbsxs"
+.monad/
+├── state.db
+├── cache/
+├── indexes/
+├── observations/
+├── locks/
+└── tmp/
+```
+
+The exact layout belongs in an implementation specification.
+
+---
+
+# Version-controlled versus ignored content
+
+The implementation must explicitly classify `.monad/` content.
+
+Likely defaults:
+
+```text id="d58ltd"
+state.db
+→ local / ignored unless export semantics are explicitly supported
+
+cache/
+→ ignored
+
+indexes/
+→ ignored
+
+locks/
+→ ignored
+
+tmp/
+→ ignored
+```
+
+Durable declarative semantic artifacts SHOULD normally exist outside opaque runtime directories when human review is important.
+
+---
+
+# Portable export
+
+Monad MUST eventually support an explicit portable export of durable semantic state.
+
+Example conceptually:
+
+```text id="pv6ly8"
+monad export
+```
+
+producing a representation capable of preserving:
+
+* semantic identity,
+* relationships,
+* provenance,
+* bindings,
+* governance state,
+* schema version,
+* and required metadata.
+
+---
+
+# Export format
+
+The canonical interchange format SHOULD be:
+
+* deterministic where practical,
+* versioned,
+* documented,
+* machine-readable,
+* portable,
+* and independent of local database page layout.
+
+Potential representations include:
+
+```text id="rj2dsk"
+JSON
+JSONL
+canonical YAML
+structured archive
+```
+
+The exact format belongs in a later specification.
+
+---
+
+# Import
+
+Import must preserve semantic identity.
+
+It MUST NOT regenerate all semantic IDs merely because records are entering a new database.
+
+---
+
+# Schema versioning
+
+Persisted semantic records MUST declare or inherit a schema version.
+
+The system must be able to determine whether stored state is:
+
+* compatible,
+* migratable,
+* newer than the current implementation,
+* or unsupported.
+
+---
+
+# Migration
+
+Persistence migrations SHOULD be:
+
+* explicit,
+* versioned,
+* testable,
+* recoverable,
+* and auditable.
+
+Where migrations change semantic interpretation rather than only storage representation, they require stronger governance.
+
+---
+
+# Storage migration versus semantic migration
+
+These are distinct.
+
+## Storage migration
+
+Example:
+
+```text id="7hw6q7"
+SQLite schema v3
+→ SQLite schema v4
+```
+
+with no change in semantic meaning.
+
+---
+
+## Semantic migration
+
+Example:
+
+```text id="0caohj"
+Representation ownership semantics changed
+```
+
+This may require:
+
+* a Specification revision,
+* ADR,
+* explicit transformation,
+* and Verification.
+
+---
+
+# Provenance during migration
+
+Consequential migrations SHOULD preserve:
+
+* previous schema version,
+* migration version,
+* tool version,
+* timestamp,
+* affected records,
+* migration result,
+* and relevant Evidence.
+
+---
+
+# External native systems
+
+Monad must preserve a distinction between:
+
+```text id="zel399"
+cached provider state
+```
+
+and:
+
+```text id="bd5exq"
+provider's actual current state
+```
+
+A local observation becomes stale after the external system may have changed.
+
+---
+
+# Provider snapshots
+
+When provider observations influence decisions, snapshots SHOULD bind to:
+
+* provider,
+* native identifier,
+* observation timestamp,
+* provider revision where available,
+* retrieval method,
+* and provenance.
+
+---
+
+# Cached state is not fabricated current state
+
+Offline operation may rely on previous observations.
+
+The system must represent:
+
+```text id="5z3i39"
+last observed
+```
+
+rather than claim:
+
+```text id="rvtnu2"
+currently true
+```
+
+unless freshness guarantees justify it.
+
+---
+
+# Reconciliation relationship
+
+Persistence and reconciliation are tightly connected.
+
+If two authoritative or governed representations exist, Monad must be able to compare them without silently overwriting one.
+
+Example:
+
+```text id="zxru3v"
+semantic requirement status: accepted
+
+GitHub issue status: open
+```
+
+The persistence layer records enough information for reconciliation to determine:
+
+* whether these fields are intended to correspond,
+* which side is authoritative,
+* whether lag is acceptable,
+* and what action is permitted.
+
+---
+
+# Reconciliation before convergence
+
+Monad SHOULD detect divergence before performing consequential synchronization.
+
+Preferred flow:
+
+```text id="ip7dki"
+observe
+   ↓
+persist observations
+   ↓
+compare
+   ↓
+classify divergence
+   ↓
+determine authority
+   ↓
+plan remediation
+   ↓
+execute if authorized
+   ↓
+re-observe
+   ↓
+verify
+```
+
+---
+
+# No implicit last-write-wins
+
+Timestamp ordering alone does not determine which persisted state should prevail.
+
+```text id="i3e6st"
+newer database row
+≠
+authoritative value
+```
+
+---
+
+# Multi-representation state
+
+A Subject may have multiple Representations.
+
+Example:
+
+```text id="s2o69c"
+SUB-1
+├── MDX
+├── GitHub Issue
+├── JSON export
+└── generated HTML
+```
+
+The persistence system must not collapse them into one undifferentiated blob.
+
+---
+
+# Representation roles
+
+Representations SHOULD be classifiable.
+
+Example roles:
+
+```text id="j5yypv"
+authoritative-authored
+native-authoritative
+derived
+generated
+cached
+external
+historical
+```
+
+This vocabulary should remain small and governed.
+
+---
+
+# Fragment identity
+
+Large documents may contain addressable semantic fragments.
+
+For example:
+
+```text id="4oqlqf"
+ADR-0002
+└── "Reconciliation before convergence"
+```
+
+Fragment identity must not rely solely on heading text when durable semantic relationships depend upon it.
+
+Exact fragment-addressing rules belong in a later Specification.
+
+---
+
+# Materialization
+
+A structured semantic entity may be materialized into one or more user-facing representations.
+
+Example:
+
+```text id="0kwsro"
+structured Release record
+        ↓
+generated Markdown report
+```
+
+The generated document is not automatically authoritative.
+
+---
+
+# Reverse materialization
+
+Monad MAY ingest structured meaning from authored documents.
+
+Example:
+
+```text id="3c3sla"
+requirements.mdx
+       ↓ parse
+structured requirement entities
+```
+
+The system must preserve which side owns which semantics.
+
+---
+
+# Round-trip editing
+
+Where Monad supports editing either a structured record or a native representation, round-trip semantics must be explicitly specified.
+
+The system MUST NOT assume lossless round-trip behavior unless verified.
+
+---
+
+# Lossy formats
+
+Some native systems cannot represent every Monad concept.
+
+Example:
+
+```text id="jy45kd"
+Monad:
+field-level provenance + confidence + authority
+
+native provider:
+plain string field
+```
+
+The provider representation is lossy.
+
+Monad must not discard richer semantic state simply to make the two systems structurally identical.
+
+---
+
+# Native integration over forced duplication
+
+Monad SHOULD prefer native integrations when a system already provides reliable functionality.
+
+Examples:
+
+```text id="odmwja"
+Git
+→ version control
+
+GitHub
+→ pull-request mechanics
+
+CI provider
+→ workflow execution
+
+package manager
+→ dependency resolution
+```
+
+Monad should model and govern these systems rather than recreate them unnecessarily.
+
+---
+
+# Persistence boundary
+
+A native capability should move into Monad-owned persistence only where at least one of these applies:
+
+* Monad needs semantics the native system cannot express,
+* cross-system reasoning requires normalization,
+* durability cannot depend solely on the provider,
+* local-first functionality requires a local representation,
+* governance requires explicit semantic records,
+* or reconstruction requires retained state.
+
+---
+
+# Event history
+
+Monad SHOULD preserve event history where replay, auditability, or causal explanation is important.
+
+However, Monad will not require universal event sourcing.
+
+---
+
+# Why not universal event sourcing
+
+Universal event sourcing would increase:
+
+* conceptual complexity,
+* storage volume,
+* migration difficulty,
+* replay semantics,
+* and implementation burden.
+
+Some entities are adequately persisted as current state plus consequential history.
+
+---
+
+# Event-sourced domains
+
+Individual subsystems MAY use event-sourced representations when justified.
+
+Examples may include:
+
+* execution history,
+* reconciliation history,
+* governance decisions,
+* or state transitions requiring forensic reconstruction.
+
+---
+
+# Current state and historical state
+
+The system should distinguish:
+
+```text id="lyhz59"
+current semantic state
+```
+
+from:
+
+```text id="7u5vsi"
+historical observations and transitions
+```
+
+Historical Evidence should not be overwritten merely to simplify the current view.
+
+---
+
+# Temporal semantics
+
+Persistence must eventually distinguish:
+
+* observation time,
+* transaction time,
+* valid time,
+* source-system time,
+* and event time
+
+when these differences materially affect reasoning.
+
+A single `updated_at` field is not sufficient for all domains.
+
+---
+
+# Transactions
+
+Consequential local semantic mutations SHOULD use transactional persistence.
+
+For example:
+
+```text id="2v9tkh"
+create Subject
++
+create Representation
++
+create Native Reference
++
+create provenance
+```
+
+should not leave an unintentionally half-created semantic entity.
+
+---
+
+# Cross-system transactions
+
+Monad cannot assume atomic transactions across:
+
+```text id="hr9u5z"
+local database
++
+GitHub
++
+filesystem
++
+cloud provider
+```
+
+Therefore distributed operations must explicitly handle partial success.
+
+---
+
+# Partial failure
+
+Example:
+
+```text id="3b52i4"
+local semantic mutation succeeded
+GitHub update failed
+```
+
+Monad must preserve enough state to determine:
+
+* what succeeded,
+* what failed,
+* whether compensation is possible,
+* whether reconciliation is required,
+* and whether human review is needed.
+
+---
+
+# Idempotency
+
+Re-applying synchronization or persistence operations SHOULD be safe where practical.
+
+A repeated operation should not create duplicate Subjects or duplicate native bindings merely because the prior result was uncertain.
+
+---
+
+# Concurrency
+
+The persistence layer must eventually define concurrency behavior for:
+
+* multiple local processes,
+* parallel agents,
+* background watchers,
+* CI interactions,
+* and collaborative environments.
+
+---
+
+# Optimistic concurrency
+
+Where appropriate, updates SHOULD use revision-aware or optimistic concurrency controls.
+
+For example:
+
+```text id="q3cq1p"
+expected semantic revision: 42
+actual semantic revision: 43
+
+→ reject or reconcile
+```
+
+rather than silently overwrite.
+
+---
+
+# Collaborative deployment
+
+The initial local-first architecture does not prohibit future shared deployments.
+
+A collaborative Monad service MAY use:
+
+* PostgreSQL,
+* distributed databases,
+* hosted graph projections,
+* or synchronization services.
+
+The logical persistence contract remains the same.
+
+---
+
+# Local-first does not mean local-only
+
+Monad's architectural goal is:
+
+```text id="vy6b7z"
+fully useful locally
++
+able to collaborate remotely
+```
+
+not:
+
+```text id="d9bjqo"
+never use networked persistence
+```
+
+---
+
+# Synchronization between Monad instances
+
+Future multi-instance synchronization must preserve:
+
+* semantic identity,
+* provenance,
+* authority,
+* conflict history,
+* and explicit reconciliation.
+
+Simple database replication is insufficient as the semantic conflict model.
+
+---
+
+# Backups
+
+Durable Monad-owned authoritative state requires explicit backup semantics.
+
+A backup must distinguish required durable data from rebuildable data.
+
+---
+
+# Minimal durable backup set
+
+A backup should preserve at minimum:
+
+```text id="26v1cc"
+authoritative semantic records
+identity
+provenance
+governance state
+bindings that cannot be rediscovered safely
+schema metadata
+```
+
+Native authoritative systems may require separate backup according to their own operational model.
+
+---
+
+# Cache loss
+
+Cache loss should degrade performance, not semantic correctness.
+
+This is a defining property of caches.
+
+---
+
+# Index loss
+
+Index loss SHOULD result in:
+
+```text id="6yhdj5"
+rebuild required
+```
+
+rather than:
+
+```text id="pjdc0x"
+semantic data permanently lost
+```
+
+---
+
+# Corruption detection
+
+The system SHOULD detect obvious corruption in durable local state.
+
+Mechanisms may include:
+
+* database integrity checks,
+* checksums,
+* schema validation,
+* revision checks,
+* and relationship validation.
+
+---
+
+# Semantic integrity checks
+
+Storage-level integrity is insufficient.
+
+A database may be structurally valid while semantically impossible.
+
+Examples:
+
+```text id="i4sw0o"
+Representation references nonexistent Subject
+
+authority grant references retired Actor
+
+edge violates allowed type relationship
+```
+
+Semantic validation must therefore exist above persistence validation.
+
+---
+
+# Persistence and schema validation
+
+The persistence layer SHOULD reject states that violate hard semantic invariants where feasible.
+
+However, not every semantic policy belongs in database constraints.
+
+---
+
+# Soft-invalid state
+
+Some ingested or externally observed states may be retained even when they violate expectations.
+
+Example:
+
+```text id="zht0tp"
+native provider contains unexpected value
+```
+
+Monad may need to preserve the observation precisely in order to diagnose it.
+
+Therefore:
+
+```text id="v8oc77"
+invalid observed state
+≠
+must discard observation
+```
+
+---
+
+# Security
+
+Persistence mechanisms must respect authorization boundaries.
+
+A user who can query a local semantic store must not automatically gain access to external secrets referenced by records.
+
+---
+
+# Secret handling
+
+Secrets SHOULD NOT be persisted in ordinary semantic records.
+
+Semantic state should store references such as:
+
+```text id="b29fw9"
+credential_ref: github/default
+```
+
+rather than:
+
+```text id="d5lwmh"
+token: ghp_...
+```
+
+unless an explicitly designed secure secret store is used.
+
+---
+
+# Sensitive provider payloads
+
+Raw provider responses MAY contain sensitive data.
+
+Monad SHOULD persist only the minimum required payload unless forensic or governance requirements justify complete retention.
+
+---
+
+# Redaction
+
+Derived logs, diagnostics, exports, and projections SHOULD apply defined redaction policies.
+
+Redacted representations must preserve provenance that indicates redaction occurred where consequential.
+
+---
+
+# AI-generated state
+
+AI-generated Claims, classifications, mappings, or summaries MAY be persisted.
+
+They MUST retain relevant provenance when consequential.
+
+Examples:
+
+```yaml id="2joprb"
+generated_by:
+  kind: ai
+  model: ...
+  context_revision: ...
+  generated_at: ...
+```
+
+---
+
+# AI output is not authority by persistence
+
+Persisting an AI-generated result does not make it authoritative.
+
+```text id="xxq3mq"
+stored
+≠
+approved
+≠
+verified
+≠
+authoritative
+```
+
+---
+
+# AI-derived projections
+
+AI-generated summaries SHOULD generally be treated as derived representations unless explicitly promoted through governance.
+
+---
+
+# Query model
+
+Consumers should query the semantic model through a stable logical interface rather than bind directly to storage implementation details.
+
+Conceptually:
+
+```text id="eqiu5c"
+CLI
+Agent
+UI
+Integration
+    │
+    ▼
+Semantic Query Interface
+    │
+    ▼
+Persistence Adapter
+    │
+    ├── SQLite
+    ├── future PostgreSQL
+    └── future graph projection
+```
+
+---
+
+# Direct database access
+
+Advanced local users MAY inspect the underlying local database.
+
+However, application code SHOULD avoid making undocumented storage schema details part of the public contract.
+
+---
+
+# Read model APIs
+
+The read model should support queries such as:
+
+```text id="tbt023"
+What requires this component?
+
+What Evidence supports this Claim?
+
+Which requirements lack Verification?
+
+What native representations diverge?
+
+What changed since this release?
+
+What is authoritative for this property?
+
+What will this change impact?
+```
+
+---
+
+# Write model APIs
+
+Writes must pass through semantics aware of:
+
+* identity,
+* provenance,
+* authority,
+* governance,
+* revision,
+* and reconciliation.
+
+A generic:
+
+```text id="sewcan"
+UPDATE nodes SET value = ...
+```
+
+is not an adequate public mutation model.
+
+---
+
+# Canonical serialization
+
+Where structured semantic records are serialized outside the database, the format SHOULD have a canonical representation sufficient for:
+
+* diffing,
+* hashing,
+* export,
+* signing,
+* reproducibility,
+* or deterministic comparison
+
+when those capabilities are required.
+
+---
+
+# Repository portability
+
+Cloning a project repository should restore as much useful Monad context as practical without requiring access to a private hosted database.
+
+The repository should carry durable authored artifacts and declarative configuration.
+
+---
+
+# Repository alone may not contain everything
+
+Some state may remain:
+
+* local,
+* external,
+* encrypted,
+* too large,
+* dynamically generated,
+* or provider-owned.
+
+Therefore:
+
+```text id="xsigjr"
+git clone
+≠
+guaranteed complete historical universe
+```
+
+unless a project explicitly establishes that stronger reproducibility contract.
+
+---
+
+# Project manifest
+
+A project-level manifest such as:
+
+```text id="fb370y"
+monad.toml
+```
+
+SHOULD declare:
+
+* project identity,
+* schema version,
+* persistence configuration,
+* enabled integrations,
+* authoritative sources,
+* and other bootstrap metadata.
+
+---
+
+# Lock state
+
+A lock artifact such as:
+
+```text id="2nr1d5"
+monad.lock
+```
+
+MAY capture resolved, reproducibility-sensitive state.
+
+Its exact semantics belong in a separate decision or Specification.
+
+---
+
+# Self-hosting
+
+Monad itself should use this persistence architecture to represent its own engineering system.
+
+This dogfooding requirement is important because it tests:
+
+* local-first operation,
+* semantic identity,
+* reconciliation,
+* requirements traceability,
+* native integration,
+* and rebuildability
+
+against a consequential real project.
+
+---
+
+# Self-reconciliation
+
+Monad SHOULD be able to reconcile:
+
+```text id="sgj4m7"
+its semantic records
+its authored documentation
+its generated indexes
+its repository state
+its GitHub project state
+```
+
+without assuming any one representation is universally authoritative.
+
+---
+
+# Alternatives considered
+
+## Alternative A — Filesystem-only semantic persistence
+
+All semantic state would live in Markdown, YAML, JSON, or similar repository files.
+
+### Advantages
+
+* transparent,
+* Git-native,
+* simple backup,
+* easy review.
+
+### Rejected as universal strategy because
+
+* graph traversal becomes expensive,
+* indexing becomes necessary anyway,
+* structured relationships become awkward,
+* concurrency is difficult,
+* transactional multi-record updates are weak,
+* some runtime state does not belong in authored files.
+
+Filesystem artifacts remain an important part of the hybrid model.
+
+---
+
+## Alternative B — Database-only source of truth
+
+All engineering artifacts would be generated from an internal database.
+
+### Advantages
+
+* strongly structured,
+* central validation,
+* easy querying.
+
+### Rejected because
+
+* harms native developer workflows,
+* makes ordinary tools secondary,
+* weakens direct source editing,
+* increases lock-in,
+* creates unnecessary reimplementation,
+* makes repository inspection less self-sufficient.
+
+---
+
+## Alternative C — Native systems as the only persistence
+
+Monad would store no meaningful semantic state and derive everything from GitHub, Git, CI, etc.
+
+### Advantages
+
+* minimal duplicate storage,
+* native tools remain central.
+
+### Rejected because
+
+native systems cannot express the complete semantic model Monad requires.
+
+Examples include:
+
+* cross-system identity,
+* Claim/Evidence relationships,
+* authority semantics,
+* reconciliation state,
+* semantic equivalence,
+* and provenance relationships.
+
+---
+
+## Alternative D — Dedicated graph database as mandatory core
+
+### Advantages
+
+* graph traversal,
+* graph-native query languages,
+* potentially elegant modeling.
+
+### Rejected initially because
+
+* heavier deployment,
+* weaker local-first ergonomics,
+* added operational surface,
+* uncertain need at current scale,
+* unnecessary coupling of model to engine.
+
+A graph database remains a future optional projection/backend.
+
+---
+
+## Alternative E — PostgreSQL as mandatory core
+
+### Advantages
+
+* excellent relational capabilities,
+* concurrency,
+* mature extensions,
+* future scalability.
+
+### Rejected as mandatory local core because
+
+running a database server introduces unnecessary friction for local-first use.
+
+PostgreSQL remains an excellent future collaborative deployment backend.
+
+---
+
+## Alternative F — Event sourcing for everything
+
+### Advantages
+
+* complete history,
+* replay,
+* strong auditability.
+
+### Rejected as universal persistence style because
+
+* substantial complexity,
+* difficult semantic migrations,
+* larger implementation burden,
+* unnecessary for many state classes.
+
+Selective event history remains supported.
+
+---
+
+## Alternative G — Git itself as the semantic database
+
+### Advantages
+
+* immutable history,
+* branching,
+* diffing,
+* developer familiarity.
+
+### Rejected because
+
+Git is excellent for versioned files but is not a complete semantic relationship store, transactional graph engine, or external-state observation system.
+
+---
+
+# Consequences
+
+## Positive consequences
+
+This decision provides:
+
+* local-first operation,
+* preservation of native workflows,
+* explicit authority,
+* strong inspectability,
+* portable semantic identity,
+* fast derived queries,
+* recoverable indexes,
+* lower initial operational complexity,
+* future storage flexibility,
+* and clear separation between durable meaning and optimization layers.
+
+---
+
+# Costs
+
+The system must manage several categories of state rather than one universal database.
+
+Developers must understand distinctions such as:
+
+```text id="9naei9"
+authoritative
+observed
+derived
+generated
+cached
+historical
+```
+
+This increases architectural discipline requirements.
+
+---
+
+# Operational complexity
+
+Reconciliation becomes a core concern because state may legitimately exist in multiple systems.
+
+This complexity already exists in real engineering environments; the architecture chooses to model it explicitly rather than hide it.
+
+---
+
+# Schema complexity
+
+A structured semantic store requires:
+
+* migrations,
+* validation,
+* backup,
+* corruption recovery,
+* and query APIs.
+
+---
+
+# Projection complexity
+
+Derived models require:
+
+* invalidation,
+* rebuild,
+* versioning,
+* and freshness tracking.
+
+---
+
+# Required follow-on decisions
+
+This ADR creates several downstream decisions.
+
+1. **ADR — Canonical Artifact Serialization**
+2. **ADR — Local Semantic Store Technology**
+3. **ADR — Read Model and Indexing Strategy**
+4. **ADR — Revision and Temporal Model**
+5. **ADR — Synchronization and Reconciliation Execution**
+6. **ADR — Portable Export and Import Format**
+
+Some may eventually be collapsed into Specifications if implementation evidence shows a separate ADR is unnecessary.
+
+---
+
+# Required follow-on specifications
+
+The implementation will require precise contracts for:
+
+* semantic persistence schema,
+* storage adapter,
+* Representation roles,
+* read-model lifecycle,
+* cache lifecycle,
+* migration,
+* backup,
+* export/import,
+* provider observation storage,
+* and startup reconstruction.
+
+---
+
+# Initial persistence topology
+
+The preferred initial topology is:
+
+```text id="7h53cq"
+Repository
+│
+├── monad.toml
+├── monad.lock
+├── authored engineering artifacts
+└── durable declarative configuration
+         │
+         ▼
+    Monad ingestion
+         │
+         ▼
+.monad/state.db
+│
+├── structured semantic records
+├── relationship model
+├── provider bindings
+├── provenance
+└── read-model support
+         │
+         ├── cache
+         ├── indexes
+         └── observations
+```
+
+External systems remain independently authoritative for explicitly assigned native concerns.
+
+---
+
+# Minimal semantic storage model
+
+Conceptually:
+
+```yaml id="4z0p4x"
+subjects:
+  - id: sub:0191...
+    kind: requirement
+
+representations:
+  - id: rep:0191...
+    subject: sub:0191...
+    role: authoritative-authored
+    locator:
+      kind: filesystem
+      path: content/docs/requirements/example.mdx
+
+native_references:
+  - id: nref:0191...
+    subject: sub:0191...
+    provider: github
+    native_id: I_kw...
+
+relationships:
+  - from: sub:0191...
+    type: depends-on
+    to: sub:0192...
+```
+
+This example is illustrative rather than a finalized schema.
+
+---
+
+# Rich persistence example
+
+```yaml id="gkosz1"
+subject:
+  id: req:0191f574-b9c7-7c1d-a7db-38ca251bd192
+  kind: requirement
+
+representations:
+  - id: rep:0191f57a-429b-78d5-baf3-693a3b93d42f
+    role: authoritative-authored
+    medium: mdx
+    path: content/docs/artifacts/requirements/authority.mdx
+    revision:
+      kind: git
+      commit: 9ca04d1
+
+bindings:
+  - id: nref:0191f580-0458-7d8f-88bd-3da3471804a2
+    provider: github
+    native_type: issue
+    native_id: I_kwDOL12345abc
+
+observations:
+  - provider: github
+    observed_at: 2026-08-29T03:14:32Z
+    native_revision: ETag:abc123
+    state:
+      status: open
+
+authority:
+  wording: representation:rep:0191f57a...
+  scheduling: provider:github
+  semantic_identity: monad
+
+derived:
+  indexes:
+    - reverse-requirement-dependencies
+    - verification-coverage
+```
+
+---
+
+# Definition of Ready
+
+ADR-0002 was ready for decision because:
+
+* [x] stable semantic identity has been established,
+* [x] Monad requires a durable semantic model,
+* [x] the filesystem must remain directly useful,
+* [x] native engineering systems retain meaningful authority,
+* [x] reconciliation requires independently observable representations,
+* [x] local-first operation prevents mandatory hosted persistence,
+* [x] graph-shaped semantics require efficient query support,
+* [x] generated and cached state must remain distinguishable from authority.
+
+---
+
+# Definition of Done
+
+ADR-0002 is complete when:
+
+* [x] canonical semantic state is defined independently of one physical database,
+* [x] authoritative and derived state are distinguished,
+* [x] filesystem artifacts retain a first-class role,
+* [x] native-system authority remains possible,
+* [x] local structured persistence is established,
+* [x] SQLite is selected as the initial local substrate,
+* [x] graph semantics are separated from graph-database choice,
+* [x] read models are reconstructable,
+* [x] provider observations are distinguished from current native truth,
+* [x] migration principles are defined,
+* [x] portable export is required,
+* [x] reconciliation is integrated into the persistence model,
+* [x] security and AI-generated state are addressed,
+* [x] downstream decisions and Specifications are identified.
+
+---
+
+# Acceptance criteria
+
+The persistence architecture conforms to this ADR when the following scenarios work.
+
+## Local initialization
+
+A new Monad workspace can initialize and persist structured semantic state without network connectivity.
+
+---
+
+## Native artifact editing
+
+A developer can edit an authoritative source artifact directly without first editing an internal database representation.
+
+---
+
+## Index reconstruction
+
+Deleting a derived index does not destroy semantic identity or authoritative artifacts.
+
+The index can be rebuilt.
+
+---
+
+## Repository move
+
+Moving an authoritative file changes its Representation locator without changing semantic identity.
+
+---
+
+## External-state observation
+
+Monad can record GitHub state while marking when it was observed rather than claiming perpetual freshness.
+
+---
+
+## Divergence preservation
+
+When native and Monad semantic values differ, both values can be preserved for reconciliation.
+
+---
+
+## Provider outage
+
+Loss of connectivity does not make the local semantic model unusable.
+
+Remote state is visibly recognized as potentially stale.
+
+---
+
+## Migration
+
+The semantic store can advance schema versions without changing stable semantic IDs merely because physical storage changed.
+
+---
+
+## Export/import
+
+Durable semantic state can be exported and imported without loss of semantic identity.
+
+---
+
+## Derived projection regeneration
+
+Generated reports or graph indexes can be recreated from durable authoritative inputs.
+
+---
+
+# Verification obligations
+
+```text id="ln254r"
+VFO-PER-001
+Monad can initialize its semantic store offline.
+
+VFO-PER-002
+Semantic identity survives storage migration.
+
+VFO-PER-003
+Deleting a derived index does not delete authoritative semantic state.
+
+VFO-PER-004
+Derived indexes can be rebuilt.
+
+VFO-PER-005
+Native observations preserve observation time.
+
+VFO-PER-006
+Observed external state is not silently treated as current after freshness expires.
+
+VFO-PER-007
+Authoritative files remain directly editable where policy permits.
+
+VFO-PER-008
+Provider divergence can be represented without destructive overwrite.
+
+VFO-PER-009
+Portable export preserves semantic IDs and relationships.
+
+VFO-PER-010
+Import does not regenerate existing semantic identities.
+
+VFO-PER-011
+A database-valid but semantically invalid relationship is detectable.
+
+VFO-PER-012
+Loss of caches degrades performance rather than semantic correctness.
+
+VFO-PER-013
+Consequential local multi-record mutations are transactional.
+
+VFO-PER-014
+Partial cross-system failures remain inspectable.
+
+VFO-PER-015
+Persistence does not convert AI-generated state into authority automatically.
+```
+
+---
+
+# Core invariants
+
+```text id="6yt5lq"
+Persistence ≠ Authority
+
+Database state ≠ Universal truth
+
+Filesystem state ≠ Universal truth
+
+Native state ≠ Universal truth
+
+Cached state ≠ Current state
+
+Observed state ≠ Desired state
+
+Observed state ≠ Authoritative state automatically
+
+Derived state ≠ Authoritative state
+
+Generated state ≠ Authoritative state
+
+Graph model ≠ Graph database requirement
+
+Local-first ≠ Local-only
+
+Repository ≠ Complete runtime universe automatically
+
+Schema-valid ≠ Semantically valid
+
+Stored ≠ Approved
+
+Stored ≠ Verified
+
+Stored ≠ Authoritative
+
+Newer row ≠ Authoritative value
+
+Rebuildable ≠ Disposable without classification
+
+Provider outage ≠ Semantic data loss
+
+Index loss ≠ Semantic identity loss
+
+Synchronization ≠ Reconciliation
+
+Reconciliation ≠ Silent overwrite
+```
+
+---
+
+# Governing principle
+
+> **Monad should persist semantic meaning without replacing the engineering systems that already own the realities it describes.**
+
+Its durable model therefore combines local semantic records, direct engineering artifacts, native-system bindings, historical provenance, and reconstructable projections under explicit authority rules.
+
+The architecture is intentionally hybrid because the engineering system itself is hybrid.
+
+<Cards>
+  <Card
+    href="/docs/artifacts/decisions/adr-0001-semantic-identifier-strategy"
+    title="ADR-0001 — Semantic Identifier Strategy"
+  >
+    Review the stable identity model on which persistence depends.
+  </Card>
+
+<Card
+href="/docs/artifacts/requirements/semantic-model"
+title="Semantic Model Requirements"
+>
+Review the requirements governing the model persisted by this architecture.
+</Card>
+
+<Card
+href="/docs/artifacts/requirements/reconciliation"
+title="Reconciliation Requirements"
+>
+Review how divergence between persisted and native state must be detected and governed.
+</Card>
+
+<Card
+href="/docs/artifacts/requirements/provenance"
+title="Provenance Requirements"
+>
+Review the historical and derivation information persistence must preserve.
+</Card>
+</Cards>

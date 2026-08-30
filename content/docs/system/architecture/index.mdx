@@ -1,0 +1,3011 @@
+---
+title: Architecture
+description: The current authoritative architecture of Monad its governing layers, semantic model, engines, persistence boundaries, execution model, projections, integrations, and relationship to native engineering systems.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    System architecture
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Monad separates the rules governing the system, the semantic description of engineering reality, the engines that interpret that model, and the native systems in which engineering work actually occurs.
+  </p>
+</div>
+
+## What this page defines
+
+[Concepts & Principles](/docs/system/concepts) establishes Monad's vocabulary.
+
+This page assigns those concepts architectural responsibility.
+
+It answers:
+
+> **What are the major parts of Monad, what does each part own, and how do they interact without collapsing semantic truth, native engineering reality, execution, governance, and derived views into one system?**
+
+The architecture is organized around a small number of deliberate separations.
+
+At the highest level:
+
+```text
+Constitution
+     │
+     │ constrains
+     ▼
+Canonical System Model
+     │
+     │ interpreted through
+     ▼
+Engines
+     │
+     │ observe / reason / act through
+     ▼
+Native Engineering Systems
+```
+
+Around those layers sit:
+
+```text
+persistence
+projections
+read models
+policy
+execution
+verification
+provenance
+reconciliation
+interfaces
+```
+
+The purpose of the architecture is not to centralize every engineering function inside Monad.
+
+It is to provide a coherent semantic and governance layer across systems that already exist.
+
+---
+
+# Architectural thesis
+
+Monad is built around a central architectural proposition:
+
+> **A software system should have an explicit semantic model of its engineering reality, but that model must remain grounded in and connected to the native systems where reality actually exists.**
+
+This produces two equal dangers that the architecture must avoid.
+
+The first is:
+
+```text
+repository-only worldview
+```
+
+where the system assumes that files alone contain enough information to understand engineering reality.
+
+The second is:
+
+```text
+model-only worldview
+```
+
+where a semantic database becomes a second reality that can silently diverge from the software it claims to describe.
+
+Monad rejects both.
+
+Instead:
+
+```text
+Native reality
+      ⇅
+Bindings + observation + reconciliation
+      ⇅
+Semantic model
+```
+
+Neither layer is sufficient alone.
+
+---
+
+# Architectural principles
+
+Several principles shape the architecture.
+
+## Separate governing rules from governed state
+
+The rules that define what constitutes a valid Monad system should not be ordinary mutable graph state.
+
+This produces the distinction:
+
+```text
+Constitution
+     ≠
+System Graph
+```
+
+---
+
+## Separate semantic identity from representation
+
+A Subject must not become identical to whichever file, issue, record, or URL currently represents it.
+
+```text
+Subject
+     ≠
+Representation
+```
+
+---
+
+## Separate canonical state from optimized views
+
+The authoritative engineering record should not be constrained by whichever storage representation happens to be fastest for a particular query.
+
+```text
+Canonical records
+      ≠
+Read model
+```
+
+---
+
+## Separate capability from authority
+
+A component or agent being technically able to perform an operation does not imply that it may perform it.
+
+```text
+Capability
+     ≠
+Permission
+```
+
+---
+
+## Separate claims from evidence
+
+Assertions and the records supporting those assertions remain independently inspectable.
+
+```text
+Claim
+     ≠
+Evidence
+```
+
+---
+
+## Preserve native systems
+
+Git should remain Git.
+
+A compiler should remain a compiler.
+
+GitHub should remain GitHub.
+
+A database should remain a database.
+
+Monad should integrate before it reimplements.
+
+---
+
+## Prefer distributed authority over artificial centralization
+
+Different systems may legitimately remain authoritative for different scopes.
+
+Monad must understand those boundaries rather than forcing all truth into one store.
+
+---
+
+## Derive views rather than duplicate authority
+
+Documentation, indexes, AI context, dashboards, and reports should generally be projections from authoritative state rather than independently maintained copies.
+
+---
+
+## Make reconciliation architectural
+
+Whenever Monad models external reality, divergence is inevitable.
+
+Detecting and resolving divergence must therefore be a first-class responsibility rather than an afterthought.
+
+---
+
+# Architecture at a glance
+
+A more complete conceptual architecture looks like this:
+
+```text
+┌───────────────────────────────────────────────────────────────┐
+│                        CONSTITUTION                           │
+│                                                               │
+│  semantic rules · invariants · governance boundaries          │
+│  extension rules · authority hierarchy · amendment rules      │
+└───────────────────────────────┬───────────────────────────────┘
+                                │ constrains
+                                ▼
+┌───────────────────────────────────────────────────────────────┐
+│                   CANONICAL SYSTEM MODEL                      │
+│                                                               │
+│  Subjects · Representations · Claims · Relationships          │
+│  Authority · Provenance · Evidence · Lifecycle · Time         │
+│  Actors · Capabilities · Policies · Native Bindings           │
+└───────────────────────────────┬───────────────────────────────┘
+                                │
+                ┌───────────────┼────────────────┐
+                │               │                │
+                ▼               ▼                ▼
+        ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+        │ Read Models │ │ Projections │ │ Event /     │
+        │ & Indexes   │ │             │ │ Change Feed │
+        └──────┬──────┘ └──────┬──────┘ └──────┬──────┘
+               │               │                │
+               └───────────────┼────────────────┘
+                               ▼
+┌───────────────────────────────────────────────────────────────┐
+│                           ENGINES                             │
+│                                                               │
+│ Query · Identity · Policy · Impact · Context · Planning       │
+│ Execution · Projection · Verification · Provenance            │
+│ Reconciliation · Lifecycle · Release                          │
+└───────────────────────────────┬───────────────────────────────┘
+                                │
+                                ▼
+┌───────────────────────────────────────────────────────────────┐
+│                     EXECUTION BOUNDARY                        │
+│                                                               │
+│ authorized operations · tool invocation · validation          │
+│ evidence capture · transaction boundaries · rollback          │
+└───────────────────────────────┬───────────────────────────────┘
+                                │
+                                ▼
+┌───────────────────────────────────────────────────────────────┐
+│                NATIVE ENGINEERING SYSTEMS                     │
+│                                                               │
+│ Files · Git · GitHub · package managers · build tools         │
+│ CI/CD · databases · deployment · observability · services     │
+│ humans · agents · external APIs                               │
+└───────────────────────────────────────────────────────────────┘
+```
+
+This diagram represents **architectural responsibilities**, not necessarily deployment boundaries.
+
+Several responsibilities may initially live inside one executable.
+
+Later they may become separate services, libraries, processes, or plugins.
+
+---
+
+# 01 — Constitution
+
+The Constitution is the highest-order governing layer.
+
+It defines the rules that determine what a valid Monad system is allowed to contain and how fundamental system rules may change.
+
+Its responsibilities may include:
+
+* foundational semantic primitives,
+* fundamental invariants,
+* permitted extension mechanisms,
+* authority hierarchy,
+* governance boundaries,
+* protected system concepts,
+* constitutional lifecycle rules,
+* compatibility expectations,
+* and amendment procedures.
+
+The Constitution should remain intentionally small.
+
+It is not:
+
+* ordinary project configuration,
+* every organizational policy,
+* every validation rule,
+* or every runtime permission.
+
+Those concerns belong lower in the system.
+
+---
+
+## Why the Constitution is separate
+
+Suppose ordinary graph data could redefine:
+
+```text
+what counts as a valid Subject
+```
+
+or:
+
+```text
+which authority rules govern constitutional changes
+```
+
+without a stronger boundary.
+
+The system could effectively rewrite the rules governing its own interpretation through the same mechanisms used for normal state changes.
+
+Monad instead establishes:
+
+```text
+Constitution
+     │
+     │ validates / constrains
+     ▼
+ordinary system state
+```
+
+Changes to the Constitution therefore belong to a stronger lifecycle than routine engineering changes.
+
+---
+
+## Constitutional amendments
+
+Constitutional evolution should be possible.
+
+Immutable architecture eventually becomes obsolete architecture.
+
+But constitutional changes should be deliberate because they can affect the interpretation of the entire system.
+
+A constitutional change may require:
+
+```text
+proposal
+   ↓
+impact analysis
+   ↓
+compatibility analysis
+   ↓
+review
+   ↓
+explicit approval
+   ↓
+migration plan
+   ↓
+amendment
+   ↓
+verification
+```
+
+The exact mechanism belongs in governance specifications.
+
+The architectural principle is simply that constitutional mutation is distinguishable from ordinary mutation.
+
+---
+
+# 02 — Canonical System Model
+
+The Canonical System Model is the durable semantic representation of engineering reality known to Monad.
+
+It captures concepts such as:
+
+```text
+Subjects
+Representations
+Native References
+Claims
+Relationships
+Authority
+Provenance
+Evidence
+Lifecycle
+Time
+Actors
+Capabilities
+Policies
+Bindings
+```
+
+The model is canonical for **Monad's semantic interpretation** of the engineering system.
+
+That does not mean it becomes authoritative for every fact in the software system.
+
+For example:
+
+```text
+Git
+  may remain authoritative for commit history
+
+filesystem
+  may remain authoritative for current source contents
+
+external API
+  may remain authoritative for external service state
+
+Monad model
+  is authoritative for semantic identity and
+  relationships established within Monad
+```
+
+Canonical authority is scoped.
+
+---
+
+# Canonical records
+
+The architecture should distinguish canonical records from optimized derived structures.
+
+Canonical records must prioritize:
+
+* durability,
+* portability,
+* explicit semantics,
+* validation,
+* versionability,
+* migration,
+* and inspectability.
+
+They should not be forced into whichever structure happens to make traversal fastest.
+
+Conceptually:
+
+```text
+Canonical Records
+       │
+       │ normalize / interpret
+       ▼
+System Graph
+       │
+       ├──► indexes
+       ├──► search
+       ├──► read models
+       └──► projections
+```
+
+---
+
+## Canonical does not mean one database
+
+The canonical record may be logically unified without being physically centralized.
+
+Different domains may retain native authority.
+
+Monad may persist:
+
+* semantic bindings,
+* explicit relationships,
+* system claims,
+* policies,
+* provenance,
+* lifecycle records,
+* and additional engineering state
+
+while referencing authoritative state that remains elsewhere.
+
+The architecture therefore favors:
+
+```text
+federated authority
+        +
+unified interpretation
+```
+
+over:
+
+```text
+copy everything into Monad
+```
+
+---
+
+# 03 — System Graph
+
+The System Graph is the graph-shaped interpretation of canonical engineering state.
+
+Its purpose is to expose meaningful entities and relationships for reasoning.
+
+Conceptually:
+
+```text
+Subject ── represented-by ──► Representation
+
+Requirement ── specified-by ─► Specification
+
+Specification ── implemented-by ─► Component
+
+Component ── depends-on ─────► Component
+
+Claim ── supported-by ───────► Evidence
+
+Artifact ── supersedes ──────► Artifact
+```
+
+The System Graph may be materialized directly, derived dynamically, or maintained through an indexed read model.
+
+The architecture intentionally does **not** require a dedicated graph database.
+
+"Graph" describes semantic structure, not storage technology.
+
+---
+
+## Why graph semantics matter
+
+Many of Monad's intended questions are relationship questions.
+
+For example:
+
+```text
+What depends on this?
+```
+
+```text
+What requirement ultimately caused this implementation?
+```
+
+```text
+Which representations refer to this Subject?
+```
+
+```text
+Which policies govern this capability?
+```
+
+```text
+Which evidence supports this claim?
+```
+
+```text
+What would be affected if this decision were superseded?
+```
+
+A graph-shaped model naturally supports this form of reasoning.
+
+---
+
+## Graph density must remain controlled
+
+A graph becomes less useful when every possible connection is represented.
+
+Monad should avoid:
+
+```text
+everything links to everything
+```
+
+The model should prefer relationships with clear engineering semantics.
+
+Useful relationship types generally have:
+
+* defined meaning,
+* known directionality,
+* meaningful traversal value,
+* and identifiable consequences.
+
+Relationship creation must justify its maintenance cost.
+
+---
+
+# 04 — Persistence layer
+
+Persistence stores durable Monad-owned state.
+
+The persistence architecture should support:
+
+* canonical records,
+* schema evolution,
+* versioning,
+* identity,
+* provenance,
+* migrations,
+* historical state,
+* atomic updates where required,
+* and reproducible reconstruction.
+
+Persistence is not equivalent to the semantic model.
+
+The same conceptual model could potentially be persisted through different physical implementations.
+
+Possible implementations may include:
+
+```text
+portable files
+embedded relational database
+object storage
+event records
+remote database
+hybrid combinations
+```
+
+The architecture should keep the conceptual contract above those choices.
+
+---
+
+## Local-first persistence
+
+A core direction is that meaningful Monad functionality should remain available locally.
+
+A local workspace should be able to maintain enough state to support capabilities such as:
+
+* inspection,
+* validation,
+* semantic lookup,
+* local execution,
+* dependency reasoning,
+* context construction,
+* and verification.
+
+Cloud infrastructure may later provide:
+
+* collaboration,
+* cross-project analysis,
+* remote compute,
+* organization-wide governance,
+* shared indexing,
+* synchronization,
+* and hosted AI.
+
+But remote infrastructure should extend the local model rather than become its only source of existence.
+
+---
+
+# 05 — Read models and indexes
+
+Canonical records optimize for durability and semantic integrity.
+
+Queries often require different structures.
+
+Monad can therefore derive read models optimized for:
+
+* text search,
+* semantic search,
+* graph traversal,
+* dependency lookup,
+* impact analysis,
+* identifier resolution,
+* provenance lookup,
+* context assembly,
+* reporting,
+* and visualization.
+
+Conceptually:
+
+```text
+Canonical state
+      │
+      ▼
+Normalization
+      │
+      ▼
+Read-model builders
+      │
+      ├──► graph index
+      ├──► search index
+      ├──► dependency index
+      ├──► provenance index
+      └──► context index
+```
+
+These are derived structures.
+
+If deleted, they should ideally be reconstructable from authoritative sources.
+
+---
+
+## Read-model freshness
+
+Derived structures introduce staleness.
+
+A read model should therefore be able to communicate whether it reflects the current source state.
+
+Where practical, Monad should preserve:
+
+```text
+source revision
+generation revision
+generation time
+builder version
+input set
+```
+
+This allows the system to determine whether:
+
+```text
+read model == current interpretation
+```
+
+or:
+
+```text
+read model < current source state
+```
+
+---
+
+# 06 — Identity engine
+
+Semantic identity requires a dedicated architectural responsibility.
+
+The Identity Engine resolves questions such as:
+
+* Does this representation already correspond to a known Subject?
+* Did a file move, or was one Subject deleted and another created?
+* Are two native references representations of the same Subject?
+* Has one Subject split into multiple Subjects?
+* Have multiple Subjects merged?
+* Is an inferred identity binding sufficiently reliable to promote?
+* What historical identities must remain preserved?
+
+The engine should distinguish:
+
+```text
+explicit binding
+inferred binding
+proposed binding
+confirmed binding
+historical binding
+```
+
+Identity resolution must not silently rewrite semantic history.
+
+---
+
+# 07 — Query engine
+
+The Query Engine exposes the system model for inspection.
+
+It should support questions spanning multiple kinds of engineering knowledge.
+
+For example:
+
+```text
+show Subject auth-api
+```
+
+```text
+what represents auth-api?
+```
+
+```text
+what depends on auth-api?
+```
+
+```text
+which requirement constrains auth-api?
+```
+
+```text
+why does auth-api exist?
+```
+
+```text
+what evidence supports this claim?
+```
+
+```text
+which source is authoritative?
+```
+
+The Query Engine operates against the interpreted system model rather than forcing every caller to know how canonical records are physically stored.
+
+---
+
+# 08 — Policy engine
+
+The Policy Engine evaluates whether actions are permitted.
+
+Inputs may include:
+
+```text
+Actor
+requested Capability
+target Subject
+operation
+scope
+current lifecycle state
+governing policy
+required evidence
+required approvals
+```
+
+Conceptually:
+
+```text
+Actor
+   +
+Operation
+   +
+Target
+   +
+System State
+   +
+Applicable Policies
+       │
+       ▼
+Policy Evaluation
+       │
+       ├──► permit
+       ├──► deny
+       ├──► require approval
+       └──► require additional evidence
+```
+
+The Policy Engine does not execute the action.
+
+It determines whether and under what conditions execution may proceed.
+
+---
+
+# 09 — Context engine
+
+The Context Engine constructs purpose-specific engineering context.
+
+Its responsibility is not simply to retrieve documents.
+
+It should answer:
+
+> **Given this task, actor, target, and policy state, what information is relevant and authoritative enough to support the work?**
+
+Potential context inputs include:
+
+```text
+task
+target Subjects
+actor
+requested operation
+scope
+requirements
+specifications
+dependencies
+decisions
+policies
+tests
+history
+known risks
+current implementation
+```
+
+The output is a context projection.
+
+Conceptually:
+
+```text
+System Model
+      +
+Task
+      +
+Scope
+      +
+Actor
+      +
+Policy
+       │
+       ▼
+Context Engine
+       │
+       ▼
+Task Context
+```
+
+This is one of the architecture's most important interfaces with AI systems.
+
+---
+
+# 10 — Impact engine
+
+The Impact Engine evaluates known consequences of proposed change.
+
+Suppose a Subject changes.
+
+The engine may traverse relationships such as:
+
+```text
+depends-on
+implements
+specified-by
+consumed-by
+governed-by
+verified-by
+represented-by
+derived-from
+```
+
+to produce an impact set.
+
+Conceptually:
+
+```text
+Proposed Change
+      │
+      ▼
+Affected Subject
+      │
+      ▼
+Relationship Traversal
+      │
+      ├──► dependent components
+      ├──► affected requirements
+      ├──► governing specifications
+      ├──► impacted tests
+      ├──► derived projections
+      └──► affected releases
+```
+
+Impact results should distinguish:
+
+```text
+known impact
+probable impact
+inferred impact
+unknown impact
+```
+
+The graph should assist reasoning without pretending perfect knowledge.
+
+---
+
+# 11 — Planning engine
+
+The Planning Engine translates desired outcomes into bounded engineering work.
+
+It may consume:
+
+* goals,
+* requirements,
+* affected Subjects,
+* specifications,
+* dependencies,
+* policies,
+* current state,
+* available capabilities,
+* and impact results.
+
+It may produce:
+
+```text
+proposed plan
+ordered operations
+work boundaries
+required approvals
+verification obligations
+context requirements
+```
+
+Planning should remain distinct from execution.
+
+```text
+Planning
+   ≠
+Acting
+```
+
+A plan can be reviewed, rejected, modified, or authorized before it changes the system.
+
+---
+
+# 12 — Execution engine
+
+The Execution Engine performs authorized engineering operations.
+
+Its responsibility is broader than running shell commands.
+
+A governed execution should ideally understand:
+
+```text
+what is being changed
+why
+under whose authority
+against which system state
+using which tools
+with which inputs
+what outputs were produced
+what verification is required
+```
+
+Conceptually:
+
+```text
+Authorized Plan
+      │
+      ▼
+Execution Engine
+      │
+      ├──► invoke native tool
+      ├──► modify representation
+      ├──► run build
+      ├──► execute test
+      ├──► call external system
+      └──► produce artifact
+```
+
+Execution remains grounded in native tools.
+
+Monad coordinates and records the operation rather than replacing the underlying tool unnecessarily.
+
+---
+
+# Execution boundary
+
+The Execution Boundary is a critical architectural boundary.
+
+Semantic reasoning alone must not automatically become side effects.
+
+Between:
+
+```text
+Monad believes this change should happen
+```
+
+and:
+
+```text
+the filesystem / repository / deployment changed
+```
+
+there must be an explicit execution transition.
+
+That boundary may enforce:
+
+* authorization,
+* policy,
+* scope,
+* concurrency,
+* preconditions,
+* transaction semantics,
+* rollback strategy,
+* tool availability,
+* environment requirements,
+* and evidence capture.
+
+Conceptually:
+
+```text
+Reasoning
+   │
+   ▼
+Proposed Operation
+   │
+   ▼
+Policy / Authority Gate
+   │
+   ▼
+Execution Boundary
+   │
+   ▼
+Native Side Effect
+```
+
+This separation becomes increasingly important as AI systems gain greater autonomy.
+
+---
+
+# 13 — Verification engine
+
+The Verification Engine evaluates whether a change satisfies the contracts that govern it.
+
+Inputs may include:
+
+```text
+requirements
+specifications
+acceptance criteria
+policies
+implementation
+execution results
+tests
+observations
+```
+
+Outputs may include:
+
+```text
+verification result
+evidence records
+unmet conditions
+regressions
+policy violations
+confidence / completeness state
+```
+
+Conceptually:
+
+```text
+Implemented Change
+       │
+       ▼
+Applicable Contracts
+       │
+       ▼
+Verification
+       │
+       ├──► pass
+       ├──► fail
+       ├──► incomplete
+       └──► requires review
+```
+
+Verification should produce evidence rather than merely a Boolean result.
+
+---
+
+# 14 — Provenance engine
+
+The Provenance Engine records and resolves where engineering information and outcomes came from.
+
+It may track:
+
+```text
+producer
+actor
+tool
+source state
+requested origin
+resolved origin
+derivation
+execution location
+input artifacts
+output artifacts
+timestamp
+environment
+```
+
+For example:
+
+```text
+Generated Specification
+      │
+      ├── produced-by ──► Agent A
+      ├── derived-from ─► Requirements R1, R2
+      ├── generated-with ► Tool Version X
+      └── based-on ─────► Repository State abc123
+```
+
+Provenance should attach to meaningful engineering outcomes without requiring every low-level operation to become permanent metadata.
+
+---
+
+# 15 — Projection engine
+
+The Projection Engine turns semantic state into useful derived representations.
+
+Potential projections include:
+
+* documentation,
+* context packages,
+* dependency diagrams,
+* artifact indexes,
+* dashboards,
+* GitHub coordination views,
+* generated configuration,
+* compatibility reports,
+* release notes,
+* and human-readable summaries.
+
+Conceptually:
+
+```text
+Authoritative Sources
+      │
+      ▼
+Projection Engine
+      │
+      ├──► Docs
+      ├──► Graph view
+      ├──► Context bundle
+      ├──► Dashboard
+      └──► Native-system projection
+```
+
+Every projection should retain enough provenance to understand how it was produced.
+
+---
+
+## Projections are disposable when possible
+
+A strong derived view should usually be reproducible.
+
+If:
+
+```text
+projection deleted
+```
+
+the system should ideally be able to regenerate it from:
+
+```text
+authoritative inputs
+      +
+projection definition
+```
+
+This reduces duplicated authority.
+
+---
+
+# 16 — Reconciliation engine
+
+The Reconciliation Engine detects disagreement between Monad's model and native engineering systems.
+
+For example:
+
+```text
+Monad:
+Representation R exists at path A
+
+Filesystem:
+path A does not exist
+```
+
+or:
+
+```text
+Monad:
+GitHub issue #42 represents Requirement R
+
+GitHub:
+issue #42 was deleted or transferred
+```
+
+or:
+
+```text
+Specification:
+expected value X
+
+Runtime observation:
+actual value Y
+```
+
+The engine does not assume every discrepancy has the same meaning.
+
+Possible interpretations include:
+
+```text
+rename
+move
+external change
+stale model
+deleted Subject
+new Representation
+invalid claim
+broken implementation
+unknown change
+```
+
+Reconciliation may therefore produce:
+
+* automatic updates,
+* proposed identity changes,
+* conflicts,
+* warnings,
+* review requests,
+* or unresolved observations.
+
+---
+
+# 17 — Lifecycle engine
+
+The Lifecycle Engine manages valid state transitions for entities whose lifecycle matters.
+
+Different Subject types can define different state machines.
+
+For example:
+
+```text
+Specification
+draft → proposed → accepted → active → superseded
+```
+
+while:
+
+```text
+Hypothesis
+proposed → investigating → supported / weakened / rejected
+```
+
+The engine ensures that transitions respect:
+
+* applicable rules,
+* required authority,
+* required evidence,
+* and transition-specific invariants.
+
+Lifecycle should not be implemented as an arbitrary mutable `status` string when the state has system consequences.
+
+---
+
+# 18 — Release engine
+
+The Release Engine coordinates the transition from verified engineering state into a supported release state.
+
+Release concerns may include:
+
+* versioning,
+* compatibility,
+* change sets,
+* migration requirements,
+* release criteria,
+* verification evidence,
+* artifact completeness,
+* provenance,
+* and publication.
+
+Conceptually:
+
+```text
+Candidate State
+      │
+      ▼
+Release Requirements
+      │
+      ▼
+Verification Evidence
+      │
+      ▼
+Governance Gate
+      │
+      ▼
+Release
+```
+
+A release is therefore an engineering state transition, not merely a Git tag.
+
+---
+
+# 19 — Integration adapters
+
+Integration adapters connect Monad to native engineering systems.
+
+An adapter translates between:
+
+```text
+Monad semantics
+```
+
+and:
+
+```text
+native system concepts
+```
+
+Examples include adapters for:
+
+* filesystem,
+* Git,
+* GitHub,
+* package managers,
+* build systems,
+* CI,
+* deployment systems,
+* databases,
+* observability systems,
+* documentation platforms,
+* issue trackers,
+* and external APIs.
+
+Adapters should be thin where possible.
+
+They should not independently redefine Monad semantics.
+
+---
+
+## Adapter responsibilities
+
+An adapter may provide:
+
+```text
+discover
+observe
+read
+write
+resolve native references
+detect changes
+execute operations
+translate events
+capture provenance
+```
+
+But interpretation should remain centralized enough to avoid every integration inventing its own meaning for concepts such as identity, authority, or lifecycle.
+
+---
+
+# 20 — Native engineering systems
+
+Native systems remain a foundational part of the architecture.
+
+They are not merely implementation details hidden beneath Monad.
+
+Examples:
+
+```text
+filesystem
+Git
+GitHub
+package registry
+build system
+CI platform
+database
+deployment platform
+runtime environment
+observability system
+```
+
+Each may own authoritative state.
+
+Monad integrates with this reality through:
+
+```text
+Native References
+Representations
+Bindings
+Observations
+Adapters
+Reconciliation
+```
+
+---
+
+## Native systems can remain directly writable
+
+Monad uses a hybrid authority model.
+
+It does not require:
+
+```text
+all changes must originate in Monad
+```
+
+Ordinary engineering tools may continue to change native systems directly.
+
+For example:
+
+```text
+developer edits source file
+      │
+      ▼
+filesystem changes
+      │
+      ▼
+Monad observes change
+      │
+      ▼
+reconciliation
+      │
+      ▼
+semantic model updated
+```
+
+In other cases, a Monad-managed operation may initiate the native change.
+
+```text
+authorized Monad operation
+      │
+      ▼
+execution engine
+      │
+      ▼
+native tool
+      │
+      ▼
+native system changes
+      │
+      ▼
+verification + reconciliation
+```
+
+Both paths are valid.
+
+The architecture must support them explicitly.
+
+---
+
+# Event and change model
+
+Monad needs a way to reason about change across systems.
+
+A native system may emit or expose events such as:
+
+```text
+file modified
+commit created
+issue updated
+build completed
+deployment changed
+test failed
+policy amended
+```
+
+Monad may normalize these into meaningful change records.
+
+Conceptually:
+
+```text
+Native Event
+      │
+      ▼
+Adapter
+      │
+      ▼
+Normalized Change
+      │
+      ├──► update read model
+      ├──► trigger reconciliation
+      ├──► evaluate policy
+      ├──► update provenance
+      └──► invalidate projection
+```
+
+Not every low-level event needs permanent storage.
+
+The architecture should preserve events when they carry durable engineering meaning.
+
+---
+
+# Commands and queries
+
+Monad conceptually separates:
+
+```text
+Query
+```
+
+from:
+
+```text
+Command
+```
+
+A query asks about system state.
+
+A command requests a state change.
+
+For example:
+
+```text
+Query:
+What depends on Subject A?
+```
+
+versus:
+
+```text
+Command:
+Supersede Specification S with S2.
+```
+
+Commands may require:
+
+* policy evaluation,
+* authority,
+* lifecycle checks,
+* execution,
+* verification,
+* and provenance.
+
+Queries generally should not.
+
+This distinction helps keep read paths and side-effecting paths clear.
+
+---
+
+# Proposed architecture flow
+
+A typical read operation may look like:
+
+```text
+User / Agent
+     │
+     ▼
+Interface
+     │
+     ▼
+Query Engine
+     │
+     ▼
+Read Model / System Graph
+     │
+     ▼
+Canonical + Native Context
+     │
+     ▼
+Result + provenance + authority
+```
+
+A typical change operation may look like:
+
+```text
+User / Agent
+     │
+     ▼
+Requested Change
+     │
+     ▼
+Planning / Impact Analysis
+     │
+     ▼
+Policy + Authority Evaluation
+     │
+     ▼
+Execution Plan
+     │
+     ▼
+Execution Boundary
+     │
+     ▼
+Native Systems
+     │
+     ▼
+Verification
+     │
+     ▼
+Evidence + Provenance
+     │
+     ▼
+Reconciliation
+     │
+     ▼
+Updated System Model
+```
+
+This is a key difference between Monad and a simple metadata database.
+
+Monad is intended to participate in the controlled evolution of the engineering system.
+
+---
+
+# AI architecture
+
+AI systems should consume Monad through explicit interfaces rather than bypassing the engineering model.
+
+An agent interaction should ideally resemble:
+
+```text
+Agent
+  │
+  ▼
+Task
+  │
+  ▼
+Context Engine
+  │
+  ├── governing requirements
+  ├── authoritative specifications
+  ├── relevant decisions
+  ├── dependencies
+  ├── policies
+  ├── current implementation
+  └── verification obligations
+  │
+  ▼
+Agent reasoning / proposal
+  │
+  ▼
+Policy + Authority Gate
+  │
+  ▼
+Execution
+  │
+  ▼
+Verification
+  │
+  ▼
+Evidence + Provenance
+```
+
+The AI provider itself should remain replaceable.
+
+Monad should depend on:
+
+```text
+capabilities
+contracts
+structured inputs and outputs
+```
+
+rather than requiring one specific model vendor.
+
+---
+
+# Provider-neutral AI boundary
+
+The architecture should expose AI through a provider-neutral contract where practical.
+
+That contract may eventually describe capabilities such as:
+
+```text
+text generation
+structured generation
+tool use
+reasoning
+embeddings
+reranking
+image understanding
+context limits
+streaming
+```
+
+Monad can then choose behavior based on available capability rather than provider identity.
+
+This supports:
+
+* local models,
+* hosted models,
+* provider substitution,
+* fallback,
+* testing,
+* and cost control.
+
+The precise contract belongs under Artifacts.
+
+---
+
+# Human architecture
+
+Humans are not outside the system.
+
+Humans participate as Actors with:
+
+* identity,
+* roles,
+* authority,
+* capabilities,
+* assignments,
+* approvals,
+* and provenance.
+
+A human action may therefore be represented through the same broad governance model used for machine actors.
+
+That does **not** imply that humans and AI agents are interchangeable.
+
+It means the architecture can represent both explicitly.
+
+---
+
+# Interface layer
+
+Monad capabilities may be exposed through multiple interfaces.
+
+Potential interfaces include:
+
+```text
+CLI
+library API
+local daemon
+HTTP API
+event stream
+plugin interface
+MCP tools
+agent interface
+generated files
+human-readable docs
+```
+
+These interfaces should expose shared system semantics rather than independent implementations of meaning.
+
+For example:
+
+```text
+CLI query
+HTTP query
+agent query
+```
+
+should ultimately resolve against the same authority and identity model.
+
+---
+
+# CLI
+
+The CLI is likely to be one of Monad's primary local interfaces.
+
+It may expose operations such as:
+
+```text
+inspect
+query
+trace
+impact
+validate
+plan
+execute
+verify
+sync
+reconcile
+release
+```
+
+The CLI should function as an interface to architectural capabilities rather than embedding all architecture inside command handlers.
+
+Conceptually:
+
+```text
+CLI command
+     │
+     ▼
+application service / engine
+     │
+     ▼
+domain capability
+```
+
+This separation keeps the architecture usable from other interfaces later.
+
+---
+
+# Plugins and extensions
+
+Monad cannot implement every engineering integration centrally.
+
+The architecture therefore needs controlled extensibility.
+
+Extensions may provide:
+
+* adapters,
+* validators,
+* Subject types,
+* relationship types,
+* projections,
+* engines,
+* policies,
+* capability providers,
+* and native-system integrations.
+
+But extensions must operate within constitutional and semantic constraints.
+
+Conceptually:
+
+```text
+Core
+  │
+  ├── governed extension points
+  │
+  ├── schema compatibility
+  │
+  ├── capability declarations
+  │
+  └── policy boundaries
+  │
+  ▼
+Extensions
+```
+
+Extensibility must not reduce the system to an untyped plugin free-for-all.
+
+---
+
+# Architectural boundaries
+
+Several boundaries are particularly important.
+
+## Constitution boundary
+
+Separates fundamental rules from ordinary system state.
+
+## Semantic boundary
+
+Separates Subjects and Claims from their physical representations.
+
+## Native-system boundary
+
+Separates Monad-owned semantics from externally owned engineering reality.
+
+## Read/write boundary
+
+Separates inspection from side-effecting operations.
+
+## Execution boundary
+
+Separates proposed changes from actual native-system mutation.
+
+## Authority boundary
+
+Separates technical capability from permission.
+
+## Canonical/derived boundary
+
+Separates authoritative state from projections and indexes.
+
+## Human/agent boundary
+
+Preserves actor identity and responsibility while allowing shared system interfaces.
+
+## Local/remote boundary
+
+Allows local operation while supporting optional distributed capabilities.
+
+These boundaries are more important than whether the initial implementation consists of one process or twenty services.
+
+---
+
+# Failure boundaries
+
+Monad should fail explicitly rather than silently corrupt meaning.
+
+Examples include:
+
+```text
+identity conflict
+authority conflict
+stale projection
+invalid lifecycle transition
+native-system divergence
+policy denial
+missing evidence
+unsupported schema version
+failed migration
+partial execution
+verification failure
+```
+
+Each should become a meaningful system state or diagnostic.
+
+For example:
+
+```text
+Cannot apply change.
+
+Reason:
+  target representation changed after planning
+
+Expected native revision:
+  abc123
+
+Observed native revision:
+  def456
+
+Required action:
+  recalculate impact and reauthorize
+```
+
+This is preferable to applying a plan against an unknown state.
+
+---
+
+# Transaction boundaries
+
+Not every engineering operation can be atomically transactional.
+
+Editing files, creating Git commits, updating GitHub issues, and deploying infrastructure may involve independent systems.
+
+Monad therefore needs explicit notions of:
+
+```text
+planned operation
+attempted operation
+completed operation
+partially completed operation
+failed operation
+compensated operation
+```
+
+The architecture should never assume that distributed side effects can always be rolled back perfectly.
+
+Where true atomicity is impossible, the system should preserve enough state to reconcile and recover deliberately.
+
+---
+
+# Idempotency
+
+Operations that can be retried should be designed for idempotency where practical.
+
+For example:
+
+```text
+ensure representation binding exists
+```
+
+is safer than:
+
+```text
+blindly append another binding
+```
+
+Likewise:
+
+```text
+ensure GitHub field exists
+```
+
+is safer than:
+
+```text
+create GitHub field
+```
+
+Idempotency matters because:
+
+* automation retries,
+* partial failures occur,
+* agents may resume work,
+* network calls fail,
+* and reconciliation can replay desired state.
+
+---
+
+# Concurrency
+
+Multiple actors may modify the engineering system simultaneously.
+
+The architecture therefore must assume concurrent change.
+
+Potential protections include:
+
+* revision checks,
+* optimistic concurrency,
+* native-system locking where available,
+* precondition validation,
+* operation scopes,
+* conflict detection,
+* and reconciliation.
+
+A plan created against:
+
+```text
+system state A
+```
+
+should not automatically execute against:
+
+```text
+system state C
+```
+
+after another actor has changed the target.
+
+---
+
+# Versioning
+
+Several parts of Monad require independent versioning.
+
+These may include:
+
+```text
+Constitution version
+schema version
+artifact format version
+plugin interface version
+CLI version
+API version
+projection definition version
+system release version
+```
+
+These versions should not be conflated unnecessarily.
+
+For example:
+
+```text
+Monad release 1.4
+```
+
+does not imply:
+
+```text
+every artifact schema == 1.4
+```
+
+Explicit compatibility relationships are preferable.
+
+---
+
+# Migration
+
+A long-lived semantic system must expect its model to evolve.
+
+Migration may affect:
+
+* schemas,
+* identifiers,
+* relationships,
+* lifecycle definitions,
+* projections,
+* read models,
+* policies,
+* and canonical storage.
+
+A migration should ideally preserve:
+
+```text
+meaning
+history
+identity
+provenance
+```
+
+rather than simply making old bytes conform to a new schema.
+
+Migration therefore belongs to architecture, not merely persistence tooling.
+
+---
+
+# Reproducibility architecture
+
+Monad should make significant engineering operations reconstructable where practical.
+
+A useful execution record may bind:
+
+```text
+operation
+actor
+input Subjects
+native source revision
+tool versions
+environment
+configuration
+command
+outputs
+verification
+evidence
+```
+
+This allows questions such as:
+
+> What exactly produced this artifact?
+
+or:
+
+> Can this verification result be reproduced?
+
+Reproducibility does not require preserving every incidental machine detail forever.
+
+The architecture should retain the information whose absence would materially prevent reconstruction.
+
+---
+
+# Security architecture
+
+Security is cross-cutting.
+
+It affects:
+
+* actor identity,
+* credentials,
+* capabilities,
+* policy,
+* execution,
+* native integrations,
+* secret handling,
+* auditability,
+* plugin boundaries,
+* and remote synchronization.
+
+Important architectural rules include:
+
+```text
+least authority
+explicit capability grants
+secret isolation
+untrusted input handling
+bounded execution
+auditable privileged actions
+```
+
+An AI agent should never gain authority merely because a credential happens to be available in its environment.
+
+---
+
+# Trust boundaries
+
+Monad may process information from sources with different levels of trust.
+
+Examples include:
+
+```text
+canonical internal artifact
+repository file
+external documentation
+AI inference
+third-party API
+user input
+generated content
+```
+
+The architecture should preserve source provenance and prevent untrusted information from silently acquiring authoritative status.
+
+This is particularly important for systems capable of executing actions.
+
+---
+
+# Observability
+
+Monad itself should be observable.
+
+Useful operational signals may include:
+
+* engine operations,
+* policy decisions,
+* reconciliation events,
+* execution attempts,
+* verification outcomes,
+* projection freshness,
+* integration failures,
+* migration status,
+* and performance.
+
+Observability output is not automatically part of the permanent engineering record.
+
+Only durable engineering meaning should be promoted into canonical provenance or evidence.
+
+---
+
+# Local and remote topology
+
+The architecture should support an incremental deployment model.
+
+A minimal local topology might be:
+
+```text
+┌─────────────────────┐
+│      Monad CLI      │
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│   Local Core       │
+│                    │
+│ model              │
+│ engines            │
+│ policy             │
+│ read model         │
+│ reconciliation     │
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│ Local Engineering  │
+│ Systems            │
+│                    │
+│ files · Git · tools│
+└────────────────────┘
+```
+
+A larger organization might add:
+
+```text
+Shared services
+   │
+   ├── collaboration
+   ├── organization policy
+   ├── remote execution
+   ├── shared graph/index
+   ├── cross-project analysis
+   ├── hosted agents
+   └── synchronization
+```
+
+The local system should remain meaningful without requiring every shared capability.
+
+---
+
+# Multi-project architecture
+
+Monad should not assume that:
+
+```text
+one repository == one system
+```
+
+A software system may span:
+
+```text
+repository A
+repository B
+infrastructure repository
+documentation repository
+shared package
+external service
+deployment environment
+```
+
+The architecture therefore needs project and workspace boundaries capable of expressing:
+
+```text
+local ownership
+cross-project relationships
+external references
+authority boundaries
+shared Subjects
+```
+
+Cross-project modeling should not accidentally erase repository or organizational boundaries.
+
+---
+
+# Self-hosting
+
+Monad is one of its own first governed systems.
+
+This means Monad's architecture should eventually be capable of describing:
+
+* Monad requirements,
+* Monad artifacts,
+* Monad architecture,
+* Monad repositories,
+* Monad implementation,
+* Monad verification,
+* and Monad releases.
+
+Conceptually:
+
+```text
+Monad
+  │
+  │ models and governs
+  ▼
+Monad development
+```
+
+This provides a powerful integration test.
+
+However, self-hosting alone is insufficient.
+
+The architecture must also work for systems that were not designed around Monad.
+
+---
+
+# External reference system
+
+A small external reference project should exercise Monad independently of its own repository.
+
+This helps answer:
+
+```text
+Does the architecture generalize?
+```
+
+rather than merely:
+
+```text
+Can Monad model itself?
+```
+
+The reference system should remain deliberately small enough that semantic overhead can be evaluated honestly.
+
+---
+
+# Architecture and implementation topology
+
+This page describes logical components.
+
+It does not require each component to become a separately deployed service.
+
+An early implementation may look like:
+
+```text
+monad executable
+   │
+   ├── model
+   ├── identity
+   ├── query
+   ├── policy
+   ├── context
+   ├── impact
+   ├── execution
+   ├── verification
+   └── adapters
+```
+
+Later architecture may separate some concerns.
+
+Premature service decomposition would increase operational complexity without necessarily improving semantic boundaries.
+
+The system should prefer:
+
+> **strong logical boundaries before distributed deployment boundaries.**
+
+---
+
+# Architecture versus components
+
+Architecture describes:
+
+```text
+responsibilities
+boundaries
+data flow
+authority
+ownership
+interaction patterns
+```
+
+The [Components](/docs/system/components) section should describe the concrete system units implementing those responsibilities.
+
+For example:
+
+```text
+Architecture:
+There is an Identity Engine responsibility.
+
+Components:
+package X, service Y, and database Z currently implement it.
+```
+
+This distinction allows implementation to change without rewriting the architectural model unnecessarily.
+
+---
+
+# Architecture versus interfaces
+
+Architecture establishes that components must communicate.
+
+[Interfaces](/docs/system/interfaces) defines how.
+
+For example:
+
+```text
+Architecture:
+Execution Engine requests policy evaluation.
+
+Interface:
+Policy evaluation request and response schema.
+```
+
+The exact contracts belong under the interface documentation and corresponding specifications.
+
+---
+
+# Architecture versus Artifacts
+
+This page explains the current architecture.
+
+The evidence and formal contracts behind it belong under [Artifacts](/docs/artifacts).
+
+For example:
+
+```text
+Architecture
+  "Constitution is separated from ordinary graph state."
+
+        ↓ supported by
+
+Requirement
+ADR
+Constitution specification
+schema
+acceptance tests
+verification evidence
+```
+
+System documentation communicates the architecture.
+
+Artifacts make it inspectable.
+
+---
+
+# Architectural invariants
+
+The current architecture depends on several invariants.
+
+## The Constitution governs ordinary model state
+
+Ordinary graph mutation cannot implicitly redefine constitutional rules.
+
+## Subjects retain semantic identity independently of representations
+
+Native location alone does not define identity.
+
+## Native systems remain authoritative within declared scopes
+
+Monad does not silently replace legitimate native authority.
+
+## Derived views remain distinguishable from authoritative sources
+
+Projection provenance and freshness matter.
+
+## Side effects cross an explicit execution boundary
+
+Reasoning does not become mutation automatically.
+
+## Every governed action has an identifiable actor
+
+Human, agent, automation, or external system.
+
+## Capability does not imply authority
+
+Policy and authority determine whether capability may be exercised.
+
+## Important execution outcomes can produce evidence
+
+Claims of correctness should be inspectable.
+
+## Model/native divergence must be detectable
+
+Monad cannot assume synchronization forever.
+
+## Migration preserves semantic continuity
+
+Schema evolution should not casually destroy identity or history.
+
+## Unknown state remains representable
+
+The architecture does not require invented certainty.
+
+---
+
+# A full governed-change example
+
+Consider a request:
+
+> Change the authentication API to support a new credential type.
+
+The architecture may process it approximately like this:
+
+```text
+Request
+   │
+   ▼
+Resolve target Subjects
+   │
+   ▼
+Query current semantic state
+   │
+   ▼
+Load requirements + specifications + decisions
+   │
+   ▼
+Impact Engine
+   │
+   ├── client interfaces
+   ├── authentication component
+   ├── tests
+   ├── documentation
+   └── policy
+   │
+   ▼
+Planning Engine
+   │
+   ▼
+Policy Engine
+   │
+   ├── actor capability?
+   ├── operation permitted?
+   ├── review required?
+   └── evidence required?
+   │
+   ▼
+Authorized Execution Plan
+   │
+   ▼
+Context Engine
+   │
+   ▼
+Human / Agent performs implementation
+   │
+   ▼
+Execution Engine invokes native tools
+   │
+   ▼
+Filesystem + Git change
+   │
+   ▼
+Verification Engine
+   │
+   ├── unit tests
+   ├── integration tests
+   ├── acceptance criteria
+   └── architecture checks
+   │
+   ▼
+Evidence + Provenance
+   │
+   ▼
+Reconciliation
+   │
+   ▼
+System Graph updated
+   │
+   ▼
+Affected projections invalidated / regenerated
+```
+
+The exact mechanics may evolve.
+
+The separation of responsibility is the architectural point.
+
+---
+
+# What the architecture deliberately does not decide here
+
+Several implementation details should remain outside this page until formalized by specifications or decisions.
+
+For example:
+
+* exact Subject identifier syntax,
+* concrete persistence database,
+* graph database versus relational graph projection,
+* exact canonical serialization,
+* event-log implementation,
+* wire protocols,
+* plugin packaging,
+* synchronization protocol,
+* AI provider API,
+* precise policy language,
+* migration encoding,
+* caching implementation,
+* remote-service topology,
+* and deployment technology.
+
+Those decisions matter.
+
+But they should not be smuggled into the authoritative architecture before evidence and formal decisions justify them.
+
+<Callout type="info" title="Architecture before accidental implementation commitment">
+
+This page defines responsibility boundaries and system relationships.
+
+Concrete technology selections should be traceable to explicit decisions and specifications rather than appearing here merely because one implementation currently uses them.
+
+</Callout>
+
+---
+
+# Architectural risks
+
+The architecture carries real risks.
+
+## Semantic-model complexity
+
+The model may become too expensive to maintain.
+
+Mitigation:
+
+```text
+progressive formalization
+small core
+evidence-driven metadata
+```
+
+---
+
+## Model divergence
+
+Monad may describe a system that has already changed elsewhere.
+
+Mitigation:
+
+```text
+native observation
+revision tracking
+freshness
+reconciliation
+```
+
+---
+
+## Authority ambiguity
+
+Multiple sources may disagree about what governs.
+
+Mitigation:
+
+```text
+scoped authority
+explicit conflicts
+policy
+human escalation
+```
+
+---
+
+## Graph noise
+
+Too many weak relationships may degrade useful reasoning.
+
+Mitigation:
+
+```text
+typed relationships
+relationship governance
+value threshold
+```
+
+---
+
+## Automation overreach
+
+Agents may perform technically valid but unauthorized actions.
+
+Mitigation:
+
+```text
+execution boundary
+policy engine
+capability model
+explicit scope
+```
+
+---
+
+## Centralization pressure
+
+The semantic model may become an excuse to duplicate all native data.
+
+Mitigation:
+
+```text
+native authority
+references
+bindings
+federated ownership
+```
+
+---
+
+## Stale AI context
+
+A structured context package may be trusted despite being obsolete.
+
+Mitigation:
+
+```text
+projection freshness
+source revisions
+context regeneration
+```
+
+---
+
+## Excessive process
+
+Governance may create friction disproportionate to risk.
+
+Mitigation:
+
+```text
+risk-proportional policy
+bounded autonomy
+automation of low-risk operations
+```
+
+---
+
+# Architecture quality criteria
+
+A healthy Monad architecture should demonstrate several properties.
+
+## Understandable
+
+Engineers should be able to explain the major boundaries.
+
+## Inspectable
+
+Important decisions and system states should be queryable.
+
+## Governable
+
+Sensitive operations should have explicit authority and policy.
+
+## Reproducible
+
+Important execution outcomes should be reconstructable where required.
+
+## Portable
+
+Core engineering meaning should not depend entirely on one vendor.
+
+## Extensible
+
+New domains and integrations should be possible without rewriting the core.
+
+## Local-first
+
+Useful operation should remain possible locally.
+
+## Integrable
+
+Existing engineering tools should remain usable.
+
+## Correctable
+
+The system should represent new understanding without erasing history.
+
+## Evidence-driven
+
+Architectural complexity should justify itself through demonstrated engineering value.
+
+---
+
+# Architecture navigation
+
+The surrounding System documentation explores this architecture from different perspectives.
+
+<Cards>
+  <Card
+    title="Concepts & Principles"
+    href="/docs/system/concepts"
+  >
+    Review the semantic primitives and invariants that this architecture implements.
+  </Card>
+
+<Card
+title="Components"
+href="/docs/system/components"
+>
+Examine the concrete components responsible for the architectural capabilities described here.
+</Card>
+
+<Card
+title="Interfaces"
+href="/docs/system/interfaces"
+>
+Explore how components, engines, native systems, humans, and agents communicate.
+</Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+>
+Go deeper into authority, policy, capability boundaries, approvals, and constitutional evolution.
+</Card>
+
+<Card
+title="Execution"
+href="/docs/system/execution"
+>
+Follow engineering work through planning, authorization, action, verification, provenance, and reconciliation.
+</Card>
+
+<Card
+title="Integrations"
+href="/docs/system/integrations"
+>
+Understand how Monad remains grounded in filesystems, Git, GitHub, CI, deployment systems, and other native tools.
+</Card>
+</Cards>
+
+---
+
+# Relationship to the engineering record
+
+Architectural claims should increasingly be traceable to the corresponding engineering artifacts.
+
+For example:
+
+```text
+Architecture statement
+      │
+      ▼
+Requirement
+      │
+      ▼
+ADR
+      │
+      ▼
+Specification
+      │
+      ▼
+Implementation
+      │
+      ▼
+Verification
+      │
+      ▼
+Evidence
+```
+
+The [Artifacts](/docs/artifacts) section is where those records belong.
+
+This page should remain the readable architectural explanation rather than becoming a concatenation of specifications.
+
+---
+
+# Relationship to Building Monad
+
+The architecture described here is the current model.
+
+[Building Monad](/docs/building-monad) preserves how it emerged.
+
+There you may encounter:
+
+* earlier architectural models,
+* rejected alternatives,
+* experiments,
+* partial implementations,
+* conflicting hypotheses,
+* and decisions that were later superseded.
+
+That historical material remains valuable.
+
+It does not automatically remain authoritative.
+
+---
+
+# The architectural rule of thumb
+
+When deciding where a responsibility belongs, ask:
+
+> **Who owns the meaning?**
+
+Then:
+
+> **Who owns the authoritative state?**
+
+Then:
+
+> **Who performs the operation?**
+
+Then:
+
+> **Who verifies the result?**
+
+Then:
+
+> **How is the relationship between those things preserved?**
+
+Those questions prevent architectural responsibilities from collapsing into whichever tool happens to be most convenient.
+
+---
+
+# The governing architecture
+
+Monad's architecture can ultimately be summarized as:
+
+```text
+Constitution
+     │
+     │ defines what is valid
+     ▼
+Canonical Semantic Model
+     │
+     │ describes what is known
+     ▼
+Engines
+     │
+     │ reason about what should happen
+     ▼
+Policy + Authority
+     │
+     │ determine what may happen
+     ▼
+Execution Boundary
+     │
+     │ performs governed change
+     ▼
+Native Engineering Systems
+     │
+     │ contain engineering reality
+     ▼
+Observation + Verification
+     │
+     │ produce evidence
+     ▼
+Reconciliation
+     │
+     │ updates understanding
+     └──────────────────────────────► Semantic Model
+```
+
+It is a closed engineering loop.
+
+Not because Monad owns all reality.
+
+But because it can continuously:
+
+```text
+understand
+decide
+act
+observe
+verify
+learn
+```
+
+while preserving the relationships between those stages.
+
+---
+
+## Where to go next
+
+Once the architecture is understood, the next useful step is to move from logical responsibilities to concrete system units.
+
+<Cards>
+  <Card
+    title="Components"
+    href="/docs/system/components"
+  >
+    See how architectural responsibilities are grouped into concrete components and subsystems.
+  </Card>
+
+<Card
+title="Interfaces"
+href="/docs/system/interfaces"
+>
+Understand the contracts connecting those components.
+</Card>
+
+<Card
+title="Governance"
+href="/docs/system/governance"
+>
+Examine the mechanisms controlling authority, policy, lifecycle, and protected change.
+</Card>
+
+<Card
+title="Artifacts"
+href="/docs/artifacts"
+>
+Inspect the requirements, decisions, specifications, models, and evidence supporting the architecture.
+</Card>
+</Cards>

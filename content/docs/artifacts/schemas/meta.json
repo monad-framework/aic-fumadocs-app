@@ -1,0 +1,20 @@
+{
+  "title": "Schemas",
+  "pages": [
+    "index",
+    "actor.schema",
+    "authority.schema",
+    "capability.schema",
+    "claim.schema",
+    "evidence.schema",
+    "execution.schema",
+    "native-reference.schema",
+    "operation.schema",
+    "policy.schema",
+    "provenance.schema",
+    "relationship.schema",
+    "representation.schema",
+    "subject.schema",
+    "verification.schema"
+  ]
+}

@@ -16,6 +16,9 @@ Unlike published changelog records, this page is intentionally editable. Items c
 - Added a typed editorial metadata contract for public Articles, including durable publication IDs, publication type/state, byline, publish/revision dates, audiences, topics, reading time, series relationships, canonical URLs, related reading, and featured status.
 - Added `/articles/format` as the public editorial lifecycle and authoring contract.
 - Added the first real Blog publication, `ART-2026-08-30-001 — Why Monad Has Four Publication Domains`.
+- Added `/building-monad` as a first-class curated narrative domain with Series, Installments, Project Phases, and Essays & Editorial Reading paths.
+- Added `/building-monad/format` as the public curation and source-ownership contract.
+- Added `Installment 001 — Publication Domains Become First-Class` as the first bounded Building Monad narrative snapshot.
 
 ## Changed
 
@@ -25,6 +28,9 @@ Unlike published changelog records, this page is intentionally editable. Items c
 - Published Article pages now render editorial publication metadata above the article body.
 - Expanded global Articles navigation with an Articles overview and authoring guide.
 - Removed the Articles-local floating `Ask AI` control because the current AI endpoint searches authoritative docs rather than editorial content.
+- Reworked Building Monad from a mixed journal/essay/history section into the curation layer that connects System, Artifacts, Journal, Changelogs, and Articles.
+- Moved Building Monad out of the authoritative `content/docs` collection to its own top-level `/building-monad` route and source collection.
+- Updated global navigation so Building Monad is a first-class top-level destination.
 
 ## Fixed
 
@@ -36,7 +42,7 @@ _No unreleased deprecations are currently recorded._
 
 ## Removed
 
-_No unreleased removals are currently recorded._
+- Removed the old docs-owned Building Monad content tree after replacing it with the dedicated curation domain. Legacy `/docs/building-monad/...` routes redirect to their new locations.
 
 ## Security
 

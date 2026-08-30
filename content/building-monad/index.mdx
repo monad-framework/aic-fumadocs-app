@@ -1,0 +1,130 @@
+---
+title: Building Monad
+description: Curated narrative and reading paths through the questions, decisions, experiments, changes, and artifacts that shaped Monad.
+---
+
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    The curated project narrative
+  </p>
+
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Follow how Monad became what it is without confusing the story of the work with the records that establish current truth.
+  </p>
+</div>
+
+Building Monad is the **curation layer** of the public Monad knowledge system.
+
+It does not own a second copy of the engineering record. Instead, it assembles durable records from the other publication domains into coherent reading paths that explain how the project developed and why particular moments mattered.
+
+<Callout type="info" title="Curation, not authority">
+
+Building Monad may summarize, sequence, and interpret material, but it does not replace the source record.
+
+For current technical truth use [System](/docs/system). For normative and inspectable engineering records use [Artifacts](/docs/artifacts). For chronological working history use the [Engineering Journal](/journal). For externally meaningful changes use [Changelogs](/changelogs). For editorial explanation and argument use [Articles](/articles).
+
+</Callout>
+
+## What question does each domain answer?
+
+| Domain | Primary question |
+| --- | --- |
+| [System](/docs/system) | What is true about Monad now? |
+| [Artifacts](/docs/artifacts) | What was specified, decided, evidenced, reviewed, or verified? |
+| [Engineering Journal](/journal) | What happened while the work was being done? |
+| [Changelogs](/changelogs) | What changed at a meaningful publication or release boundary? |
+| [Articles](/articles) | What should readers understand about this subject? |
+| **Building Monad** | How do those records fit together into the story of the project? |
+
+That final question is the reason this section exists.
+
+---
+
+## Choose a reading path
+
+<Cards>
+  <Card title="Series" href="/building-monad/series">
+    Follow thematic, ordered reading paths that connect material across multiple publication domains.
+  </Card>
+
+  <Card title="Installments" href="/building-monad/installments">
+    Read bounded snapshots of important project moments, each assembled from the records produced around that moment.
+  </Card>
+
+  <Card title="Project Phases" href="/building-monad/phases">
+    Traverse the project by lifecycle stage, from inception and discovery through release and continued evolution.
+  </Card>
+
+  <Card title="Essays & Editorial Reading" href="/building-monad/essays">
+    Find curated editorial work without turning Building Monad into a duplicate article repository.
+  </Card>
+</Cards>
+
+---
+
+## Four common reader paths
+
+### New reader
+
+Start with [Series](/building-monad/series), then read the current [System overview](/docs/system). Use the Journal only when you want the history behind a particular result.
+
+### Architect
+
+Start with the [Architecture phase](/building-monad/phases/04-architecture), then move into [Artifacts](/docs/artifacts) and the ADR corpus. Use Articles for interpretation and Journal entries for historical context.
+
+### Builder
+
+Start with [Installments](/building-monad/installments) to understand the current work context, then use [Project](/docs/project), [System](/docs/system), and the relevant specifications as the operational source of truth.
+
+### Historian
+
+Use the [Project Phases](/building-monad/phases) as the spine, then follow links into Journal entries, Changelog records, ADRs, requirements, and Articles to reconstruct how understanding changed over time.
+
+---
+
+## How curation works
+
+A Building Monad page should normally do four things:
+
+1. identify the question, theme, phase, or moment being curated,
+2. explain why the selected records belong together,
+3. link to the durable source records in their native domains,
+4. distinguish historical interpretation from current authority.
+
+It should **not** copy an ADR, reproduce an Article, mirror a Journal entry, or restate an entire Changelog record.
+
+That rule keeps the public knowledge system composable: one record can participate in many narratives without creating many competing copies of the same truth.
+
+---
+
+## A concrete example
+
+The recent separation of the public knowledge base can be understood through several different records:
+
+<Cards>
+  <Card title="Journal record" href="/journal/2026-08-30-001-establishing-the-engineering-journal">
+    See the working historical record of making Journal a first-class publication domain.
+  </Card>
+
+  <Card title="Changelog record" href="/changelogs/2026-08-30-001-publication-domains">
+    See the externally meaningful change set produced by the publication-domain split.
+  </Card>
+
+  <Card title="Editorial explanation" href="/articles/blog/2026-08-30-001-why-four-publication-domains">
+    Read why the separation matters and how the four publication domains differ.
+  </Card>
+
+  <Card title="Curated installment" href="/building-monad/installments/001-publication-domains">
+    Follow those records as one bounded moment in the evolution of the project.
+  </Card>
+</Cards>
+
+No one of these replaces the others. Their value comes from preserving different semantic roles while remaining connected.
+
+---
+
+## Governing principle
+
+> **Building Monad should make the evolution of the project intelligible without becoming another place where project truth must be maintained.**
+
+The source records remain where they belong. Building Monad supplies sequence, interpretation, context, and paths through them.

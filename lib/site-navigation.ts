@@ -34,8 +34,8 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
       },
       {
         label: 'Building Monad',
-        description: 'Follow the public engineering narrative',
-        href: '/docs/building-monad',
+        description: 'Follow the curated project narrative',
+        href: '/building-monad',
       },
       {
         label: 'Project',
@@ -59,9 +59,45 @@ export const siteNavigation: readonly SiteNavigationEntry[] = [
     items: [
       {
         label: 'Monad Docs',
-        description: 'Browse the documentation',
+        description: 'Browse the authoritative documentation',
         href: '/docs',
         match: 'exact',
+      },
+    ],
+  },
+  {
+    label: 'Building Monad',
+    items: [
+      {
+        label: 'Building Monad Home',
+        description: 'Start with the curated project narrative',
+        href: '/building-monad',
+        match: 'exact',
+      },
+      {
+        label: 'Series',
+        description: 'Follow thematic reading paths across project records',
+        href: '/building-monad/series',
+      },
+      {
+        label: 'Installments',
+        description: 'Read bounded snapshots of important project moments',
+        href: '/building-monad/installments',
+      },
+      {
+        label: 'Project Phases',
+        description: 'Traverse the project by lifecycle stage',
+        href: '/building-monad/phases',
+      },
+      {
+        label: 'Essays & Editorial Reading',
+        description: 'Follow curated paths into the Articles corpus',
+        href: '/building-monad/essays',
+      },
+      {
+        label: 'How Building Monad Works',
+        description: 'Read the curation and source-ownership contract',
+        href: '/building-monad/format',
       },
     ],
   },

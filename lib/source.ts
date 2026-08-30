@@ -107,6 +107,19 @@ const docs = defineDocs({
   },
 });
 
+const buildingMonad = defineDocs({
+  dir: 'content/building-monad',
+  docs: {
+    schema: pageSchema,
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
+  },
+  meta: {
+    schema: metaSchema,
+  },
+});
+
 const articles = defineDocs({
   dir: 'content/articles',
   docs: {
@@ -149,6 +162,12 @@ const journal = defineDocs({
 export const source = loader({
   baseUrl: docsRoute,
   source: docs.toFumadocsSource(),
+  plugins: [lucideIconsPlugin()],
+});
+
+export const buildingMonadSource = loader({
+  baseUrl: '/building-monad',
+  source: buildingMonad.toFumadocsSource(),
   plugins: [lucideIconsPlugin()],
 });
 

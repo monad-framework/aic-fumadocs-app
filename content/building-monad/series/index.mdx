@@ -1,0 +1,46 @@
+---
+title: Series
+description: Ordered thematic reading paths that connect Monad records across publication domains.
+---
+
+A Building Monad **Series** is an ordered reading path through a theme. It does not require every part to be a Building Monad page, and it does not require all parts to use the same publication format.
+
+A series may deliberately connect an Article, an ADR, a Journal entry, a requirement family, and a Changelog record when that sequence best explains the subject.
+
+<Callout type="info" title="Series rule">
+
+The sequence is curated here; the source material remains owned by its native publication domain.
+
+</Callout>
+
+## Series 1 — Why Monad Exists
+
+Use this path to understand the problem before diving into implementation detail.
+
+1. [Project](/docs/project) — establish the project, boundaries, and intended outcomes.
+2. [System](/docs/system) — see the current explanation of the system that emerged.
+3. [Artifacts](/docs/artifacts) — inspect the requirements, specifications, decisions, and evidence supporting that system.
+4. [Engineering Journal](/journal) — reconstruct the work when the current answer alone is insufficient.
+
+## Series 2 — From Engineering Knowledge to a Governed System
+
+Use this path to move from the semantic problem into the architecture that governs it.
+
+1. [Requirements](/docs/artifacts/requirements) — read the normative expectations.
+2. [ADR-0001 — Semantic Identifier Strategy](/docs/artifacts/decisions/adr-0001-semantic-identifier-strategy) — begin with durable semantic identity.
+3. [ADR-0004 — Authority and Source of Truth Model](/docs/artifacts/decisions/adr-0004-authority-and-source-of-truth-model) — establish authority boundaries.
+4. [ADR-0006 — Execution, Effect, and Operational State Model](/docs/artifacts/decisions/adr-0006-execution-effect-and-operational-state-model) — see how governed intent becomes real operational effects.
+5. [ADR-0009 — Reproducible Execution and Environment Capture Model](/docs/artifacts/decisions/adr-0009-reproducible-execution-and-environment-capture-model) — connect execution to reproducible engineering evidence.
+
+## Series 3 — Building the Public Knowledge System
+
+This path documents a concrete architectural turning point in the site itself.
+
+1. [Establishing the Engineering Journal](/journal/2026-08-30-001-establishing-the-engineering-journal) — the working record.
+2. [Public Knowledge Base Split into Independent Publication Domains](/changelogs/2026-08-30-001-publication-domains) — the change boundary.
+3. [Why Monad Has Four Publication Domains](/articles/blog/2026-08-30-001-why-four-publication-domains) — the editorial explanation.
+4. [Installment 001 — Publication Domains Become First-Class](/building-monad/installments/001-publication-domains) — the curated narrative snapshot.
+
+## When to create a new series
+
+Create a series when a recurring question is best answered by a stable ordered path through multiple existing records. Do not create one merely to group pages that happen to share a tag.

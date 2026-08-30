@@ -11,6 +11,32 @@ const relatedLinkSchema = z.object({
   href: z.string(),
 });
 
+const articleMetadataSchema = z.object({
+  id: z.string().regex(/^ART-\d{4}-\d{2}-\d{2}-\d{3}$/),
+  type: z.enum(['blog', 'research', 'white-paper']),
+  status: z.enum(['published', 'revised', 'archived']),
+  published: dateSchema,
+  updated: dateSchema.optional(),
+  author: z.string().min(1),
+  audience: z.array(z.string()).default([]),
+  topics: z.array(z.string()).default([]),
+  featured: z.boolean().default(false),
+  readingMinutes: z.number().int().positive().optional(),
+  series: z
+    .object({
+      name: z.string(),
+      position: z.number().int().positive(),
+      href: z.string().optional(),
+    })
+    .optional(),
+  canonicalUrl: z.string().url().optional(),
+  related: z.array(relatedLinkSchema).default([]),
+});
+
+const articlePageSchema = pageSchema.extend({
+  article: articleMetadataSchema.optional(),
+});
+
 const changelogMetadataSchema = z.object({
   id: z.string().regex(/^CHG-\d{4}-\d{2}-\d{2}-\d{3}$/),
   date: dateSchema,
@@ -79,7 +105,7 @@ const docs = defineDocs({
 const articles = defineDocs({
   dir: 'content/articles',
   docs: {
-    schema: pageSchema,
+    schema: articlePageSchema,
     postprocess: {
       includeProcessedMarkdown: true,
     },

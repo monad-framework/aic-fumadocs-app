@@ -34,7 +34,11 @@ function normalizePath(value: string): string {
   return path.replace(/\/+$/, '') || '/';
 }
 
-function isPathActive(pathname: string, href: string): boolean {
+function isCurrentPage(pathname: string, href: string): boolean {
+  return normalizePath(pathname) === normalizePath(href);
+}
+
+function isPathWithin(pathname: string, href: string): boolean {
   const current = normalizePath(pathname);
   const target = normalizePath(href);
 
@@ -42,9 +46,15 @@ function isPathActive(pathname: string, href: string): boolean {
   return current === target || current.startsWith(`${target}/`);
 }
 
+function isLinkActive(pathname: string, item: SiteNavigationLink): boolean {
+  return item.match === 'exact'
+    ? isCurrentPage(pathname, item.href)
+    : isPathWithin(pathname, item.href);
+}
+
 function menuIsActive(pathname: string, menu: SiteNavigationMenu): boolean {
-  if (menu.href && isPathActive(pathname, menu.href)) return true;
-  return menu.items.some((item) => isPathActive(pathname, item.href));
+  if (menu.href && isPathWithin(pathname, menu.href)) return true;
+  return menu.items.some((item) => isLinkActive(pathname, item));
 }
 
 function DesktopLink({
@@ -54,14 +64,15 @@ function DesktopLink({
   item: SiteNavigationLink;
   pathname: string;
 }) {
-  const active = isPathActive(pathname, item.href);
+  const active = isLinkActive(pathname, item);
+  const current = isCurrentPage(pathname, item.href);
 
   return (
     <Link
       href={item.href}
       target={item.external ? '_blank' : undefined}
       rel={item.external ? 'noreferrer' : undefined}
-      aria-current={active ? 'page' : undefined}
+      aria-current={current ? 'page' : undefined}
       className={cn(
         'rounded-md px-2.5 py-2 text-sm font-medium text-fd-muted-foreground transition-colors hover:bg-fd-accent/60 hover:text-fd-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring motion-reduce:transition-none',
         active && 'bg-fd-primary/10 text-fd-primary',
@@ -208,9 +219,10 @@ function DesktopMenu({
           {menu.href && (
             <Link
               href={menu.href}
+              aria-current={isCurrentPage(pathname, menu.href) ? 'page' : undefined}
               className={cn(
                 'mb-1 block rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:bg-fd-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring motion-reduce:transition-none',
-                isPathActive(pathname, menu.href) && 'text-fd-primary',
+                isPathWithin(pathname, menu.href) && 'text-fd-primary',
               )}
               onClick={() => setOpen(false)}
             >
@@ -220,7 +232,8 @@ function DesktopMenu({
 
           <div className="grid gap-1">
             {menu.items.map((item) => {
-              const itemActive = isPathActive(pathname, item.href);
+              const itemActive = isLinkActive(pathname, item);
+              const current = isCurrentPage(pathname, item.href);
 
               return (
                 <Link
@@ -228,7 +241,7 @@ function DesktopMenu({
                   href={item.href}
                   target={item.external ? '_blank' : undefined}
                   rel={item.external ? 'noreferrer' : undefined}
-                  aria-current={itemActive ? 'page' : undefined}
+                  aria-current={current ? 'page' : undefined}
                   className={cn(
                     'rounded-lg px-3 py-2.5 transition-colors hover:bg-fd-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring motion-reduce:transition-none',
                     itemActive && 'bg-fd-primary/10',
@@ -421,12 +434,14 @@ export function SiteNavbar() {
             <div className="grid gap-6">
               {siteNavigation.map((entry, index) => {
                 if (!isNavigationMenu(entry)) {
-                  const active = isPathActive(pathname, entry.href);
+                  const active = isLinkActive(pathname, entry);
+                  const current = isCurrentPage(pathname, entry.href);
+
                   return (
                     <Link
                       key={entry.href}
                       href={entry.href}
-                      aria-current={active ? 'page' : undefined}
+                      aria-current={current ? 'page' : undefined}
                       className={cn(
                         'rounded-md py-1 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring',
                         active && 'text-fd-primary',
@@ -453,6 +468,7 @@ export function SiteNavbar() {
                       {entry.href ? (
                         <Link
                           href={entry.href}
+                          aria-current={isCurrentPage(pathname, entry.href) ? 'page' : undefined}
                           onClick={closeMobile}
                           className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
                         >
@@ -464,14 +480,16 @@ export function SiteNavbar() {
                     </div>
                     <div className="grid gap-1">
                       {entry.items.map((item) => {
-                        const itemActive = isPathActive(pathname, item.href);
+                        const itemActive = isLinkActive(pathname, item);
+                        const current = isCurrentPage(pathname, item.href);
+
                         return (
                           <Link
                             key={item.href}
                             href={item.href}
                             target={item.external ? '_blank' : undefined}
                             rel={item.external ? 'noreferrer' : undefined}
-                            aria-current={itemActive ? 'page' : undefined}
+                            aria-current={current ? 'page' : undefined}
                             className={cn(
                               'rounded-lg px-3 py-2.5 transition-colors hover:bg-fd-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring motion-reduce:transition-none',
                               itemActive && 'bg-fd-primary/10',

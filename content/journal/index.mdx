@@ -1,12 +1,165 @@
 ---
 title: Engineering Journal
-description: A chronological record of the work, decisions, experiments, failures, revisions, and progress involved in building Monad.
+description: The chronological working record of building Monad: investigations, implementation work, experiments, failures, discoveries, and changes in understanding.
 ---
 
-# Engineering Journal
+<div className="not-prose mb-10 mt-2">
+  <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-fd-muted-foreground">
+    The working record
+  </p>
 
-This section is the chronological engineering record for Monad.
+  <p className="mt-5 max-w-3xl text-xl leading-8 text-fd-muted-foreground">
+    Follow Monad close to the work, before the uncertainty has been edited out of the story.
+  </p>
+</div>
 
-Unlike the authoritative documentation under `/docs`, journal entries capture work as it happens: investigations, implementation notes, experiments, problems encountered, decisions in progress, and lessons learned.
+The Engineering Journal is the **chronological working record of Monad**.
 
-The journal may describe ideas that later change. When a journal entry conflicts with an accepted specification, requirement, decision record, or current system documentation, the authoritative artifact takes precedence.
+It captures engineering activity close to when it happens: investigations, implementation notes, experiments, failures, discoveries, revisions, unresolved questions, and changes in understanding.
+
+<Callout type="info" title="Historical record, not current authority">
+
+Journal entries preserve what was observed, attempted, or believed at a particular point in the project.
+
+They are intentionally allowed to become outdated. When a journal entry conflicts with an accepted requirement, specification, ADR, verification result, or current [System documentation](/docs/system), the authoritative artifact takes precedence.
+
+</Callout>
+
+## Choose how to read
+
+<Cards>
+  <Card
+    title="How the Journal Works"
+    href="/journal/format"
+  >
+    Understand entry IDs, metadata, statuses, chronology, and the boundary between Journal and authoritative documentation.
+  </Card>
+
+  <Card
+    title="Start with the first entry"
+    href="/journal/2026-08-30-001-establishing-the-engineering-journal"
+  >
+    Read the record of Journal becoming a first-class publication domain in the Monad site.
+  </Card>
+
+  <Card
+    title="Building Monad"
+    href="/docs/building-monad"
+  >
+    Move from the working chronology to the curated public narrative that explains what the engineering work means in the larger story.
+  </Card>
+
+  <Card
+    title="Current System"
+    href="/docs/system"
+  >
+    Leave the historical record and read the current authoritative explanation of Monad.
+  </Card>
+</Cards>
+
+## What belongs in Journal?
+
+Journal is deliberately closer to the work than the rest of the public knowledge base.
+
+| Record | Belongs here? | Why |
+| --- | --- | --- |
+| A question being investigated | Yes | The uncertainty itself is part of the engineering record. |
+| Implementation progress and debugging discoveries | Yes | They explain how the system evolved. |
+| An experiment and its result | Yes | Journal can preserve the activity before evidence is formalized elsewhere. |
+| A failed approach | Yes | Failure is historical information, not noise. |
+| A decision still being worked out | Yes | Use `decision-in-progress`; do not present it as an accepted ADR. |
+| An accepted architectural decision | Not as authority | Record the transition, then link to the authoritative ADR. |
+| A normative system requirement | No | Requirements belong under [Artifacts](/docs/artifacts/requirements). |
+| The current explanation of how Monad works | No | That belongs under [System](/docs/system). |
+| A polished interpretation of a period of work | Usually not | That belongs in [Building Monad](/docs/building-monad) or Articles. |
+
+## Journal and Building Monad are related, but different
+
+The Journal and Building Monad describe some of the same project history at different levels of interpretation.
+
+**Journal asks:** What happened while we were doing the work?
+
+**Building Monad asks:** What does that work mean in the larger engineering story?
+
+A useful relationship is:
+
+```text
+engineering work
+      ↓
+journal entry
+      ↓
+formal artifacts + evidence
+      ↓
+current system state
+      ↓
+Building Monad synthesis
+```
+
+The flow is not a promotion pipeline in which the Journal disappears after publication. The journal entry remains a historical record even after its observations become formal artifacts or are synthesized into an installment or essay.
+
+Cross-links preserve the relationship without making Journal part of `/docs`.
+
+## The four public record types
+
+The site now maintains four intentionally different kinds of publication:
+
+### Journal — what happened while working?
+
+Chronological, immediate, and allowed to age.
+
+### Building Monad — how did the project evolve?
+
+Curated, retrospective enough to form a coherent engineering narrative, but still historical rather than normative.
+
+### Artifacts — what can be inspected and verified?
+
+Requirements, specifications, ADRs, schemas, evidence, reviews, verification results, and other formal engineering records.
+
+### System — what is true now?
+
+The current authoritative explanation of Monad.
+
+Keeping those roles separate prevents history from masquerading as current truth and prevents current documentation from erasing the path that produced it.
+
+## Chronology
+
+Journal entry filenames begin with an ISO date and a three-digit sequence number:
+
+```text
+YYYY-MM-DD-NNN-short-slug.mdx
+```
+
+For example:
+
+```text
+2026-08-30-001-establishing-the-engineering-journal.mdx
+```
+
+The corresponding durable entry ID is:
+
+```text
+JRN-2026-08-30-001
+```
+
+The sidebar lists entries in **reverse chronological order**, so the newest work stays nearest the top while URLs and IDs remain stable.
+
+If several entries are published on the same date, increment the sequence number rather than relying on timestamps.
+
+## Entry states
+
+A journal entry can be:
+
+- **working** — the matter is active or its conclusions remain provisional;
+- **resolved** — the immediate question or work item reached a conclusion;
+- **superseded** — later work materially replaced the entry's position or conclusion;
+- **retrospective** — the entry was intentionally written after the period it describes.
+
+Status describes the **state of the journal record**, not the authority of its claims. Journal remains non-authoritative regardless of status.
+
+## Start reading
+
+The first entry records the design of this section itself:
+
+[Read JRN-2026-08-30-001 →](/journal/2026-08-30-001-establishing-the-engineering-journal)
+
+For the complete authoring contract, including metadata and the recommended entry structure, see [How the Journal Works](/journal/format).

@@ -1,7 +1,5 @@
-import { defineCollections, defineDocs, frontmatterSchema } from 'fumadocs-mdx/config';
-import { z } from 'zod';
+import { defineDocs } from 'fumadocs-mdx/config';
 
-// Default Docs Collection (exports standard docs + meta)
 export const { docs, meta } = defineDocs({
   dir: 'content/docs',
   docs: {
@@ -11,24 +9,29 @@ export const { docs, meta } = defineDocs({
   },
 });
 
-// Build-in-Public Blog Collection
-export const blogArticles = defineCollections({
-  type: 'doc',
+export const { docs: articleDocs, meta: articleMeta } = defineDocs({
   dir: 'content/articles',
-  schema: frontmatterSchema.extend({
-    author: z.string().default('Build Bot'),
-    date: z.string().or(z.date()),
-    tags: z.array(z.string()).default([]),
-  }),
+  docs: {
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
+  },
 });
 
-// Automated Git Push Micro-Logs
-export const changelogEntries = defineCollections({
-  type: 'doc',
-  dir: 'content/changelog',
-  schema: frontmatterSchema.extend({
-    date: z.string().or(z.date()),
-    commitHash: z.string().optional(),
-    author: z.string().optional(),
-  }),
+export const { docs: changelogDocs, meta: changelogMeta } = defineDocs({
+  dir: 'content/changelogs',
+  docs: {
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
+  },
+});
+
+export const { docs: journalDocs, meta: journalMeta } = defineDocs({
+  dir: 'content/journal',
+  docs: {
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
+  },
 });

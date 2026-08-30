@@ -1,0 +1,3626 @@
+---
+title: "Evidence Specification"
+description: "Normative specification for representing, identifying, preserving, evaluating, relating, and governing Evidence in Monad."
+---
+
+# Evidence Specification
+
+**Specification ID:** `SPEC-EVD-001`
+**Status:** Draft
+**Version:** `0.1.0`
+**Normative:** Yes
+**Primary requirements:** `REQ-EVD-*`
+**Related requirements:** `REQ-CLM-*`, `REQ-PROV-*`, `REQ-SEM-*`, `REQ-ID-*`, `REQ-AUTH-*`, `REQ-GOV-*`, `REQ-VER-*`, `REQ-REC-*`, `REQ-PORT-*`
+**Parent specification:** `SPEC-SEM-001 — Semantic Kernel Specification`
+
+## 1. Purpose
+
+This specification defines the semantic contract for **Evidence** in Monad.
+
+Engineering systems routinely make assertions such as:
+
+```text
+The requirement is satisfied.
+```
+
+```text
+The implementation behaves correctly.
+```
+
+```text
+This component caused the failure.
+```
+
+```text
+The release is safe to promote.
+```
+
+```text
+This architecture decision remains valid.
+```
+
+Those assertions become useful only when they can be connected to inspectable material that supports, contradicts, qualifies, or otherwise informs them.
+
+Monad calls that material **Evidence**.
+
+The governing distinction is:
+
+> **Evidence is material that bears on a Claim. It is not the Claim itself, and its existence does not make the Claim true.**
+
+Evidence may include:
+
+* test results,
+* source code,
+* runtime traces,
+* logs,
+* measurements,
+* documents,
+* commits,
+* review findings,
+* experiment results,
+* build artifacts,
+* deployment observations,
+* screenshots,
+* configuration snapshots,
+* native-system records,
+* human observations,
+* AI-generated analyses,
+* external references.
+
+The Evidence model MUST preserve enough context to answer questions such as:
+
+* What exactly is this Evidence?
+* Where did it come from?
+* What Claim does it bear on?
+* Does it support or contradict that Claim?
+* For what revision, environment, and time is it relevant?
+* Has it become stale?
+* Can it still be inspected?
+* Has it been transformed?
+* Is it independent from other Evidence?
+* Is it valid?
+* How strong is its relevance?
+* Who or what produced it?
+* Can it be reproduced?
+* Has it been superseded or invalidated?
+
+The purpose of this specification is not to manufacture certainty.
+
+It is to make the basis of engineering belief inspectable.
+
+---
+
+# 2. Scope
+
+This specification defines:
+
+* Evidence identity,
+* Evidence representations,
+* Evidence sources,
+* Evidence types,
+* Evidence provenance,
+* Evidence relationships,
+* Evidence scope,
+* temporal semantics,
+* revision binding,
+* environment binding,
+* support and contradiction,
+* validity,
+* relevance,
+* freshness,
+* strength,
+* independence,
+* direct and indirect Evidence,
+* primary and derived Evidence,
+* negative Evidence,
+* absence of Evidence,
+* Evidence bundles,
+* Evidence lifecycle,
+* Evidence correction,
+* Evidence invalidation,
+* Evidence retention,
+* Evidence integrity,
+* Evidence portability,
+* native-system Evidence,
+* execution Evidence,
+* verification Evidence,
+* experiment Evidence,
+* review Evidence,
+* AI Evidence,
+* human Evidence,
+* import and export,
+* querying,
+* validation.
+
+This specification does **not** define:
+
+* final persistence technology,
+* final database schema,
+* cryptographic signing infrastructure,
+* formal proof systems,
+* domain-specific confidence algorithms,
+* statistical significance methodology,
+* complete test strategy,
+* final retention policy,
+* final verification engine,
+* final Evidence ranking algorithm.
+
+Those concerns belong to downstream specifications or domain-specific policy.
+
+---
+
+# 3. Normative Language
+
+The terms **MUST**, **MUST NOT**, **REQUIRED**, **SHOULD**, **SHOULD NOT**, **MAY**, and **RECOMMENDED** are normative.
+
+Examples are illustrative unless explicitly marked normative.
+
+---
+
+# 4. Core Evidence Model
+
+Conceptually:
+
+```text
+Evidence
+ ├── identity
+ ├── type
+ ├── subject matter
+ ├── source
+ ├── representation
+ ├── provenance
+ ├── scope
+ ├── temporal semantics
+ ├── revision binding
+ ├── integrity information
+ ├── lifecycle
+ └── relationships to Claims
+```
+
+A minimal Evidence record conceptually requires:
+
+```text
+identity
+type
+source or representation
+```
+
+A consequential Evidence record SHOULD additionally preserve:
+
+```text
+provenance
+scope
+time
+revision
+integrity
+lifecycle
+```
+
+---
+
+# 5. Core Evidence Invariants
+
+Conforming implementations MUST preserve the following distinctions.
+
+## 5.1 Evidence ≠ Claim
+
+Evidence is not itself the proposition being asserted.
+
+Example:
+
+```text
+Claim:
+    Login succeeds with valid credentials.
+
+Evidence:
+    Passing integration-test execution.
+```
+
+The passing test does not become the Claim.
+
+---
+
+## 5.2 Evidence ≠ proof
+
+Evidence may strongly support a Claim without constituting mathematical or logical proof.
+
+Monad MUST NOT describe ordinary empirical Evidence as proof unless the underlying domain justifies that terminology.
+
+---
+
+## 5.3 Evidence ≠ truth
+
+The existence of Evidence does not make the associated Claim true.
+
+Evidence may be:
+
+* mistaken,
+* stale,
+* corrupted,
+* irrelevant,
+* incomplete,
+* misleading,
+* contradicted.
+
+---
+
+## 5.4 Evidence ≠ authority
+
+Evidence does not possess authority merely because it exists.
+
+Authority determines who or what may legitimately establish state.
+
+Evidence informs belief about that state.
+
+---
+
+## 5.5 Evidence ≠ provenance
+
+Provenance explains where Evidence came from and how it was produced.
+
+Evidence is the material itself.
+
+---
+
+## 5.6 Evidence ≠ verification
+
+Verification evaluates an expectation against Evidence.
+
+Evidence is an input to Verification.
+
+---
+
+## 5.7 Evidence ≠ approval
+
+An approval may rely on Evidence.
+
+An approval is not itself automatically Evidence that the underlying engineering state is correct.
+
+---
+
+## 5.8 Validity ≠ relevance
+
+Evidence may be authentic and correctly captured while still being irrelevant to a particular Claim.
+
+---
+
+## 5.9 Freshness ≠ validity
+
+Old Evidence is not automatically invalid.
+
+Fresh Evidence is not automatically correct.
+
+---
+
+## 5.10 Absence of Evidence ≠ Evidence of absence
+
+Unless the observation process is known to be sufficiently complete, failure to observe something MUST NOT automatically be treated as proof that it does not exist.
+
+---
+
+# 6. First-Class Evidence
+
+Evidence that materially affects:
+
+* verification,
+* governance,
+* release,
+* incident analysis,
+* reconciliation,
+* architecture decisions,
+* compliance,
+* AI reasoning,
+* historical reconstruction
+
+SHOULD be representable as a first-class semantic entity.
+
+First-class Evidence SHOULD support stable identity and durable reference.
+
+---
+
+# 7. Evidence Identity
+
+Evidence requiring durable reference MUST possess stable semantic identity.
+
+Evidence identity MUST NOT depend solely on:
+
+* current file path,
+* database row number,
+* UI location,
+* array index,
+* temporary URL,
+* native-system display text.
+
+---
+
+# 8. Evidence Identity Across Movement
+
+Moving an Evidence Representation MUST NOT automatically create new Evidence identity when the underlying Evidence remains semantically unchanged.
+
+Example:
+
+```text
+artifacts/test-results/run-42.json
+```
+
+moved to:
+
+```text
+evidence/tests/run-42.json
+```
+
+does not by itself create new Evidence.
+
+---
+
+# 9. Evidence Identity Across Regeneration
+
+Regenerating materially identical Evidence MAY preserve identity if the domain defines the regenerated material as the same Evidence instance.
+
+Otherwise, regeneration SHOULD create a new Evidence instance linked through provenance.
+
+The distinction MUST be domain-defined rather than accidental.
+
+---
+
+# 10. Evidence Representation
+
+Evidence MAY have one or more Representations.
+
+Examples:
+
+```text
+raw JSON result
+human-readable HTML report
+database record
+compressed archive
+rendered chart
+```
+
+Multiple Representations MUST NOT automatically create multiple Evidence Subjects.
+
+---
+
+# 11. Evidence Content
+
+Evidence MAY contain:
+
+* structured data,
+* unstructured text,
+* binary artifacts,
+* references,
+* measurements,
+* images,
+* logs,
+* traces,
+* metadata,
+* collections.
+
+The Evidence model MUST NOT assume Evidence is textual.
+
+---
+
+# 12. Evidence Type
+
+Every Evidence instance SHOULD have a type sufficiently precise for consumers to interpret its meaning.
+
+Candidate Evidence types include:
+
+```text
+test-result
+runtime-observation
+build-result
+deployment-record
+source-snapshot
+configuration-snapshot
+benchmark-result
+experiment-result
+review-finding
+log-extract
+trace
+metric-sample
+human-observation
+ai-analysis
+external-reference
+documentary-record
+artifact-hash
+```
+
+The final vocabulary belongs to the Schema Catalog.
+
+---
+
+# 13. Evidence Type Extensibility
+
+Domains MAY define additional Evidence types.
+
+Unknown extension types SHOULD remain preservable during import/export.
+
+Implementations MUST NOT silently coerce unknown Evidence types into misleading generic types.
+
+---
+
+# 14. Evidence Source
+
+Evidence SHOULD identify the source from which it was obtained or generated.
+
+A source MAY be:
+
+* file,
+* native-system object,
+* API response,
+* database query,
+* execution,
+* Actor observation,
+* external document,
+* device,
+* instrumentation system.
+
+---
+
+# 15. Source ≠ Evidence
+
+The source that produced Evidence is not necessarily the Evidence itself.
+
+Example:
+
+```text
+Source:
+    CI system
+
+Evidence:
+    test execution result
+```
+
+---
+
+# 16. Evidence Provenance
+
+Consequential Evidence MUST preserve provenance sufficient to explain:
+
+* producer,
+* source,
+* collection method,
+* transformation,
+* time,
+* relevant execution,
+* imported origin.
+
+---
+
+# 17. Producer
+
+Evidence provenance SHOULD identify the producer.
+
+A producer MAY be:
+
+* human,
+* AI model,
+* test runner,
+* compiler,
+* CI system,
+* telemetry agent,
+* integration adapter,
+* external provider.
+
+---
+
+# 18. Requested Origin vs Resolved Origin
+
+Where Evidence is retrieved through a reference, provenance SHOULD preserve the distinction between:
+
+```text
+requested origin
+```
+
+and:
+
+```text
+resolved origin
+```
+
+when redirects, aliases, mirrors, provider mappings, or repository movement affect interpretation.
+
+---
+
+# 19. Evidence Transformation
+
+If Evidence is transformed after collection, the transformation SHOULD preserve derivation provenance.
+
+Examples:
+
+```text
+raw log → filtered log extract
+trace set → aggregate latency report
+JSON results → HTML test report
+```
+
+---
+
+# 20. Lossy Transformation
+
+Lossy transformation MUST be identifiable.
+
+A summarized Evidence artifact MUST NOT be treated as informationally equivalent to the complete source unless that equivalence is justified.
+
+---
+
+# 21. Evidence Scope
+
+Evidence MUST support sufficient scope to determine where it applies.
+
+Scope MAY include:
+
+```text
+Subject
+Claim
+Requirement
+revision
+commit
+branch
+repository
+workspace
+release
+environment
+deployment
+execution
+platform
+configuration
+time interval
+```
+
+---
+
+# 22. Revision Binding
+
+Evidence whose meaning depends on system revision SHOULD explicitly identify that revision.
+
+Example:
+
+```text
+Test result:
+    revision: commit abc123
+```
+
+A passing result for `abc123` MUST NOT automatically verify `def456`.
+
+---
+
+# 23. Environment Binding
+
+Evidence MAY be valid only in a particular environment.
+
+Example:
+
+```text
+environment: production
+```
+
+or:
+
+```text
+environment: linux-x86_64-ci
+```
+
+Environment-dependent Evidence MUST NOT silently be generalized beyond its supported scope.
+
+---
+
+# 24. Configuration Binding
+
+Where configuration materially affects results, Evidence SHOULD preserve the relevant configuration identity or snapshot.
+
+---
+
+# 25. Input Binding
+
+Evidence produced by execution SHOULD preserve relevant inputs where necessary for interpretation or reproduction.
+
+---
+
+# 26. Tool Binding
+
+Where tool versions affect Evidence, the tool identity and version SHOULD be retained.
+
+---
+
+# 27. Temporal Semantics
+
+Evidence SHOULD distinguish at least:
+
+```text
+observedAt
+recordedAt
+```
+
+when those times may differ.
+
+---
+
+# 28. Valid Time
+
+Evidence MAY describe a state that was valid during a time interval independent of when the Evidence was collected.
+
+For example:
+
+```text
+configuration snapshot valid at deployment time T
+```
+
+---
+
+# 29. Evidence Freshness
+
+Evidence freshness describes whether Evidence remains sufficiently current for a particular use.
+
+Freshness MUST be evaluated relative to:
+
+* Claim,
+* scope,
+* risk,
+* revision,
+* policy,
+* domain.
+
+---
+
+# 30. Freshness Is Contextual
+
+Evidence that is stale for release authorization MAY remain perfectly valid for historical analysis.
+
+Therefore, Evidence SHOULD NOT possess one universal freshness boolean.
+
+---
+
+# 31. Freshness Policy
+
+Policies MAY specify maximum acceptable age or revision distance for particular Evidence uses.
+
+Example:
+
+```text
+Production deployment verification requires security scan Evidence
+from the release candidate revision.
+```
+
+---
+
+# 32. Evidence-to-Claim Relationship
+
+Evidence MUST be able to bear an explicit semantic relationship to a Claim.
+
+Common relationships include:
+
+```text
+supports
+contradicts
+qualifies
+corroborates
+weakens
+```
+
+---
+
+# 33. Support
+
+`supports` means the Evidence increases justification for accepting a Claim within a defined scope.
+
+It MUST NOT mean:
+
+```text
+Claim proven true
+```
+
+unless the domain explicitly establishes proof semantics.
+
+---
+
+# 34. Contradiction
+
+`contradicts` means the Evidence provides material reason to reject or weaken a Claim.
+
+Contradictory Evidence MUST remain representable alongside supporting Evidence.
+
+---
+
+# 35. Qualification
+
+Evidence MAY qualify a Claim by narrowing the scope in which it should be accepted.
+
+Example:
+
+```text
+Claim:
+    Search latency is below 100 ms.
+
+Evidence:
+    benchmark shows <100 ms only for datasets below 1M records.
+```
+
+This Evidence may qualify rather than simply support or contradict the Claim.
+
+---
+
+# 36. Corroboration
+
+Independent Evidence MAY corroborate another Evidence-backed conclusion.
+
+Corroboration SHOULD preserve source independence information where material.
+
+---
+
+# 37. Evidence Relevance
+
+Evidence relevance describes how directly Evidence bears on a particular Claim.
+
+Relevance MAY depend on:
+
+* subject matter,
+* revision,
+* environment,
+* time,
+* causal proximity,
+* measurement method,
+* domain assumptions.
+
+---
+
+# 38. Relevance Is Claim-Specific
+
+An Evidence instance MAY be highly relevant to one Claim and irrelevant to another.
+
+Therefore relevance SHOULD be represented in the relationship between Evidence and Claim where appropriate rather than solely as a property of Evidence.
+
+---
+
+# 39. Evidence Validity
+
+Evidence validity concerns whether the Evidence itself can be relied upon as an accurate record of what it purports to represent.
+
+Validity may depend on:
+
+* collection integrity,
+* source reliability,
+* corruption,
+* measurement correctness,
+* tool defects,
+* transformation errors.
+
+---
+
+# 40. Invalid Evidence
+
+Invalid Evidence SHOULD remain historically inspectable where it influenced consequential engineering decisions.
+
+Invalidation SHOULD NOT normally delete the Evidence.
+
+---
+
+# 41. Evidence Strength
+
+Evidence strength MAY be evaluated using multiple independent dimensions.
+
+Possible dimensions include:
+
+```text
+directness
+relevance
+freshness
+source reliability
+reproducibility
+independence
+coverage
+precision
+integrity
+```
+
+Monad SHOULD avoid reducing all Evidence quality to one universal scalar score unless a domain-specific model justifies it.
+
+---
+
+# 42. Direct Evidence
+
+Direct Evidence bears on a Claim without requiring substantial intermediate inference.
+
+Example:
+
+```text
+Claim:
+    Endpoint returns HTTP 200 for valid request.
+
+Direct Evidence:
+    captured integration-test response.
+```
+
+---
+
+# 43. Indirect Evidence
+
+Indirect Evidence requires additional reasoning.
+
+Example:
+
+```text
+source code inspection suggests endpoint should return 200
+```
+
+when runtime behavior has not been observed.
+
+Indirect Evidence MAY still be valuable.
+
+It MUST remain distinguishable from direct observation where the distinction matters.
+
+---
+
+# 44. Primary Evidence
+
+Primary Evidence originates directly from the event, execution, observation, or source being evaluated.
+
+Examples:
+
+* raw trace,
+* raw test result,
+* original source snapshot.
+
+---
+
+# 45. Derived Evidence
+
+Derived Evidence is produced from other Evidence.
+
+Examples:
+
+* summary report,
+* aggregated metric,
+* statistical analysis,
+* AI synthesis,
+* filtered log extract.
+
+Derived Evidence SHOULD retain derivation provenance.
+
+---
+
+# 46. Primary ≠ superior in all cases
+
+Primary Evidence may be more direct but difficult to interpret.
+
+Derived Evidence may provide essential analytical value.
+
+Monad MUST NOT assume all primary Evidence is automatically stronger than all derived Evidence.
+
+---
+
+# 47. Independent Evidence
+
+Evidence sources SHOULD be considered independent only when their production paths are sufficiently separate.
+
+Two reports generated from the same underlying test output are not necessarily independent corroboration.
+
+---
+
+# 48. Evidence Dependence
+
+Derived Evidence SHOULD preserve links to upstream Evidence so consumers can identify correlated or duplicated support.
+
+---
+
+# 49. Duplicate Evidence
+
+Equivalent Evidence imported from multiple Representations SHOULD not automatically be counted as multiple independent confirmations.
+
+---
+
+# 50. Negative Evidence
+
+Evidence MAY indicate failure, nonconformance, absence, contradiction, or inability to satisfy an expectation.
+
+Negative Evidence is first-class Evidence.
+
+---
+
+# 51. Evidence of Absence
+
+Evidence MAY legitimately support absence when the observation method establishes sufficient coverage.
+
+Example:
+
+```text
+Claim:
+    No unauthorized dependencies exist.
+
+Evidence:
+    complete dependency scan over declared dependency graph.
+```
+
+The completeness assumption MUST be inspectable.
+
+---
+
+# 52. Observation Failure
+
+Failure to collect Evidence MUST remain distinguishable from Evidence showing failure of the system being observed.
+
+Example:
+
+```text
+monitor unavailable
+```
+
+does not mean:
+
+```text
+service unavailable
+```
+
+---
+
+# 53. Unknown Evidence State
+
+If the system cannot determine whether expected Evidence exists, the state SHOULD remain:
+
+```text
+unknown
+```
+
+rather than being coerced into:
+
+```text
+missing
+```
+
+or:
+
+```text
+passed
+```
+
+---
+
+# 54. Evidence Completeness
+
+Evidence MAY have known coverage boundaries.
+
+Example:
+
+```text
+tests cover:
+    Linux
+    Node 24
+    PostgreSQL 18
+```
+
+The Evidence MUST NOT be generalized to unsupported environments without justification.
+
+---
+
+# 55. Evidence Coverage
+
+Coverage MAY refer to:
+
+* requirements,
+* branches,
+* code paths,
+* environments,
+* scenarios,
+* systems,
+* time intervals,
+* input classes.
+
+Coverage metrics SHOULD identify what was actually measured.
+
+---
+
+# 56. Evidence Bundle
+
+Multiple Evidence instances MAY be grouped into an Evidence Bundle.
+
+Example:
+
+```text
+Release Evidence Bundle
+ ├── unit-test results
+ ├── integration-test results
+ ├── security scan
+ ├── build provenance
+ ├── deployment rehearsal
+ └── review findings
+```
+
+---
+
+# 57. Evidence Bundle Identity
+
+A consequential Evidence Bundle SHOULD have stable identity.
+
+---
+
+# 58. Bundle Membership
+
+Bundle membership MUST NOT imply that every contained Evidence item supports the same Claim.
+
+Each Evidence-to-Claim relationship remains independently meaningful.
+
+---
+
+# 59. Bundle Completeness
+
+An Evidence Bundle MAY declare expected Evidence classes.
+
+Example:
+
+```text
+required:
+    test-result
+    security-scan
+    reproducibility-check
+```
+
+Missing members SHOULD be observable.
+
+---
+
+# 60. Evidence Aggregation
+
+Aggregated Evidence SHOULD preserve sufficient links to its constituent Evidence to explain how the aggregate was produced.
+
+---
+
+# 61. Evidence Lifecycle
+
+Evidence MAY have lifecycle states such as:
+
+```text
+captured
+validated
+active
+stale
+superseded
+invalidated
+archived
+unavailable
+```
+
+Lifecycle state MUST remain distinct from Evidence content.
+
+---
+
+# 62. Captured Evidence
+
+Evidence MAY enter the system before full validation.
+
+Such Evidence SHOULD be distinguishable from validated Evidence.
+
+---
+
+# 63. Evidence Validation
+
+Validation MAY determine:
+
+* structural integrity,
+* source resolution,
+* digest verification,
+* required provenance,
+* schema validity,
+* expected scope.
+
+Validation does not establish Claim truth.
+
+---
+
+# 64. Stale Evidence
+
+Evidence MAY become stale when relevant system state changes.
+
+Staleness SHOULD preserve the Evidence rather than destroy it.
+
+---
+
+# 65. Superseded Evidence
+
+New Evidence MAY supersede older Evidence for current decision-making.
+
+The earlier Evidence remains historically relevant.
+
+---
+
+# 66. Evidence Invalidation
+
+Evidence SHOULD be invalidated when it is discovered that:
+
+* source was corrupted,
+* wrong revision was tested,
+* measurement instrument failed,
+* execution was misconfigured,
+* provenance was incorrect,
+* transformation was defective.
+
+---
+
+# 67. Evidence Correction
+
+Metadata errors SHOULD be correctable while preserving correction history where consequential.
+
+---
+
+# 68. Evidence Retraction
+
+An Actor MAY retract an Evidence submission.
+
+Retraction SHOULD preserve:
+
+* original submission,
+* retracting Actor,
+* time,
+* reason.
+
+---
+
+# 69. Evidence Deletion
+
+Permanent Evidence deletion SHOULD be exceptional when the Evidence has participated in consequential:
+
+* release decisions,
+* approvals,
+* incidents,
+* verification,
+* governance.
+
+Retention and privacy requirements may nevertheless require deletion or redaction.
+
+---
+
+# 70. Evidence Integrity
+
+Evidence MAY carry integrity metadata such as:
+
+```text
+content hash
+digest algorithm
+size
+signature
+timestamp
+```
+
+---
+
+# 71. Integrity ≠ truth
+
+A matching hash demonstrates content stability relative to the hashed artifact.
+
+It does not demonstrate that the Evidence is true, relevant, or correctly interpreted.
+
+---
+
+# 72. Signatures
+
+Cryptographic signatures MAY establish properties such as origin or tamper evidence.
+
+Signatures MUST NOT automatically confer semantic authority.
+
+---
+
+# 73. Evidence Immutability
+
+Evidence content representing an observed historical event SHOULD normally be immutable.
+
+Corrections SHOULD generally create:
+
+* corrected metadata,
+* new Evidence,
+* explicit invalidation,
+
+rather than rewriting the original observation invisibly.
+
+---
+
+# 74. Content-Addressed Evidence
+
+Evidence MAY use content-addressed storage.
+
+Content addressing MUST remain distinct from Evidence semantic identity.
+
+Two Evidence instances with identical bytes MAY have different provenance and therefore remain distinct semantic Evidence records.
+
+---
+
+# 75. Evidence Provenance Graph
+
+Derived Evidence MAY form provenance chains.
+
+Example:
+
+```text
+raw test output
+    →
+parsed test result
+    →
+coverage summary
+    →
+release dashboard
+```
+
+Consumers SHOULD be able to inspect material upstream derivation.
+
+---
+
+# 76. Evidence and Claims
+
+One Evidence instance MAY bear on multiple Claims.
+
+One Claim MAY be supported or contradicted by multiple Evidence instances.
+
+---
+
+# 77. Conflicting Evidence
+
+Monad MUST support simultaneous presence of:
+
+```text
+supporting Evidence
+```
+
+and:
+
+```text
+contradicting Evidence
+```
+
+for the same Claim.
+
+The model MUST NOT require premature forced consensus.
+
+---
+
+# 78. Evidence Resolution
+
+Resolving conflicting Evidence is an interpretive or governance process.
+
+The storage layer MUST NOT automatically discard lower-priority Evidence solely because another Evidence item is considered stronger.
+
+---
+
+# 79. Evidence and Authority
+
+Authority MAY determine:
+
+* who may submit Evidence,
+* which Evidence classes satisfy obligations,
+* who may validate Evidence,
+* what Evidence is required for authorization.
+
+Authority MUST NOT determine factual truth merely by declaration.
+
+---
+
+# 80. Evidence and Policy
+
+Policies MAY define Evidence obligations.
+
+Example:
+
+```text
+Before production deployment:
+    require passing integration-test Evidence
+    require security-scan Evidence
+    require release approval
+```
+
+---
+
+# 81. Evidence Obligation
+
+An Evidence Obligation SHOULD identify:
+
+* required Evidence type,
+* applicable Claim or operation,
+* scope,
+* freshness,
+* revision binding,
+* minimum validation state.
+
+---
+
+# 82. Missing Required Evidence
+
+Missing required Evidence SHOULD produce a distinct governance result.
+
+It SHOULD NOT be silently treated as:
+
+```text
+policy denied because system failed
+```
+
+when the actual state is:
+
+```text
+required Evidence unavailable
+```
+
+---
+
+# 83. Evidence and Approval
+
+An approval MAY reference the Evidence considered by the approving Actor.
+
+That relationship SHOULD remain revision-aware.
+
+---
+
+# 84. Approval Freshness
+
+An approval based on Evidence for revision A SHOULD NOT automatically authorize revision B if material changes invalidate the Evidence basis.
+
+---
+
+# 85. Evidence and Verification
+
+Verification MUST identify the Evidence used to evaluate an expectation.
+
+A verification result without inspectable Evidence SHOULD be considered weaker than one with durable Evidence unless the verification mechanism itself provides equivalent inspectability.
+
+---
+
+# 86. Verification Result ≠ Evidence Set
+
+The Verification result and the Evidence used by the Verification MUST remain conceptually distinct.
+
+Example:
+
+```text
+Verification:
+    PASSED
+
+Evidence:
+    test run 241
+    benchmark 83
+    static analysis 912
+```
+
+---
+
+# 87. Evidence Reuse
+
+Existing Evidence MAY be reused across multiple Verification activities if:
+
+* applicable scope matches,
+* revision remains relevant,
+* freshness requirements are satisfied,
+* integrity remains valid.
+
+---
+
+# 88. Evidence Invalidating Verification
+
+If Evidence underlying a Verification is invalidated, affected Verification results SHOULD become discoverable as potentially invalid or stale.
+
+---
+
+# 89. Evidence and Requirements
+
+Evidence MAY support Claims that requirements have been satisfied.
+
+Evidence MUST NOT directly convert a requirement into a satisfied state without applicable Verification or policy semantics.
+
+---
+
+# 90. Evidence and Specifications
+
+Specifications MAY define required Evidence for conformance.
+
+Example:
+
+```text
+SPEC-X clause 12:
+    implementation MUST preserve deterministic serialization.
+
+Required Evidence:
+    conformance test output.
+```
+
+---
+
+# 91. Evidence and Decisions
+
+Architecture or engineering decisions SHOULD be able to reference Evidence supporting or challenging their rationale.
+
+---
+
+# 92. Decision Reassessment
+
+New Evidence MAY weaken or invalidate assumptions underlying an existing Decision.
+
+Monad SHOULD preserve this connection without automatically superseding the Decision unless governance rules require it.
+
+---
+
+# 93. Evidence and Experiments
+
+Experiment results SHOULD be represented as Evidence rather than only embedded in narrative conclusions.
+
+---
+
+# 94. Experiment Evidence
+
+Experiment Evidence SHOULD preserve:
+
+* experiment identity,
+* hypothesis,
+* method,
+* inputs,
+* environment,
+* observations,
+* producer,
+* time,
+* relevant raw data.
+
+---
+
+# 95. Negative Experiment Results
+
+Evidence that falsifies a hypothesis is valuable and MUST remain first-class.
+
+---
+
+# 96. Evidence and Reviews
+
+Reviews MAY generate Evidence such as:
+
+* findings,
+* annotations,
+* inspected artifact snapshots,
+* reviewer observations.
+
+A Review itself SHOULD remain distinct from the Evidence it produces.
+
+---
+
+# 97. Review Finding
+
+A Finding MAY serve as Evidence for a Claim.
+
+Its relevance, authority, and validity remain separately evaluable.
+
+---
+
+# 98. Evidence and Execution
+
+Executions SHOULD be able to produce durable Evidence.
+
+Examples:
+
+```text
+command result
+tool output
+changed-state observation
+artifact hash
+exit status
+deployment receipt
+```
+
+---
+
+# 99. Execution Success ≠ Verification Evidence Sufficiency
+
+An execution returning success MAY be Evidence that the tool completed successfully.
+
+It MUST NOT automatically prove that the intended engineering outcome was achieved.
+
+---
+
+# 100. Post-Execution Evidence
+
+Consequential operations SHOULD collect post-execution Evidence where necessary to verify actual outcome.
+
+---
+
+# 101. Evidence and Reconciliation
+
+Reconciliation SHOULD be able to use Evidence from:
+
+* canonical model,
+* native observations,
+* execution results,
+* historical state.
+
+---
+
+# 102. Reconciliation Evidence
+
+Evidence used in reconciliation SHOULD preserve observation freshness and source authority.
+
+A stale observation SHOULD NOT silently override newer authoritative state.
+
+---
+
+# 103. Evidence and Releases
+
+A Release SHOULD be able to reference an Evidence Bundle supporting its release state.
+
+---
+
+# 104. Release Evidence
+
+Release Evidence MAY include:
+
+```text
+build provenance
+test results
+verification results
+security scans
+compatibility checks
+artifact digests
+approvals
+reproducibility checks
+```
+
+---
+
+# 105. Release Evidence Binding
+
+Release Evidence MUST be bound to the actual release candidate or immutable artifact set where required.
+
+Evidence for a previous candidate MUST NOT silently transfer to a materially different candidate.
+
+---
+
+# 106. Evidence and Deployment
+
+Deployment Evidence MAY include:
+
+* provider deployment identifier,
+* deployed artifact digest,
+* target environment,
+* resulting runtime revision,
+* health observations.
+
+Release Evidence and Deployment Evidence MUST remain distinguishable.
+
+---
+
+# 107. Runtime Evidence
+
+Runtime Evidence MAY include:
+
+```text
+logs
+metrics
+traces
+health probes
+events
+state snapshots
+```
+
+---
+
+# 108. Runtime Observation Scope
+
+Runtime Evidence SHOULD preserve enough context to identify:
+
+* service,
+* environment,
+* deployment,
+* time interval,
+* instance population where relevant.
+
+---
+
+# 109. Metrics as Evidence
+
+Metrics MAY serve as Evidence when the collection methodology and scope are sufficiently understood.
+
+A dashboard visualization alone SHOULD NOT be assumed to contain all required Evidence provenance.
+
+---
+
+# 110. Logs as Evidence
+
+Logs MAY serve as Evidence.
+
+Log content SHOULD preserve or reference:
+
+* source,
+* time,
+* system identity,
+* collection method,
+* relevant retention information.
+
+---
+
+# 111. Traces as Evidence
+
+Distributed traces MAY provide Evidence about runtime interactions.
+
+A trace showing:
+
+```text
+A → B
+```
+
+may support a runtime-call Claim.
+
+It does not automatically establish architectural necessity or causality.
+
+---
+
+# 112. Source Code as Evidence
+
+Source code MAY be Evidence for Claims about implementation structure.
+
+Source code MAY be weaker Evidence for runtime behavior than direct runtime observation.
+
+The system SHOULD preserve that distinction.
+
+---
+
+# 113. Documentation as Evidence
+
+Documentation MAY serve as Evidence of:
+
+* intended behavior,
+* declared architecture,
+* historical decision,
+* documented process.
+
+Documentation MUST NOT automatically be treated as Evidence of actual runtime behavior.
+
+---
+
+# 114. Git History as Evidence
+
+Git history MAY provide Evidence of:
+
+* revision ancestry,
+* authored changes,
+* commit timestamps,
+* repository state.
+
+Git history MUST NOT be treated as a complete record of semantic truth.
+
+---
+
+# 115. Issue Tracker Records as Evidence
+
+Issue comments, state transitions, and assignments MAY serve as Evidence of coordination history.
+
+An issue marked closed is not automatically Evidence that its underlying requirement is satisfied.
+
+---
+
+# 116. CI Evidence
+
+CI results MAY provide Evidence about:
+
+* test execution,
+* build success,
+* scans,
+* checks.
+
+A green CI run does not automatically prove release readiness.
+
+---
+
+# 117. External Evidence
+
+Evidence MAY originate from external systems or documents outside Monad's control.
+
+External Evidence SHOULD preserve durable citation information where possible.
+
+---
+
+# 118. Broken External References
+
+If external Evidence becomes unavailable, Monad SHOULD preserve:
+
+* historical reference,
+* last-known metadata,
+* provenance,
+* unavailable state.
+
+It MUST NOT pretend the Evidence remains inspectable if it no longer is.
+
+---
+
+# 119. Evidence Snapshotting
+
+Policies MAY require snapshotting externally hosted Evidence when long-term inspectability matters.
+
+---
+
+# 120. Evidence Retention Strategy
+
+Retention MAY choose among:
+
+```text
+full content
+immutable snapshot
+content-addressed artifact
+provider reference
+metadata-only record
+```
+
+The chosen strategy SHOULD be explicit.
+
+---
+
+# 121. Evidence Availability
+
+Evidence availability is distinct from Evidence validity.
+
+Valid Evidence may temporarily be unavailable.
+
+---
+
+# 122. AI Output as Evidence
+
+AI-generated output MAY be stored as Evidence of:
+
+```text
+what an AI system concluded
+```
+
+It MUST NOT automatically be treated as Evidence that the conclusion itself is correct.
+
+---
+
+# 123. AI Evidence Provenance
+
+AI-produced Evidence SHOULD preserve, where material and available:
+
+* model identity,
+* provider,
+* model version or revision,
+* prompt or task identity,
+* context references,
+* tool outputs,
+* time,
+* generation parameters where relevant.
+
+---
+
+# 124. AI Analysis
+
+An AI analysis MAY constitute derived Evidence.
+
+Its relationship to source Evidence SHOULD remain inspectable.
+
+---
+
+# 125. AI Confidence
+
+AI confidence values MUST NOT be treated as universal Evidence-strength scores.
+
+---
+
+# 126. AI Hallucination Risk
+
+Policies SHOULD permit AI-generated Evidence to require corroboration before use in consequential governance decisions.
+
+---
+
+# 127. Human Observation as Evidence
+
+A human observation MAY be valid Evidence.
+
+It SHOULD preserve:
+
+* Actor identity,
+* observation time,
+* subject matter,
+* scope,
+* statement,
+* relevant provenance.
+
+---
+
+# 128. Human ≠ authoritative by default
+
+Human-produced Evidence does not automatically become authoritative or correct solely because a human produced it.
+
+---
+
+# 129. Testimony and Observation
+
+The system MAY distinguish between:
+
+```text
+direct observation
+reported testimony
+interpretation
+```
+
+where that distinction matters.
+
+---
+
+# 130. Evidence Confidentiality
+
+Evidence MAY contain sensitive information.
+
+Evidence records SHOULD support classification such as:
+
+```text
+public
+internal
+confidential
+restricted
+```
+
+when required.
+
+---
+
+# 131. Secret Material
+
+Secret values SHOULD NOT be copied into portable Evidence artifacts unless explicitly required and safely protected.
+
+Evidence SHOULD prefer redacted content or secret references where possible.
+
+---
+
+# 132. Redacted Evidence
+
+Redacted Evidence MUST identify that redaction occurred.
+
+Redaction SHOULD preserve enough provenance to understand what class of information was removed.
+
+---
+
+# 133. Evidence Access Control
+
+Systems MAY independently control:
+
+```text
+discover
+read metadata
+read content
+create
+validate
+invalidate
+export
+delete
+```
+
+Evidence operations.
+
+---
+
+# 134. Evidence Authority and Access
+
+Technical permission to create or alter Evidence MUST NOT be treated as authority to determine the Claim outcome.
+
+---
+
+# 135. Evidence Portability
+
+Core Evidence semantics SHOULD remain portable across:
+
+* repositories,
+* machines,
+* storage engines,
+* hosting providers,
+* CI providers,
+* AI providers.
+
+---
+
+# 136. Portable Evidence Record
+
+A portable Evidence record SHOULD preserve:
+
+```text
+identity
+type
+source
+scope
+provenance
+time
+revision binding
+integrity metadata
+lifecycle
+Claim relationships
+```
+
+where applicable.
+
+---
+
+# 137. Provider-Specific Evidence
+
+Provider-specific metadata MAY be preserved as extensions.
+
+Provider-specific fields MUST NOT become required to interpret the canonical Evidence meaning unless the Evidence itself is inherently provider-specific.
+
+---
+
+# 138. Import
+
+Evidence imports SHOULD validate:
+
+* identity,
+* schema version,
+* source references,
+* digests where available,
+* provenance,
+* scope,
+* duplicate identity,
+* extension preservation.
+
+---
+
+# 139. Export
+
+Evidence exports SHOULD declare:
+
+* format version,
+* schema version,
+* included Evidence,
+* relationship closure,
+* redactions,
+* external dependencies,
+* integrity metadata.
+
+---
+
+# 140. Round-Trip Preservation
+
+Supported export/import paths SHOULD preserve canonical Evidence semantics without silent loss.
+
+---
+
+# 141. Lossy Export
+
+If an export format cannot preserve all Evidence semantics, loss MUST be explicitly reported.
+
+---
+
+# 142. Local-First Evidence
+
+Core Evidence metadata SHOULD remain inspectable locally where Monad operates local-first.
+
+---
+
+# 143. Offline Evidence Capture
+
+Evidence MAY be captured offline.
+
+Later synchronization MUST preserve:
+
+* original capture time,
+* producer,
+* local provenance,
+* any subsequent reconciliation.
+
+---
+
+# 144. Evidence Synchronization
+
+Evidence synchronization MUST NOT alter Evidence identity merely because storage location changes.
+
+---
+
+# 145. Duplicate Import
+
+Importing the same Evidence repeatedly SHOULD support duplicate detection or idempotent behavior where practical.
+
+Duplicate detection MUST account for provenance and identity rather than relying only on byte equality.
+
+---
+
+# 146. Evidence Querying
+
+Monad SHOULD support queries such as:
+
+* What Evidence supports Claim C?
+* What Evidence contradicts Claim C?
+* Which Evidence applies to revision R?
+* Which Evidence is stale?
+* Which Evidence has been invalidated?
+* What produced Evidence E?
+* Which Verifications used E?
+* Which releases depend on E?
+* Which Evidence came from AI?
+* Which Evidence is unavailable?
+* Which Evidence lacks provenance?
+* Which Evidence was derived from E?
+
+---
+
+# 147. Historical Query
+
+Monad SHOULD support:
+
+> What Evidence was available when Decision D was made?
+
+where historical retention permits.
+
+---
+
+# 148. Evidence Explanation
+
+Consequential Evidence SHOULD be explainable in a human-readable form.
+
+Example:
+
+```text
+Evidence: EVD-0042
+Type: integration-test-result
+Revision: abc123
+Environment: linux-ci
+Observed: 2026-08-30T04:13:00Z
+Producer: test-runner
+Supports: CLM-0102
+Status: valid
+Freshness: current for revision abc123
+```
+
+---
+
+# 149. Evidence Graph Traversal
+
+Evidence MAY participate in graph queries.
+
+Traversal MUST preserve relationship semantics.
+
+For example:
+
+```text
+Requirement
+  verified-by
+Verification
+  supported-by
+Evidence
+  produced-by
+Execution
+  executed-by
+Actor
+```
+
+must not be flattened into anonymous adjacency.
+
+---
+
+# 150. Evidence Indexes
+
+Derived indexes MAY accelerate queries by:
+
+* type,
+* Claim,
+* revision,
+* time,
+* producer,
+* lifecycle,
+* environment,
+* integrity state.
+
+Indexes SHOULD be reconstructable.
+
+---
+
+# 151. Evidence Projection
+
+Read models MAY project Evidence summaries.
+
+Projected summaries MUST NOT replace canonical Evidence when details are necessary for audit or interpretation.
+
+---
+
+# 152. Evidence Summarization
+
+AI or deterministic tools MAY summarize Evidence.
+
+Summaries MUST retain derivation links to source Evidence.
+
+---
+
+# 153. Evidence Compression
+
+Compression MAY alter representation but MUST NOT alter semantic Evidence identity if content remains semantically unchanged.
+
+---
+
+# 154. Evidence Deduplication
+
+Storage systems MAY deduplicate identical Evidence content.
+
+Semantic Evidence records with distinct provenance MUST remain distinguishable.
+
+---
+
+# 155. Evidence Ranking
+
+User interfaces MAY rank Evidence.
+
+Ranking criteria SHOULD be explainable if ordering could materially influence engineering decisions.
+
+---
+
+# 156. No Universal Evidence Score
+
+Monad SHOULD NOT define one universal scalar indicating “how true” Evidence is.
+
+Evidence quality is multidimensional and Claim-specific.
+
+---
+
+# 157. Evidence Confidence
+
+Confidence MAY describe an Evidence-producing process or interpretation.
+
+Confidence MUST remain distinct from:
+
+* validity,
+* authority,
+* relevance,
+* Claim truth.
+
+---
+
+# 158. Evidence Uncertainty
+
+Uncertainty SHOULD be preserved rather than converted into unjustified certainty.
+
+Example:
+
+```text
+coverage incomplete
+source reliability unknown
+collection interval partial
+```
+
+---
+
+# 159. Evidence Gaps
+
+Monad SHOULD be able to identify Evidence gaps.
+
+Examples:
+
+```text
+Requirement has no Verification Evidence.
+Release lacks reproducibility Evidence.
+Claim has only AI-generated support.
+```
+
+---
+
+# 160. Evidence Obligations Query
+
+The system SHOULD support:
+
+> What Evidence is still required before Operation O can be authorized?
+
+---
+
+# 161. Evidence Economy
+
+Monad SHOULD collect Evidence that materially improves:
+
+* confidence,
+* traceability,
+* governance,
+* verification,
+* incident analysis,
+* reproducibility.
+
+It SHOULD NOT retain expensive Evidence indefinitely without a justified purpose.
+
+---
+
+# 162. Cost-Aware Evidence Retention
+
+Retention MAY consider:
+
+* storage cost,
+* regeneration cost,
+* audit value,
+* legal obligations,
+* security sensitivity,
+* reproducibility value.
+
+---
+
+# 163. Regenerable Evidence
+
+Evidence that can be cheaply and deterministically regenerated MAY use different retention rules than irreproducible Evidence.
+
+The ability to regenerate MUST itself be justified.
+
+---
+
+# 164. Irreplaceable Evidence
+
+Evidence of ephemeral events SHOULD receive stronger retention consideration.
+
+Examples:
+
+```text
+incident trace
+production failure snapshot
+external API response
+human observation
+```
+
+---
+
+# 165. Evidence Reproducibility
+
+Evidence SHOULD identify whether reproduction is:
+
+```text
+exact
+approximate
+possible
+unknown
+impossible
+```
+
+where materially relevant.
+
+---
+
+# 166. Reproducible Evidence
+
+Reproducible Evidence SHOULD preserve enough execution context to repeat the relevant observation when practical.
+
+---
+
+# 167. Non-Reproducible Evidence
+
+Evidence need not be reproducible to be valid.
+
+For example, an incident occurring once in production may produce unique Evidence.
+
+Non-reproducibility MUST NOT cause automatic rejection.
+
+---
+
+# 168. Evidence Lineage
+
+Consumers SHOULD be able to traverse upstream and downstream Evidence derivation.
+
+Example:
+
+```text
+raw benchmark samples
+    →
+aggregated statistics
+    →
+performance report
+    →
+release verification
+```
+
+---
+
+# 169. Circular Evidence
+
+The system SHOULD detect or avoid circular Evidence reasoning where:
+
+```text
+Claim A supported by Evidence B
+Evidence B exists solely because Claim A was assumed
+```
+
+and no independent basis exists.
+
+---
+
+# 170. Evidence Independence Audit
+
+High-risk decisions SHOULD allow reviewers to inspect whether multiple Evidence items truly originate from independent sources.
+
+---
+
+# 171. Evidence Quality Policy
+
+Domains MAY define quality criteria for specific Evidence types.
+
+Example:
+
+```text
+security scan Evidence:
+    scanner version must be recorded
+    scan must target release artifact digest
+    database definitions must be <= 24h old
+```
+
+---
+
+# 172. Native-System Evidence
+
+Monad SHOULD preserve native-system Evidence without unnecessarily reimplementing the native capability that produced it.
+
+---
+
+# 173. Native Evidence Reference
+
+A Native Reference MAY locate Evidence stored externally.
+
+The canonical Evidence record SHOULD distinguish:
+
+```text
+Evidence identity
+```
+
+from:
+
+```text
+native location
+```
+
+---
+
+# 174. Native Evidence Drift
+
+If native Evidence changes after import, Monad SHOULD be able to detect or represent:
+
+* changed content,
+* new revision,
+* deletion,
+* access loss,
+* provider mutation.
+
+---
+
+# 175. Mutable Native Evidence
+
+Mutable external Evidence SHOULD be revision-bound or snapshotted when reproducibility or auditability requires stable content.
+
+---
+
+# 176. Evidence Correction Provenance
+
+Corrections to Evidence metadata MUST preserve:
+
+* previous value,
+* corrected value,
+* Actor,
+* reason,
+* time
+
+when consequential.
+
+---
+
+# 177. Evidence Replacement
+
+Replacing Evidence MUST NOT silently rewrite downstream historical decisions that relied on the earlier Evidence.
+
+---
+
+# 178. Downstream Impact
+
+Invalidating Evidence SHOULD make affected downstream entities discoverable.
+
+Possible downstream entities include:
+
+```text
+Claims
+Verifications
+Approvals
+Releases
+Decisions
+Reviews
+```
+
+---
+
+# 179. Evidence Dependency
+
+A Verification or Decision MAY depend materially on Evidence.
+
+Such dependency SHOULD be explicit rather than inferred only from document co-location.
+
+---
+
+# 180. Evidence Falsifiability
+
+Evidence-backed Claims SHOULD remain open to contradicting Evidence unless the domain legitimately establishes proof.
+
+Monad MUST NOT encode “supported” as permanent unquestionable truth.
+
+---
+
+# 181. Evidence Neutrality
+
+The Evidence model MUST support Evidence that:
+
+* supports,
+* contradicts,
+* weakens,
+* qualifies,
+
+without privileging Evidence that confirms the current canonical Claim.
+
+---
+
+# 182. Confirmation Bias Resistance
+
+Interfaces SHOULD avoid hiding contradictory Evidence merely because a canonical Claim already exists.
+
+---
+
+# 183. Evidence Interpretation
+
+Evidence interpretation MAY itself be represented as a Claim.
+
+Example:
+
+```text
+Evidence:
+    CPU usage spike
+
+Claim:
+    The spike indicates resource exhaustion.
+```
+
+The interpretation MUST remain distinguishable from the raw Evidence.
+
+---
+
+# 184. Causal Evidence
+
+Evidence used to support causal Claims SHOULD preserve the reasoning or method connecting observation to causality.
+
+Temporal correlation alone SHOULD NOT be labeled causal Evidence without additional justification.
+
+---
+
+# 185. Statistical Evidence
+
+Statistical Evidence SHOULD preserve relevant method metadata where needed, such as:
+
+```text
+sample size
+population
+confidence interval
+test method
+aggregation
+```
+
+The final statistical schema is domain-specific.
+
+---
+
+# 186. Benchmark Evidence
+
+Benchmark Evidence SHOULD preserve:
+
+* workload,
+* environment,
+* dataset,
+* runtime versions,
+* warmup policy,
+* sample count,
+* measurement method.
+
+---
+
+# 187. Security Evidence
+
+Security Evidence SHOULD preserve sufficient provenance to determine:
+
+* scanner/tool,
+* ruleset/database version,
+* artifact scanned,
+* configuration,
+* time.
+
+---
+
+# 188. Build Evidence
+
+Build Evidence MAY include:
+
+```text
+source revision
+dependency lock state
+toolchain identity
+artifact digest
+build environment
+build logs
+```
+
+---
+
+# 189. Reproducibility Evidence
+
+Reproducibility Evidence SHOULD distinguish:
+
+```text
+same inputs produced identical artifact
+```
+
+from:
+
+```text
+same inputs produced functionally equivalent behavior
+```
+
+Those are not identical claims.
+
+---
+
+# 190. Migration Evidence
+
+Migration operations SHOULD be able to produce Evidence for:
+
+* pre-migration state,
+* migration plan,
+* execution,
+* post-migration validation,
+* reconciliation,
+* rollback capability.
+
+---
+
+# 191. Evidence Availability Failure
+
+When Evidence required for a consequential operation cannot be retrieved, the system SHOULD surface:
+
+```text
+Evidence unavailable
+```
+
+rather than fabricating or silently omitting it.
+
+---
+
+# 192. Evidence Retrieval Failure
+
+Retrieval failure SHOULD preserve diagnostic information separately from the Evidence record.
+
+---
+
+# 193. Evidence Parsing Failure
+
+A parser failure does not imply the underlying Evidence is invalid.
+
+The system SHOULD distinguish:
+
+```text
+Evidence unreadable by current parser
+```
+
+from:
+
+```text
+Evidence content invalid
+```
+
+---
+
+# 194. Schema Evolution
+
+Evidence schemas MUST support explicit versioning.
+
+Older Evidence SHOULD remain interpretable or migratable according to the compatibility policy.
+
+---
+
+# 195. Unknown Fields
+
+Importers SHOULD preserve unknown fields when possible to avoid destructive round-trip loss.
+
+---
+
+# 196. Evidence Migration
+
+Evidence schema migrations SHOULD preserve:
+
+* identity,
+* provenance,
+* Claim relationships,
+* lifecycle,
+* integrity information,
+* historical meaning.
+
+---
+
+# 197. Migration Provenance
+
+Material Evidence migrations SHOULD be traceable.
+
+---
+
+# 198. Evidence Validation Layers
+
+Evidence validation SHOULD occur in distinct layers.
+
+## Level 1 — Structural
+
+Verify:
+
+* required fields,
+* identifiers,
+* schema structure.
+
+## Level 2 — Referential
+
+Verify:
+
+* source references,
+* Claim references,
+* revision references,
+* Representation references.
+
+## Level 3 — Integrity
+
+Verify:
+
+* digests,
+* sizes,
+* expected immutable content.
+
+## Level 4 — Provenance
+
+Verify required origin and producer information.
+
+## Level 5 — Scope
+
+Verify:
+
+* revision,
+* environment,
+* time,
+* Subject applicability.
+
+## Level 6 — Semantic
+
+Verify Evidence-type-specific invariants.
+
+## Level 7 — Policy
+
+Verify Evidence satisfies required governance criteria for intended use.
+
+---
+
+# 199. Validation Result
+
+Evidence validation results MUST remain distinct from Evidence itself.
+
+---
+
+# 200. Structurally Valid ≠ Valid Evidence
+
+Evidence that matches a schema may still be:
+
+* fabricated,
+* stale,
+* irrelevant,
+* corrupted upstream,
+* collected from wrong revision.
+
+Schema validation alone MUST NOT imply evidentiary validity.
+
+---
+
+# 201. Minimal Evidence Example
+
+```yaml
+evidence:
+  id: evd:01K...
+  type: test-result
+
+  representation:
+    path: artifacts/tests/run-241.json
+
+  provenance:
+    producer: test-runner
+    observed_at: 2026-08-30T04:13:00Z
+```
+
+Illustrative only.
+
+---
+
+# 202. Rich Evidence Example
+
+```yaml
+evidence:
+  id: evd:01K...
+
+  type: integration-test-result
+
+  subject:
+    requirement: REQ-AUTH-042
+
+  scope:
+    revision: git:abc123
+    environment: linux-ci
+
+  representation:
+    artifact: artifact:test-run-241
+    media_type: application/json
+
+  provenance:
+    producer:
+      tool: vitest
+      version: 4.0.0
+
+    execution: exec:01K...
+
+    observed_at: 2026-08-30T04:13:00Z
+    recorded_at: 2026-08-30T04:13:02Z
+
+  integrity:
+    sha256: "..."
+
+  lifecycle:
+    state: valid
+```
+
+Field names remain illustrative.
+
+---
+
+# 203. Evidence-to-Claim Example
+
+```yaml
+relationship:
+  type: supports
+
+  source:
+    evidence: evd:01K...
+
+  target:
+    claim: clm:01K...
+
+  properties:
+    relevance: direct
+```
+
+---
+
+# 204. Contradictory Evidence Example
+
+```text
+Claim:
+    Service latency remains below 100 ms.
+
+Evidence A:
+    benchmark result
+    p95 = 82 ms
+    supports
+
+Evidence B:
+    production trace
+    p95 = 147 ms
+    contradicts
+```
+
+Monad MUST preserve both.
+
+---
+
+# 205. Stale Evidence Example
+
+```text
+Evidence:
+    security scan passed
+
+Revision:
+    abc123
+
+Current revision:
+    def456
+```
+
+If security-relevant files changed, policy MAY classify the Evidence as stale for release authorization.
+
+The original scan remains valid historical Evidence for `abc123`.
+
+---
+
+# 206. Derived Evidence Example
+
+```text
+Raw Evidence:
+    10,000 runtime traces
+
+Derived Evidence:
+    latency distribution report
+
+Provenance:
+    derived-from traces
+    aggregation algorithm v3
+```
+
+---
+
+# 207. AI Evidence Example
+
+```yaml
+evidence:
+  id: evd:ai-analysis:01K...
+
+  type: ai-analysis
+
+  provenance:
+    producer:
+      kind: ai-model
+      provider: provider-x
+      model: model-y
+
+    inputs:
+      - evidence:test-run:241
+      - artifact:architecture-spec:12
+
+  lifecycle:
+    state: candidate
+```
+
+This Evidence establishes what the AI analysis concluded.
+
+It does not establish that the conclusion is true.
+
+---
+
+# 208. External Evidence Example
+
+```text
+Evidence:
+    external package registry advisory
+
+Native reference:
+    advisory provider + advisory ID
+
+Snapshot:
+    retained locally
+
+Observed:
+    2026-08-30
+```
+
+The snapshot and external reference SHOULD remain related but distinct.
+
+---
+
+# 209. Absence Example
+
+Invalid reasoning:
+
+```text
+No log entry found.
+Therefore event never occurred.
+```
+
+Potentially valid reasoning:
+
+```text
+Audit stream guarantees complete event capture.
+Audit stream queried for the complete relevant interval.
+No matching event exists.
+Therefore the Evidence supports absence of the event.
+```
+
+The completeness premise must remain inspectable.
+
+---
+
+# 210. Evidence Bundle Example
+
+```yaml
+evidence_bundle:
+  id: evb:release:0.1.0
+
+  purpose:
+    release_candidate: rc:0.1.0-3
+
+  members:
+    - evd:unit-tests
+    - evd:integration-tests
+    - evd:security-scan
+    - evd:reproducibility
+    - evd:compatibility
+
+  required_types:
+    - test-result
+    - security-scan
+    - reproducibility-result
+```
+
+---
+
+# 211. Anti-Patterns
+
+## 211.1 Claim embedded as Evidence
+
+```text
+Evidence:
+    "The system is secure."
+```
+
+This is a Claim, not sufficient Evidence by itself.
+
+---
+
+## 211.2 Green CI means release ready
+
+A CI status is treated as definitive release Evidence without understanding which checks ran.
+
+---
+
+## 211.3 Newest Evidence always wins
+
+More recent Evidence automatically overrides older Evidence regardless of scope or authority.
+
+---
+
+## 211.4 Screenshot without provenance
+
+A screenshot is retained without identifying:
+
+* source,
+* time,
+* environment,
+* subject.
+
+Its evidentiary value becomes difficult to establish.
+
+---
+
+## 211.5 Summary replaces source
+
+An AI summary replaces raw logs and the original Evidence is discarded.
+
+---
+
+## 211.6 Same bytes means same Evidence
+
+Two artifacts with identical content but different provenance are collapsed into one semantic Evidence instance.
+
+---
+
+## 211.7 Evidence equals proof
+
+A passing test is interpreted as proving all relevant behavior correct.
+
+---
+
+## 211.8 Evidence by authority
+
+A senior engineer's assertion is treated as Evidence solely because of organizational rank.
+
+---
+
+## 211.9 Provider URL as Evidence identity
+
+A mutable CI URL becomes the semantic Evidence identifier.
+
+---
+
+## 211.10 Silent stale Evidence
+
+Evidence remains displayed as current after underlying revision changes.
+
+---
+
+## 211.11 Supporting Evidence hidden by verdict
+
+Only the final `PASS` result is retained; underlying Evidence disappears.
+
+---
+
+## 211.12 Contradictory Evidence discarded
+
+Evidence that challenges the preferred conclusion is deleted.
+
+---
+
+## 211.13 AI output treated as observation
+
+An AI-generated explanation is represented as if it directly observed runtime state.
+
+---
+
+## 211.14 Dashboard equals raw Evidence
+
+A dashboard screenshot is treated as equivalent to the complete metric dataset from which it was generated.
+
+---
+
+## 211.15 Missing Evidence treated as failure Evidence
+
+Failure to retrieve a test result is interpreted as a failing test.
+
+---
+
+# 212. Non-Requirements
+
+This specification does **not** require:
+
+* all Evidence to be stored directly inside Monad,
+* cryptographic signing of every Evidence artifact,
+* indefinite Evidence retention,
+* one universal Evidence-strength score,
+* every Claim to have Evidence,
+* every Evidence item to be independently reproducible,
+* formal proof,
+* automatic Claim resolution,
+* AI analysis,
+* graph database storage,
+* content-addressable storage,
+* immutable external providers,
+* storing every log indefinitely,
+* treating native systems as untrusted,
+* treating human observations as inherently superior to machine observations.
+
+---
+
+# 213. Conformance Scenario — Passing Test
+
+Given:
+
+```text
+Requirement R
+```
+
+and:
+
+```text
+test T passes against revision abc123
+```
+
+Monad MAY create Evidence representing the passing test.
+
+It MUST NOT automatically mark R satisfied unless an applicable Verification establishes that conclusion.
+
+---
+
+# 214. Conformance Scenario — Changed Revision
+
+Given passing Evidence for revision `abc123` and a materially changed revision `def456`,
+
+the original Evidence MUST remain bound to `abc123`.
+
+Policy or Verification MAY determine whether it remains relevant to `def456`.
+
+---
+
+# 215. Conformance Scenario — Conflicting Results
+
+Given:
+
+```text
+Test run A: pass
+Test run B: fail
+```
+
+for the same revision and environment,
+
+Monad MUST preserve both results.
+
+It MUST NOT silently retain only the newest or preferred outcome.
+
+---
+
+# 216. Conformance Scenario — Invalid Test Setup
+
+Given a passing test run later discovered to have used the wrong database configuration,
+
+the Evidence SHOULD be invalidated or qualified.
+
+Any Verification materially dependent on it SHOULD become discoverable as affected.
+
+---
+
+# 217. Conformance Scenario — External Deletion
+
+Given externally hosted Evidence is deleted,
+
+Monad SHOULD retain:
+
+* Evidence identity,
+* former reference,
+* provenance,
+* last-known metadata,
+* unavailable lifecycle state.
+
+---
+
+# 218. Conformance Scenario — AI Analysis
+
+Given an AI system analyzes logs and concludes:
+
+```text
+Database exhaustion likely caused the incident.
+```
+
+Monad MAY record the analysis as derived Evidence.
+
+It MUST preserve the underlying logs separately and MUST NOT automatically establish the causal Claim as canonical truth.
+
+---
+
+# 219. Conformance Scenario — Duplicate Derivation
+
+Given two reports are generated from the same underlying benchmark dataset,
+
+Monad SHOULD NOT treat the two reports as independent corroborating Evidence merely because they are separate files.
+
+---
+
+# 220. Conformance Scenario — Historical Evidence
+
+Given Evidence became stale after a new release,
+
+historical queries concerning the earlier release MUST still be able to retrieve it where retention permits.
+
+---
+
+# 221. Conformance Scenario — Redaction
+
+Given Evidence contains credentials,
+
+an exported Evidence package MAY redact the credentials.
+
+The export MUST indicate that redaction occurred.
+
+---
+
+# 222. Conformance Scenario — Offline Capture
+
+Given a developer captures Evidence while offline,
+
+later synchronization MUST preserve the original observation and capture time rather than replacing it with synchronization time.
+
+---
+
+# 223. Conformance Scenario — Native Evidence Move
+
+Given a CI provider migrates an artifact from one storage URL to another,
+
+Evidence identity SHOULD remain stable if the underlying Evidence remains the same.
+
+---
+
+# 224. Conformance Scenario — Evidence of Absence
+
+Given an observation mechanism does not guarantee complete capture,
+
+no matching observation MUST NOT automatically establish a negative Claim.
+
+---
+
+# 225. Conformance Scenario — Release Candidate
+
+Given Evidence Bundle B applies to release candidate RC1,
+
+and RC2 differs materially,
+
+B MUST NOT automatically satisfy RC2's release Evidence obligations.
+
+---
+
+# 226. Conformance Scenario — Signature
+
+Given a signed Evidence artifact passes signature validation,
+
+Monad MAY conclude that the artifact matches the signed content and signer identity according to the signature system.
+
+It MUST NOT infer that the Evidence content is factually correct solely from the signature.
+
+---
+
+# 227. Conformance Scenario — Evidence Transformation
+
+Given raw trace data is summarized into a latency report,
+
+the report MUST preserve derivation links sufficient to locate or identify the trace Evidence when retention policy permits.
+
+---
+
+# 228. Conformance Scenario — Review Finding
+
+Given a reviewer reports:
+
+```text
+Authentication code appears to bypass policy check.
+```
+
+the finding MAY be stored as Evidence.
+
+The finding does not automatically establish the defect as confirmed.
+
+---
+
+# 229. Derived Schema Obligations
+
+The Schema Catalog derived from this specification will likely require representations for:
+
+```text
+Evidence Identifier
+Evidence
+Evidence Type
+Evidence Representation
+Evidence Source
+Evidence Scope
+Evidence Lifecycle
+Evidence Integrity
+Evidence Bundle
+Evidence Bundle Membership
+Evidence Obligation
+Evidence Validation Result
+Evidence-to-Claim Relationship
+Evidence Derivation Relationship
+```
+
+Potential supporting types include:
+
+```text
+freshness state
+validity state
+availability state
+relevance classification
+directness classification
+reproducibility classification
+redaction metadata
+```
+
+These are conceptual obligations rather than final schema definitions.
+
+---
+
+# 230. Foundational Evidence Type Candidates
+
+The initial kernel SHOULD evaluate a small Evidence vocabulary including:
+
+```text
+test-result
+execution-result
+runtime-observation
+source-snapshot
+configuration-snapshot
+build-result
+deployment-record
+experiment-result
+review-finding
+external-record
+human-observation
+ai-analysis
+```
+
+The final catalog SHOULD be driven by demonstrated requirements rather than ontology completeness.
+
+---
+
+# 231. Evidence Relationship Candidates
+
+The foundational relationship vocabulary SHOULD evaluate:
+
+```text
+supports
+contradicts
+qualifies
+corroborates
+weakens
+derived-from
+produced-by
+observed-from
+used-by
+supersedes
+invalidates
+member-of
+```
+
+Exact predicate names remain subject to the Relationships and Schema Catalog specifications.
+
+---
+
+# 232. Open Specification Questions
+
+## 232.1 Evidence identity granularity
+
+Should each test case result be separate Evidence, or should one test execution be the primary Evidence entity with individual results as fragments?
+
+---
+
+## 232.2 Evidence content storage
+
+When should Evidence content be:
+
+* embedded,
+* content-addressed,
+* stored as a file,
+* retained only as a Native Reference?
+
+---
+
+## 232.3 Evidence-to-Claim modeling
+
+Should Evidence relationships attach:
+
+* directly to Claims,
+* to proposition evaluations,
+* to both?
+
+---
+
+## 232.4 Validity model
+
+Should Evidence validity be:
+
+* lifecycle state,
+* Claim about Evidence,
+* Verification result,
+* combination?
+
+---
+
+## 232.5 Freshness
+
+Should freshness be computed dynamically or persisted as derived state?
+
+---
+
+## 232.6 Strength
+
+Which Evidence-strength dimensions deserve standardized vocabulary?
+
+---
+
+## 232.7 Independence
+
+Should Evidence source independence be explicitly modeled or derived from provenance graphs?
+
+---
+
+## 232.8 Evidence Bundles
+
+Should bundles be persisted semantic entities or deterministic projections over Evidence queries?
+
+---
+
+## 232.9 Content identity
+
+When identical bytes are produced by different executions, should they share a Representation identity while retaining separate Evidence identity?
+
+---
+
+## 232.10 External Evidence snapshots
+
+Which classes of externally hosted Evidence should Monad snapshot automatically?
+
+---
+
+## 232.11 AI context retention
+
+How much model input context should be retained when an AI output becomes consequential Evidence?
+
+---
+
+## 232.12 Human observations
+
+Should structured human observations use the same Evidence schema as machine-produced observations or a specialized subtype?
+
+---
+
+## 232.13 Retention
+
+Which Evidence classes are required for durable release reconstruction?
+
+---
+
+## 232.14 Redaction
+
+How should redacted Evidence retain integrity relationships to the unredacted original without exposing sensitive material?
+
+---
+
+## 232.15 Evidence obligations
+
+Should Evidence obligations belong primarily to:
+
+* policies,
+* verification specifications,
+* requirement acceptance criteria,
+* all three?
+
+---
+
+# 233. Definition of Ready
+
+This specification is ready for baseline acceptance when:
+
+* Evidence is explicitly separated from Claims,
+* Evidence is explicitly separated from Verification,
+* Evidence is explicitly separated from Authority,
+* Evidence provenance is representable,
+* scope and revision binding are explicit,
+* validity and relevance are distinguished,
+* freshness is contextual,
+* contradictory Evidence can coexist,
+* derived Evidence retains upstream provenance,
+* AI-generated Evidence remains epistemically constrained,
+* native Evidence can remain externally stored,
+* lifecycle and invalidation semantics preserve history,
+* Evidence can be related to Verification and release decisions,
+* portability and integrity concerns are represented.
+
+---
+
+# 234. Definition of Done
+
+The Evidence specification is complete for the foundational specification baseline when:
+
+* every major `REQ-EVD-*` obligation maps to normative behavior,
+* Claims can reference supporting and contradicting Evidence,
+* Verification can consume explicit Evidence sets,
+* governance can express Evidence obligations,
+* execution can emit durable Evidence,
+* reconciliation can reason over observed Evidence,
+* releases can assemble revision-bound Evidence Bundles,
+* AI output can participate without being mistaken for truth,
+* native-system Evidence can remain first-class,
+* Evidence invalidation can propagate downstream impact,
+* schema work can proceed without redefining Evidence semantics,
+* conformance scenarios cover primary epistemic failure modes.
+
+---
+
+# 235. Requirement Traceability
+
+This specification primarily operationalizes `REQ-EVD-*`.
+
+It also defines Evidence behavior needed by:
+
+| Requirement family | Evidence concern                                          |
+| ------------------ | --------------------------------------------------------- |
+| `REQ-CLM-*`        | Claims supported, contradicted, and qualified by Evidence |
+| `REQ-PROV-*`       | origin and derivation of Evidence                         |
+| `REQ-SEM-*`        | Evidence as a first-class semantic concept                |
+| `REQ-ID-*`         | stable Evidence identity independent of location          |
+| `REQ-AUTH-*`       | authority over Evidence submission and use                |
+| `REQ-GOV-*`        | Evidence obligations and authorization gates              |
+| `REQ-EXE-*`        | Evidence produced by executions                           |
+| `REQ-REC-*`        | observed-state Evidence used in reconciliation            |
+| `REQ-VER-*`        | Evidence evaluated by Verification                        |
+| `REQ-PORT-*`       | Evidence preservation across providers and migrations     |
+
+Exact requirement-to-clause mapping SHOULD be produced during specification baseline review.
+
+---
+
+# 236. Relationship to Other Specifications
+
+<Cards>
+  <Card
+    href="/docs/artifacts/specifications/semantic-kernel"
+    title="Semantic Kernel"
+  >
+    Establishes Evidence as one of Monad's foundational semantic concepts.
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/claims"
+title="Claims"
+
+>
+
+```
+Defines the propositions Evidence can support, contradict, qualify, or weaken.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/relationships"
+title="Relationships"
+
+>
+
+```
+Defines the typed semantic relationships connecting Evidence to Claims, executions, sources, and other Evidence.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/provenance"
+title="Provenance"
+
+>
+
+```
+Defines how Evidence origin, derivation, transformation, and production are recorded.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/verification"
+title="Verification"
+
+>
+
+```
+Defines how expectations are evaluated against scoped Evidence.
+```
+
+  </Card>
+
+<Card
+href="/docs/artifacts/specifications/authority"
+title="Authority"
+
+>
+
+```
+Defines who or what may legitimately govern consequential Evidence use.
+```
+
+  </Card>
+</Cards>
+
+---
+
+# 237. Governing Principle
+
+Evidence exists to make engineering belief inspectable.
+
+Monad must therefore preserve the difference between:
+
+```text
+"We believe this."
+```
+
+and:
+
+```text
+"Here is what we observed."
+```
+
+between:
+
+```text
+"The test passed."
+```
+
+and:
+
+```text
+"The requirement is satisfied."
+```
+
+between:
+
+```text
+"This artifact has a valid hash."
+```
+
+and:
+
+```text
+"This artifact is correct."
+```
+
+between:
+
+```text
+"An AI system concluded this."
+```
+
+and:
+
+```text
+"This is true."
+```
+
+between:
+
+```text
+"We found no evidence."
+```
+
+and:
+
+```text
+"We have evidence of absence."
+```
+
+The governing principle is:
+
+> **Engineering Claims should be as strong as the Evidence supporting them—and no stronger.**
+
+Monad should make Evidence durable enough to inspect, precise enough to scope, connected enough to trace, and humble enough not to pretend that observation alone eliminates uncertainty.

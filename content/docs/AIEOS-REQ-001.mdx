@@ -1,0 +1,2893 @@
+---
+title: "AIEOS-REQ-001"
+description: "AI-Native Engineering Operating System — System Requirements Specification"
+---
+
+# AIEOS System Requirements Specification
+
+**Specification ID:** AIEOS-REQ-001
+**Title:** AI-Native Engineering Operating System — System Requirements Specification
+**Version:** 0.2.0
+**Status:** Draft
+**Classification:** Normative Requirements Specification
+**Parent:** AIEOS-FOUND-001 — AI-Native Engineering Operating System Foundation Specification
+
+---
+
+# 1. Purpose
+
+This specification defines the normative system requirements for the **AI-Native Engineering Operating System (AIEOS)**.
+
+AIEOS is a governed engineering control system in which humans, AI agents, deterministic automation, repositories, engineering tools, delivery systems, and operational environments cooperate to transform intent into verified changes to operational reality.
+
+This document defines **what AIEOS must do and guarantee**.
+
+It intentionally does not prescribe:
+
+* concrete implementation technologies,
+* database products,
+* programming languages,
+* deployment platforms,
+* UI frameworks,
+* agent vendors,
+* model providers,
+* repository hosting providers,
+* workflow-engine implementations,
+* physical service boundaries.
+
+Those concerns belong to subordinate architecture and implementation specifications.
+
+---
+
+# 2. Relationship to the Foundation
+
+`AIEOS-FOUND-001` establishes the governing principles and conceptual operating model of AIEOS.
+
+This document translates those principles into individually identifiable and testable requirements.
+
+The dependency is:
+
+```text
+AIEOS-FOUND-001
+      ↓
+AIEOS-REQ-001
+      ↓
+AIEOS-DOM-001
+      ↓
+AIEOS-ARCH-001
+      ↓
+subordinate specifications
+      ↓
+implementation
+      ↓
+verification
+```
+
+Where a conflict exists between this specification and `AIEOS-FOUND-001`, the conflict MUST be surfaced and resolved through an explicit specification change.
+
+It MUST NOT be silently interpreted away.
+
+---
+
+# 3. Scope
+
+AIEOS SHALL provide the control and coordination capabilities necessary to govern engineering work across:
+
+```text
+Intent
+  ↓
+Requirements / Specification
+  ↓
+Planning
+  ↓
+Execution
+  ↓
+Verification
+  ↓
+Review
+  ↓
+Authorization
+  ↓
+Deployment
+  ↓
+Observation
+  ↓
+Learning / Feedback
+```
+
+The requirements in this specification cover:
+
+* identity,
+* work units,
+* engineering artifacts,
+* relationships,
+* workflow,
+* lifecycle state,
+* human participation,
+* AI-agent participation,
+* authority,
+* capabilities,
+* policy,
+* risk,
+* execution,
+* verification,
+* evidence,
+* review,
+* deployment,
+* observation,
+* incidents,
+* provenance,
+* auditability,
+* security,
+* integrations,
+* user interaction,
+* organizational learning,
+* non-functional properties.
+
+---
+
+# 4. Out of Scope
+
+The following are not defined by this specification:
+
+## 4.1 Project-management methodology
+
+AIEOS MUST NOT require Scrum, Kanban, SAFe, Shape Up, Waterfall, or another specific planning framework.
+
+These MAY be implemented as workflow projections or integrations.
+
+## 4.2 Source-control vendor
+
+AIEOS MUST NOT fundamentally depend upon GitHub, GitLab, Bitbucket, or another specific provider.
+
+## 4.3 AI provider
+
+AIEOS MUST NOT require one specific AI model or provider.
+
+## 4.4 CI/CD vendor
+
+AIEOS MUST NOT require one specific CI/CD system.
+
+## 4.5 Cloud platform
+
+AIEOS MUST NOT require one specific deployment environment or cloud provider.
+
+## 4.6 Complete organizational governance
+
+AIEOS governs engineering activities within its configured authority boundary.
+
+It does not attempt to replace corporate, legal, financial, personnel, or executive governance systems.
+
+---
+
+# 5. Normative Language
+
+The terms **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** are normative.
+
+Requirements identified with a `REQ-*` identifier are normative unless explicitly marked informational.
+
+---
+
+# 6. Requirement Structure
+
+Each requirement has a stable identifier.
+
+Requirement identifiers SHALL use the form:
+
+```text
+REQ-<FAMILY>-<NUMBER>
+```
+
+For example:
+
+```text
+REQ-WF-001
+REQ-AUTHZ-004
+REQ-VER-012
+```
+
+Requirement identifiers MUST remain stable once accepted.
+
+If a requirement is removed, its identifier MUST NOT be reassigned to an unrelated requirement.
+
+---
+
+# 7. Requirement Families
+
+The initial requirement families are:
+
+| Family          | Concern                             |
+| --------------- | ----------------------------------- |
+| `REQ-SYS`       | System-wide behavior                |
+| `REQ-ID`        | Identity                            |
+| `REQ-WU`        | Work units                          |
+| `REQ-ART`       | Engineering artifacts               |
+| `REQ-ASSERT`    | Assertions and proposition status   |
+| `REQ-REL`       | Relationships and traceability      |
+| `REQ-AUTHORITY` | Semantic authority                  |
+| `REQ-WF`        | Workflow and lifecycle              |
+| `REQ-HUM`       | Human participation                 |
+| `REQ-AGENT`     | AI-agent participation              |
+| `REQ-CAP`       | Capabilities                        |
+| `REQ-AUTHZ`     | Operational authorization           |
+| `REQ-DEC`       | Decisions and approvals             |
+| `REQ-POL`       | Policy                              |
+| `REQ-RISK`      | Risk and autonomy                   |
+| `REQ-ENV`       | Governed environments               |
+| `REQ-EXEC`      | Execution                           |
+| `REQ-VER`       | Verification                        |
+| `REQ-EVID`      | Evidence                            |
+| `REQ-REV`       | Review                              |
+| `REQ-DEP`       | Release and deployment              |
+| `REQ-OBS`       | Observation                         |
+| `REQ-INC`       | Incident handling                   |
+| `REQ-LEARN`     | Organizational learning             |
+| `REQ-PROV`      | Provenance, events, and time        |
+| `REQ-SEC`       | Security                            |
+| `REQ-INT`       | External integrations               |
+| `REQ-UX`        | Human interaction                   |
+| `REQ-CONF`      | Configuration                       |
+| `REQ-REC`       | Reconciliation, drift, and recovery |
+| `REQ-NFR`       | Non-functional requirements         |
+
+---
+
+# 8. System-Wide Requirements
+
+## REQ-SYS-001 — Governed engineering lifecycle
+
+AIEOS MUST support a governed engineering lifecycle from identifiable intent through operational observation.
+
+---
+
+## REQ-SYS-002 — Closed-loop operation
+
+AIEOS MUST permit operational observations, incidents, discoveries, and evaluation results to produce new engineering input.
+
+---
+
+## REQ-SYS-003 — Human-agent-system distinction
+
+AIEOS MUST preserve a conceptual distinction between:
+
+* human actors,
+* AI agents,
+* deterministic automation,
+* external systems.
+
+---
+
+## REQ-SYS-004 — Capability/authority separation
+
+AIEOS MUST distinguish technical capability from granted authority.
+
+Possession of a capability MUST NOT by itself imply authorization to use it.
+
+---
+
+## REQ-SYS-005 — Execution/review/approval separation
+
+AIEOS MUST be capable of assigning execution, review, and approval to distinct actors.
+
+---
+
+## REQ-SYS-006 — Deterministic governance
+
+Authoritative lifecycle state changes and policy-enforced governance decisions MUST be determined through deterministic system rules rather than unverified model judgment alone.
+
+---
+
+## REQ-SYS-007 — Agent recommendations are non-authoritative by default
+
+An AI agent MAY recommend decisions, transitions, risk levels, approvals, or exceptions.
+
+Such recommendations MUST NOT become authoritative solely because the agent generated them.
+
+---
+
+## REQ-SYS-008 — Explicit exceptional paths
+
+AIEOS MUST represent exceptions, overrides, bypasses, and emergency actions explicitly.
+
+They MUST NOT occur as invisible deviations from normal workflow.
+
+---
+
+## REQ-SYS-009 — Inspectability
+
+The current engineering state of a governed work unit MUST be inspectable.
+
+---
+
+## REQ-SYS-010 — Reconstructability
+
+AIEOS SHOULD make it possible to reconstruct how a consequential engineering outcome was reached from retained artifacts, events, evidence, and decisions.
+
+---
+
+# 9. Identity Requirements
+
+## REQ-ID-001 — Stable subject identity
+
+Every first-class governed Subject MUST possess a stable semantic identity appropriate to its lifecycle and traceability requirements.
+
+---
+
+## REQ-ID-002 — Location-independent identity
+
+The semantic identity of a governed Subject MUST NOT depend exclusively upon a mutable representation or physical location such as:
+
+* filename,
+* repository path,
+* issue number,
+* URL,
+* database row position,
+* temporary execution location,
+* infrastructure address.
+
+---
+
+## REQ-ID-003 — External identity bindings
+
+AIEOS MUST permit an internal subject to be bound to one or more native identifiers in external systems.
+
+---
+
+## REQ-ID-004 — Identity preservation
+
+Moving, renaming, reformatting, regenerating, or projecting an artifact MUST NOT automatically change its semantic identity.
+
+---
+
+## REQ-ID-005 — Identity history
+
+Changes to identity bindings SHOULD preserve historical traceability.
+
+---
+
+## REQ-ID-006 — No silent identity merge
+
+AIEOS MUST NOT silently merge semantically distinct subjects because external references appear equivalent.
+
+---
+
+## REQ-ID-007 — Split and merge support
+
+The identity model MUST be capable of representing semantic split and merge events without destroying historical provenance.
+
+---
+
+## REQ-ID-008 — Human-readable references
+
+The system SHOULD support human-readable aliases in addition to stable canonical identifiers.
+
+---
+
+# 10. Work Unit Requirements
+
+## REQ-WU-001 — Governed work unit
+
+AIEOS MUST provide a persistent concept representing one governed unit of engineering work.
+
+---
+
+## REQ-WU-002 — Intent association
+
+Every active governed work unit MUST be associated with identifiable intent.
+
+---
+
+## REQ-WU-003 — Work-unit coordination status
+
+A Work Unit MUST expose an explicit coordination status sufficient to communicate its current engineering condition.
+
+That status MAY be derived from one or more governing Workflow Instances.
+
+It MUST NOT replace or ambiguously overwrite the authoritative Lifecycle State of a Workflow Instance.
+
+---
+
+## REQ-WU-004 — Work-unit ownership context
+
+A work unit MUST be capable of recording accountable human ownership or governing authority where applicable.
+
+---
+
+## REQ-WU-005 — Parent/child decomposition
+
+A work unit MUST be capable of being decomposed into subordinate work units without losing traceability to originating intent.
+
+---
+
+## REQ-WU-006 — Dependencies
+
+AIEOS MUST support explicit dependencies between work units.
+
+---
+
+## REQ-WU-007 — Blocking conditions
+
+A work unit MUST be capable of entering an explicit blocked state with one or more identified blocking conditions.
+
+---
+
+## REQ-WU-008 — Cancellation
+
+Cancellation of work MUST be explicit and recorded.
+
+---
+
+## REQ-WU-009 — Supersession
+
+A work unit MAY supersede another work unit while preserving the superseded work's historical record.
+
+---
+
+# 11. Engineering Artifact Requirements
+
+## REQ-ART-001 — First-class artifacts
+
+AIEOS MUST support first-class engineering artifacts.
+
+---
+
+## REQ-ART-002 — Initial artifact families
+
+The system MUST be capable of representing at least:
+
+```text
+Intent
+Requirement
+Specification
+Decision
+Plan
+Change
+Test
+Evaluation
+Evidence
+Review
+Release
+Incident
+Policy
+Exception
+Workflow Definition
+```
+
+---
+
+## REQ-ART-003 — Extensible artifact taxonomy
+
+The artifact model MUST permit additional project-defined or organization-defined artifact types without invalidating the core model.
+
+---
+
+## REQ-ART-004 — Artifact metadata
+
+Every first-class artifact MUST support metadata sufficient to identify:
+
+* identity,
+* type,
+* status,
+* origin,
+* current representation,
+* provenance,
+* relevant relationships.
+
+---
+
+## REQ-ART-005 — Artifact versioning
+
+AIEOS MUST support artifact evolution over time.
+
+---
+
+## REQ-ART-006 — Historical versions
+
+Historical authoritative versions SHOULD remain reconstructable where retention policy permits.
+
+---
+
+## REQ-ART-007 — Authored versus generated
+
+The system MUST be capable of distinguishing authored, generated, inferred, imported, and derived artifacts.
+
+---
+
+## REQ-ART-008 — Native representation
+
+Artifacts MAY remain natively stored in external systems.
+
+AIEOS MUST NOT require every authoritative artifact to be physically copied into one centralized store.
+
+---
+
+## REQ-ART-009 — Representation distinction
+
+AIEOS MUST distinguish the semantic artifact from a particular representation of that artifact.
+
+---
+
+## REQ-ART-010 — Artifact validity
+
+Artifacts MUST be capable of carrying validity or lifecycle status distinct from physical existence.
+
+---
+
+# 12. Assertion Requirements
+
+## REQ-ASSERT-001 — Explicit assertion model
+
+AIEOS MUST support explicitly represented propositions about governed Subjects where semantic governance requires proposition-level identity or status.
+
+---
+
+## REQ-ASSERT-002 — Assertion structure
+
+An Assertion MUST be capable of identifying:
+
+```text
+subject
+predicate or proposition type
+value/object/content
+status
+origin
+```
+
+where applicable.
+
+---
+
+## REQ-ASSERT-003 — Assertion status
+
+AIEOS MUST support assertion states equivalent to:
+
+```text
+proposed
+inferred
+accepted
+disputed
+rejected
+superseded
+invalid
+```
+
+where relevant.
+
+---
+
+## REQ-ASSERT-004 — Assertion provenance
+
+Consequential Assertions MUST be capable of retaining provenance.
+
+---
+
+## REQ-ASSERT-005 — Assertion-level authority
+
+Semantic Authority MUST be capable of applying at Assertion scope.
+
+---
+
+## REQ-ASSERT-006 — Uncertain propositions
+
+AIEOS MUST support propositions whose truth has not yet been established.
+
+Such propositions MUST remain distinguishable from accepted authoritative Assertions.
+
+---
+
+## REQ-ASSERT-007 — Competing assertions
+
+AIEOS MUST permit conflicting or competing Assertions to coexist while unresolved.
+
+---
+
+## REQ-ASSERT-008 — No automatic authority promotion
+
+Generated, inferred, or imported Assertions MUST NOT become authoritative solely because they exist in the system.
+
+---
+
+# 13. Relationship and Traceability Requirements
+
+## REQ-REL-001 — Explicit relationships
+
+AIEOS MUST support explicit semantic relationships between governed subjects.
+
+---
+
+## REQ-REL-002 — Relationship typing
+
+Relationships MUST be typed.
+
+---
+
+## REQ-REL-003 — Minimum relationship vocabulary
+
+The model MUST support concepts equivalent to:
+
+```text
+implements
+satisfies
+constrains
+depends-on
+derived-from
+generated-by
+validated-by
+evidenced-by
+reviewed-by
+authorized-by
+supersedes
+invalidates
+deploys
+observed-by
+caused-by
+remediates
+refines
+represents
+projects
+belongs-to
+blocks
+```
+
+---
+
+## REQ-REL-004 — Relationship provenance
+
+Consequential inferred or asserted relationships SHOULD preserve provenance.
+
+---
+
+## REQ-REL-005 — End-to-end traceability
+
+For governed work, AIEOS SHOULD permit traversal from originating intent to resulting operational observation.
+
+---
+
+## REQ-REL-006 — Reverse traceability
+
+AIEOS SHOULD permit a deployed change to be traced backward to:
+
+* implementation,
+* plan,
+* specification,
+* requirements,
+* originating intent.
+
+---
+
+## REQ-REL-007 — Impact traversal
+
+AIEOS MUST support determining known directly related subjects that may be affected by a proposed change.
+
+---
+
+## REQ-REL-008 — No silent inferred authority
+
+An inferred relationship MUST NOT automatically become an authoritative fact unless applicable confirmation policy permits it.
+
+---
+
+# 14. Semantic Authority Requirements
+
+## REQ-AUTHORITY-001 — Authority attribution
+
+AIEOS MUST be capable of identifying the authority source for authoritative engineering assertions.
+
+---
+
+## REQ-AUTHORITY-002 — Authority scope
+
+Authority MUST be capable of applying at finer granularity than an entire artifact.
+
+---
+
+## REQ-AUTHORITY-003 — Multiple representations
+
+Multiple representations of the same subject MAY coexist.
+
+---
+
+## REQ-AUTHORITY-004 — Canonical authority
+
+Where multiple representations exist, AIEOS MUST be capable of determining which source is authoritative for a governed assertion.
+
+---
+
+## REQ-AUTHORITY-005 — Authority conflict
+
+Conflicting authoritative claims MUST be surfaced.
+
+---
+
+## REQ-AUTHORITY-006 — No silent conflict resolution
+
+AIEOS MUST NOT silently choose between conflicting authoritative claims unless an explicit deterministic resolution policy authorizes that choice.
+
+---
+
+## REQ-AUTHORITY-007 — Derived information
+
+Derived information MUST remain distinguishable from its authoritative source information.
+
+---
+
+## REQ-AUTHORITY-008 — Projection status
+
+Generated or projected views MUST NOT automatically become authoritative merely because they are convenient representations.
+
+---
+
+# 15. Workflow Requirements
+
+## REQ-WF-001 — Explicit lifecycle
+
+Every governed workflow MUST define explicit states and permitted transitions.
+
+---
+
+## REQ-WF-002 — Deterministic transition evaluation
+
+Transition eligibility MUST be evaluated deterministically against workflow and policy state.
+
+---
+
+## REQ-WF-003 — Transition prerequisites
+
+A transition MUST be capable of requiring:
+
+* artifacts,
+* evidence,
+* policy satisfaction,
+* authorization,
+* actor qualification,
+* risk conditions.
+
+---
+
+## REQ-WF-004 — Transition provenance
+
+Every authoritative lifecycle transition MUST produce an auditable record.
+
+---
+
+## REQ-WF-005 — Agent transition recommendation
+
+Agents MAY recommend state transitions.
+
+AIEOS MUST independently determine whether a proposed transition is permissible under the applicable Workflow Definition, Policy, Evidence, Risk, and Operational Authorization state.
+
+---
+
+## REQ-WF-006 — Blocking
+
+A workflow MUST support explicit blocked states.
+
+---
+
+## REQ-WF-007 — Failure
+
+A workflow MUST support explicit failure states.
+
+---
+
+## REQ-WF-008 — Retry
+
+Retry behavior MUST be bounded and policy-controlled.
+
+---
+
+## REQ-WF-009 — Cancellation
+
+Workflow execution MUST support cancellation subject to applicable safety constraints.
+
+---
+
+## REQ-WF-010 — Rollback
+
+Workflows involving reversible operational change SHOULD support explicit rollback paths.
+
+---
+
+## REQ-WF-011 — Workflow specialization
+
+AIEOS MUST support multiple engineering workflows on the same underlying control plane.
+
+Examples MAY include:
+
+* feature development,
+* defect remediation,
+* incident response,
+* security remediation,
+* dependency upgrades,
+* architecture evolution,
+* research experiments.
+
+---
+
+## REQ-WF-012 — Workflow versioning
+
+Workflow definitions MUST be versionable.
+
+---
+
+## REQ-WF-013 — In-flight workflow stability
+
+Changes to workflow definitions MUST NOT ambiguously reinterpret already-recorded historical transitions.
+
+---
+
+## REQ-WF-014 — Workflow definition distinction
+
+AIEOS MUST distinguish a versioned Workflow Definition from a concrete Workflow Instance.
+
+---
+
+## REQ-WF-015 — Workflow-instance binding
+
+Each Workflow Instance MUST identify the Workflow Definition version governing it.
+
+---
+
+## REQ-WF-016 — Historical definition stability
+
+Later modification of a Workflow Definition MUST NOT reinterpret historical transitions previously executed by existing Workflow Instances.
+
+---
+
+## REQ-WF-017 — Workflow-instance state
+
+Authoritative lifecycle state MUST belong to a specific Workflow Instance.
+
+---
+
+# 16. Human Participation Requirements
+
+## REQ-HUM-001 — Human authority boundaries
+
+AIEOS MUST support workflow gates requiring explicit human action.
+
+---
+
+## REQ-HUM-002 — Human identity
+
+Human decisions MUST be attributable to an authenticated actor.
+
+---
+
+## REQ-HUM-003 — Human judgment concentration
+
+The system SHOULD minimize human involvement in deterministic clerical actions that can be safely automated.
+
+---
+
+## REQ-HUM-004 — Decision context
+
+When human judgment is requested, AIEOS SHOULD provide sufficient context to make the decision meaningfully.
+
+---
+
+## REQ-HUM-005 — Decision rationale
+
+Policy MAY require a human decision to include rationale.
+
+---
+
+## REQ-HUM-006 — Decision alternatives
+
+A human approval interface SHOULD support at least:
+
+```text
+Approve
+Reject
+Request changes
+Escalate
+```
+
+where applicable.
+
+---
+
+## REQ-HUM-007 — No assumed approval
+
+Lack of human response MUST NOT be interpreted as approval unless an explicit policy states otherwise.
+
+---
+
+## REQ-HUM-008 — Human override
+
+Human override of automated outcomes MUST be explicit and governed by authority policy.
+
+---
+
+# 17. Agent Requirements
+
+## REQ-AGENT-001 — Agent identity
+
+Every agent execution MUST be attributable to an identifiable agent execution identity.
+
+---
+
+## REQ-AGENT-002 — Provider abstraction
+
+The core system MUST NOT require one particular model provider.
+
+---
+
+## REQ-AGENT-003 — Role specialization
+
+AIEOS MUST permit different logical agent roles.
+
+---
+
+## REQ-AGENT-004 — Role policy
+
+Different agent roles MAY receive different:
+
+* context,
+* tools,
+* capabilities,
+* instructions,
+* authority.
+
+---
+
+## REQ-AGENT-005 — Agent context
+
+AIEOS MUST be capable of supplying an agent with task-relevant engineering context.
+
+---
+
+## REQ-AGENT-006 — Bounded execution
+
+Agent execution MUST be bounded by configurable limits.
+
+Limits MAY include:
+
+```text
+time
+tool calls
+cost
+tokens
+file scope
+network scope
+retry count
+resource consumption
+```
+
+---
+
+## REQ-AGENT-007 — Agent failure handling
+
+Agent failure MUST NOT cause silent workflow advancement.
+
+---
+
+## REQ-AGENT-008 — Agent output status
+
+AIEOS MUST distinguish an agent proposal from an accepted authoritative artifact.
+
+---
+
+## REQ-AGENT-009 — Agent replacement
+
+A work unit SHOULD remain valid if the underlying agent model or provider changes.
+
+---
+
+## REQ-AGENT-010 — Agent self-modification boundary
+
+An agent MUST NOT be permitted to silently expand its own authority, capability set, or governing policies.
+
+---
+
+## REQ-AGENT-011 — Agent role/execution distinction
+
+AIEOS MUST be capable of distinguishing a logical Agent role or profile from a concrete Agent Execution.
+
+---
+
+## REQ-AGENT-012 — Model identity distinction
+
+Agent identity SHOULD remain distinguishable from the underlying model/provider identity used by an execution.
+
+---
+
+# 18. Capability Requirements
+
+## REQ-CAP-001 — Explicit capability model
+
+AIEOS MUST represent the capabilities available to execution actors.
+
+---
+
+## REQ-CAP-002 — Least privilege
+
+Actors SHOULD receive only capabilities necessary for their assigned operation.
+
+---
+
+## REQ-CAP-003 — Scoped capabilities
+
+Capabilities MUST be capable of being constrained by:
+
+* action,
+* target,
+* environment,
+* duration,
+* work unit.
+
+---
+
+## REQ-CAP-004 — Revocation
+
+Capabilities MUST be revocable where the underlying system permits revocation.
+
+---
+
+## REQ-CAP-005 — Capability expiration
+
+Sensitive capabilities SHOULD expire automatically.
+
+---
+
+## REQ-CAP-006 — Capability provenance
+
+Capability issuance SHOULD be auditable.
+
+---
+
+## REQ-CAP-007 — External credential isolation
+
+Raw long-lived external credentials SHOULD NOT need to be exposed directly to agent reasoning contexts.
+
+---
+
+## REQ-CAP-008 — Capability denial
+
+A denied capability request MUST NOT be silently converted into an alternative privileged action.
+
+---
+
+## REQ-CAP-009 — Capability definition
+
+AIEOS MUST be capable of representing a defined class of technical operation independently of any Actor currently possessing it.
+
+---
+
+## REQ-CAP-010 — Capability grant
+
+AIEOS MUST be capable of representing a scoped grant making a Capability available to a particular Actor or Execution context.
+
+---
+
+# 19. Operational Authorization Requirements
+
+## REQ-AUTHZ-001 — Explicit authorization
+
+Consequential actions MUST be capable of requiring explicit authorization.
+
+---
+
+## REQ-AUTHZ-002 — Authorization subject
+
+An authorization MUST identify who or what receives authority.
+
+---
+
+## REQ-AUTHZ-003 — Authorization action
+
+An authorization MUST identify the permitted action.
+
+---
+
+## REQ-AUTHZ-004 — Authorization target
+
+An authorization MUST identify the target or target scope.
+
+---
+
+## REQ-AUTHZ-005 — Authorization source
+
+An authorization MUST identify the authority source granting it.
+
+---
+
+## REQ-AUTHZ-006 — Authorization conditions
+
+An authorization MUST be capable of carrying preconditions.
+
+---
+
+## REQ-AUTHZ-007 — Authorization expiration
+
+Authorizations SHOULD support expiration or one-time use.
+
+---
+
+## REQ-AUTHZ-008 — No inferred authorization
+
+Successful completion of prior workflow stages MUST NOT automatically imply authorization for a consequential future action unless policy explicitly defines that derivation.
+
+---
+
+## REQ-AUTHZ-009 — Self-authorization control
+
+AIEOS MUST be capable of prohibiting an actor from authorizing its own consequential action.
+
+---
+
+## REQ-AUTHZ-010 — Delegation
+
+Delegated authority MUST remain traceable to its originating authority source.
+
+---
+
+# 20. Decision and Approval Requirements
+
+## REQ-DEC-001 — Explicit decision model
+
+AIEOS MUST support explicit governed Decisions.
+
+---
+
+## REQ-DEC-002 — Decision attribution
+
+Every consequential Decision MUST identify the deciding Actor.
+
+---
+
+## REQ-DEC-003 — Decision authority
+
+A consequential Decision MUST identify or derive the authority under which it was made.
+
+---
+
+## REQ-DEC-004 — Decision outcome
+
+A Decision MUST represent the selected outcome or disposition.
+
+---
+
+## REQ-DEC-005 — Decision rationale
+
+Policy MUST be capable of requiring rationale for a Decision.
+
+---
+
+## REQ-DEC-006 — Approval distinction
+
+Approval MUST be represented as a Decision that a Subject, proposal, result, or transition is acceptable.
+
+---
+
+## REQ-DEC-007 — Approval is not authorization
+
+Approval MUST NOT automatically imply Operational Authorization to perform a protected action unless an explicit Policy establishes that derivation.
+
+---
+
+## REQ-DEC-008 — Decision provenance
+
+Consequential Decisions MUST retain provenance.
+
+---
+
+# 21. Policy Requirements
+
+## REQ-POL-001 — Explicit policy model
+
+AIEOS MUST support explicitly represented engineering policies.
+
+---
+
+## REQ-POL-002 — Policy categories
+
+The system MUST support at least:
+
+```text
+advisory
+testable
+enforced
+```
+
+policy semantics.
+
+---
+
+## REQ-POL-003 — Policy evaluation
+
+Applicable testable policies MUST be machine-evaluable.
+
+---
+
+## REQ-POL-004 — Enforced invariant
+
+An enforced invariant MUST NOT rely solely upon compliance by an AI model.
+
+---
+
+## REQ-POL-005 — Policy scope
+
+Policies MUST support scoped applicability.
+
+---
+
+## REQ-POL-006 — Policy version
+
+The version of policy used in a consequential decision or execution SHOULD be reconstructable.
+
+---
+
+## REQ-POL-007 — Policy conflict
+
+Conflicting applicable policies MUST be surfaced.
+
+---
+
+## REQ-POL-008 — Policy exception
+
+Policy exceptions MUST be explicitly represented.
+
+---
+
+## REQ-POL-009 — Exception authority
+
+An exception MUST require an authority capable of granting that exception.
+
+---
+
+## REQ-POL-010 — Exception provenance
+
+Every accepted exception MUST retain provenance.
+
+---
+
+## REQ-POL-011 — Policy evaluation result
+
+Policy evaluation outcomes MUST be representable as persistent evidence or audit records where consequential.
+
+---
+
+# 22. Risk and Autonomy Requirements
+
+## REQ-RISK-001 — Risk classification
+
+AIEOS MUST support explicit classification of engineering work by risk.
+
+---
+
+## REQ-RISK-002 — Minimum baseline
+
+The system SHOULD support at least:
+
+```text
+R0 — Minimal
+R1 — Routine
+R2 — Significant
+R3 — Critical
+```
+
+---
+
+## REQ-RISK-003 — Configurable model
+
+Organizations MUST be able to extend or replace the default risk taxonomy.
+
+---
+
+## REQ-RISK-004 — Risk-based gates
+
+Workflow requirements MUST be capable of varying according to risk.
+
+---
+
+## REQ-RISK-005 — Risk-based autonomy
+
+Agent autonomy MUST be configurable according to risk.
+
+---
+
+## REQ-RISK-006 — Risk elevation
+
+A workflow MUST permit discovered conditions to elevate risk after work begins.
+
+---
+
+## REQ-RISK-007 — No silent risk reduction
+
+A risk classification MUST NOT be silently reduced solely to bypass a workflow gate.
+
+---
+
+## REQ-RISK-008 — Residual risk
+
+Consequential work SHOULD support explicit representation of known residual risk.
+
+---
+
+## REQ-RISK-009 — Risk acceptance
+
+Where policy requires risk acceptance, the acceptance MUST identify an accountable authority.
+
+---
+
+# 23. Environment Requirements
+
+## REQ-ENV-001 — Governed environment identity
+
+AIEOS MUST support identifiable governed Environments.
+
+---
+
+## REQ-ENV-002 — Environment classification
+
+An Environment MUST be capable of carrying classification relevant to governance.
+
+Examples MAY include:
+
+```text
+sandbox
+development
+test
+staging
+production
+```
+
+---
+
+## REQ-ENV-003 — Environment-independent identity
+
+Environment identity MUST NOT depend exclusively upon a transient infrastructure address or provider identifier.
+
+---
+
+## REQ-ENV-004 — Native environment bindings
+
+An Environment MAY be bound to native infrastructure identifiers.
+
+---
+
+## REQ-ENV-005 — Environment-scoped governance
+
+Policy, Capability, Operational Authorization, and Risk rules MUST be capable of varying by Environment.
+
+---
+
+## REQ-ENV-006 — Production distinction
+
+AIEOS MUST permit one or more Environments to be classified as production or equivalent protected operational contexts.
+
+---
+
+# 24. Execution Requirements
+
+## REQ-EXEC-001 — Controlled execution environment
+
+Agent implementation work SHOULD occur in a controlled execution environment.
+
+---
+
+## REQ-EXEC-002 — Execution isolation
+
+Execution SHOULD be isolated from unrelated work and sensitive operational environments.
+
+---
+
+## REQ-EXEC-003 — Environment identity
+
+The execution environment SHOULD be identifiable in provenance.
+
+---
+
+## REQ-EXEC-004 — Input immutability
+
+AIEOS SHOULD be capable of recording the exact or reproducibly identifiable inputs used for an execution.
+
+---
+
+## REQ-EXEC-005 — Tool mediation
+
+Consequential external actions SHOULD be mediated through governed tool or capability interfaces.
+
+---
+
+## REQ-EXEC-006 — Read-only planning
+
+A workflow MUST be capable of granting investigation capabilities without granting mutation capability.
+
+---
+
+## REQ-EXEC-007 — Mutation authorization
+
+Mutation capability MUST be separable from read capability.
+
+---
+
+## REQ-EXEC-008 — Execution result
+
+Every execution MUST produce an explicit outcome.
+
+At minimum:
+
+```text
+succeeded
+failed
+cancelled
+timed out
+blocked
+```
+
+or equivalent.
+
+---
+
+## REQ-EXEC-009 — Execution events
+
+Meaningful consequential actions SHOULD be recorded as execution events.
+
+---
+
+## REQ-EXEC-010 — Reproducibility
+
+Where practical, AIEOS SHOULD retain sufficient context to reproduce or meaningfully reconstruct an execution.
+
+---
+
+# 25. Verification Requirements
+
+## REQ-VER-001 — Verification is distinct from execution
+
+AIEOS MUST model verification as distinct from implementation execution.
+
+---
+
+## REQ-VER-002 — Acceptance criteria linkage
+
+Verification SHOULD be traceable to explicit requirements or acceptance criteria.
+
+---
+
+## REQ-VER-003 — Machine verification
+
+AIEOS MUST support automated verification.
+
+---
+
+## REQ-VER-004 — Human verification
+
+AIEOS MUST support human-supplied verification where automation is insufficient.
+
+---
+
+## REQ-VER-005 — Multiple verification methods
+
+A requirement MAY require more than one verification method.
+
+---
+
+## REQ-VER-006 — Verification types
+
+AIEOS MUST be capable of representing verification through mechanisms including:
+
+```text
+test
+evaluation
+inspection
+analysis
+measurement
+manual confirmation
+runtime observation
+```
+
+---
+
+## REQ-VER-007 — Failed verification
+
+Failed mandatory verification MUST prevent transitions that require successful verification.
+
+---
+
+## REQ-VER-008 — Stale verification
+
+Verification MUST be capable of becoming stale or invalid when its supporting conditions change.
+
+---
+
+## REQ-VER-009 — Verification context
+
+Verification results SHOULD identify:
+
+* tested artifact or state,
+* method,
+* environment,
+* result,
+* timestamp,
+* evidence.
+
+---
+
+## REQ-VER-010 — Verification independence
+
+Policy MUST be capable of requiring verification independent from the implementation actor.
+
+---
+
+## REQ-VER-011 — Test definition distinction
+
+AIEOS MUST distinguish a Test definition from an Execution of that Test.
+
+---
+
+## REQ-VER-012 — Test execution evidence
+
+A Test Execution MUST be capable of producing Evidence associated with:
+
+```text
+test identity
+tested subject/state
+execution environment
+execution time
+execution result
+```
+
+---
+
+## REQ-VER-013 — Test result binding
+
+A Test result MUST NOT be treated as applicable to a different governed state without an explicit validity basis.
+
+---
+
+# 26. Evidence Requirements
+
+## REQ-EVID-001 — Evidence as first-class data
+
+AIEOS MUST represent evidence independently from unsupported claims of success.
+
+---
+
+## REQ-EVID-002 — Evidence linkage
+
+Evidence MUST be linkable to the claim, requirement, review, or decision it supports.
+
+---
+
+## REQ-EVID-003 — Evidence origin
+
+Evidence SHOULD identify how and where it was produced.
+
+---
+
+## REQ-EVID-004 — Evidence integrity
+
+AIEOS SHOULD preserve sufficient information to detect or avoid accidental misassociation of evidence.
+
+---
+
+## REQ-EVID-005 — Evidence validity
+
+Evidence MUST be capable of being marked:
+
+```text
+valid
+invalid
+stale
+superseded
+inconclusive
+```
+
+or equivalent.
+
+---
+
+## REQ-EVID-006 — Evidence sufficiency
+
+Policy MUST be capable of defining what evidence is sufficient for a transition or decision.
+
+---
+
+## REQ-EVID-007 — No agent assertion substitution
+
+An agent-generated statement that verification succeeded MUST NOT substitute for required external evidence.
+
+---
+
+## REQ-EVID-008 — Evidence retention
+
+Evidence required to justify consequential historical state SHOULD be retained according to configured retention policy.
+
+---
+
+# 27. Review Requirements
+
+## REQ-REV-001 — First-class review
+
+AIEOS MUST support explicit review artifacts or records.
+
+---
+
+## REQ-REV-002 — Review subject
+
+Every review MUST identify what was reviewed.
+
+---
+
+## REQ-REV-003 — Review actor
+
+Every accepted review MUST identify its reviewer.
+
+---
+
+## REQ-REV-004 — Review outcome
+
+Reviews MUST support explicit outcomes.
+
+At minimum:
+
+```text
+accepted
+rejected
+changes requested
+inconclusive
+```
+
+or equivalent.
+
+---
+
+## REQ-REV-005 — Independent agent review
+
+AIEOS MUST support review by an agent logically distinct from the implementation execution.
+
+---
+
+## REQ-REV-006 — Human review
+
+Policy MUST be capable of requiring human review.
+
+---
+
+## REQ-REV-007 — Review criteria
+
+Review criteria SHOULD be derived from applicable:
+
+* specification,
+* requirements,
+* architecture,
+* policy,
+* security constraints.
+
+---
+
+## REQ-REV-008 — Review findings
+
+Review findings MUST be capable of being individually tracked.
+
+---
+
+## REQ-REV-009 — Finding disposition
+
+A required review finding MUST have an explicit disposition before review completion.
+
+---
+
+# 28. Deployment Requirements
+
+## REQ-DEP-001 — Governed deployment
+
+Operational deployment MUST be governed as an explicit lifecycle action.
+
+---
+
+## REQ-DEP-002 — Deployment target
+
+A deployment MUST identify its target environment.
+
+---
+
+## REQ-DEP-003 — Deployment subject
+
+A deployment MUST identify the change or release being deployed.
+
+---
+
+## REQ-DEP-004 — Deployment authorization
+
+Policy MUST be capable of requiring explicit authorization for deployment.
+
+---
+
+## REQ-DEP-005 — Environment-specific authorization
+
+Authorization for one environment MUST NOT automatically imply authorization for another environment.
+
+---
+
+## REQ-DEP-006 — Progressive deployment
+
+AIEOS SHOULD support staged, canary, or progressive deployment models.
+
+---
+
+## REQ-DEP-007 — Deployment verification
+
+A deployment SHOULD support post-deployment verification.
+
+---
+
+## REQ-DEP-008 — Rollback
+
+Where the underlying system permits it, deployment workflows SHOULD support rollback.
+
+---
+
+## REQ-DEP-009 — Deployment provenance
+
+A deployment MUST be traceable to:
+
+* deployed artifact/change,
+* target,
+* actor,
+* authorization,
+* relevant evidence,
+* result.
+
+---
+
+## REQ-DEP-010 — Production boundary
+
+Policy MUST be capable of defining production as a distinct authority boundary.
+
+---
+
+## REQ-DEP-011 — Release/deployment distinction
+
+AIEOS MUST distinguish:
+
+```text
+Release
+=
+a defined package or version of change intended for delivery
+
+Deployment
+=
+the governed execution that applies a Release or Change to an Environment
+```
+
+A Release MUST NOT be considered deployed solely because it exists.
+
+---
+
+# 29. Observation Requirements
+
+## REQ-OBS-001 — Operational observation
+
+AIEOS MUST support linking observations to deployed system state.
+
+---
+
+## REQ-OBS-002 — Observation sources
+
+The system SHOULD support observations originating from:
+
+```text
+logs
+metrics
+traces
+alerts
+errors
+evaluations
+security findings
+user feedback
+business signals
+human reports
+```
+
+---
+
+## REQ-OBS-003 — Observation provenance
+
+An observation SHOULD identify its origin.
+
+---
+
+## REQ-OBS-004 — Release correlation
+
+AIEOS SHOULD support correlating observations with releases or changes.
+
+---
+
+## REQ-OBS-005 — Observation-triggered workflow
+
+Configured observations MUST be capable of triggering governed engineering workflows.
+
+---
+
+## REQ-OBS-006 — No automatic truth promotion
+
+An observed signal MUST NOT automatically become an authoritative root-cause conclusion.
+
+---
+
+# 30. Incident Requirements
+
+## REQ-INC-001 — Incident representation
+
+AIEOS MUST support first-class incident records.
+
+---
+
+## REQ-INC-002 — Incident origin
+
+An incident MUST retain its initiating observation or report where known.
+
+---
+
+## REQ-INC-003 — Investigation
+
+An incident MUST be capable of initiating agent or human investigation.
+
+---
+
+## REQ-INC-004 — Hypothesis status
+
+Root-cause hypotheses MUST remain distinguishable from confirmed causes.
+
+---
+
+## REQ-INC-005 — Incident remediation linkage
+
+Remediation work MUST be linkable to the incident it addresses.
+
+---
+
+## REQ-INC-006 — Incident disposition
+
+An incident MUST NOT reach a terminal closed state without explicit disposition.
+
+---
+
+## REQ-INC-007 — Regression protection
+
+Confirmed incidents SHOULD produce regression tests, evaluations, policies, or equivalent protections where practical.
+
+---
+
+# 31. Organizational Learning Requirements
+
+## REQ-LEARN-001 — Repeated failure detection
+
+AIEOS SHOULD support identifying repeated classes of agent or process failure.
+
+---
+
+## REQ-LEARN-002 — Learning proposals
+
+The system SHOULD support generating proposals to improve:
+
+* agent instructions,
+* policies,
+* tests,
+* evaluations,
+* architecture,
+* workflows,
+* documentation,
+* tools.
+
+---
+
+## REQ-LEARN-003 — Governed adoption
+
+A learning proposal MUST NOT automatically become authoritative if doing so would bypass the normal authority policy for the target artifact.
+
+---
+
+## REQ-LEARN-004 — Regression conversion
+
+Operational failures SHOULD be convertible into permanent regression cases.
+
+---
+
+## REQ-LEARN-005 — Institutional knowledge
+
+AIEOS SHOULD make accepted engineering lessons available to future relevant workflows.
+
+---
+
+## REQ-LEARN-006 — Learning provenance
+
+Accepted changes to institutional engineering knowledge SHOULD preserve the observations or failures that motivated them.
+
+---
+
+# 32. Provenance and Audit Requirements
+
+## REQ-PROV-001 — Consequential provenance
+
+Consequential engineering actions MUST be attributable.
+
+---
+
+## REQ-PROV-002 — Artifact provenance
+
+AIEOS MUST support identifying the origin and derivation of governed artifacts.
+
+---
+
+## REQ-PROV-003 — Agent execution provenance
+
+Agent execution provenance SHOULD include:
+
+```text
+agent identity
+model/provider identity
+tooling
+input artifact identities
+policy versions
+repository state
+execution environment
+start/end times
+result
+produced artifacts
+produced evidence
+```
+
+---
+
+## REQ-PROV-004 — Human decision provenance
+
+Human decisions MUST be attributable to the deciding actor.
+
+---
+
+## REQ-PROV-005 — Policy evaluation provenance
+
+Consequential policy decisions SHOULD identify the policy version evaluated.
+
+---
+
+## REQ-PROV-006 — Authorization provenance
+
+Every consequential authorization MUST identify the authority that granted it.
+
+---
+
+## REQ-PROV-007 — Deployment provenance
+
+Every governed deployment MUST retain traceability to its authorization and deployed change.
+
+---
+
+## REQ-PROV-008 — Immutable historical semantics
+
+Historical audit records MUST NOT be silently rewritten to imply that a past event occurred differently.
+
+Corrections MUST themselves be represented as later events or amendments.
+
+---
+
+## REQ-PROV-009 — Temporal ordering
+
+AIEOS MUST preserve sufficient temporal information to order consequential engineering events.
+
+---
+
+## REQ-PROV-010 — Audit query
+
+The system SHOULD permit answering:
+
+> Why is this governed system state believed or authorized to exist?
+
+---
+
+## REQ-PROV-011 — Recorded time
+
+Consequential Events, Decisions, Operational Authorizations, Assertions, Executions, and state transitions MUST support Recorded Time.
+
+---
+
+## REQ-PROV-012 — Applicable valid time
+
+AIEOS MUST support Valid Time or equivalent effective-period semantics for domain concepts whose applicability can differ from their Recorded Time.
+
+Examples include:
+
+```text
+Policy
+Operational Authorization
+Authority Binding
+Assertion
+Exception
+configuration
+```
+
+---
+
+## REQ-PROV-013 — Historical correction
+
+Correction of historical knowledge MUST preserve both the originally recorded state and the later correction where retention policy permits.
+
+---
+
+## REQ-PROV-014 — Consequential event representation
+
+AIEOS MUST be capable of representing consequential historical occurrences as immutable or append-only historical records whose meaning is not silently rewritten.
+
+This requirement SHALL NOT mandate event sourcing.
+
+---
+
+# 33. Security Requirements
+
+## REQ-SEC-001 — Least privilege
+
+AIEOS MUST support least-privilege execution.
+
+---
+
+## REQ-SEC-002 — Secret protection
+
+Sensitive secrets SHOULD NOT be exposed directly to model context unless strictly required.
+
+---
+
+## REQ-SEC-003 — Credential scoping
+
+Credentials supplied to executions SHOULD be scoped to their intended action.
+
+---
+
+## REQ-SEC-004 — Credential lifetime
+
+Sensitive execution credentials SHOULD be short-lived where possible.
+
+---
+
+## REQ-SEC-005 — Production isolation
+
+Production capability MUST be independently controllable from development capability.
+
+---
+
+## REQ-SEC-006 — Tool access control
+
+Agent access to tools MUST be controllable by policy.
+
+---
+
+## REQ-SEC-007 — Network access control
+
+Agent network access SHOULD be restrictable.
+
+---
+
+## REQ-SEC-008 — Filesystem access control
+
+Agent filesystem mutation scope SHOULD be restrictable.
+
+---
+
+## REQ-SEC-009 — Command control
+
+Execution policy SHOULD be capable of denying prohibited commands or classes of commands.
+
+---
+
+## REQ-SEC-010 — Audit access
+
+Access to sensitive audit or provenance information SHOULD be governed.
+
+---
+
+## REQ-SEC-011 — Trust boundaries
+
+AIEOS architecture MUST identify trust boundaries.
+
+---
+
+## REQ-SEC-012 — Untrusted agent output
+
+Agent-produced text, code, commands, and metadata MUST be treated as untrusted until accepted or verified according to applicable policy.
+
+---
+
+# 34. External Integration Requirements
+
+## REQ-INT-001 — External-system integration
+
+AIEOS MUST support integration with external engineering systems.
+
+---
+
+## REQ-INT-002 — Initial integration classes
+
+The system SHOULD support integration classes including:
+
+```text
+source control
+issue tracking
+CI/CD
+documentation
+artifact storage
+observability
+security tooling
+cloud/runtime environments
+AI providers
+communication systems
+```
+
+---
+
+## REQ-INT-003 — Native system preservation
+
+Integration SHOULD preserve useful native capabilities of external systems rather than unnecessarily reimplementing them.
+
+---
+
+## REQ-INT-004 — Native identity retention
+
+External native identifiers SHOULD be retained where available.
+
+---
+
+## REQ-INT-005 — External authority mapping
+
+AIEOS MUST be capable of representing an external system as authoritative for configured facts.
+
+---
+
+## REQ-INT-006 — Synchronization state
+
+The system MUST be capable of identifying when an external representation may be stale relative to its authoritative source.
+
+---
+
+## REQ-INT-007 — Integration failure
+
+Integration failure MUST NOT silently fabricate successful synchronization.
+
+---
+
+## REQ-INT-008 — Provider replaceability
+
+Core semantic concepts SHOULD NOT depend on vendor-specific external identifiers.
+
+---
+
+# 35. Human Interaction Requirements
+
+## REQ-UX-001 — Decision-oriented experience
+
+The primary human interaction model SHOULD prioritize decisions requiring human judgment rather than manual lifecycle administration.
+
+---
+
+## REQ-UX-002 — Decision queue
+
+AIEOS SHOULD provide a unified way to identify pending human decisions.
+
+---
+
+## REQ-UX-003 — Decision explanation
+
+For each requested consequential decision, the system SHOULD expose:
+
+```text
+what decision is required
+why it is required
+current risk
+relevant artifacts
+relevant evidence
+relevant policy
+agent recommendation if any
+known unresolved questions
+available actions
+```
+
+---
+
+## REQ-UX-004 — End-to-end trace
+
+Users SHOULD be able to inspect the trace from intent through the current lifecycle position.
+
+---
+
+## REQ-UX-005 — Automation visibility
+
+Users MUST be able to determine which work is:
+
+```text
+waiting for human action
+running autonomously
+blocked
+failed
+under verification
+under observation
+completed
+```
+
+---
+
+## REQ-UX-006 — Explain blocked transitions
+
+When a requested transition is denied, the system SHOULD explain which unsatisfied requirements, policies, evidence, or authorizations caused the denial.
+
+---
+
+## REQ-UX-007 — Human override visibility
+
+Overrides MUST be visibly distinguishable from normal policy-compliant progression.
+
+---
+
+# 36. Configuration Requirements
+
+## REQ-CONF-001 — Organizational configuration
+
+AIEOS MUST support organization- or project-specific configuration.
+
+---
+
+## REQ-CONF-002 — Configuration versioning
+
+Consequential configuration SHOULD be versionable.
+
+---
+
+## REQ-CONF-003 — Configuration provenance
+
+The configuration applicable to a consequential execution SHOULD be reconstructable.
+
+---
+
+## REQ-CONF-004 — Default policy
+
+The system MUST provide safe behavior when project-specific configuration is absent.
+
+---
+
+## REQ-CONF-005 — Configuration validation
+
+Configuration MUST be validated before it becomes authoritative.
+
+---
+
+## REQ-CONF-006 — Configuration conflict
+
+Conflicting configuration sources MUST be resolved according to explicit precedence or surfaced as conflict.
+
+---
+
+# 37. Reconciliation and Recovery Requirements
+
+## REQ-REC-001 — External reconciliation
+
+AIEOS MUST support reconciliation between its recorded state and authoritative external systems.
+
+---
+
+## REQ-REC-002 — Drift detection
+
+The system SHOULD detect meaningful drift between expected and observed external state.
+
+---
+
+## REQ-REC-003 — No silent repair of consequential conflict
+
+Consequential state conflicts MUST NOT be silently overwritten merely to restore apparent consistency.
+
+---
+
+## REQ-REC-004 — Recovery provenance
+
+Recovery operations MUST be auditable.
+
+---
+
+## REQ-REC-005 — Idempotent reconciliation
+
+Reconciliation SHOULD be idempotent where technically possible.
+
+---
+
+## REQ-REC-006 — Partial failure
+
+The system MUST be capable of representing partially completed cross-system operations.
+
+---
+
+## REQ-REC-007 — Restart safety
+
+Workflow processing SHOULD recover safely after process or infrastructure interruption.
+
+---
+
+## REQ-REC-008 — Explicit drift representation
+
+AIEOS MUST be capable of representing a meaningful difference between expected governed state and observed authoritative or operational state as Drift or equivalent explicit reconciliation state.
+
+Drift MUST remain distinguishable from confirmed defect or root cause.
+
+---
+
+# 38. Non-Functional Requirements
+
+## REQ-NFR-001 — Auditability
+
+The system MUST be auditable for consequential engineering activity.
+
+---
+
+## REQ-NFR-002 — Explainability
+
+Policy-controlled lifecycle decisions SHOULD be explainable in terms of explicit inputs and rules.
+
+---
+
+## REQ-NFR-003 — Determinism of governance
+
+Given the same authoritative state and policy inputs, deterministic governance decisions SHOULD produce the same result.
+
+---
+
+## REQ-NFR-004 — Reliability
+
+Failure of an agent, integration, or external provider MUST NOT silently corrupt authoritative engineering state.
+
+---
+
+## REQ-NFR-005 — Recoverability
+
+The system SHOULD support recovery from interrupted processing without duplicating consequential actions.
+
+---
+
+## REQ-NFR-006 — Extensibility
+
+Artifact types, workflows, policies, agent providers, tools, and integrations SHOULD be extensible.
+
+---
+
+## REQ-NFR-007 — Provider neutrality
+
+Core system semantics SHOULD remain independent of vendor-specific implementations.
+
+---
+
+## REQ-NFR-008 — Local-first viability
+
+The architecture MUST permit a useful deployment mode that does not require all engineering knowledge to be centralized in a remote proprietary service.
+
+---
+
+## REQ-NFR-009 — Incremental adoption
+
+Organizations MUST be able to adopt AIEOS incrementally.
+
+A complete replacement of existing engineering systems MUST NOT be required.
+
+---
+
+## REQ-NFR-010 — Human usability
+
+Human-facing decisions SHOULD be presented at a level that enables informed judgment without requiring manual reconstruction across many systems.
+
+---
+
+## REQ-NFR-011 — Machine usability
+
+The system's authoritative engineering state MUST be programmatically accessible to authorized components.
+
+---
+
+## REQ-NFR-012 — Scale independence
+
+The conceptual model MUST remain valid from a single-developer project through multi-team engineering environments.
+
+---
+
+## REQ-NFR-013 — Cost observability
+
+Agent and workflow execution SHOULD support measurement of resource cost.
+
+---
+
+## REQ-NFR-014 — Performance observability
+
+The system SHOULD expose sufficient telemetry to diagnose workflow latency and bottlenecks.
+
+---
+
+## REQ-NFR-015 — Data retention policy
+
+Retention of artifacts, provenance, evidence, and execution records MUST be configurable according to governance requirements.
+
+---
+
+# 39. Cross-Cutting Invariants
+
+The following requirements are elevated as baseline system invariants.
+
+## INV-001 — Identifiable intent
+
+No governed work MAY progress beyond configured preliminary capture stages without identifiable intent.
+
+---
+
+## INV-002 — Traceable specification
+
+Consequential implementation MUST be traceable to an accepted specification, requirement set, or explicitly authorized exception.
+
+---
+
+## INV-003 — Plan before high-risk execution
+
+High-risk mutable execution MUST have an accepted plan unless an authorized emergency procedure explicitly allows otherwise.
+
+---
+
+## INV-004 — Evidence before correctness
+
+Required correctness claims MUST NOT be considered established without applicable evidence.
+
+---
+
+## INV-005 — Verification before consequential deployment
+
+A consequential deployment MUST NOT proceed unless mandatory verification policy is satisfied.
+
+---
+
+## INV-006 — Authorization before protected action
+
+A protected action MUST NOT execute without valid authorization.
+
+---
+
+## INV-007 — No self-created authority
+
+An agent or automated execution MUST NOT create the authority required to authorize its own protected action unless that authority was explicitly delegated beforehand under governing policy.
+
+---
+
+## INV-008 — Explicit policy exceptions
+
+Every accepted policy exception MUST be explicit and traceable.
+
+---
+
+## INV-009 — Auditable transitions
+
+Every authoritative lifecycle transition MUST be auditable.
+
+---
+
+## INV-010 — Incident disposition
+
+A production incident MUST NOT be closed without explicit disposition.
+
+---
+
+## INV-011 — Conflict visibility
+
+Conflicting authoritative assertions MUST remain visible until legitimately resolved.
+
+---
+
+## INV-012 — Representation is not identity
+
+Moving or regenerating an artifact representation MUST NOT silently create a new semantic subject.
+
+---
+
+# 40. Minimum Viable Requirements Baseline
+
+The first executable AIEOS implementation does not need to satisfy every SHOULD-level capability in this document.
+
+It MUST, however, provide a coherent vertical slice implementing the following baseline.
+
+## Identity
+
+```text
+REQ-ID-001
+REQ-ID-002
+REQ-ID-003
+```
+
+## Work units
+
+```text
+REQ-WU-001
+REQ-WU-002
+REQ-WU-003
+```
+
+## Artifacts
+
+```text
+REQ-ART-001
+REQ-ART-002
+REQ-ART-004
+REQ-ART-007
+```
+
+## Relationships
+
+```text
+REQ-REL-001
+REQ-REL-002
+REQ-REL-005
+```
+
+## Workflow
+
+```text
+REQ-WF-001
+REQ-WF-002
+REQ-WF-003
+REQ-WF-004
+```
+
+## Agents
+
+```text
+REQ-AGENT-001
+REQ-AGENT-005
+REQ-AGENT-006
+REQ-AGENT-008
+```
+
+## Execution
+
+```text
+REQ-EXEC-001
+REQ-EXEC-006
+REQ-EXEC-007
+REQ-EXEC-008
+```
+
+## Verification
+
+```text
+REQ-VER-001
+REQ-VER-002
+REQ-VER-003
+REQ-VER-007
+```
+
+## Evidence
+
+```text
+REQ-EVID-001
+REQ-EVID-002
+REQ-EVID-007
+```
+
+## Review
+
+```text
+REQ-REV-001
+REQ-REV-002
+REQ-REV-003
+REQ-REV-004
+REQ-REV-005
+```
+
+## Human authority
+
+```text
+REQ-HUM-001
+REQ-HUM-002
+REQ-HUM-007
+```
+
+## Policy and authorization
+
+```text
+REQ-POL-001
+REQ-POL-003
+REQ-AUTHZ-001
+REQ-AUTHZ-008
+REQ-AUTHZ-009
+```
+
+## Decisions and approvals
+
+```text
+REQ-DEC-001
+REQ-DEC-002
+REQ-DEC-006
+REQ-DEC-007
+```
+
+## Assertions
+
+```text
+REQ-ASSERT-001
+REQ-ASSERT-004
+REQ-ASSERT-005
+REQ-ASSERT-008
+```
+
+## Environments
+
+```text
+REQ-ENV-001
+REQ-ENV-005
+REQ-ENV-006
+```
+
+## Provenance
+
+```text
+REQ-PROV-001
+REQ-PROV-002
+REQ-PROV-003
+REQ-PROV-004
+```
+
+## Security
+
+```text
+REQ-SEC-001
+REQ-SEC-006
+REQ-SEC-012
+```
+
+That minimum baseline supports the first real lifecycle:
+
+```text
+Human intent
+      ↓
+Intent accepted
+      ↓
+Agent-generated specification
+      ↓
+Human/policy acceptance
+      ↓
+Agent-generated plan
+      ↓
+Plan acceptance
+      ↓
+Sandboxed implementation
+      ↓
+Automated verification
+      ↓
+Evidence collection
+      ↓
+Independent agent review
+      ↓
+Human decision
+      ↓
+Merge / completion
+```
+
+---
+
+# 41. Requirement Verification Classes
+
+Each requirement SHALL eventually be assigned one or more verification classes.
+
+Recommended classes:
+
+```text
+T — Automated Test
+I — Inspection
+A — Analysis
+D — Demonstration
+E — Evaluation
+O — Operational Observation
+H — Human Verification
+```
+
+Example:
+
+```text
+REQ-AUTHZ-009
+Verification: T + I
+
+Test:
+An execution actor attempts to authorize its own
+protected production deployment.
+
+Expected:
+Authorization is denied.
+
+Inspection:
+Audit record identifies the denied request and
+applicable self-authorization policy.
+```
+
+The complete mapping SHALL be maintained in the future `AIEOS-VER-001` specification.
+
+---
+
+# 42. Requirement Quality Gate
+
+Before this requirements baseline reaches **Accepted** status, every mandatory requirement SHALL be reviewed for:
+
+```text
+necessity
+clarity
+atomicity
+testability
+non-duplication
+consistency
+implementation neutrality
+traceability to foundation
+```
+
+Each requirement MUST be classified as one of:
+
+```text
+Requirement
+Architecture decision
+Implementation decision
+Policy default
+Example
+Informational guidance
+```
+
+Anything determined to be an architecture or implementation decision SHALL be moved to the appropriate subordinate specification rather than retained as a system requirement.
+
+---
+
+# 43. Foundation Traceability
+
+The initial trace from `AIEOS-FOUND-001` is:
+
+| Foundation Principle               | Primary Requirement Families                 |
+| ---------------------------------- | -------------------------------------------- |
+| Intent before implementation       | `REQ-WU`, `REQ-WF`                           |
+| Explicit artifacts                 | `REQ-ART`                                    |
+| Machine-operable knowledge         | `REQ-ART`, `REQ-INT`, `REQ-NFR`              |
+| One authority per assertion        | `REQ-ASSERT`, `REQ-AUTHORITY`                |
+| Plan before mutation               | `REQ-WF`, `REQ-EXEC`                         |
+| Evidence over assertion            | `REQ-VER`, `REQ-EVID`                        |
+| Deterministic enforcement          | `REQ-POL`, `REQ-SYS`                         |
+| Risk-adaptive autonomy             | `REQ-RISK`                                   |
+| Separation of duties               | `REQ-AUTHZ`, `REQ-DEC`, `REQ-REV`, `REQ-HUM` |
+| Everything consequential traceable | `REQ-PROV`, `REQ-REL`                        |
+| Production closes loop             | `REQ-DEP`, `REQ-OBS`, `REQ-INC`              |
+| Improve the harness                | `REQ-LEARN`                                  |
+
+The detailed many-to-many traceability matrix SHOULD be established when this baseline is promoted from Draft to Accepted.
+
+---
+
+# 44. Acceptance Criteria for AIEOS-REQ-001
+
+This specification is ready to become the first accepted requirements baseline when:
+
+1. every requirement has a stable identifier;
+2. duplicate requirements have been reconciled;
+3. contradictory requirements have been resolved or explicitly marked;
+4. architecture decisions have been removed from the normative requirement set;
+5. implementation choices have been deferred appropriately;
+6. every foundation invariant has at least one implementing requirement;
+7. every requirement is testable or has a documented reason why verification is necessarily judgment-based;
+8. terminology is consistent with `AIEOS-DOM-001`;
+9. requirement families have clear ownership boundaries;
+10. an initial verification mapping exists;
+11. an initial requirements baseline identifier has been assigned.
+
+The recommended first accepted baseline SHALL be:
+
+```text
+Requirements Baseline: RB-001
+Status: Accepted
+Parent: AIEOS-FOUND-001
+Scope: REQ-SYS through REQ-NFR
+```
+
+---
+
+# 45. Reconciliation Status and Definition of Ready for Baseline Verification
+
+`AIEOS-DOM-001` has now been drafted and reconciled through `AIEOS-REV-001`.
+
+This revision incorporates the blocking requirements changes identified by that review.
+
+Before `RB-001` is accepted, baseline verification must confirm at least:
+
+```text
+all AIEOS-REV-001 blocking findings are incorporated
+requirement identifiers are internally consistent
+terminology matches AIEOS-DOM-001 v0.2.0
+foundation traceability remains complete
+no architecture-specific components are mandated
+no unresolved blocking contradiction remains
+```
+
+---
+
+# 46. Architectural Constraints Established by Requirements
+
+Although this specification intentionally avoids defining architecture, the requirements already establish several unavoidable architectural properties.
+
+Any conforming architecture must support:
+
+```text
+persistent semantic identity
+
+typed artifact relationships
+
+authoritative lifecycle state
+
+deterministic transition evaluation
+
+explicit policy evaluation
+
+explicit authority
+
+bounded agent execution
+
+independent verification
+
+persistent evidence
+
+provenance
+
+external-system integration
+
+human decision gates
+
+risk-adaptive autonomy
+
+operational feedback
+```
+
+The architecture is free to determine **how** these capabilities are partitioned and implemented.
+
+It is not free to eliminate them without changing this requirements baseline.
+
+---
+
+# 47. Requirements North Star
+
+A conforming AIEOS implementation should eventually make it possible to answer, from governed system state:
+
+> **What are we trying to make true?**
+
+> **Why are we trying to make it true?**
+
+> **What requirements constrain the change?**
+
+> **What plan was accepted?**
+
+> **Who or what performed the work?**
+
+> **What authority did they possess?**
+
+> **What actually changed?**
+
+> **What evidence shows the change is correct?**
+
+> **Who or what reviewed it?**
+
+> **Who authorized consequential actions?**
+
+> **What was deployed?**
+
+> **What happened afterward?**
+
+> **What did the organization learn?**
+
+> **What would be affected if this changed again?**
+
+If the engineering system cannot answer these questions for consequential work, then the system does not yet provide the level of governance, traceability, and machine-operability required by AIEOS.
+
+---
+
+# 48. Status
+
+`AIEOS-REQ-001 v0.2.0` establishes the reconciled requirements corpus derived from `AIEOS-FOUND-001` and corrected through `AIEOS-REV-001`.
+
+Its immediate successor gate is:
+
+```text
+Requirements Baseline Verification
+for RB-001
+```
+
+If baseline verification succeeds, `RB-001` MAY be accepted and the architecture gate for `AIEOS-ARCH-001` MAY open.

@@ -1,0 +1,2902 @@
+---
+title: ADR-0007 — Reconciliation and Convergence Model
+description: Defines how Monad detects divergence between semantic and native state, determines authority, plans remediation, handles conflicts and accepted divergence, and establishes convergence without equating agreement with correctness.
+---
+
+<div className="mb-8">
+  <p className="text-sm font-medium uppercase tracking-wider text-fd-muted-foreground">
+    Architecture Decision Record · ADR-0007
+  </p>
+</div>
+
+# ADR-0007 — Reconciliation and Convergence Model
+
+**Status:** Accepted
+**Decision type:** Foundational architecture
+**Requirements baseline:** RB-001
+**Traceability artifact:** RTM-001
+**Depends on:** ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006
+**Primary requirement family:** `REQ-REC`
+**Consequential consumers:** `REQ-INT`, `REQ-EXEC`, `REQ-AUTH`, `REQ-PROV`, `REQ-EVD`, `REQ-VFY`, `REQ-GOV`, `REQ-AI`, `REQ-REL`
+
+---
+
+# Decision
+
+Monad will model **reconciliation as an explicit, authority-aware process for observing, comparing, classifying, explaining, and—when authorized—remediating divergence between modeled state and native engineering-system state**.
+
+Reconciliation will not be treated as synonymous with synchronization.
+
+The canonical conceptual flow is:
+
+```text id="6wc4gc"
+Semantic / Governed State
+          │
+          │
+          ▼
+     Expected State
+          │
+          │
+          ├──────────────┐
+          │              │
+          ▼              ▼
+Native Observation   Reconciliation Rules
+          │              │
+          └──────┬───────┘
+                 │
+                 ▼
+            Comparison
+                 │
+                 ▼
+           Divergence
+                 │
+         ┌───────┼────────┐
+         │       │        │
+         ▼       ▼        ▼
+      Explain  Accept   Remediate
+                         │
+                         ▼
+                   Governed Execution
+                         │
+                         ▼
+                    Re-observation
+                         │
+                         ▼
+                     Verification
+```
+
+Monad will preserve the distinctions among:
+
+```text id="hequkx"
+modeled state
+desired state
+observed native state
+divergence
+authority
+conflict
+remediation
+convergence
+verification
+correctness
+```
+
+These concepts may participate in one workflow, but they are not interchangeable.
+
+<Callout type="info" title="Core rule">
+Agreement between Monad and a native system does not by itself establish correctness.
+
+Reconciliation determines whether relevant states agree and what should happen when they do not. Verification determines whether explicit expectations are satisfied.
+</Callout>
+
+---
+
+# Context
+
+Monad does not own every engineering fact.
+
+Real engineering systems already exist and remain operationally significant:
+
+* Git repositories,
+* source-hosting platforms,
+* issue trackers,
+* CI systems,
+* package registries,
+* deployment systems,
+* cloud control planes,
+* databases,
+* local filesystems,
+* documentation platforms,
+* observability systems,
+* artifact stores,
+* and future native engineering tools.
+
+Monad may maintain semantic or governed state concerning these systems, but native systems continue to evolve through:
+
+* direct human action,
+* external automation,
+* provider-side behavior,
+* asynchronous processing,
+* migrations,
+* administrative intervention,
+* system failure,
+* eventual consistency,
+* and changes initiated outside Monad entirely.
+
+Therefore:
+
+```text id="xlqhps"
+Monad's model
+```
+
+and:
+
+```text id="acfx1y"
+native reality
+```
+
+can diverge.
+
+This divergence is not exceptional. It is a normal property of distributed engineering systems.
+
+---
+
+# Problem
+
+Without an explicit reconciliation architecture, a semantic engineering system tends toward one of several unsafe extremes.
+
+It may assume:
+
+```text id="ecvlyq"
+the model is always correct
+```
+
+and overwrite native reality.
+
+Or assume:
+
+```text id="8jj517"
+the native system is always authoritative
+```
+
+and discard governed intent.
+
+Or attempt indiscriminate bidirectional synchronization, creating:
+
+* update loops,
+* accidental overwrites,
+* hidden conflicts,
+* authority inversions,
+* identity corruption,
+* stale-state decisions,
+* and loss of provenance.
+
+Monad therefore needs a reconciliation model that answers:
+
+```text id="57h1cb"
+What is being compared?
+
+What was actually observed?
+
+How fresh is that observation?
+
+Are the states semantically comparable?
+
+Do they differ?
+
+What kind of divergence is this?
+
+Is the divergence expected?
+
+Which side has authority for the disputed fact?
+
+Is there an authority conflict?
+
+Should anything change?
+
+Who may authorize that change?
+
+What action would establish the intended state?
+
+Did the remediation actually converge?
+
+Does convergence satisfy the relevant Requirement?
+```
+
+---
+
+# Decision drivers
+
+The reconciliation architecture must support:
+
+* local-first operation,
+* native-tool coexistence,
+* semantic identity,
+* provider-native identity,
+* external mutation,
+* eventual consistency,
+* partial observability,
+* stale data,
+* conflicting authorities,
+* accepted divergence,
+* multiple representations,
+* generated artifacts,
+* reconciliation after execution,
+* bidirectional projections,
+* AI-assisted diagnosis,
+* governed remediation,
+* auditability,
+* multi-repository systems,
+* multi-provider systems,
+* and historical reconstruction.
+
+---
+
+# Reconciliation
+
+A **Reconciliation** is an evaluation of one or more state relationships against explicit reconciliation rules.
+
+It may conclude:
+
+* no meaningful divergence,
+* divergence exists,
+* divergence is expected,
+* divergence is accepted,
+* divergence requires remediation,
+* divergence cannot yet be classified,
+* authority is ambiguous,
+* or conflicting authoritative states exist.
+
+---
+
+# Reconciliation is not synchronization
+
+Synchronization is a possible action taken after reconciliation.
+
+```text id="ohig6q"
+Reconciliation:
+"What differs, why, and what should happen?"
+
+Synchronization:
+"Apply changes intended to make selected states agree."
+```
+
+The first is analysis and governance.
+
+The second is execution.
+
+---
+
+# Reconciliation is not observation
+
+Observation obtains information about a system.
+
+Reconciliation compares meaningful states and interprets the difference.
+
+```text id="qjqix0"
+Observation
+  ↓
+Comparison
+  ↓
+Reconciliation Result
+```
+
+---
+
+# Reconciliation is not Verification
+
+Verification asks whether an explicit expectation is satisfied.
+
+Reconciliation asks whether relevant representations or systems diverge and what that divergence means.
+
+A reconciled system may still violate a Requirement.
+
+---
+
+# Reconciliation is not authority
+
+Reconciliation may discover which state is authoritative under existing rules.
+
+It does not create authority merely because a comparison was performed.
+
+---
+
+# Reconciliation subject
+
+Every reconciliation must identify what semantic or operational subject is under evaluation.
+
+Examples:
+
+```text id="r6g0sj"
+repository
+issue
+requirement
+deployment
+artifact
+release
+configuration
+environment
+document
+package
+infrastructure resource
+```
+
+---
+
+# Reconciliation scope
+
+Scope must be sufficiently precise to establish which facts are being compared.
+
+A reconciliation may operate at:
+
+* field level,
+* record level,
+* Subject level,
+* repository level,
+* environment level,
+* integration level,
+* aggregate system level.
+
+---
+
+# Granularity
+
+Monad SHOULD reconcile at the smallest useful semantic granularity.
+
+A one-field mismatch should not necessarily mark an entire system as globally divergent.
+
+---
+
+# Expected state
+
+Reconciliation MAY compare native state against an expected state derived from:
+
+* authoritative Claims,
+* requirements,
+* policy,
+* approved configuration,
+* canonical artifacts,
+* earlier execution intent,
+* derived projections,
+* or another governed source.
+
+---
+
+# Desired state versus modeled state
+
+Desired state and modeled state remain distinct.
+
+Monad may accurately model that a deployment is unhealthy while still desiring a healthy deployment.
+
+---
+
+# Native observation
+
+Native state MUST be based on an explicit observation.
+
+---
+
+# Observation time
+
+The observation MUST retain when it was obtained.
+
+---
+
+# Freshness
+
+Reconciliation MUST consider whether an observation is fresh enough for the decision being made.
+
+---
+
+# Stale observation
+
+A stale observation may remain useful historical Evidence.
+
+It must not silently masquerade as current state.
+
+---
+
+# Live versus cached observations
+
+Monad SHOULD distinguish:
+
+```text id="lc4omd"
+live observation
+cached observation
+derived observation
+event-derived observation
+```
+
+where those distinctions matter.
+
+---
+
+# Missing observation
+
+Failure to observe a resource MUST NOT automatically mean the resource is absent.
+
+Possible causes include:
+
+* authorization failure,
+* connectivity failure,
+* provider outage,
+* filtering,
+* stale cache,
+* invalid target,
+* scope mismatch,
+* rate limiting.
+
+---
+
+# Unknown state
+
+When state cannot be determined, Monad MUST preserve:
+
+```text id="rmeijg"
+unknown
+```
+
+rather than infer falsehood.
+
+---
+
+# Comparison
+
+Before states can be reconciled, they must be semantically comparable.
+
+---
+
+# Canonical comparison form
+
+Monad MAY normalize values into a canonical comparison representation where doing so preserves relevant meaning.
+
+Examples:
+
+```text id="uzwzo6"
+timestamp normalization
+case normalization where semantics are case-insensitive
+ordered versus unordered collection normalization
+path normalization
+identifier mapping
+status vocabulary translation
+```
+
+---
+
+# Normalization must not erase semantics
+
+Provider-specific distinctions MUST remain available when they are operationally meaningful.
+
+---
+
+# Lossy comparison
+
+If comparison requires lossy transformation, the loss SHOULD be explicit.
+
+---
+
+# Equivalent representation
+
+Different representations MAY be semantically equivalent.
+
+Example:
+
+```text id="tn9s7t"
+"refs/heads/main"
+
+and
+
+"main"
+```
+
+may refer to the same Git branch in a particular context.
+
+Textual difference alone is therefore insufficient.
+
+---
+
+# Divergence
+
+A **Divergence** represents a meaningful difference between states expected to have some governed relationship.
+
+---
+
+# Divergence identity
+
+Consequential divergences SHOULD have stable identities when they persist across reconciliation cycles.
+
+---
+
+# Divergence is not automatically error
+
+Some divergence is:
+
+* intentional,
+* temporary,
+* tolerated,
+* provider-specific,
+* locally overridden,
+* or awaiting eventual convergence.
+
+---
+
+# Divergence classification
+
+Monad SHOULD classify divergences.
+
+Suggested classes include:
+
+```text id="d4vqac"
+unexpected-change
+missing-native-resource
+missing-modeled-resource
+value-mismatch
+identity-mismatch
+revision-mismatch
+authority-conflict
+stale-observation
+projection-lag
+eventual-consistency
+unsupported-native-state
+invalid-derived-state
+accepted-divergence
+unknown
+```
+
+---
+
+# Severity
+
+Divergences MAY carry severity based on:
+
+* criticality,
+* blast radius,
+* security implications,
+* release impact,
+* recoverability,
+* time sensitivity.
+
+---
+
+# Expected divergence
+
+A divergence known to occur temporarily during an operation MAY be classified as expected.
+
+Example:
+
+```text id="v67oh9"
+deployment desired revision:
+v2
+
+currently observed revision:
+v1
+
+rollout:
+in progress
+```
+
+---
+
+# Temporal divergence
+
+A state may be divergent now yet expected to converge within a defined consistency or rollout window.
+
+---
+
+# Consistency window
+
+Monad MAY define a bounded window during which a particular divergence remains acceptable without escalation.
+
+---
+
+# Expired divergence
+
+A divergence that persists beyond its allowed window SHOULD be reclassified or escalated.
+
+---
+
+# Accepted divergence
+
+A divergence MAY be deliberately accepted.
+
+Example:
+
+```text id="lbptyv"
+production uses provider-specific timeout:
+45s
+
+portable baseline:
+30s
+```
+
+If intentionally approved, this difference should not generate perpetual remediation.
+
+---
+
+# Acceptance metadata
+
+Accepted divergence SHOULD preserve:
+
+* who accepted it,
+* why,
+* scope,
+* effective time,
+* expiration where applicable,
+* related decision,
+* affected Subjects.
+
+---
+
+# Accepted divergence is not agreement
+
+The states still differ.
+
+The system records that the difference is intentional.
+
+---
+
+# Exception expiration
+
+Temporary divergence acceptance SHOULD support expiration.
+
+---
+
+# Divergence suppression
+
+Suppressing repeated notifications must not erase the divergence itself.
+
+---
+
+# Authority-aware reconciliation
+
+The remediation direction MUST be governed by authority.
+
+---
+
+# Authority domains
+
+Different facts concerning the same Subject may have different authorities.
+
+Example:
+
+```text id="27tyqs"
+Issue title:
+native issue tracker authoritative
+
+Requirement satisfaction:
+Monad verification model authoritative
+
+Deployment runtime status:
+deployment provider authoritative
+
+Desired deployment version:
+approved release state authoritative
+```
+
+---
+
+# No universal side wins
+
+Monad MUST NOT impose a universal rule such as:
+
+```text id="9ran8j"
+Monad always wins
+```
+
+or:
+
+```text id="3xw0g0"
+native system always wins
+```
+
+---
+
+# Direction of reconciliation
+
+Direction may be:
+
+```text id="94xz40"
+Monad → native
+
+native → Monad
+
+bidirectional under field-level authority
+
+no automatic convergence
+
+manual resolution required
+```
+
+---
+
+# Native-authoritative state
+
+When a native system is authoritative for a fact, Monad SHOULD update its modeled understanding from the observed native state.
+
+---
+
+# Monad-authoritative state
+
+When governed Monad state is authoritative for a fact, reconciliation MAY propose or execute a native remediation.
+
+---
+
+# Derived state
+
+Derived state SHOULD generally be recomputed rather than independently treated as authoritative.
+
+---
+
+# Generated representations
+
+Generated artifacts SHOULD normally be regenerated from their authoritative inputs instead of being edited as competing authoritative sources.
+
+---
+
+# Human-authored native state
+
+Direct native edits may be legitimate.
+
+External mutation MUST NOT automatically be classified as unauthorized.
+
+---
+
+# External change
+
+An external change means only that the change occurred outside the current Monad execution path.
+
+---
+
+# Unauthorized change
+
+Unauthorized change requires an authority or policy determination.
+
+---
+
+# Authority conflict
+
+An **Authority Conflict** exists when multiple sources claim legitimate authority over incompatible states.
+
+Example:
+
+```text id="xhi0sj"
+approved policy says branch protection MUST require 2 approvals
+
+organization administrator explicitly changes native setting to 1 approval
+
+both changes arise from actors with different legitimate authority claims
+```
+
+This is not an ordinary sync conflict.
+
+---
+
+# Authority conflict handling
+
+Monad MUST NOT silently choose a winner when the authority hierarchy does not resolve the conflict.
+
+---
+
+# Governance escalation
+
+Unresolved authority conflicts SHOULD enter an explicit governance or review workflow.
+
+---
+
+# Conflict preservation
+
+Resolution of a conflict MUST NOT erase the fact that the conflict existed.
+
+---
+
+# Competing Claims
+
+Conflicting states may be represented as competing Claims with their respective provenance and authority context.
+
+---
+
+# Reconciliation rule
+
+A **Reconciliation Rule** defines how selected states are:
+
+* discovered,
+* compared,
+* classified,
+* governed,
+* and potentially remediated.
+
+---
+
+# Rule identity
+
+Consequential reconciliation rules SHOULD be versioned and identifiable.
+
+---
+
+# Rule evolution
+
+A changed reconciliation rule may alter how an unchanged system state is interpreted.
+
+Therefore the rule revision used for a reconciliation MUST be recoverable.
+
+---
+
+# Rule scope
+
+Rules SHOULD declare:
+
+* applicable Subject types,
+* fields,
+* integrations,
+* environments,
+* authority assumptions,
+* comparison semantics,
+* accepted differences,
+* remediation behavior.
+
+---
+
+# Rule determinism
+
+Where feasible, the same observations and same rule version SHOULD produce the same classification.
+
+---
+
+# AI-assisted reconciliation
+
+AI MAY assist with:
+
+* explaining divergence,
+* proposing identity mappings,
+* identifying probable causes,
+* suggesting remediation,
+* grouping related divergences.
+
+---
+
+# AI does not establish authoritative state
+
+AI inference MUST NOT become authoritative merely because it is plausible.
+
+---
+
+# AI identity matching
+
+Consequential identity bindings inferred by AI SHOULD require confirmation where ambiguity remains.
+
+---
+
+# AI remediation proposal
+
+AI MAY propose remediation.
+
+Actual execution remains governed by authority and execution policy.
+
+---
+
+# Remediation
+
+A **Remediation** is an operation or plan intended to address a divergence.
+
+---
+
+# Remediation plan
+
+Before mutating consequential systems, Monad SHOULD be able to represent a remediation plan.
+
+Example:
+
+```yaml id="22kqxv"
+divergence: DIV-018
+
+authority:
+  winner: governed-policy
+
+remediation:
+  capability: repository.branch-protection.update
+  target: native-repository:48391
+  changes:
+    required_approvals: 2
+```
+
+---
+
+# Remediation is governed execution
+
+Remediation actions MUST use the normal execution model established by ADR-0006.
+
+---
+
+# No hidden mutation
+
+Comparison or observation operations MUST NOT silently mutate native state unless the reconciliation contract explicitly authorizes automatic remediation.
+
+---
+
+# Dry run
+
+Consequential remediation SHOULD support preview or simulation where practical.
+
+---
+
+# Revalidation before remediation
+
+State used to construct a remediation MAY become stale.
+
+Monad SHOULD re-observe or verify relevant preconditions immediately before consequential mutation.
+
+---
+
+# Remediation target
+
+The exact native target MUST be retained.
+
+---
+
+# Remediation authorization
+
+Automatic remediation requires explicit authority to perform that class of action.
+
+---
+
+# Automatic reconciliation
+
+Monad MAY support automatic remediation for sufficiently bounded cases.
+
+Examples may include:
+
+* regenerating derived documentation,
+* restoring generated files,
+* synchronizing low-risk metadata,
+* updating approved projections.
+
+---
+
+# Automatic remediation constraints
+
+Automation SHOULD consider:
+
+* criticality,
+* reversibility,
+* blast radius,
+* target environment,
+* confidence,
+* authority,
+* concurrent modifications.
+
+---
+
+# Human approval
+
+Higher-risk remediation MAY require human approval.
+
+---
+
+# Remediation failure
+
+Failed remediation does not eliminate the original divergence.
+
+---
+
+# Partial remediation
+
+A remediation affecting several targets may partially succeed.
+
+The remaining divergences MUST stay explicit.
+
+---
+
+# Compensation
+
+If remediation produces unwanted effects, compensation follows the execution model.
+
+The original divergence and remediation remain in history.
+
+---
+
+# Re-observation
+
+After remediation, Monad SHOULD re-observe the affected native state.
+
+---
+
+# Convergence
+
+**Convergence** means that the states relevant to the reconciliation rule now satisfy its comparison relation.
+
+---
+
+# Convergence is rule-relative
+
+Convergence is not a universal property.
+
+States may converge under one rule while remaining divergent under another.
+
+---
+
+# Convergence is not correctness
+
+Two wrong states can agree.
+
+```text id="3mvd69"
+Monad says:
+required approvals = 0
+
+native system says:
+required approvals = 0
+```
+
+They converge.
+
+If the Requirement says:
+
+```text id="nwp8xc"
+required approvals >= 2
+```
+
+the system remains incorrect.
+
+---
+
+# Convergence is not Verification
+
+Convergence may become Evidence for Verification.
+
+It does not replace Verification where an explicit Requirement must be evaluated.
+
+---
+
+# Post-remediation Verification
+
+Consequential remediation SHOULD trigger or require appropriate Verification when correctness matters beyond simple state agreement.
+
+---
+
+# Convergence history
+
+Repeated divergence and convergence events SHOULD remain historically inspectable.
+
+---
+
+# Recurrent divergence
+
+If a reconciled state repeatedly diverges again, Monad SHOULD surface the recurrence.
+
+---
+
+# Reconciliation loops
+
+Automatic bidirectional systems can create loops:
+
+```text id="o9kgio"
+Monad changes native
+→ native event updates Monad
+→ projection recomputes
+→ adapter interprets difference
+→ Monad changes native again
+```
+
+Monad MUST guard against uncontrolled reconciliation loops.
+
+---
+
+# Loop prevention
+
+Mechanisms MAY include:
+
+* operation correlation IDs,
+* source markers,
+* revision checks,
+* idempotency,
+* stable comparison,
+* suppression windows,
+* authority-aware directionality.
+
+---
+
+# Oscillation
+
+If two valid reconciliation rules repeatedly reverse each other's effects, the system SHOULD detect an authority or rule conflict rather than continue oscillating.
+
+---
+
+# Event-driven reconciliation
+
+Native events MAY trigger reconciliation.
+
+---
+
+# Event is not current truth
+
+A webhook event is evidence that an event occurred.
+
+It may not reflect current native state when processed.
+
+---
+
+# Event hydration
+
+Where correctness requires current state, event-triggered reconciliation SHOULD re-observe the native resource.
+
+---
+
+# Duplicate events
+
+Event-triggered reconciliation SHOULD tolerate duplicate delivery.
+
+---
+
+# Out-of-order events
+
+Reconciliation SHOULD tolerate out-of-order events where provider semantics permit them.
+
+---
+
+# Missing events
+
+Monad MUST NOT assume an event stream is complete unless the provider guarantees it.
+
+---
+
+# Polling reconciliation
+
+Polling MAY be used when events are unavailable or incomplete.
+
+---
+
+# Polling cadence
+
+Polling cadence SHOULD reflect:
+
+* criticality,
+* expected change frequency,
+* provider limits,
+* cost,
+* freshness needs.
+
+---
+
+# Continuous reconciliation
+
+Some resources MAY be continuously reconciled.
+
+Continuous reconciliation does not imply continuous mutation.
+
+---
+
+# On-demand reconciliation
+
+Users, agents, releases, or operational workflows MAY explicitly request reconciliation.
+
+---
+
+# Scheduled reconciliation
+
+Periodic reconciliation SHOULD retain checkpoints where useful.
+
+---
+
+# Full scan
+
+A full reconciliation scan MAY be necessary after:
+
+* event loss,
+* integration downtime,
+* schema migration,
+* long offline periods,
+* adapter upgrade,
+* suspected drift.
+
+---
+
+# Incremental reconciliation
+
+Where provider support exists, reconciliation SHOULD use:
+
+* change tokens,
+* cursors,
+* revisions,
+* event offsets,
+* timestamps,
+
+to avoid unnecessary full scans.
+
+---
+
+# Checkpoints
+
+Checkpoints MUST preserve enough provider context to determine whether incremental continuation is valid.
+
+---
+
+# Checkpoint invalidation
+
+Provider behavior or retention limits may invalidate a checkpoint.
+
+The system should then fall back to broader observation rather than silently skipping state.
+
+---
+
+# Local-first reconciliation
+
+Monad MUST remain useful when native remote systems are unavailable.
+
+---
+
+# Offline modeled state
+
+Local semantic state may continue to exist while remote observations become stale.
+
+---
+
+# Offline divergence
+
+Monad SHOULD distinguish:
+
+```text id="9bnr4j"
+known divergence
+```
+
+from:
+
+```text id="lrmi0e"
+cannot determine because native state is unavailable
+```
+
+---
+
+# Queued remediation
+
+Monad MAY queue remediation while offline only where execution semantics make that safe.
+
+---
+
+# Pending is not completed
+
+Queued offline remediation MUST remain visibly pending.
+
+---
+
+# Reconnect revalidation
+
+Before flushing queued consequential mutations after reconnection, Monad SHOULD revalidate:
+
+* authority,
+* preconditions,
+* native state,
+* target identity.
+
+---
+
+# Multi-repository reconciliation
+
+A Subject may span multiple repositories.
+
+Reconciliation MUST preserve repository-specific native identities while reasoning over the shared semantic Subject.
+
+---
+
+# Multi-system reconciliation
+
+The same semantic fact may be represented across:
+
+* repository metadata,
+* issue tracker,
+* CI,
+* release system,
+* documentation.
+
+Monad MAY reconcile these representations using explicit authority and projection rules.
+
+---
+
+# No accidental cross-system authority
+
+The existence of a value in one provider does not automatically make it authoritative for another system.
+
+---
+
+# Cross-system consistency
+
+Cross-system consistency may require several reconciliation rules rather than one global sync job.
+
+---
+
+# Multi-account providers
+
+Native resource identity MUST be scoped by integration instance or equivalent account/tenant context.
+
+---
+
+# Provider migration
+
+During provider migration, old and new systems may both contain valid state.
+
+---
+
+# Migration authority
+
+The authority handoff between providers SHOULD be explicit.
+
+---
+
+# Migration coexistence
+
+Temporary dual-system operation MUST NOT be mistaken for accidental duplication.
+
+---
+
+# Historical native references
+
+Decommissioned provider references SHOULD remain interpretable in historical provenance.
+
+---
+
+# Semantic identity
+
+Reconciliation operates across stable semantic identity wherever possible.
+
+---
+
+# Native identity versus semantic identity
+
+Native resource identifiers MUST NOT be used as universal semantic identity.
+
+---
+
+# Rename
+
+A native rename SHOULD NOT automatically create a new semantic Subject.
+
+---
+
+# Move
+
+Moving a resource between repositories, organizations, or paths MAY preserve semantic identity even when native references change.
+
+---
+
+# Split
+
+A single semantic Subject may later need to split into multiple Subjects.
+
+Reconciliation MUST NOT force one-to-one identity forever.
+
+---
+
+# Merge
+
+Several Subjects may later be determined to represent one underlying entity.
+
+Such identity transitions SHOULD preserve their history.
+
+---
+
+# Fuzzy identity
+
+Fuzzy matching MAY assist discovery.
+
+It MUST NOT silently establish consequential identity equivalence.
+
+---
+
+# Missing resource
+
+A missing native resource may mean:
+
+* deleted,
+* moved,
+* renamed,
+* inaccessible,
+* outside scope,
+* not yet created,
+* observation failure.
+
+---
+
+# Deletion
+
+Deletion SHOULD require stronger evidence than a single failed lookup where provider semantics are ambiguous.
+
+---
+
+# Tombstone
+
+Confirmed deletion MAY produce a tombstone rather than erasing historical identity.
+
+---
+
+# Representation reconciliation
+
+A Subject may have multiple representations.
+
+Example:
+
+```text id="rwwn82"
+Requirement Subject
+├── authoritative MDX source
+├── generated HTML
+├── search index entry
+└── graph projection
+```
+
+These representations may diverge.
+
+---
+
+# Canonical source
+
+Where one representation is canonical, derived representations SHOULD reconcile toward it.
+
+---
+
+# Derived regeneration
+
+Derived representation divergence SHOULD normally be resolved by regeneration rather than manual patching.
+
+---
+
+# Round-trip systems
+
+If multiple representations are legitimately editable, field-level authority must be explicit.
+
+---
+
+# Requirements reconciliation
+
+Requirements may be represented in:
+
+* canonical requirement files,
+* traceability matrices,
+* issue trackers,
+* generated indexes,
+* planning systems.
+
+Monad SHOULD preserve which representation owns which fact.
+
+---
+
+# Decision reconciliation
+
+An ADR's accepted decision is not silently changed because a downstream implementation differs.
+
+Instead, the divergence should surface as:
+
+```text id="c15y3c"
+implementation does not conform to accepted decision
+```
+
+unless governance changes the ADR.
+
+---
+
+# Verification reconciliation
+
+A Verification result may become stale when the verified artifact changes.
+
+Reconciliation SHOULD detect stale verification bindings where applicable.
+
+---
+
+# Evidence reconciliation
+
+Evidence linked to an earlier revision remains historical Evidence.
+
+It should not silently transfer to a new revision.
+
+---
+
+# Provenance reconciliation
+
+Correcting provenance SHOULD preserve prior provenance history where audit significance exists.
+
+---
+
+# Release reconciliation
+
+A release may reconcile:
+
+```text id="uof6f4"
+approved artifact digest
+published registry digest
+deployed environment digest
+release metadata
+```
+
+---
+
+# Release divergence
+
+Any mismatch among these may block release readiness depending on policy.
+
+---
+
+# Deployment reconciliation
+
+Deployment reconciliation SHOULD distinguish:
+
+```text id="bhs5io"
+desired release
+requested deployment
+provider deployment
+observed running version
+health state
+verified release state
+```
+
+---
+
+# Git reconciliation
+
+Git reconciliation MUST preserve distinctions among:
+
+* repository identity,
+* commit,
+* branch,
+* tag,
+* local working tree,
+* remote ref.
+
+---
+
+# Local Git divergence
+
+A local branch ahead of remote is a specific divergence.
+
+It is not automatically an error.
+
+---
+
+# Remote Git divergence
+
+Remote changes not present locally may require observation or fetch, not immediate overwrite.
+
+---
+
+# Force-push divergence
+
+Rewritten history SHOULD be surfaced distinctly from ordinary fast-forward movement.
+
+---
+
+# Filesystem reconciliation
+
+Filesystem reconciliation SHOULD account for:
+
+* content digest,
+* metadata where relevant,
+* path identity,
+* symlinks,
+* generated status,
+* external edits.
+
+---
+
+# File watcher events
+
+Filesystem watcher events are hints, not guaranteed complete truth.
+
+Reconciliation MAY require actual file inspection.
+
+---
+
+# CI reconciliation
+
+CI state may reconcile:
+
+```text id="efx7su"
+expected workflow revision
+native workflow definition
+run revision
+reported conclusion
+required check policy
+```
+
+---
+
+# Package registry reconciliation
+
+Package reconciliation SHOULD prefer immutable artifact digests where available.
+
+Version labels alone may be insufficient.
+
+---
+
+# Infrastructure reconciliation
+
+Infrastructure reconciliation should distinguish:
+
+```text id="ptfy2u"
+declared desired configuration
+provider control-plane state
+observed runtime state
+```
+
+---
+
+# Database reconciliation
+
+Database reconciliation MAY include:
+
+* schema version,
+* migration records,
+* actual schema,
+* expected invariants.
+
+A migration table alone may not prove the schema is correct.
+
+---
+
+# Documentation reconciliation
+
+Documentation reconciliation MAY detect:
+
+* missing generated pages,
+* stale indexes,
+* broken references,
+* inconsistent metadata,
+* publication lag.
+
+---
+
+# Governance reconciliation
+
+Monad MAY reconcile native permissions and governed authority expectations.
+
+A mismatch does not automatically mean native permissions should be changed; authority determines remediation.
+
+---
+
+# Policy reconciliation
+
+Configured native policy may be compared against approved policy.
+
+---
+
+# Security drift
+
+Security-sensitive divergence SHOULD support elevated severity and shorter reconciliation windows.
+
+---
+
+# Drift
+
+**Drift** is persistent or emerging divergence from an expected state over time.
+
+---
+
+# Drift history
+
+Monad SHOULD retain enough data to determine:
+
+* when drift first appeared,
+* how long it persisted,
+* whether it recurred,
+* what changed before it began.
+
+---
+
+# Drift cause
+
+Cause may remain unknown.
+
+Monad MUST distinguish:
+
+```text id="l9b1dt"
+observed correlation
+```
+
+from:
+
+```text id="kesgcu"
+established cause
+```
+
+---
+
+# Drift metrics
+
+Useful metrics MAY include:
+
+* number of open divergences,
+* age of divergence,
+* divergence rate,
+* mean time to reconciliation,
+* recurrence rate,
+* accepted divergence count,
+* unresolved authority conflicts.
+
+---
+
+# Reconciliation result
+
+A reconciliation result SHOULD identify:
+
+```yaml id="vzsauz"
+status:
+comparison:
+divergences:
+authority:
+recommended_action:
+```
+
+as applicable.
+
+---
+
+# Minimal reconciliation model
+
+```yaml id="1v6pca"
+id: REC-0042
+
+subject: repository:monad
+
+expected:
+  default_branch: main
+
+observed:
+  default_branch: master
+
+result: divergent
+```
+
+---
+
+# Preferred reconciliation model
+
+```yaml id="26tt3w"
+id: REC-0042
+
+subject: repository:monad
+
+scope:
+  field: default_branch
+
+rule:
+  id: RCR-REPOSITORY-DEFAULT-BRANCH
+  version: 3
+
+expected:
+  source:
+    claim: CLM-00291
+  value: main
+
+observation:
+  integration: INT-0007
+  native_id: R_kgDO123
+  observed_at: 2026-08-30T07:32:15Z
+  freshness: live
+  value: master
+
+comparison:
+  relation: unequal
+
+divergence:
+  id: DIV-0098
+  class: value-mismatch
+  status: open
+
+authority:
+  expected_state: authoritative
+  native_state: observed
+
+recommended_action:
+  type: remediation
+  capability: repository.settings.update
+
+result: divergent
+```
+
+---
+
+# Accepted-divergence example
+
+```yaml id="8975m6"
+id: DIV-0204
+
+subject: deployment:production
+
+field: timeout
+
+expected:
+  portable_default: 30
+
+observed:
+  provider_native: 45
+
+classification: accepted-divergence
+
+acceptance:
+  decision: ADR-0044
+  reason: provider requires higher timeout
+  approved_by: role:platform-owner
+  expires_at: 2026-12-01T00:00:00Z
+```
+
+---
+
+# Authority-conflict example
+
+```yaml id="vj06c9"
+id: DIV-0310
+
+subject: repository:core
+
+field: required_approvals
+
+state_a:
+  source: approved-policy
+  value: 2
+  authority: organization-security-policy
+
+state_b:
+  source: native-provider
+  value: 1
+  changed_by: actor:repository-admin
+  authority_claim: repository-administration
+
+classification: authority-conflict
+
+remediation:
+  automatic: false
+
+governance:
+  review_required: true
+```
+
+---
+
+# Execution and reconciliation example
+
+```text id="3w2ulh"
+OP-381
+Change branch protection to require 2 approvals
+        │
+        ▼
+Provider:
+200 OK
+        │
+        ▼
+REC-191
+Observed required approvals = 1
+        │
+        ▼
+DIV-204
+post-execution divergence
+        │
+        ▼
+VFY-812
+Requirement remains unsatisfied
+```
+
+A successful API call did not establish convergence.
+
+---
+
+# Eventual-convergence example
+
+```text id="13avrh"
+t0:
+remediation accepted
+
+t0 + 2s:
+native read still shows old value
+
+t0 + 10s:
+native read shows new value
+```
+
+Within the provider's declared consistency window, this may be:
+
+```text id="jembn3"
+expected temporal divergence
+```
+
+rather than immediate failure.
+
+---
+
+# Anti-patterns
+
+## Monad always wins
+
+Rejected.
+
+---
+
+## Native system always wins
+
+Rejected.
+
+---
+
+## Last writer wins everywhere
+
+Rejected.
+
+---
+
+## Newest timestamp wins
+
+Rejected.
+
+Recency does not establish authority.
+
+---
+
+## Sync everything both ways
+
+Rejected.
+
+---
+
+## Automatically overwrite external edits
+
+Rejected.
+
+---
+
+## External change equals unauthorized change
+
+Rejected.
+
+---
+
+## Difference equals error
+
+Rejected.
+
+---
+
+## No difference equals correctness
+
+Rejected.
+
+---
+
+## Reconciliation equals Verification
+
+Rejected.
+
+---
+
+## Reconciliation equals execution
+
+Rejected.
+
+---
+
+## Reconciliation adapter silently mutates
+
+Rejected unless explicitly configured as governed automatic remediation.
+
+---
+
+## 404 means deleted
+
+Rejected.
+
+---
+
+## Missing means false
+
+Rejected.
+
+---
+
+## Permission denied means absent
+
+Rejected.
+
+---
+
+## Event receipt means current truth
+
+Rejected.
+
+---
+
+## Webhook stream is guaranteed complete
+
+Rejected unless explicitly guaranteed by the provider contract.
+
+---
+
+## Search returned nothing, therefore resource is gone
+
+Rejected.
+
+---
+
+## Native display name is identity
+
+Rejected.
+
+---
+
+## Rename means delete and create
+
+Rejected.
+
+---
+
+## One native resource always equals one semantic Subject
+
+Rejected.
+
+---
+
+## Generated artifact edits become canonical automatically
+
+Rejected.
+
+---
+
+## Convergence erases divergence history
+
+Rejected.
+
+---
+
+## Accepted divergence means states are equal
+
+Rejected.
+
+---
+
+## AI guessed the correct identity mapping
+
+Rejected as authoritative without sufficient evidence.
+
+---
+
+## AI recommended remediation, therefore execute it
+
+Rejected.
+
+---
+
+## Failed remediation closes the divergence
+
+Rejected.
+
+---
+
+## Partial remediation means fully reconciled
+
+Rejected.
+
+---
+
+## Poll continuously at maximum frequency
+
+Rejected.
+
+---
+
+## Every event triggers immediate mutation
+
+Rejected.
+
+---
+
+## Offline queued write shown as synchronized
+
+Rejected.
+
+---
+
+## Old verification remains current after artifact change
+
+Rejected.
+
+---
+
+## Migration duplicates are treated as identity collisions automatically
+
+Rejected.
+
+---
+
+## Rule update silently rewrites historical reconciliation outcomes
+
+Rejected.
+
+---
+
+# Progressive formalization
+
+## Stage 1 — Explicit observation
+
+Record native observations with timestamps and stable native references.
+
+---
+
+## Stage 2 — Explicit comparison
+
+Represent expected and observed states separately.
+
+---
+
+## Stage 3 — Divergence model
+
+Create first-class divergence records rather than generic mismatch flags.
+
+---
+
+## Stage 4 — Authority-aware direction
+
+Determine which state governs each reconciled fact.
+
+---
+
+## Stage 5 — Governed remediation
+
+Translate divergence into explicit, authorized Operations.
+
+---
+
+## Stage 6 — Event and polling integration
+
+Support ongoing drift detection across unreliable native systems.
+
+---
+
+## Stage 7 — Accepted divergence and conflict handling
+
+Represent intentional differences and unresolved authority conflicts.
+
+---
+
+## Stage 8 — Closed-loop Verification
+
+Observe after remediation and verify the relevant Requirement.
+
+---
+
+## Stage 9 — Multi-system reconciliation
+
+Coordinate several native systems around stable semantic Subjects.
+
+---
+
+## Stage 10 — Autonomous governed convergence
+
+Monad can safely perform:
+
+```text id="ycem96"
+observe
+→ compare
+→ explain
+→ establish authority
+→ propose
+→ authorize
+→ execute
+→ re-observe
+→ verify
+```
+
+for appropriately bounded cases without collapsing these stages into an opaque sync mechanism.
+
+---
+
+# Alternatives considered
+
+## Alternative A — Native systems are always authoritative
+
+Rejected.
+
+Native systems own many native facts, but Monad may hold authoritative governed intent, requirements, policies, decisions, or semantic relationships.
+
+---
+
+## Alternative B — Monad is always authoritative
+
+Rejected.
+
+Monad must not confuse its model with reality.
+
+---
+
+## Alternative C — Bidirectional synchronization
+
+Rejected as the universal model.
+
+Bidirectional mutation without field-level authority and conflict semantics is unsafe.
+
+---
+
+## Alternative D — Last-write-wins
+
+Rejected.
+
+Time does not establish legitimacy.
+
+---
+
+## Alternative E — Human resolves every mismatch
+
+Rejected as the only strategy.
+
+Many low-risk and mechanically resolvable divergences should be automatable.
+
+---
+
+## Alternative F — Automatically fix every mismatch
+
+Rejected.
+
+Some divergence is valid, expected, ambiguous, or governed by the native system.
+
+---
+
+## Alternative G — Use Verification instead of reconciliation
+
+Rejected.
+
+Verification answers a different question.
+
+---
+
+## Alternative H — Reconcile only after failures
+
+Rejected.
+
+External drift exists independently of Monad execution.
+
+---
+
+## Alternative I — Event-only reconciliation
+
+Rejected.
+
+Events can be delayed, duplicated, dropped, or incomplete.
+
+---
+
+## Alternative J — Polling-only reconciliation
+
+Rejected.
+
+It wastes resources and increases latency where reliable events exist.
+
+---
+
+## Alternative K — Flatten provider semantics into one generic state model
+
+Rejected.
+
+Native distinctions often determine correct interpretation.
+
+---
+
+## Alternative L — Let AI infer reconciliation direction dynamically
+
+Rejected as authoritative behavior.
+
+AI may assist interpretation, but authority rules must remain explicit.
+
+---
+
+# Consequences
+
+## Positive
+
+This decision enables:
+
+* native-tool coexistence,
+* safe external editing,
+* drift detection,
+* semantic/native state comparison,
+* field-level authority,
+* accepted divergence,
+* explicit authority conflicts,
+* event-driven reconciliation,
+* offline recovery,
+* post-execution convergence checks,
+* multi-provider operation,
+* migration support,
+* auditable remediation,
+* AI-assisted diagnosis,
+* and closed-loop governed automation.
+
+---
+
+## Negative
+
+The model is more complex than a generic synchronization engine.
+
+Monad must retain:
+
+* observation metadata,
+* reconciliation rule versions,
+* divergence records,
+* authority context,
+* remediation state,
+* event/checkpoint state,
+* and convergence history.
+
+That complexity is necessary because the underlying engineering environment is distributed, concurrent, partially observable, and governed by multiple authorities.
+
+---
+
+# Definition of Ready
+
+ADR-0007 was ready because:
+
+* [x] semantic identity is distinct from native identity,
+* [x] authority is explicitly modeled,
+* [x] integrations expose native observation and mutation capabilities,
+* [x] execution distinguishes request, effect, and Verification,
+* [x] Claims, Evidence, Provenance, and Verification are established,
+* [x] native systems remain first-class participants,
+* [x] desired state and observed state are distinct,
+* [x] external mutation is expected,
+* [x] requirements demand reconciliation without assuming universal authority,
+* [x] local-first operation requires tolerance of stale and unavailable native state.
+
+---
+
+# Definition of Done
+
+ADR-0007 is complete when:
+
+* [x] reconciliation is distinct from synchronization,
+* [x] reconciliation is distinct from observation,
+* [x] reconciliation is distinct from execution,
+* [x] reconciliation is distinct from Verification,
+* [x] expected and observed state are independently representable,
+* [x] observation time and freshness are preserved,
+* [x] unknown state remains first-class,
+* [x] semantic comparison can normalize without erasing native semantics,
+* [x] divergence is first-class,
+* [x] divergence may be intentional or accepted,
+* [x] remediation direction follows authority,
+* [x] authority conflicts are explicit,
+* [x] automatic remediation uses governed execution,
+* [x] remediation is re-observed,
+* [x] convergence is distinct from correctness,
+* [x] event delivery is not treated as complete truth,
+* [x] offline state does not fabricate remote truth,
+* [x] semantic and native identity remain distinct,
+* [x] recurring drift remains historically inspectable,
+* [x] AI assistance does not create authority,
+* [x] historical divergence and reconciliation results remain auditable.
+
+---
+
+# Acceptance criteria
+
+## Observation independence
+
+A native observation can exist without a reconciliation result.
+
+---
+
+## Reconciliation independence
+
+A reconciliation may report divergence without performing mutation.
+
+---
+
+## Authority direction
+
+The same structural mismatch can reconcile in opposite directions under different authority rules.
+
+---
+
+## Unknown preservation
+
+Failure to observe a native resource does not automatically produce deletion.
+
+---
+
+## Freshness
+
+A stale observation can be identified as stale rather than silently treated as current.
+
+---
+
+## Divergence classification
+
+At least expected, unexpected, accepted, conflict, and unknown divergence states can be represented.
+
+---
+
+## Accepted divergence
+
+An intentional difference can remain visible without generating automatic remediation.
+
+---
+
+## Authority conflict
+
+Conflicting legitimate authority claims can block automatic convergence.
+
+---
+
+## Native-authoritative field
+
+Monad can update its model from native state without rewriting the native state.
+
+---
+
+## Monad-authoritative field
+
+Monad can propose a governed native remediation.
+
+---
+
+## Post-remediation observation
+
+A completed remediation does not close divergence until relevant state is re-observed.
+
+---
+
+## Convergence distinction
+
+Two matching states can still fail a Requirement.
+
+---
+
+## Verification linkage
+
+Convergence may feed Verification without replacing it.
+
+---
+
+## Event resilience
+
+Duplicate or out-of-order native events do not corrupt reconciliation state.
+
+---
+
+## Poll recovery
+
+A missed event stream can be repaired by broader observation.
+
+---
+
+## Offline semantics
+
+Unreachable native systems result in stale or unknown state, not fabricated agreement.
+
+---
+
+## Identity stability
+
+A native rename does not necessarily create a new semantic Subject.
+
+---
+
+## Rule versioning
+
+Historical reconciliation can identify which rule revision produced its classification.
+
+---
+
+## AI boundaries
+
+AI may recommend reconciliation but cannot silently establish authority.
+
+---
+
+## Historical reconstruction
+
+The system can reconstruct when a divergence appeared, what authority rule applied, what remediation occurred, and whether convergence was later verified.
+
+---
+
+# Verification obligations
+
+```text id="t8w1s6"
+VFO-REC-001
+Reconciliation can evaluate state without mutating either side.
+
+VFO-REC-002
+Observation and reconciliation are separately identifiable.
+
+VFO-REC-003
+Reconciliation and Verification produce distinct result types.
+
+VFO-REC-004
+Reconciliation and Execution produce distinct records.
+
+VFO-REC-005
+Expected state and observed native state remain independently inspectable.
+
+VFO-REC-006
+Native observations retain observation time.
+
+VFO-REC-007
+Cached or stale observations are distinguishable from fresh observations.
+
+VFO-REC-008
+Observation failure can produce unknown state without implying resource deletion.
+
+VFO-REC-009
+Permission denial is not automatically interpreted as missing native state.
+
+VFO-REC-010
+Semantically equivalent but textually different values can reconcile as equivalent under an explicit rule.
+
+VFO-REC-011
+Lossy normalization remains detectable.
+
+VFO-REC-012
+Divergence can exist without being classified as error.
+
+VFO-REC-013
+Temporary expected divergence can remain open within a defined consistency window.
+
+VFO-REC-014
+Expired expected divergence can escalate.
+
+VFO-REC-015
+Accepted divergence remains visibly divergent.
+
+VFO-REC-016
+Accepted divergence retains approval, reason, scope, and expiration where applicable.
+
+VFO-REC-017
+Authority can be defined at field or fact granularity.
+
+VFO-REC-018
+Native-authoritative facts can update Monad without native mutation.
+
+VFO-REC-019
+Monad-authoritative facts can produce remediation proposals.
+
+VFO-REC-020
+Derived state can be regenerated rather than treated as independently authoritative.
+
+VFO-REC-021
+Authority conflict prevents silent automatic winner selection.
+
+VFO-REC-022
+Resolved authority conflict remains historically inspectable.
+
+VFO-REC-023
+Reconciliation rule versions are retained with reconciliation results.
+
+VFO-REC-024
+Changed rule semantics do not silently rewrite historical results.
+
+VFO-REC-025
+AI-inferred identity mapping cannot become consequential authoritative binding without required confirmation.
+
+VFO-REC-026
+AI remediation recommendations cannot bypass execution authority.
+
+VFO-REC-027
+Automatic remediation creates normal governed Operations.
+
+VFO-REC-028
+Reconciliation reads do not silently perform unrelated writes.
+
+VFO-REC-029
+Stale state can invalidate a prepared remediation.
+
+VFO-REC-030
+Partial remediation preserves unresolved divergences.
+
+VFO-REC-031
+Post-remediation native state is re-observable.
+
+VFO-REC-032
+Convergence is evaluated relative to an explicit reconciliation relation.
+
+VFO-REC-033
+Convergence does not automatically create a passing Verification result.
+
+VFO-REC-034
+Repeated divergence after convergence remains visible as recurrence.
+
+VFO-REC-035
+Bidirectional reconciliation detects or prevents uncontrolled update loops.
+
+VFO-REC-036
+Event-driven reconciliation tolerates duplicate events.
+
+VFO-REC-037
+Out-of-order events do not silently overwrite newer state when ordering semantics are known.
+
+VFO-REC-038
+Webhook receipt does not substitute for current-state observation where freshness is required.
+
+VFO-REC-039
+Lost event history can trigger broader reconciliation.
+
+VFO-REC-040
+Incremental reconciliation checkpoints can be invalidated safely.
+
+VFO-REC-041
+Offline operation preserves unknown or stale remote state.
+
+VFO-REC-042
+Queued offline remediation is not represented as executed.
+
+VFO-REC-043
+Queued consequential remediation is revalidated after reconnection.
+
+VFO-REC-044
+Native resource identity is scoped to its integration/provider context.
+
+VFO-REC-045
+Provider migration can retain historical identity while authority moves to a new provider.
+
+VFO-REC-046
+Native rename can preserve semantic Subject identity.
+
+VFO-REC-047
+Confirmed deletion does not erase historical Subject identity.
+
+VFO-REC-048
+Generated representation divergence can reconcile by regeneration from authoritative source.
+
+VFO-REC-049
+Implementation divergence from an accepted ADR does not silently rewrite the ADR.
+
+VFO-REC-050
+Verification tied to an old artifact revision can become stale after artifact mutation.
+
+VFO-REC-051
+Release reconciliation can compare approved, published, and deployed artifact digests.
+
+VFO-REC-052
+Git reconciliation preserves branch-ref and commit-identity distinctions.
+
+VFO-REC-053
+Filesystem watcher events do not substitute for file-state observation when correctness requires inspection.
+
+VFO-REC-054
+Package registry reconciliation can use immutable digests rather than only version labels.
+
+VFO-REC-055
+Infrastructure reconciliation distinguishes desired configuration, provider state, and runtime observation.
+
+VFO-REC-056
+Security-sensitive drift can receive stronger severity and escalation policy.
+
+VFO-REC-057
+Reconciliation history can identify when drift first appeared.
+
+VFO-REC-058
+Correlation between an earlier change and divergence is not automatically recorded as established cause.
+
+VFO-REC-059
+The same native and modeled values may be converged yet still violate a separate Requirement.
+
+VFO-REC-060
+Historical reconciliation can reconstruct observation, rule, authority, divergence, remediation, convergence, and Verification relationships.
+```
+
+---
+
+# Core invariants
+
+```text id="fng8mz"
+Reconciliation ≠ Synchronization
+
+Reconciliation ≠ Observation
+
+Reconciliation ≠ Verification
+
+Reconciliation ≠ Execution
+
+Reconciliation ≠ Authority
+
+Observation ≠ Current truth automatically
+
+Observed ≠ Authoritative
+
+Modeled ≠ Desired
+
+Desired ≠ Observed
+
+Modeled state ≠ Native reality
+
+Divergence ≠ Error
+
+Different ≠ Invalid
+
+Agreement ≠ Correctness
+
+Convergence ≠ Correctness
+
+Convergence ≠ Verification
+
+Convergence ≠ Requirement satisfaction
+
+Newest ≠ Authoritative
+
+Last writer ≠ Legitimate winner
+
+Native ≠ Always authoritative
+
+Monad ≠ Always authoritative
+
+Native permission ≠ Monad authority
+
+External change ≠ Unauthorized change
+
+External actor ≠ Invalid actor
+
+Unknown ≠ False
+
+Unknown ≠ Missing
+
+Missing observation ≠ Deleted resource
+
+Permission denied ≠ Missing
+
+Unavailable ≠ Absent
+
+404 ≠ Deleted necessarily
+
+Search miss ≠ Absence
+
+Cached ≠ Current
+
+Event ≠ Snapshot
+
+Webhook received ≠ Current truth
+
+Event stream ≠ Complete history automatically
+
+Expected divergence ≠ Failure
+
+Accepted divergence ≠ Agreement
+
+Accepted divergence ≠ Permanent exemption
+
+Conflict resolved ≠ Conflict erased
+
+Authority conflict ≠ Ordinary sync conflict
+
+Generated ≠ Canonical
+
+Representation ≠ Subject
+
+Native identity ≠ Semantic identity
+
+Native ID ≠ Global identity
+
+Rename ≠ Delete + Create
+
+Move ≠ New Subject automatically
+
+Split ≠ Identity failure
+
+Merge ≠ Historical erasure
+
+Fuzzy match ≠ Confirmed identity
+
+Remediation proposed ≠ Authorized
+
+Remediation authorized ≠ Executed
+
+Remediation executed ≠ Converged
+
+Remediation failed ≠ Divergence closed
+
+Partial remediation ≠ Reconciled
+
+API success ≠ Convergence
+
+Converged ≠ Verified
+
+Reconciled ≠ Correct
+
+Polling checkpoint ≠ Eternal validity
+
+Queued ≠ Executed
+
+Offline ≠ Synchronized
+
+AI inference ≠ Confirmed identity
+
+AI recommendation ≠ Authorized action
+
+AI confidence ≠ Authority
+
+Rule changed ≠ Historical state changed
+
+Suppressed notification ≠ Divergence removed
+
+Current agreement ≠ Historical agreement
+
+Historical divergence ≠ Current divergence
+
+Provider migration ≠ Identity replacement
+
+Decommissioned integration ≠ Historical erasure
+```
+
+---
+
+# Governing principle
+
+> **Monad should reconcile its model with reality without confusing its model for reality, native state for universal authority, or convergence for correctness.**
+
+The reconciliation architecture therefore preserves:
+
+```text id="dfw36z"
+Expectation
+Observation
+Comparison
+Divergence
+Authority
+Conflict
+Remediation
+Execution
+Convergence
+Verification
+```
+
+as distinct but connected concepts.
+
+Monad must be capable of saying:
+
+```text id="quald6"
+"The native system differs from our modeled state."
+```
+
+without prematurely concluding:
+
+```text id="ggc1dl"
+"The native system is wrong."
+```
+
+It must be capable of saying:
+
+```text id="c8iqp4"
+"Both states now agree."
+```
+
+without prematurely concluding:
+
+```text id="319uao"
+"The system is correct."
+```
+
+And it must be capable of saying:
+
+```text id="hqpedu"
+"We cannot currently know."
+```
+
+instead of manufacturing certainty from incomplete observation.
+
+The objective is not universal synchronization.
+
+It is governed, explainable convergence where convergence is appropriate—and explicit, intelligible divergence where it is not.
+
+<Cards>
+  <Card
+    href="/docs/artifacts/requirements/reconciliation"
+    title="Reconciliation Requirements"
+  >
+    Review the normative requirements for observation, divergence, authority-aware reconciliation, remediation, and convergence.
+  </Card>
+
+<Card
+href="/docs/artifacts/decisions/adr-0006-execution-effect-and-operational-state-model"
+title="ADR-0006 — Execution, Effect, and Operational State Model"
+>
+Review how reconciliation remediation becomes governed execution and how native effects are observed afterward.
+</Card>
+
+<Card
+href="/docs/artifacts/requirements/authority"
+title="Authority Requirements"
+>
+Review how Monad determines which actor or source may legitimately establish or change governed state.
+</Card>
+
+<Card
+href="/docs/artifacts/requirements/verification"
+title="Verification Requirements"
+>
+Review why convergence and agreement remain distinct from verified Requirement satisfaction.
+</Card>
+</Cards>

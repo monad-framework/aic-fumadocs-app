@@ -1,0 +1,2813 @@
+---
+title: "AI-Native Engineering Operating System — System Architecture Baseline Review"
+specification ID: "AIEOS-REV-003"
+version: "0.1.0"
+status: "Draft"
+classification: "Normative Architecture Reconciliation and Baseline-Gate Review"
+parent: "AIEOS-ARCH-001 — AI-Native Engineering Operating System — System Architecture Specification"
+description: "AIEOS System Architecture Baseline Review — Red-team review and disposition of architectural findings before Architecture Baseline AB-001"
+---
+
+# AI-Native Engineering Operating System — System Architecture Baseline Review
+
+# 1. Purpose
+
+This review challenges the first AIEOS logical architecture before it is accepted as an architecture baseline.
+
+The reviewed architecture is:
+
+```text
+Requirements Baseline:
+RB-001
+
+Architecture:
+AIEOS-ARCH-001 v0.1.0
+```
+
+The review determines whether `AIEOS-ARCH-001`:
+
+* satisfies `RB-001`,
+* preserves `AIEOS-DOM-001`,
+* assigns authoritative state unambiguously,
+* maintains governance boundaries,
+* handles failure correctly,
+* supports local-first operation,
+* provides a feasible MVP architecture,
+* preserves human/agent authority separation,
+* avoids premature implementation decisions,
+* can safely evolve toward shared and distributed operation.
+
+The review also determines whether:
+
+```text
+Architecture Baseline:
+AB-001
+```
+
+may be accepted.
+
+---
+
+# 2. Review Inputs
+
+The review corpus is:
+
+```text
+AIEOS-FOUND-001
+
+AIEOS-REQ-001 v0.2.0
+
+AIEOS-DOM-001 v0.2.0
+
+Requirements Baseline RB-001
+
+AIEOS-REV-001
+
+AIEOS-REV-002
+
+AIEOS-ARCH-001 v0.1.0
+```
+
+The architecture is reviewed against both normative requirements and domain invariants.
+
+---
+
+# 3. Review Method
+
+The architecture is evaluated for:
+
+```text
+requirements coverage
+
+domain preservation
+
+state ownership
+
+authority ownership
+
+component cohesion
+
+component coupling
+
+transaction boundaries
+
+agent isolation
+
+human authority
+
+identity semantics
+
+policy semantics
+
+capability semantics
+
+authorization semantics
+
+evidence integrity
+
+external side-effect correctness
+
+consistency
+
+reconciliation
+
+local-first behavior
+
+offline behavior
+
+multi-node evolution
+
+failure safety
+
+security boundaries
+
+MVP feasibility
+
+implementation neutrality
+```
+
+Each finding receives one of:
+
+```text
+ACCEPT
+
+ACCEPT-WITH-MODIFICATION
+
+NO-CHANGE
+
+DEFER
+
+REJECT
+```
+
+and is classified:
+
+```text
+BLOCKING
+
+NON-BLOCKING
+```
+
+for `AB-001`.
+
+---
+
+# 4. Architecture Baseline Decision
+
+## Decision
+
+**CHANGES REQUIRED**
+
+`AIEOS-ARCH-001 v0.1.0` is architecturally sound in its overall direction but is **not yet ready to become Architecture Baseline AB-001**.
+
+No finding requires replacement of the core architectural style.
+
+The following major decisions survive review:
+
+```text
+governed control-plane architecture
+
+ports-and-adapters integration
+
+bounded agents
+
+deterministic governance
+
+modular monolith first
+
+isolated execution workers
+
+transactional core governance state
+
+append-oriented consequential history
+
+eventual consistency across external systems
+
+reconciliation rather than distributed transactions
+
+local-first operation
+
+provider-neutral agent boundary
+```
+
+However, several boundaries must be made more explicit before implementation is permitted to treat the architecture as stable.
+
+The required progression is:
+
+```text
+AIEOS-ARCH-001 v0.1.0
+        ↓
+AIEOS-REV-003
+        ↓
+architecture corrections
+        ↓
+AIEOS-ARCH-001 v0.2.0
+        ↓
+Architecture Baseline Verification
+        ↓
+AB-001
+```
+
+---
+
+# 5. Executive Finding Summary
+
+| Finding                                                                        | Disposition              | Blocking | Required Action                                                             |
+| ------------------------------------------------------------------------------ | ------------------------ | -------: | --------------------------------------------------------------------------- |
+| FIND-ARCH-001 Logical centralization terminology                               | ACCEPT-WITH-MODIFICATION |      Yes | Replace logical centralization with coherent explicit authority ownership   |
+| FIND-ARCH-002 Evidence "externally observable" is too narrow                   | ACCEPT                   |      Yes | Require independence from claimant, not externality                         |
+| FIND-ARCH-003 Authoritative state ownership incomplete                         | ACCEPT                   |      Yes | Add authoritative-state ownership matrix                                    |
+| FIND-ARCH-004 Kernel/service ownership overlaps                                | ACCEPT                   |      Yes | Define Kernel as transaction/governance boundary, not competing state owner |
+| FIND-ARCH-005 Authentication and principal resolution missing                  | ACCEPT                   |      Yes | Add Actor Authentication / Principal Resolution boundary                    |
+| FIND-ARCH-006 Capability/Authorization sequencing ambiguous                    | ACCEPT                   |      Yes | Define Authorization-before-Grant semantics                                 |
+| FIND-ARCH-007 External dispatch atomicity needs stronger rule                  | ACCEPT                   |      Yes | Require committed operation record before dispatch                          |
+| FIND-ARCH-008 Offline deferred authorization can become stale                  | ACCEPT                   |      Yes | Require protected operations to revalidate before dispatch                  |
+| FIND-ARCH-009 Local-first → multi-node authority topology under-specified      | ACCEPT                   |      Yes | Establish no implicit multi-writer authority                                |
+| FIND-ARCH-010 External authoritative facts lack freshness contract             | ACCEPT                   |      Yes | Add authoritative-read/freshness semantics                                  |
+| FIND-ARCH-011 Configuration ownership missing                                  | ACCEPT                   |      Yes | Add Configuration responsibility and state ownership                        |
+| FIND-ARCH-012 MVP conflates Approval and execution authorization               | ACCEPT                   |      Yes | Add explicit mutation Operational Authorization gate                        |
+| FIND-ARCH-013 Projection use in protected decisions insufficiently constrained | ACCEPT                   |       No | Require freshness/authority validation                                      |
+| FIND-ARCH-014 Event/provenance atomicity needs explicit scope                  | ACCEPT-WITH-MODIFICATION |       No | Define atomic consequential mutation envelope                               |
+| FIND-ARCH-015 Environment state ownership is distributed ambiguously           | ACCEPT                   |       No | Clarify identity, metadata, and native-state ownership                      |
+| FIND-ARCH-016 Incident ownership is under-specified                            | ACCEPT-WITH-MODIFICATION |       No | Assign coordination ownership without creating unnecessary service          |
+| FIND-ARCH-017 Modular monolith decision                                        | NO-CHANGE                |       No | Retain                                                                      |
+| FIND-ARCH-018 Ports-and-adapters decision                                      | NO-CHANGE                |       No | Retain                                                                      |
+| FIND-ARCH-019 Event Ledger without mandatory event sourcing                    | NO-CHANGE                |       No | Retain                                                                      |
+| FIND-ARCH-020 Reconciliation over distributed transactions                     | NO-CHANGE                |       No | Retain                                                                      |
+
+---
+
+# 6. FIND-ARCH-001 — Logical Centralization Terminology
+
+## Finding
+
+`ARCH-P-001` currently states:
+
+> Control is centralized logically, not necessarily physically.
+
+The intended meaning is reasonable: governance must have coherent authority.
+
+However, **centralized** carries stronger architectural implications than necessary and creates tension with:
+
+```text
+local-first operation
+
+future team deployment
+
+future distributed organizational deployment
+
+authority partitioning
+```
+
+AIEOS does not fundamentally require one global logical center.
+
+It requires unambiguous authority.
+
+## Disposition
+
+**ACCEPT-WITH-MODIFICATION — BLOCKING**
+
+## Required replacement
+
+### ARCH-P-001 — Governance authority is explicit and coherent
+
+For every authoritative class of AIEOS state, the architecture SHALL define an unambiguous logical owner or explicitly governed authority partition.
+
+Authority MAY be physically distributed.
+
+The architecture SHALL NOT depend upon conflicting implicit writers for the same authoritative scope.
+
+---
+
+# 7. FIND-ARCH-002 — Evidence Independence, Not Externality
+
+## Finding
+
+`ARCH-P-007` currently states:
+
+> Evidence is externally observable.
+
+This is too narrow.
+
+Valid Evidence may be produced by:
+
+```text
+local deterministic test execution
+
+static analysis
+
+manual inspection
+
+local build process
+
+sandbox execution
+
+external CI system
+
+runtime observation
+```
+
+The important semantic property is not that Evidence comes from an external system.
+
+It is that required Evidence exists independently of the unsupported assertion being evaluated.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Required replacement
+
+### ARCH-P-007 — Evidence is independently inspectable
+
+Verification architecture SHALL preserve required Evidence independently from the unsupported assertion of the Actor or Agent whose claim is being evaluated.
+
+Evidence MAY originate from internal or external systems.
+
+---
+
+# 8. FIND-ARCH-003 — Authoritative State Ownership Is Incomplete
+
+## Finding
+
+`AIEOS-ARCH-001` describes ownership in multiple sections but does not provide a complete authoritative ownership model.
+
+This creates risk that two logical components can appear to own the same state.
+
+Examples include:
+
+```text
+Workflow Service
+versus
+AIEOS Kernel
+
+Governance Service
+versus
+Decision Service
+
+Knowledge Service
+versus
+Identity Service
+
+Work Coordination
+versus
+Incident coordination
+
+Execution Manager
+versus
+Environment state
+
+Governance Service
+versus
+Configuration
+```
+
+The architecture gate explicitly asks:
+
+> Is every authoritative state owned by exactly one logical authority?
+
+The current document does not yet prove this.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Required addition
+
+`AIEOS-ARCH-001 v0.2.0` SHALL include an authoritative-state ownership matrix.
+
+Recommended baseline:
+
+| Authoritative State               | Logical Owner              |
+| --------------------------------- | -------------------------- |
+| Subject identity                  | Identity Service           |
+| Native Reference binding          | Identity Service           |
+| Artifact metadata                 | Knowledge Service          |
+| Representation metadata           | Knowledge Service          |
+| Assertion state                   | Knowledge Service          |
+| Relationship state                | Knowledge Service          |
+| Semantic Authority Binding        | Governance Service         |
+| Work Unit state                   | Work Coordination Service  |
+| Workflow Definition               | Workflow Service           |
+| Workflow Instance                 | Workflow Service           |
+| Lifecycle State                   | Workflow Service           |
+| Transition record                 | Workflow Service           |
+| Policy registration/configuration | Governance / Configuration |
+| Policy Evaluation                 | Governance Service         |
+| Risk Assessment                   | Governance Service         |
+| Capability Definition             | Capability Service         |
+| Capability Grant                  | Capability Service         |
+| Operational Authorization         | Governance Service         |
+| Decision / Approval               | Decision Service           |
+| Execution record                  | Execution Manager          |
+| Verification Result               | Verification Service       |
+| Evidence metadata                 | Evidence Service           |
+| Review                            | Review Service             |
+| External operation record         | Integration Gateway        |
+| Reconciliation state              | Reconciliation Service     |
+| Observation                       | Observation Gateway        |
+| Provenance                        | Provenance Service         |
+| Event Ledger                      | Provenance/Event subsystem |
+
+The exact module names MAY be refined.
+
+The single-authority property SHALL remain.
+
+---
+
+# 9. FIND-ARCH-004 — Kernel and Service Ownership Overlap
+
+## Finding
+
+The architecture defines an **AIEOS Kernel** that coordinates:
+
+```text
+commands
+transactions
+policy evaluation
+state transitions
+event creation
+provenance
+authorization checks
+```
+
+while simultaneously defining logical services that own those concerns.
+
+Without clarification, the Kernel could become:
+
+```text
+a second Workflow owner
+
+a second Policy owner
+
+a second Authorization owner
+
+a second Provenance owner
+```
+
+creating architectural ambiguity.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Decision
+
+The Kernel SHALL be treated as the **application-level governance and transaction boundary**, not as an independent domain-state owner.
+
+The logical modules remain authoritative for their own state.
+
+Conceptually:
+
+```text
+Command
+   ↓
+AIEOS Kernel
+   ↓ coordinates
+Domain Modules
+   ↓
+Authoritative Persistence
+```
+
+The Kernel:
+
+```text
+orchestrates
+
+orders checks
+
+establishes transaction boundary
+
+enforces cross-module invariants
+
+coordinates event/provenance recording
+```
+
+but SHALL NOT maintain competing copies of domain state.
+
+---
+
+# 10. Revised Kernel Model
+
+The recommended model becomes:
+
+```text
+┌────────────────────────────────────┐
+│           AIEOS Kernel             │
+│                                    │
+│ Command coordination               │
+│ Transaction coordination           │
+│ Cross-domain invariant enforcement │
+│ Governance sequencing              │
+└────────────────┬───────────────────┘
+                 │
+       ┌─────────┼─────────┐
+       ▼         ▼         ▼
+   Identity   Workflow   Governance
+       │         │         │
+       └─────────┼─────────┘
+                 ▼
+         Authoritative State
+```
+
+The Kernel owns coordination semantics.
+
+Domain modules own domain state.
+
+---
+
+# 11. FIND-ARCH-005 — Actor Authentication and Principal Resolution Are Missing
+
+## Finding
+
+`RB-001` requires authenticated human Decisions.
+
+The architecture identifies a:
+
+```text
+Human authentication boundary
+```
+
+but does not assign responsibility for:
+
+```text
+authentication
+
+external identity binding
+
+principal resolution
+
+session identity
+
+machine/service identity
+
+mapping authenticated principal → AIEOS Actor
+```
+
+The Identity Service currently focuses on semantic Subject identity, which is broader than authentication.
+
+Authentication cannot remain an unnamed boundary because every consequential:
+
+```text
+Decision
+
+Operational Authorization
+
+Capability Grant
+
+Execution
+
+Review
+```
+
+depends on trustworthy Actor identity.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Required architectural responsibility
+
+Add a logical:
+
+> **Principal & Authentication Boundary**
+
+or equivalent responsibility.
+
+It SHALL:
+
+```text
+authenticate or accept trusted authentication
+
+resolve external principal identity
+
+bind principal → AIEOS Actor
+
+preserve authentication context
+
+support human principals
+
+support automation principals
+
+support agent execution principals
+```
+
+AIEOS MAY delegate actual credential verification to an external identity provider.
+
+The architecture need not implement its own authentication protocol.
+
+---
+
+# 12. Authentication versus Semantic Identity
+
+The architecture SHALL preserve:
+
+```text
+Authentication Identity
+        ≠
+AIEOS Subject Identity
+```
+
+but permit binding between them.
+
+Example:
+
+```text
+OIDC principal:
+alice@example.org
+        ↓ bound-to
+AIEOS Actor:
+actor:019...
+```
+
+The external identity provider may be authoritative for authentication.
+
+AIEOS remains authoritative for the internal Actor binding.
+
+---
+
+# 13. FIND-ARCH-006 — Capability and Authorization Sequencing
+
+## Finding
+
+Section 27 states that a Capability request is evaluated against Operational Authorization.
+
+This is directionally correct.
+
+However, the architecture does not make the dependency sufficiently explicit.
+
+There are three separate concepts:
+
+```text
+Capability Definition
+
+Operational Authorization
+
+Capability Grant
+```
+
+The safe dependency is:
+
+```text
+Capability Definition
+        +
+Operational Authorization
+        +
+Policy
+        +
+Context
+        ↓
+Capability Grant
+```
+
+not:
+
+```text
+Capability Grant
+        ↓
+somehow implies Authorization
+```
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Required architecture rule
+
+For protected operations:
+
+```text
+Operational Authorization
+        ↓
+permits
+Capability Grant
+        ↓
+enables
+Execution
+```
+
+Operational Authorization SHALL NOT itself expose credentials.
+
+Capability Grant SHALL NOT itself create normative permission.
+
+---
+
+# 14. Capability Lifecycle
+
+The baseline architectural sequence SHOULD be:
+
+```text
+Actor requests operation
+        ↓
+Policy applicability evaluated
+        ↓
+Operational Authorization resolved
+        ↓
+Risk and Environment evaluated
+        ↓
+Capability Grant issued
+        ↓
+technical access materialized
+        ↓
+operation executed
+        ↓
+Capability Grant expires/revokes
+```
+
+Where a protected operation requires fresh authorization, validity SHALL be re-evaluated immediately before technical capability use.
+
+---
+
+# 15. FIND-ARCH-007 — External Dispatch Atomicity
+
+## Finding
+
+The architecture correctly avoids distributed transactions and introduces operation records.
+
+However, a stricter invariant is needed:
+
+> No consequential external mutation should be dispatchable unless the AIEOS record authorizing and identifying that operation has already committed successfully.
+
+Otherwise:
+
+```text
+external mutation occurs
+
+but
+
+AIEOS crashes before recording intent
+```
+
+could create an untraceable side effect.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Required invariant
+
+### ARCH-INV-013 — Commit before external dispatch
+
+A consequential external mutation SHALL be dispatched only from an operation record that has been committed to authoritative AIEOS state.
+
+The committed operation SHALL identify at least:
+
+```text
+operation identity
+
+Actor
+
+requested action
+
+target
+
+Operational Authorization
+
+relevant Policy state
+
+Work Unit / Execution
+
+idempotency identity where applicable
+```
+
+---
+
+# 16. External Operation Sequence
+
+The preferred logical sequence becomes:
+
+```text
+Request protected external action
+        ↓
+Validate governance
+        ↓
+Create External Operation record
+        ↓
+Record Event + Provenance
+        ↓
+COMMIT
+        ↓
+Dispatch adapter operation
+        ↓
+Observe native result
+        ↓
+Record result
+        ↓
+Reconcile authoritative native state
+```
+
+The dispatch MAY be initiated through an outbox or equivalent mechanism.
+
+---
+
+# 17. FIND-ARCH-008 — Deferred Operations Require Authorization Revalidation
+
+## Finding
+
+Section 81 currently states:
+
+> authorization revalidation where necessary
+
+for deferred external operations.
+
+For protected remote side effects, this is too permissive.
+
+An operation may be queued while:
+
+```text
+authorization is revoked
+
+policy changes
+
+risk increases
+
+environment classification changes
+
+actor scope changes
+```
+
+before connectivity returns.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Decision
+
+Protected deferred external operations SHALL re-evaluate time-sensitive governance at dispatch time.
+
+The sequence SHALL be:
+
+```text
+pending operation
+        ↓
+connectivity restored
+        ↓
+re-evaluate:
+    Policy
+    Operational Authorization
+    Capability eligibility
+    Environment
+    Risk
+        ↓
+dispatch if still permitted
+```
+
+The original authorization remains part of history.
+
+It does not automatically remain valid for future dispatch.
+
+---
+
+# 18. FIND-ARCH-009 — Local-First and Multi-Node Authority Topology
+
+## Finding
+
+The architecture correctly supports:
+
+```text
+single local instance
+        ↓
+team instance
+        ↓
+organizational deployment
+```
+
+but does not yet specify the minimum authority rule needed to prevent future accidental multi-master behavior.
+
+If two AIEOS instances both believe they are authoritative for:
+
+```text
+same Workflow Instance
+
+same Decision
+
+same Authorization
+
+same Assertion scope
+```
+
+the system could violate its own single-authority semantics.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Required architectural principle
+
+### ARCH-P-013 — No implicit multi-writer authority
+
+AIEOS SHALL NOT assume unrestricted multi-writer authority for the same authoritative scope.
+
+Shared or distributed deployments SHALL use one or more explicit mechanisms such as:
+
+```text
+single authoritative owner
+
+workspace authority partition
+
+subject namespace ownership
+
+lease/leadership
+
+explicit replication authority
+
+governed merge/reconciliation
+```
+
+The exact synchronization mechanism is deferred.
+
+The authority topology is not.
+
+---
+
+# 19. Local-First Authority Model
+
+The architecture SHALL distinguish:
+
+```text
+local availability
+
+from
+
+authoritative ownership
+```
+
+A local instance may retain a complete usable projection without being authorized to originate every class of authoritative mutation.
+
+Conceptually:
+
+```text
+Local copy
+    ≠
+Local authority
+```
+
+unless configured authority explicitly grants both.
+
+---
+
+# 20. Distributed Conflict Rule
+
+If two instances produce conflicting authoritative mutations because of partition or misconfiguration:
+
+```text
+conflict SHALL be represented
+```
+
+rather than silently choosing:
+
+```text
+last writer wins
+```
+
+unless an explicit Policy defines that resolution as legitimate for that state class.
+
+---
+
+# 21. FIND-ARCH-010 — External Authoritative Fact Freshness
+
+## Finding
+
+AIEOS permits external systems to remain authoritative for native facts.
+
+This is correct.
+
+However, protected governance may require facts such as:
+
+```text
+CI status
+
+current Git revision
+
+deployment state
+
+security scan status
+
+production environment status
+```
+
+and the architecture does not yet specify when cached external state is sufficiently fresh to support a Decision or protected Transition.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Required concept
+
+Introduce an **Authoritative Read Contract** or equivalent semantics.
+
+For an externally authoritative Assertion, AIEOS SHALL be able to determine:
+
+```text
+authority source
+
+observed value
+
+observed time
+
+source version/revision
+
+freshness state
+
+validity state
+```
+
+---
+
+# 22. Protected Decisions Using External Facts
+
+Policy SHALL be able to require:
+
+```text
+fresh authoritative read
+
+or
+
+recorded observation within freshness threshold
+
+or
+
+specific immutable native revision
+```
+
+before a protected transition proceeds.
+
+Example:
+
+```text
+Production deployment requires:
+
+CI status = passed
+
+for commit abc123
+
+observed within permitted freshness window
+```
+
+not merely:
+
+```text
+CI passed at some point.
+```
+
+---
+
+# 23. FIND-ARCH-011 — Configuration Ownership Is Missing
+
+## Finding
+
+`REQ-CONF` is mapped to:
+
+```text
+Governance / configuration subsystem
+```
+
+but the architecture defines no clear configuration owner.
+
+Configuration may govern:
+
+```text
+Policy selection
+
+Workflow registration
+
+Authority Bindings
+
+Risk defaults
+
+integration bindings
+
+agent profiles
+
+Environment classification
+
+retention
+
+feature availability
+```
+
+Without explicit ownership, configuration can become hidden authority.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Decision
+
+Add a logical **Configuration Service** or explicit Configuration responsibility within the Governance layer.
+
+It SHALL own AIEOS-managed configuration metadata and versioning.
+
+Configuration that changes consequential governance SHALL be:
+
+```text
+validated
+
+versioned
+
+attributable
+
+auditable
+
+subject to applicable Decision/Authorization
+```
+
+---
+
+# 24. Configuration Is Not Policy
+
+The architecture SHALL preserve:
+
+```text
+Configuration
+    ≠
+Policy
+```
+
+Configuration may determine which Policy applies.
+
+Policy determines governed rules.
+
+Example:
+
+```text
+Configuration:
+project X uses policy set SECURITY-2
+
+Policy:
+production changes require security review
+```
+
+---
+
+# 25. FIND-ARCH-012 — MVP Approval/Authorization Conflation
+
+## Finding
+
+The MVP sequence currently contains:
+
+```text
+Plan approved
+        ↓
+Implementation capability requested
+        ↓
+Policy + Authorization evaluated
+        ↓
+Sandbox created
+```
+
+but does not show where the Operational Authorization permitting repository mutation came from.
+
+This creates a dangerous ambiguity because the domain baseline explicitly states:
+
+```text
+Approval
+    ≠
+Operational Authorization
+```
+
+A human approving a Plan does not necessarily authorize an Agent to mutate a repository.
+
+## Disposition
+
+**ACCEPT — BLOCKING**
+
+## Required revised MVP sequence
+
+The relevant portion SHALL become:
+
+```text
+Plan proposed
+        ↓
+Plan Decision / Approval
+        ↓
+Execution authorization requested
+        ↓
+Policy evaluated
+        ↓
+Operational Authorization granted
+        ↓
+Capability Grant issued
+        ↓
+Sandbox created
+        ↓
+Implementation Agent executes
+```
+
+Operational Authorization MAY be:
+
+```text
+explicitly human-granted
+
+or
+
+deterministically policy-derived from prior authority
+```
+
+but the derivation MUST be explicit.
+
+---
+
+# 26. Merge Authorization in MVP
+
+The later merge sequence SHALL likewise preserve:
+
+```text
+Review accepted
+        ↓
+Human Approval
+        ↓
+Merge Operational Authorization
+        ↓
+Merge Capability Grant
+        ↓
+source-control adapter executes merge
+```
+
+unless Policy explicitly permits a deterministic authorization derivation.
+
+---
+
+# 27. FIND-ARCH-013 — Projection Use in Protected Decisions
+
+## Finding
+
+The architecture correctly treats projections as derived.
+
+However, it does not explicitly prohibit stale projections from becoming the basis for protected governance.
+
+Example:
+
+```text
+dashboard says tests passed
+```
+
+may reflect stale projected state even though authoritative CI state has changed.
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+## Required rule
+
+### ARCH-INV-014 — Protected decisions do not trust projections implicitly
+
+A derived Projection SHALL NOT satisfy a protected governance prerequisite merely because it displays the desired value.
+
+Its source authority, freshness, and validity SHALL satisfy applicable Policy.
+
+---
+
+# 28. FIND-ARCH-014 — Atomic Consequential Mutation Envelope
+
+## Finding
+
+Section 37 correctly proposes atomic persistence for:
+
+```text
+Workflow transition
++
+Lifecycle State
++
+Transition record
++
+Event
++
+Provenance
+```
+
+The concept should be generalized.
+
+Other consequential mutations also require atomic governance metadata.
+
+Examples:
+
+```text
+Decision recorded
+
+Operational Authorization granted
+
+Capability Grant issued
+
+Assertion accepted
+
+Policy Exception accepted
+```
+
+## Disposition
+
+**ACCEPT-WITH-MODIFICATION — NON-BLOCKING**
+
+## Required architecture rule
+
+For any consequential authoritative mutation, AIEOS SHOULD commit the domain mutation together with the minimum audit/provenance records required to explain that mutation.
+
+Conceptually:
+
+```text
+Authoritative State Mutation
+        +
+Domain Record
+        +
+Required Event
+        +
+Required Provenance
+        =
+Atomic Consequential Mutation Envelope
+```
+
+The exact physical persistence representation is deferred.
+
+---
+
+# 29. FIND-ARCH-015 — Environment Ownership Is Ambiguous
+
+## Finding
+
+Environment concerns currently appear across:
+
+```text
+Identity Service
+
+Execution Manager
+
+Governance Service
+```
+
+This is semantically reasonable but state ownership is not explicit.
+
+## Disposition
+
+**ACCEPT — NON-BLOCKING**
+
+## Decision
+
+Separate Environment concerns:
+
+```text
+Environment semantic identity
+    → Identity Service
+
+AIEOS Environment metadata/classification
+    → Configuration / Knowledge responsibility
+
+native runtime state
+    → external Environment provider
+
+execution binding to Environment
+    → Execution Manager
+
+Environment-specific governance
+    → Governance Service
+```
+
+No single module needs to own every aspect of Environment.
+
+Each authoritative fact must nevertheless have exactly one owner.
+
+---
+
+# 30. FIND-ARCH-016 — Incident Ownership
+
+## Finding
+
+Requirement mapping currently assigns `REQ-INC` to:
+
+```text
+Work Coordination + Observation
+```
+
+but Incident is itself an Artifact with lifecycle and relationships.
+
+Creating a dedicated Incident Service now would likely be premature.
+
+Leaving ownership completely implicit is also undesirable.
+
+## Disposition
+
+**ACCEPT-WITH-MODIFICATION — NON-BLOCKING**
+
+## Decision
+
+For the initial architecture:
+
+```text
+Incident Artifact metadata
+    → Knowledge Service
+
+Incident Work Unit coordination
+    → Work Coordination Service
+
+Incident-triggering Observations
+    → Observation Gateway
+
+Incident workflow state
+    → Workflow Service
+```
+
+A future dedicated Incident subsystem MAY be extracted if operational evidence justifies it.
+
+---
+
+# 31. FIND-ARCH-017 — Modular Monolith First
+
+## Finding
+
+The architecture recommends:
+
+```text
+modular monolith
++
+isolated workers
+```
+
+for the MVP.
+
+## Disposition
+
+**NO-CHANGE — NON-BLOCKING**
+
+This is appropriate.
+
+The domain contains many strongly related transactional invariants.
+
+Beginning with microservices would introduce unnecessary:
+
+```text
+distributed transactions
+
+cross-service authorization
+
+event-ordering problems
+
+schema coordination
+
+deployment complexity
+
+failure surfaces
+```
+
+before the domain is empirically stable.
+
+The logical module boundaries are sufficient to preserve future extraction options.
+
+---
+
+# 32. FIND-ARCH-018 — Ports and Adapters
+
+## Finding
+
+The architecture chooses ports-and-adapters boundaries for external engineering systems.
+
+## Disposition
+
+**NO-CHANGE — NON-BLOCKING**
+
+This decision supports:
+
+```text
+provider neutrality
+
+native-system preservation
+
+local-first operation
+
+testability
+
+replaceability
+
+reconciliation
+```
+
+and is consistent with `RB-001`.
+
+---
+
+# 33. FIND-ARCH-019 — Event Ledger Without Mandatory Event Sourcing
+
+## Finding
+
+The architecture requires append-oriented consequential history but does not mandate full event sourcing.
+
+## Disposition
+
+**NO-CHANGE — NON-BLOCKING**
+
+This is the correct balance.
+
+AIEOS needs:
+
+```text
+historical events
+
+auditability
+
+provenance
+
+correction history
+```
+
+but does not yet have evidence that every current state should be reconstructed solely through event replay.
+
+---
+
+# 34. FIND-ARCH-020 — Reconciliation Instead of Distributed Transactions
+
+## Finding
+
+The architecture rejects mandatory distributed two-phase commit across engineering providers.
+
+## Disposition
+
+**NO-CHANGE — NON-BLOCKING**
+
+This is strongly supported.
+
+External engineering systems cannot generally participate safely in one global atomic transaction.
+
+The architecture should retain:
+
+```text
+local transactional governance
++
+explicit operation state
++
+idempotency
++
+reconciliation
++
+compensation
+```
+
+instead.
+
+---
+
+# 35. Revised Core Architectural Principle Set
+
+After reconciliation, the architecture principles SHOULD be:
+
+```text
+ARCH-P-001
+Governance authority is explicit and coherent
+
+ARCH-P-002
+Native systems remain authoritative where appropriate
+
+ARCH-P-003
+Core governance state is explicit
+
+ARCH-P-004
+Agents are workers, not governors
+
+ARCH-P-005
+External systems are fallible and asynchronous
+
+ARCH-P-006
+Reconciliation is first-class
+
+ARCH-P-007
+Evidence is independently inspectable
+
+ARCH-P-008
+Authority is checked at action time
+
+ARCH-P-009
+History is additive
+
+ARCH-P-010
+Local operation is first-class
+
+ARCH-P-011
+Integrations are replaceable
+
+ARCH-P-012
+Start coherent before becoming distributed
+
+ARCH-P-013
+No implicit multi-writer authority
+```
+
+---
+
+# 36. Revised Authority Chain
+
+The architecture SHALL enforce the following sequence for a protected operation:
+
+```text
+Authenticated Principal
+        ↓
+Resolved Actor
+        ↓
+Requested Action
+        ↓
+Applicable Policy
+        ↓
+Risk / Environment
+        ↓
+Decision prerequisites
+        ↓
+Operational Authorization
+        ↓
+Capability Grant
+        ↓
+Technical execution
+        ↓
+Evidence
+        ↓
+Verification / Review
+        ↓
+Result
+```
+
+No downstream concept SHALL retroactively manufacture an upstream authority prerequisite.
+
+---
+
+# 37. Revised Protected External Operation Chain
+
+The architecture SHALL support:
+
+```text
+Command
+   ↓
+Authenticate / Resolve Actor
+   ↓
+Resolve authoritative Subjects
+   ↓
+Evaluate Policy
+   ↓
+Evaluate Decisions / Authorization
+   ↓
+Validate invariants
+   ↓
+Create external operation record
+   ↓
+Record Event + Provenance
+   ↓
+COMMIT
+   ↓
+Issue Capability
+   ↓
+Dispatch adapter
+   ↓
+Observe result
+   ↓
+Record native response
+   ↓
+Reconcile
+   ↓
+Update derived state
+```
+
+This becomes one of the most important AIEOS control flows.
+
+---
+
+# 38. Revised External Side-Effect State Machine
+
+Recommended states are:
+
+```text
+proposed
+    ↓
+governance-approved
+    ↓
+committed
+    ↓
+dispatched
+    ↓
+acknowledged
+    ↓
+completed
+```
+
+with alternate outcomes:
+
+```text
+denied
+
+cancelled
+
+failed
+
+unknown
+
+expired
+
+reconciliation-required
+```
+
+The exact names MAY change.
+
+The distinction between:
+
+```text
+committed intent
+
+and
+
+external completion
+```
+
+SHALL remain.
+
+---
+
+# 39. Unknown External Outcome
+
+The architecture correctly establishes that an ambiguous external response produces:
+
+```text
+unknown
+```
+
+rather than automatically:
+
+```text
+failed
+```
+
+or:
+
+```text
+completed
+```
+
+The recovery path SHALL remain:
+
+```text
+unknown
+   ↓
+Reconciliation
+   ↓
+authoritative native observation
+   ↓
+completed / failed / conflicting
+```
+
+---
+
+# 40. Revised Local-First Model
+
+The architecture SHALL distinguish three local-first concerns.
+
+## Local availability
+
+Can local engineering state be inspected and used?
+
+## Local execution
+
+Can local tasks run without remote infrastructure?
+
+## Local authority
+
+May the local node originate an authoritative mutation?
+
+These SHALL remain separate.
+
+Example:
+
+```text
+Local repository:
+available
+
+Local deterministic tests:
+executable
+
+Production authorization:
+not locally authoritative
+```
+
+is a valid configuration.
+
+---
+
+# 41. Local-First Does Not Mean Local-Only
+
+The architecture SHOULD preserve:
+
+```text
+local-first
+    ≠
+local-only
+```
+
+AIEOS MAY use:
+
+```text
+cloud AI providers
+
+remote source control
+
+remote CI
+
+remote observability
+
+remote runtime
+```
+
+while retaining local authoritative or replicated engineering knowledge according to configuration.
+
+---
+
+# 42. Multi-Node Evolution Model
+
+The architecture is accepted in principle for:
+
+```text
+Phase 1
+single-node local
+
+Phase 2
+shared team authority
+
+Phase 3
+partitioned organizational authority
+```
+
+but future architecture SHALL define explicit authority topology before Phase 2 or Phase 3 allows concurrent authoritative writers.
+
+`ADR-AIEOS-011` SHALL address this.
+
+---
+
+# 43. Revised Configuration Architecture
+
+The recommended logical architecture becomes:
+
+```text
+Governance Layer
+│
+├── Policy
+├── Semantic Authority
+├── Operational Authorization
+├── Risk
+├── Exceptions
+└── Configuration
+```
+
+Configuration is a separate responsibility even if implemented in the same physical module.
+
+---
+
+# 44. Revised Identity Architecture
+
+The Identity boundary SHOULD include:
+
+```text
+Semantic Identity
+│
+├── Subject identity
+├── Native References
+├── aliases
+├── split / merge
+└── supersession
+
+Principal Identity
+│
+├── authentication principal
+├── Actor binding
+├── machine principal
+└── session / execution principal
+```
+
+These may be implemented by separate internal modules.
+
+They SHALL remain semantically distinct.
+
+---
+
+# 45. Revised MVP Vertical Slice
+
+The first executable lifecycle SHOULD now be:
+
+```text
+Human authenticates
+        ↓
+AIEOS resolves Human Actor
+        ↓
+Human creates Intent
+        ↓
+Work Unit created
+        ↓
+Human accepts Intent
+        ↓
+Specification Agent authorized to reason
+        ↓
+Specification proposed
+        ↓
+Human approves Specification
+        ↓
+Planning Agent receives read-only Capability
+        ↓
+Plan proposed
+        ↓
+Human approves Plan
+        ↓
+Execution Operational Authorization requested
+        ↓
+Policy / Risk / Environment evaluated
+        ↓
+Operational Authorization granted
+        ↓
+Mutation Capability Grant issued
+        ↓
+Sandbox created
+        ↓
+Implementation Agent executes
+        ↓
+Change produced
+        ↓
+Tests execute
+        ↓
+Evidence captured
+        ↓
+Verification completed
+        ↓
+Independent Review Agent runs
+        ↓
+Review recorded
+        ↓
+Human Decision requested
+        ↓
+Human approves Change
+        ↓
+Merge Operational Authorization evaluated
+        ↓
+Merge Capability Grant issued
+        ↓
+External operation record committed
+        ↓
+Source-control adapter executes merge
+        ↓
+Native result observed
+        ↓
+Reconciliation confirms result
+        ↓
+Work Unit completes
+```
+
+This sequence preserves:
+
+```text
+Approval
+≠
+Operational Authorization
+≠
+Capability
+≠
+Execution
+```
+
+inside the MVP itself.
+
+---
+
+# 46. MVP Feasibility Review
+
+With the corrections above, the MVP remains feasible as:
+
+```text
+Core modular application
++
+background worker
++
+isolated agent/execution workspace
++
+single authoritative persistence boundary
++
+source-control adapter
++
+one AI provider adapter
++
+local verification
+```
+
+The MVP does not require:
+
+```text
+distributed consensus
+
+multi-master synchronization
+
+production deployment automation
+
+complex event infrastructure
+
+graph database
+
+general workflow language
+
+custom identity provider
+
+multi-tenant SaaS
+```
+
+This is acceptable.
+
+---
+
+# 47. Recommended MVP Boundary
+
+The first MVP SHOULD prove one thesis:
+
+> **AIEOS can safely move one repository change from human intent through agent implementation to independently verified and human-authorized merge while preserving complete traceability and authority boundaries.**
+
+Nothing broader is required for the first vertical slice.
+
+---
+
+# 48. State Ownership Rule
+
+Before architecture baseline acceptance, `AIEOS-ARCH-001 v0.2.0` SHALL include this invariant:
+
+### ARCH-INV-015 — Single logical authority per authoritative scope
+
+For every authoritative state class and scope, exactly one logical authority SHALL own mutation semantics at a time unless an explicit authority-partition or reconciliation model defines otherwise.
+
+---
+
+# 49. Actor Identity Rule
+
+Add:
+
+### ARCH-INV-016 — Consequential actions require resolved Actor identity
+
+A consequential action SHALL NOT be accepted into authoritative state without an identifiable Actor or explicitly modeled external-system principal.
+
+---
+
+# 50. Authorization Revalidation Rule
+
+Add:
+
+### ARCH-INV-017 — Protected deferred actions revalidate governance
+
+A protected operation delayed between authorization and execution SHALL revalidate all time-sensitive governance conditions before capability use.
+
+---
+
+# 51. Authoritative Read Rule
+
+Add:
+
+### ARCH-INV-018 — Externally authoritative prerequisites carry freshness semantics
+
+A protected governance Decision depending upon externally authoritative state SHALL use an observation or read whose authority, subject binding, version, freshness, and validity satisfy applicable Policy.
+
+---
+
+# 52. Revised Architectural Invariants
+
+The baseline candidate SHALL therefore contain at least:
+
+```text
+ARCH-INV-001
+One authoritative Workflow State
+
+ARCH-INV-002
+No direct agent lifecycle mutation
+
+ARCH-INV-003
+No direct agent authority creation
+
+ARCH-INV-004
+Policy before protected action
+
+ARCH-INV-005
+Authorization before protected capability use
+
+ARCH-INV-006
+Evidence independent from agent assertion
+
+ARCH-INV-007
+External mutation observable
+
+ARCH-INV-008
+External uncertainty remains uncertainty
+
+ARCH-INV-009
+History additive
+
+ARCH-INV-010
+Projection not authority
+
+ARCH-INV-011
+Native identity not semantic identity
+
+ARCH-INV-012
+Useful local operation independent of proprietary SaaS
+
+ARCH-INV-013
+Commit before external dispatch
+
+ARCH-INV-014
+Protected decisions do not trust projections implicitly
+
+ARCH-INV-015
+Single logical authority per authoritative scope
+
+ARCH-INV-016
+Consequential actions require Actor identity
+
+ARCH-INV-017
+Protected deferred actions revalidate governance
+
+ARCH-INV-018
+Externally authoritative prerequisites carry freshness semantics
+```
+
+---
+
+# 53. Trust-Boundary Review
+
+The architecture correctly identifies major trust boundaries but should add:
+
+```text
+Authentication / Principal Boundary
+
+Configuration Boundary
+
+Authoritative External Fact Boundary
+```
+
+The complete baseline becomes:
+
+```text
+Human authentication boundary
+
+Principal-to-Actor binding boundary
+
+Agent reasoning boundary
+
+Execution sandbox boundary
+
+Capability / credential boundary
+
+Configuration boundary
+
+AIEOS authoritative persistence boundary
+
+External integration boundary
+
+External authority boundary
+
+Production environment boundary
+```
+
+---
+
+# 54. Failure-Model Review
+
+The architecture adequately distinguishes:
+
+```text
+failed
+
+unknown
+
+blocked
+
+denied
+
+unavailable
+
+stale
+
+conflicting
+```
+
+This is retained.
+
+The following additional distinction SHOULD be made:
+
+```text
+expired
+```
+
+for:
+
+```text
+Operational Authorization
+
+Capability Grant
+
+Policy Exception
+
+Evidence validity
+
+deferred operation permission
+```
+
+where applicable.
+
+---
+
+# 55. Security Review
+
+The architecture correctly avoids putting raw long-lived credentials into unrestricted model context.
+
+This is retained.
+
+The stronger rule should be:
+
+```text
+Agent
+   ↓ requests tool action
+Tool Gateway
+   ↓
+Governance / Capability check
+   ↓
+credential applied outside reasoning boundary
+   ↓
+external system
+```
+
+The Agent should generally receive:
+
+```text
+result
+```
+
+rather than:
+
+```text
+secret
+```
+
+---
+
+# 56. Authority Review
+
+The architecture preserves all four governance dimensions:
+
+```text
+Semantic Authority
+
+Capability
+
+Decision / Approval
+
+Operational Authorization
+```
+
+after the required changes.
+
+No architectural change may collapse these.
+
+---
+
+# 57. Domain Preservation Review
+
+The architecture preserves:
+
+```text
+Subject ≠ Representation
+
+Semantic Authority ≠ Operational Authorization
+
+Capability ≠ Operational Authorization
+
+Workflow Definition ≠ Workflow Instance
+
+Plan ≠ Execution
+
+Test ≠ Test Execution
+
+Evidence ≠ Assertion
+
+Verification ≠ Review
+
+Review ≠ Approval
+
+Approval ≠ Operational Authorization
+
+Release ≠ Deployment
+
+Observation ≠ Hypothesis
+```
+
+No blocking domain violation was found.
+
+---
+
+# 58. Requirements Coverage Review
+
+Every `RB-001` requirements family has a plausible architectural home.
+
+No family requires redesign of the current architecture.
+
+The main correction is not missing capability but missing ownership precision.
+
+This is favorable.
+
+---
+
+# 59. Technology-Neutrality Review
+
+The architecture has not prematurely selected:
+
+```text
+database
+
+programming language
+
+framework
+
+AI provider
+
+workflow engine
+
+policy language
+
+graph database
+
+cloud platform
+
+CI provider
+
+source-control provider
+
+message broker
+```
+
+The reference to:
+
+```text
+transactional outbox
+```
+
+is acceptable because the specification permits an equivalent mechanism rather than mandating a product or exact implementation.
+
+---
+
+# 60. Architecture Decisions Retained
+
+The following `AD-ARCH-*` decisions are retained:
+
+```text
+AD-ARCH-001
+logical control-plane architecture
+
+AD-ARCH-002
+bounded agents
+
+AD-ARCH-003
+authoritative transactional governance boundary
+
+AD-ARCH-004
+native external authority permitted
+
+AD-ARCH-005
+eventual consistency across external systems
+
+AD-ARCH-006
+append-oriented Event Ledger
+
+AD-ARCH-007
+logical command/query separation
+
+AD-ARCH-008
+Capability separate from Authorization
+
+AD-ARCH-009
+credential mediation
+
+AD-ARCH-010
+modular monolith + isolated workers
+
+AD-ARCH-011
+local-first
+
+AD-ARCH-012
+adapter-based integrations
+```
+
+A new architectural decision SHOULD be added:
+
+```text
+AD-ARCH-013
+No implicit multi-writer authority
+```
+
+---
+
+# 61. ADR Review
+
+The existing ADR candidates remain appropriate.
+
+The review recommends adding:
+
+```text
+ADR-AIEOS-013
+Principal authentication and Actor binding model
+
+ADR-AIEOS-014
+Authoritative external read and freshness model
+
+ADR-AIEOS-015
+Configuration authority and layering model
+```
+
+The resulting initial ADR candidate set becomes:
+
+```text
+ADR-AIEOS-001
+Canonical Subject identifier strategy
+
+ADR-AIEOS-002
+Authoritative persistence model
+
+ADR-AIEOS-003
+Event Ledger and publication strategy
+
+ADR-AIEOS-004
+Workflow Definition representation
+
+ADR-AIEOS-005
+Policy representation and evaluation
+
+ADR-AIEOS-006
+Agent provider contract
+
+ADR-AIEOS-007
+Execution sandbox model
+
+ADR-AIEOS-008
+Capability and credential issuance
+
+ADR-AIEOS-009
+Artifact content and representation storage
+
+ADR-AIEOS-010
+Relationship graph persistence/projection
+
+ADR-AIEOS-011
+Local-first synchronization and authority topology
+
+ADR-AIEOS-012
+Integration idempotency and reconciliation
+
+ADR-AIEOS-013
+Principal authentication and Actor binding
+
+ADR-AIEOS-014
+External authority freshness semantics
+
+ADR-AIEOS-015
+Configuration authority and layering
+```
+
+---
+
+# 62. Architecture Baseline Acceptance Gate
+
+`AB-001` SHALL NOT be accepted until:
+
+```text
+[ ] ARCH-P-001 revised
+
+[ ] ARCH-P-007 revised
+
+[ ] ARCH-P-013 added
+
+[ ] authoritative state ownership matrix added
+
+[ ] Kernel ownership clarified
+
+[ ] authentication/principal responsibility added
+
+[ ] Authorization → Capability Grant sequencing clarified
+
+[ ] commit-before-dispatch invariant added
+
+[ ] deferred-action revalidation required
+
+[ ] no implicit multi-writer authority rule added
+
+[ ] external authoritative-read freshness semantics added
+
+[ ] configuration ownership added
+
+[ ] MVP mutation authorization corrected
+
+[ ] projection governance rule added
+
+[ ] atomic consequential mutation envelope clarified
+
+[ ] Environment ownership clarified
+
+[ ] trust boundaries updated
+
+[ ] new architectural invariants added
+
+[ ] ADR candidate list updated
+
+[ ] no blocking contradiction remains
+```
+
+---
+
+# 63. Proposed Architecture Baseline Metadata
+
+After successful remediation and verification:
+
+```text
+Architecture Baseline:
+AB-001
+
+Status:
+Accepted
+
+Requirements Baseline:
+RB-001
+
+Architecture Specification:
+AIEOS-ARCH-001 v0.2.0
+
+Architecture Review:
+AIEOS-REV-003
+
+Architecture Verification:
+AIEOS-REV-004
+```
+
+---
+
+# 64. Architecture Change Rule
+
+Once `AB-001` is accepted, material architectural changes SHALL proceed deliberately.
+
+Conceptually:
+
+```text
+Architecture Change Proposal
+        ↓
+Requirements impact analysis
+        ↓
+Domain impact analysis
+        ↓
+Architecture review
+        ↓
+ADR where required
+        ↓
+Architecture revision
+        ↓
+New Architecture Baseline
+```
+
+Example:
+
+```text
+AB-001
+   ↓
+accepted changes
+   ↓
+AB-002
+```
+
+---
+
+# 65. Subordinate Specification Gate
+
+Detailed subordinate specifications SHOULD NOT be treated as binding against the current `v0.1.0` architecture.
+
+The sequence SHALL be:
+
+```text
+AIEOS-ARCH-001 v0.1.0
+        ↓
+AIEOS-REV-003
+        ↓
+AIEOS-ARCH-001 v0.2.0
+        ↓
+AIEOS-REV-004
+        ↓
+AB-001
+        ↓
+AIEOS-WF-001
+```
+
+Exploratory subordinate work MAY occur.
+
+Normative decomposition SHOULD wait for `AB-001`.
+
+---
+
+# 66. Architecture Review Conclusion
+
+The architecture review concludes:
+
+```text
+Architectural direction:
+    SOUND
+
+Requirements coverage:
+    SOUND
+
+Domain preservation:
+    SOUND
+
+Modular monolith strategy:
+    ACCEPTED
+
+Agent boundary:
+    SOUND BUT REQUIRES AUTHENTICATION/
+    AUTHORIZATION SEQUENCING CLARIFICATION
+
+Persistence boundary:
+    SOUND
+
+External consistency model:
+    SOUND
+
+Event Ledger:
+    SOUND
+
+Reconciliation strategy:
+    SOUND
+
+Local-first model:
+    SOUND BUT AUTHORITY TOPOLOGY
+    REQUIRES CLARIFICATION
+
+MVP:
+    FEASIBLE BUT CURRENT FLOW
+    CONFLATES APPROVAL AND AUTHORIZATION
+
+Blocking contradictions:
+    NONE
+
+Blocking architecture findings:
+    PRESENT
+
+Architecture Baseline AB-001:
+    NOT YET ACCEPTED
+```
+
+---
+
+# 67. Most Important Finding
+
+The most consequential issue discovered by this review is not a technology problem.
+
+It is the need to make the following chain explicit everywhere:
+
+```text
+Actor identity
+    ↓
+Decision authority
+    ↓
+Operational Authorization
+    ↓
+Capability Grant
+    ↓
+Execution
+```
+
+Without that separation, AIEOS would risk becoming an agent automation framework with governance metadata layered on top.
+
+With that separation, governance becomes structurally enforceable.
+
+This distinction is central to the product.
+
+---
+
+# 68. Second Most Important Finding
+
+The second major architectural requirement is:
+
+```text
+local-first
+    ≠
+implicit multi-master
+```
+
+A local-first system may:
+
+```text
+operate locally
+
+retain local knowledge
+
+execute local tasks
+
+continue offline
+```
+
+without every local instance becoming simultaneously authoritative for every shared state class.
+
+Authority topology must remain explicit.
+
+---
+
+# 69. Third Most Important Finding
+
+External engineering reality cannot be modeled as a simple API call.
+
+For consequential side effects, the real architecture is:
+
+```text
+governed intent
+    ↓
+committed operation
+    ↓
+dispatch
+    ↓
+uncertain external world
+    ↓
+observation
+    ↓
+reconciliation
+```
+
+This means **reconciliation is not merely synchronization infrastructure**.
+
+It is part of the core correctness model of AIEOS.
+
+---
+
+# 70. Architecture Thesis After Review
+
+The reviewed architecture can be stated more precisely as:
+
+> **AIEOS is a locally operable, governance-centered engineering control plane whose authoritative state is partitioned explicitly, whose agents act only through bounded and authorized capabilities, whose consequential external effects originate from committed governed operations, and whose understanding of external reality is maintained through evidence, observation, and reconciliation.**
+
+That formulation better captures the system architecture than:
+
+> "an AI application that automates the SDLC."
+
+---
+
+# 71. Required Next Action
+
+The next action SHALL be to revise:
+
+```text
+AIEOS-ARCH-001
+v0.1.0 → v0.2.0
+```
+
+by incorporating all blocking findings in this review.
+
+The revision SHOULD be targeted rather than rewritten from scratch.
+
+The existing architecture should remain recognizable.
+
+After revision, the next artifact SHALL be:
+
+```text
+AIEOS-REV-004
+AI-Native Engineering Operating System
+Architecture Baseline Verification Review
+```
+
+If that review succeeds:
+
+```text
+Architecture Baseline:
+AB-001
+
+Status:
+Accepted
+```
+
+and the next normative decomposition may begin with:
+
+```text
+AIEOS-WF-001
+Workflow & Lifecycle Specification
+```
+
+---
+
+# 72. Review Status
+
+**Review Result:** Changes Required
+
+**Architecture Direction:** Accepted
+
+**Architecture Baseline:** Not Accepted
+
+**Requirements Impact:** None currently required
+
+**Domain Impact:** None currently required
+
+**Architecture Gate:** Remains Open for Revision
+
+**Subordinate Specification Gate:** Closed pending `AB-001`
+
+**Required Remediation:**
+
+```text
+Revise AIEOS-ARCH-001 to v0.2.0
+
+Verify architecture reconciliation
+
+Accept AB-001
+
+Begin AIEOS-WF-001
+```
+
+`AIEOS-REV-003 v0.1.0` therefore establishes the authoritative architecture reconciliation plan for the first AIEOS architecture baseline.

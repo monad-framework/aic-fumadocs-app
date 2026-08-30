@@ -1,0 +1,711 @@
+---
+title: "Engineering at OpenAI"
+description: "a description of the SDLC as followed at OpenAI"
+---
+
+At OpenAI, software engineering appears to work less like a traditional, rigid corporate SDLC and more like a **high-ownership, research-driven, continuously deployed engineering system**. There is no single public “OpenAI Software Engineering Handbook,” so some internal details are unknowable from outside, but OpenAI has published enough about its engineering organization, infrastructure, hiring expectations, safety processes, and internal use of Codex that we can reconstruct a fairly good picture.
+
+The most important distinction is that there are really **several overlapping engineering systems**.
+
+### 1. Research engineering
+
+Research engineers sit between computer science research and production engineering. They build experimental systems, training infrastructure, distributed ML systems, evaluation systems, and sometimes the algorithms themselves.
+
+OpenAI explicitly says its research engineers are expected to be capable of both building massive distributed ML systems and contributing to the science behind the algorithms. ([OpenAI][1])
+
+A simplified loop looks like:
+
+**Question → hypothesis → experiment → implementation → training/run → measurement → evaluation → analysis → next hypothesis**
+
+That means the unit of work isn't always a conventional feature. It may be an experiment:
+
+> “Does changing this training procedure improve reasoning without degrading another capability?”
+
+The engineering surrounding that experiment must nevertheless be reproducible, observable, scalable, and increasingly production-grade.
+
+---
+
+### 2. Infrastructure and platform engineering
+
+There is a substantial engineering organization beneath the models.
+
+OpenAI publicly describes teams working on:
+
+* distributed systems
+* systems engineering
+* reliability
+* observability
+* developer productivity
+* cloud infrastructure
+* databases
+* training infrastructure
+* networking
+* Kubernetes
+* storage
+* accelerator/GPU orchestration
+
+([OpenAI][2])
+
+A particularly important principle is **turn recurring engineering problems into reusable platform capabilities** rather than solving the same problem independently for every research project. One OpenAI infrastructure role explicitly says its goal is not to become a consulting team producing one-off solutions, but instead to understand recurring researcher problems and make them reusable infrastructure. ([OpenAI][3])
+
+Conceptually:
+
+```text
+Researchers
+    ↓
+recurring engineering problem
+    ↓
+Platform / infrastructure engineers
+    ↓
+general abstraction
+    ↓
+shared platform capability
+    ↓
+Researchers + product engineers
+```
+
+That's a strong architectural pattern.
+
+---
+
+### 3. Product / applied engineering
+
+Then there's engineering around things like ChatGPT and the API.
+
+These teams have a more recognizable product-development loop:
+
+```text
+User problem
+     ↓
+Product hypothesis
+     ↓
+Prototype
+     ↓
+Implementation
+     ↓
+Tests + evaluations
+     ↓
+Review
+     ↓
+Controlled rollout
+     ↓
+Telemetry
+     ↓
+User feedback
+     ↓
+Iteration
+```
+
+But the pace is unusually fast.
+
+OpenAI describes ChatGPT as continuously changing, with new capabilities shipping frequently and workloads changing week to week. Its infrastructure consequently emphasizes shared rollout mechanisms, observability, reliability guardrails and reusable “golden paths.” ([OpenAI][4])
+
+So speed isn't supposed to mean:
+
+```text
+move fast
+→ deploy random things
+```
+
+It is closer to:
+
+```text
+build infrastructure that makes the safe path
+also become the fast path
+```
+
+That distinction is important.
+
+---
+
+## Engineers appear to get substantial ownership
+
+One recurring theme in OpenAI's job descriptions is **end-to-end ownership**.
+
+Engineers aren't described merely as people who receive tickets and implement them.
+
+For example, infrastructure engineers may be expected to:
+
+```text
+identify problem
+↓
+define technical direction
+↓
+design architecture
+↓
+implement
+↓
+integrate
+↓
+deploy
+↓
+operate
+↓
+observe
+↓
+improve
+```
+
+OpenAI explicitly describes some engineers as owning critical systems from problem definition through production adoption. ([OpenAI][3])
+
+That's considerably closer to:
+
+> **Engineer as technical owner**
+
+than:
+
+> **Engineer as ticket implementer.**
+
+OpenAI's broader operating principles reinforce that model: “Find a way” emphasizes individual/team agency, while “Creativity over control” favors first-principles solutions over rigid bureaucracy. ([OpenAI][5])
+
+---
+
+# There is an interesting research ↔ engineering ↔ product loop
+
+One of the defining characteristics seems to be that these aren't isolated organizations.
+
+Something approximately like this occurs:
+
+```text
+             ┌─────────────┐
+             │  Research   │
+             └──────┬──────┘
+                    │
+          new model capability
+                    │
+                    ▼
+             ┌─────────────┐
+             │ Engineering │
+             └──────┬──────┘
+                    │
+          scalable system
+                    │
+                    ▼
+              ┌───────────┐
+              │  Product  │
+              └─────┬─────┘
+                    │
+            real-world usage
+                    │
+                    ▼
+              ┌───────────┐
+              │ Telemetry │
+              │ Feedback  │
+              └─────┬─────┘
+                    │
+                    └──────────→ Research
+```
+
+And another infrastructure feedback loop exists:
+
+```text
+Research requirements
+        ↓
+Infrastructure limitations discovered
+        ↓
+Platform improvements
+        ↓
+larger / faster experiments
+        ↓
+new research possibilities
+```
+
+That feedback loop is probably one of the most important differences between an AI research organization and an ordinary SaaS company.
+
+---
+
+# Safety and evaluation are part of development
+
+Model development adds another dimension that conventional software doesn't normally have.
+
+For frontier model work, the process isn't simply:
+
+```text
+build
+test
+release
+```
+
+It is much closer to:
+
+```text
+Research
+   ↓
+Training
+   ↓
+Capability evaluations
+   ↓
+Safety evaluations
+   ↓
+Red teaming
+   ↓
+Risk assessment
+   ↓
+Mitigations
+   ↓
+Safeguard validation
+   ↓
+Deployment decision
+   ↓
+Production monitoring
+```
+
+OpenAI says evaluations are performed throughout training and deployment, rather than only immediately before release. ([OpenAI][6])
+
+Its Preparedness Framework additionally uses capability assessments and safeguard assessments for sufficiently capable frontier systems, with the Safety Advisory Group reviewing the evidence and making deployment recommendations to leadership. ([OpenAI][7])
+
+So **evaluation is effectively an engineering subsystem**.
+
+You could think of it as:
+
+```text
+implementation correctness
++
+system reliability
++
+model capability evaluation
++
+behavior evaluation
++
+security evaluation
++
+safety evaluation
+```
+
+rather than unit testing alone.
+
+---
+
+# Code review and testing still matter
+
+Despite the rapid pace, conventional engineering quality controls haven't disappeared.
+
+OpenAI's own engineering interview criteria explicitly emphasize:
+
+* well-designed solutions
+* high-quality code
+* performance
+* good test coverage
+
+([OpenAI][8])
+
+Infrastructure teams explicitly mention CI/CD, fault tolerance, observability, incident response and reliability engineering. ([OpenAI][2])
+
+So the pattern isn't:
+
+```text
+prototype → YOLO → production
+```
+
+It's more like:
+
+```text
+prototype rapidly
+        ↓
+validate
+        ↓
+codify tests
+        ↓
+review
+        ↓
+instrument
+        ↓
+roll out
+        ↓
+observe
+        ↓
+iterate
+```
+
+---
+
+# And now AI agents are deeply embedded in that process
+
+This is where things get especially interesting.
+
+OpenAI says Codex is used across teams including:
+
+* Security
+* Product Engineering
+* Frontend
+* API
+* Infrastructure
+* Performance Engineering
+
+for things ranging from understanding codebases through refactoring, feature implementation and incident response. ([OpenAI][9])
+
+As of OpenAI's public reporting, nearly all OpenAI engineers were using Codex, and Codex was automatically reviewing almost every pull request. OpenAI reported materially higher PR throughput among engineers using it. ([OpenAI][10])
+
+That means the development loop is increasingly something like:
+
+```text
+Human identifies intent
+        ↓
+Human / agent investigates
+        ↓
+Agent proposes plan
+        ↓
+Agent implements
+        ↓
+Agent runs tests
+        ↓
+Agent opens PR
+        ↓
+Automated + agent review
+        ↓
+Human judgment
+        ↓
+Merge
+        ↓
+Automated deployment
+        ↓
+Observability
+```
+
+The human moves upward from primarily **producing source code** toward:
+
+* problem selection
+* requirements
+* architecture
+* constraints
+* judgment
+* review
+* system design
+* verification
+
+while agents increasingly perform mechanical implementation.
+
+---
+
+# OpenAI has gone considerably further than just “AI-assisted coding”
+
+One particularly revealing OpenAI experiment started with an empty repository and imposed the rule that humans would write **zero code manually**.
+
+According to OpenAI, Codex generated:
+
+* application code
+* tests
+* CI configuration
+* documentation
+* observability
+* internal tools
+
+Humans instead specified intent, built the environment around the agents, reviewed results and improved the feedback loops. ([OpenAI][11])
+
+Their conclusion is particularly interesting:
+
+> **Humans steer. Agents execute.**
+
+The experiment forced them to rethink what engineering itself means.
+
+Instead of primarily asking:
+
+```text
+How do I implement this?
+```
+
+the engineer increasingly asks:
+
+```text
+What outcome do I want?
+
+What constraints define a correct solution?
+
+What context does the agent need?
+
+What tools does it need?
+
+What tests prove correctness?
+
+What feedback will tell it that it failed?
+
+What architecture makes correct changes easy?
+
+What guardrails make invalid changes impossible?
+```
+
+That is much closer to **systems engineering for software-producing agents**.
+
+---
+
+# This led to “harness engineering”
+
+OpenAI describes an emerging discipline around this as **harness engineering**.
+
+The key realization was that simply giving a powerful model a repository isn't enough.
+
+The repository itself has to become **legible and operable to agents**.
+
+So engineers build:
+
+```text
+Repository structure
+        +
+Documentation
+        +
+AGENTS.md
+        +
+Tests
+        +
+Static analysis
+        +
+CI
+        +
+Development environments
+        +
+Observability
+        +
+Commands/tools
+        +
+Architectural constraints
+        +
+Agent feedback loops
+```
+
+Together these constitute the **agent harness**. ([OpenAI][11])
+
+This is a significant shift.
+
+The traditional view is:
+
+```text
+Repository contains software.
+```
+
+The emerging view is:
+
+```text
+Repository contains software
++
+the executable specification for how software
+may be safely changed.
+```
+
+---
+
+# They then went another level: orchestration
+
+OpenAI later published **Symphony**, an orchestration approach developed from this work.
+
+Instead of a human repeatedly invoking agents manually:
+
+```text
+Engineer
+   ↓
+Codex
+   ↓
+PR
+```
+
+a project-management system can become the control plane:
+
+```text
+Project backlog
+       ↓
+Orchestrator
+       ↓
+┌──────┼──────┐
+Agent  Agent  Agent
+ ↓      ↓      ↓
+PR     PR     PR
+ \      |      /
+  human review
+       ↓
+      merge
+```
+
+OpenAI describes Symphony as turning project-management tasks into work for continuously operating agents, with humans reviewing the results. ([OpenAI][12])
+
+That is moving toward **software engineering as orchestration**, rather than software engineering as typing code.
+
+---
+
+# Their repository/tooling environment is also telling
+
+At least some OpenAI research engineering infrastructure uses a **large monorepo**.
+
+A current developer-productivity role explicitly mentions supporting large-monorepo development and says the research environment relies heavily on:
+
+```text
+Python
+Rust
+C++
+Docker
+Kubernetes
+CI/CD
+```
+
+([OpenAI][13])
+
+I would **not** infer from that that every OpenAI project lives in one universal monorepo; the public evidence doesn't establish that.
+
+But the research environment clearly treats developer tooling itself as an engineering product.
+
+---
+
+# What OpenAI's engineering operating model appears to optimize for
+
+If I distilled the public evidence into a set of principles, I'd write them roughly like this:
+
+```text
+1. Start from the problem, not the process.
+
+2. Give engineers substantial ownership.
+
+3. Keep research, infrastructure and product closely coupled.
+
+4. Prototype quickly.
+
+5. Instrument everything important.
+
+6. Turn recurring problems into platforms.
+
+7. Build reusable primitives and golden paths.
+
+8. Automate correctness checks aggressively.
+
+9. Treat reliability and observability as product features.
+
+10. Evaluate model behavior, not merely code correctness.
+
+11. Deploy iteratively and learn from real-world use.
+
+12. Feed production observations back into research.
+
+13. Use AI agents throughout the SDLC.
+
+14. Make repositories legible to both humans and agents.
+
+15. Move humans toward specification, architecture,
+    judgment and verification.
+
+16. Let agents increasingly handle implementation.
+
+17. Encode engineering knowledge in tools and guardrails
+    instead of relying entirely on tribal knowledge.
+```
+
+That last one may be the most consequential.
+
+---
+
+# So the OpenAI-style SDLC isn't really a straight line
+
+A classical SDLC diagram might be:
+
+```text
+Requirements
+     ↓
+Design
+     ↓
+Implementation
+     ↓
+Testing
+     ↓
+Deployment
+     ↓
+Maintenance
+```
+
+What OpenAI publicly describes looks substantially more like:
+
+```text
+                    ┌───────────────┐
+                    │ Problem / Goal│
+                    └───────┬───────┘
+                            ↓
+                    ┌───────────────┐
+                    │ Investigation │
+                    └───────┬───────┘
+                            ↓
+                    ┌───────────────┐
+              ┌────→│ Experiment /  │←────┐
+              │     │ Prototype     │     │
+              │     └───────┬───────┘     │
+              │             ↓             │
+              │     ┌───────────────┐     │
+              │     │ Implementation│     │
+              │     └───────┬───────┘     │
+              │             ↓             │
+              │     ┌───────────────┐     │
+              │     │ Tests / Evals │─────┘
+              │     └───────┬───────┘
+              │             ↓
+              │     ┌───────────────┐
+              │     │ Review / Risk │
+              │     └───────┬───────┘
+              │             ↓
+              │     ┌───────────────┐
+              │     │    Deploy     │
+              │     └───────┬───────┘
+              │             ↓
+              │     ┌───────────────┐
+              │     │ Observe / Use │
+              │     └───────┬───────┘
+              │             ↓
+              └──────── Feedback ─────────→
+```
+
+And increasingly, **agents exist inside almost every box**.
+
+---
+
+## The deeper lesson
+
+The fascinating part isn't that OpenAI engineers use AI to write code.
+
+That's almost the least interesting part.
+
+The deeper transition appears to be:
+
+**old model**
+
+```text
+Human intention
+      ↓
+Human reasoning
+      ↓
+Human writes implementation
+      ↓
+Computer executes implementation
+```
+
+**emerging model**
+
+```text
+Human intention
+      ↓
+Human specification
+      ↓
+Engineering system / harness
+      ↓
+AI agents reason + implement + test
+      ↓
+Automated verification
+      ↓
+Human judgment
+      ↓
+Software
+```
+
+In that world, the engineering team's most valuable artifact eventually may **not be the source code**.
+
+It may be the combination of:
+
+**intent + specifications + architecture + constraints + knowledge + tools + evaluations + tests + provenance + feedback loops** that makes correct software generation repeatable.
+
+And that is where OpenAI's recent public engineering work gets unusually close to some of the architectural ideas we've been developing around Monad: the engineering system itself becomes a governed environment in which humans and agents can reason about, modify, verify, and evolve software rather than merely a collection of source files. ([OpenAI][11])
+
+[1]: https://openai.com/careers/research-engineer-san-francisco/?utm_source=chatgpt.com "Research Engineer | OpenAI"
+[2]: https://openai.com/careers/software-engineer-infrastructure-san-francisco/?utm_source=chatgpt.com "Software Engineer, Infrastructure | OpenAI"
+[3]: https://openai.com/careers/software-engineer-infrastructure-analytics-platform-san-francisco/?utm_source=chatgpt.com "Software Engineer, Infrastructure - Analytics Platform | OpenAI"
+[4]: https://openai.com/careers/software-engineer-chatgpt-infrastructure-san-francisco/?utm_source=chatgpt.com "Software Engineer, ChatGPT Infrastructure | OpenAI"
+[5]: https://openai.com/careers/?utm_source=chatgpt.com "Careers | OpenAI"
+[6]: https://openai.com/safety/how-we-think-about-safety-alignment/?utm_source=chatgpt.com "How we think about safety and alignment | OpenAI"
+[7]: https://openai.com/index/updating-our-preparedness-framework/?utm_source=chatgpt.com "Our updated Preparedness Framework | OpenAI"
+[8]: https://openai.com/interview-guide/?utm_source=chatgpt.com "OpenAI interview guide | OpenAI"
+[9]: https://openai.com/business/guides-and-resources/how-openai-uses-codex/?utm_source=chatgpt.com "How OpenAI uses Codex | OpenAI"
+[10]: https://openai.com/index/codex-now-generally-available/?utm_source=chatgpt.com "Codex is now generally available | OpenAI"
+[11]: https://openai.com/index/harness-engineering/?utm_source=chatgpt.com "Harness engineering: leveraging Codex in an agent-first world | OpenAI"
+[12]: https://openai.com/index/open-source-codex-orchestration-symphony/?utm_source=chatgpt.com "An open-source spec for Codex orchestration: Symphony. | OpenAI"
+[13]: https://openai.com/careers/software-engineer-research-developer-productivity-san-francisco/?utm_source=chatgpt.com "Software Engineer, Research Developer Productivity | OpenAI"

@@ -1,0 +1,2088 @@
+---
+title: "AI-Native Engineering Operating System Foundation Specification"
+specification_id: "AIEOS-FOUND-001"
+version: "0.1.0"
+status: "Draft"
+classification: "Root Normative Specification"
+description: "AIEOS-SDLC-001, Root Normative Specification"
+---
+
+# 1. Purpose
+
+The AI-Native Engineering Operating System (AIEOS) defines a governed software-engineering system in which humans, AI agents, deterministic automation, development tools, repositories, CI/CD systems, and production environments cooperate to transform **intent into verified changes to operational reality**.
+
+The system SHALL treat software engineering as a closed-loop control process:
+
+```text
+Intent
+  ↓
+Specification
+  ↓
+Architecture / Plan
+  ↓
+Execution
+  ↓
+Verification
+  ↓
+Review
+  ↓
+Authorization
+  ↓
+Deployment
+  ↓
+Observation
+  ↓
+Learning
+  ↓
+New Intent
+```
+
+The AIEOS is not merely an AI coding assistant.
+
+It is the system responsible for:
+
+* engineering workflow,
+* artifact lifecycle,
+* agent orchestration,
+* policy enforcement,
+* authority management,
+* evidence collection,
+* verification,
+* provenance,
+* human approvals,
+* deployment governance,
+* operational feedback,
+* organizational learning.
+
+Its objective is:
+
+> **Continuously transform human intent into safe, verified, traceable changes while maximizing useful automation without surrendering human authority where judgment or accountability is required.**
+
+---
+
+# 2. Normative Language
+
+The terms **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY**, and **OPTIONAL** are normative.
+
+* **MUST / SHALL** — mandatory requirement.
+* **SHOULD** — expected unless a documented reason exists otherwise.
+* **MAY** — optional.
+* **MUST NOT / SHALL NOT** — prohibited behavior.
+
+---
+
+# 3. Fundamental Model
+
+The system SHALL distinguish three primary classes of participant.
+
+## 3.1 Humans
+
+Humans provide:
+
+```text
+Intent
+Judgment
+Values
+Prioritization
+Trade-off decisions
+Risk acceptance
+Exception approval
+Authority
+Accountability
+```
+
+## 3.2 Agents
+
+Agents provide:
+
+```text
+Investigation
+Synthesis
+Planning
+Implementation
+Testing
+Analysis
+Review
+Documentation
+Operational investigation
+Repetitive transformation
+```
+
+## 3.3 The Engineering System
+
+The AIEOS provides:
+
+```text
+Identity
+State
+Workflow
+Policy
+Constraints
+Capabilities
+Authority
+Provenance
+Evidence
+Verification
+Observability
+Auditability
+Orchestration
+```
+
+These responsibilities SHALL remain conceptually distinct even where one implementation component performs multiple functions.
+
+---
+
+# 4. Primary Architectural Principle
+
+The AIEOS SHALL distinguish:
+
+```text
+Capability
+    ≠
+Authority
+    ≠
+Execution
+    ≠
+Verification
+    ≠
+Approval
+```
+
+An entity capable of performing an action MUST NOT automatically be considered authorized to perform that action.
+
+An entity authorized to execute a change MUST NOT automatically be authorized to approve the correctness of that change.
+
+An entity capable of reviewing a change MUST NOT automatically be authorized to release that change.
+
+This separation is one of the foundational invariants of the system.
+
+---
+
+# 5. Core Principles
+
+The AIEOS SHALL implement the following principles.
+
+## P-001 — Intent before implementation
+
+Engineering work MUST originate from an identifiable desired outcome, problem, incident, obligation, or hypothesis.
+
+Implementation SHALL NOT be treated as the initial authoritative statement of intent.
+
+---
+
+## P-002 — Explicit artifacts
+
+Important engineering knowledge SHALL be represented by identifiable artifacts rather than existing solely in transient conversation or human memory.
+
+---
+
+## P-003 — Machine-operable knowledge
+
+Artifacts SHOULD be understandable by both humans and machines.
+
+Structured metadata SHALL be used where automation depends upon the information.
+
+Human-readable representation SHOULD remain available wherever practical.
+
+---
+
+## P-004 — One authority per assertion
+
+For each authoritative engineering assertion, the system SHALL identify its source of authority.
+
+Multiple representations MAY exist.
+
+Multiple simultaneous authoritative sources for the same assertion SHOULD be avoided.
+
+Where multiple authoritative claims conflict, the conflict MUST be surfaced rather than silently resolved.
+
+---
+
+## P-005 — Plan before mutation
+
+Non-trivial implementation work SHOULD have an accepted execution plan before mutable execution begins.
+
+Higher-risk work MUST have an accepted plan.
+
+---
+
+## P-006 — Evidence over assertion
+
+An agent asserting that work is correct SHALL NOT constitute sufficient evidence of correctness.
+
+Correctness SHALL be established using independently observable evidence.
+
+---
+
+## P-007 — Deterministic enforcement for invariants
+
+Policies that MUST always hold SHALL NOT depend solely on model instructions.
+
+They SHALL be enforced through deterministic mechanisms where technically possible.
+
+---
+
+## P-008 — Risk-adaptive autonomy
+
+Automation SHALL be proportional to risk.
+
+Low-risk, reversible changes MAY progress autonomously.
+
+High-impact, irreversible, security-sensitive, destructive, or production-critical changes SHALL require stronger controls.
+
+---
+
+## P-009 — Separation of duties
+
+Where risk warrants it:
+
+```text
+Executor ≠ Reviewer ≠ Approver
+```
+
+The same agent SHOULD NOT independently implement and certify its own work as sufficient for consequential deployment.
+
+---
+
+## P-010 — Everything consequential is traceable
+
+The system SHALL maintain provenance for consequential:
+
+* artifacts,
+* decisions,
+* executions,
+* reviews,
+* approvals,
+* deployments,
+* observations,
+* policy evaluations.
+
+---
+
+## P-011 — Production closes the loop
+
+Production behavior SHALL be considered engineering evidence.
+
+Operational failures, regressions, and meaningful discoveries SHOULD feed back into requirements, tests, evaluations, policies, or future intent.
+
+---
+
+## P-012 — Improve the harness
+
+Recurring agent failures SHOULD trigger improvement of:
+
+```text
+instructions
+context
+tools
+tests
+policies
+architecture
+evaluations
+workflows
+```
+
+rather than relying indefinitely on repeated human correction.
+
+---
+
+# 6. Engineering Artifact Model
+
+Every significant unit of engineering work SHALL be represented by a persistent identity.
+
+A work unit MAY contain the following artifact families.
+
+```text
+INT     Intent
+REQ     Requirement
+SPEC    Specification
+ADR     Decision
+PLAN    Execution Plan
+CHG     Change
+TEST    Test
+EVAL    Evaluation
+EVID    Evidence
+REV     Review
+AUTH    Authorization
+REL     Release / Deployment
+OBS     Observation
+INC     Incident
+POL     Policy
+EXC     Exception
+```
+
+Example:
+
+```text
+INT-0042
+ ├── SPEC-0042
+ ├── ADR-0117
+ ├── PLAN-0042
+ ├── CHG-0042
+ ├── TEST-0311
+ ├── EVID-0821
+ ├── REV-0042
+ ├── AUTH-0042
+ └── REL-0042
+```
+
+Artifacts MUST support stable identity independent of filename or physical location.
+
+---
+
+# 7. Artifact Relationships
+
+The system SHOULD represent explicit relationships such as:
+
+```text
+implements
+satisfies
+constrains
+depends-on
+derived-from
+generated-by
+validated-by
+evidenced-by
+reviewed-by
+authorized-by
+supersedes
+invalidates
+deploys
+observed-by
+caused-by
+remediates
+```
+
+Example:
+
+```text
+INT-42
+  ↓ refined-into
+SPEC-42
+  ↓ implemented-by
+CHG-42
+  ↓ validated-by
+TEST-93
+  ↓ evidenced-by
+EVID-108
+  ↓ reviewed-by
+REV-44
+  ↓ authorized-by
+AUTH-18
+  ↓ deployed-as
+REL-12
+  ↓ observed-by
+OBS-300
+```
+
+This graph SHALL provide end-to-end traceability from intent to operational reality.
+
+---
+
+# 8. Lifecycle State Machine
+
+A work unit SHALL progress through an explicit lifecycle.
+
+Recommended baseline states:
+
+```text
+PROPOSED
+   ↓
+INTENT_READY
+   ↓
+INTENT_ACCEPTED
+   ↓
+SPEC_READY
+   ↓
+SPEC_ACCEPTED
+   ↓
+PLAN_READY
+   ↓
+PLAN_ACCEPTED
+   ↓
+EXECUTING
+   ↓
+VERIFYING
+   ↓
+REVIEW_READY
+   ↓
+REVIEW_ACCEPTED
+   ↓
+AUTHORIZED
+   ↓
+DEPLOYING
+   ↓
+OBSERVING
+   ↓
+COMPLETED
+```
+
+Additional states SHALL include:
+
+```text
+BLOCKED
+CHANGES_REQUESTED
+FAILED
+CANCELLED
+SUPERSEDED
+ROLLED_BACK
+INCIDENT
+```
+
+No state transition SHALL occur merely because an agent claims that the transition is appropriate.
+
+The workflow engine MUST evaluate the applicable transition policy.
+
+---
+
+# 9. Transition Model
+
+Every state transition SHALL have:
+
+```text
+Source state
+
+Target state
+
+Required artifacts
+
+Required evidence
+
+Required policies
+
+Required authority
+
+Permitted actors
+
+Transition action
+
+Provenance record
+```
+
+For example:
+
+```text
+PLAN_ACCEPTED
+    ↓
+EXECUTING
+```
+
+might require:
+
+```yaml
+requires:
+  artifacts:
+    - accepted-specification
+    - accepted-plan
+
+  policies:
+    - architecture-valid
+    - execution-environment-approved
+
+  authority:
+    - engineering-execution
+
+permitted:
+  - human-engineer
+  - execution-agent
+```
+
+---
+
+# 10. Risk Classification
+
+Every work unit SHOULD have a risk classification.
+
+Baseline:
+
+```text
+R0 — Minimal
+R1 — Routine
+R2 — Significant
+R3 — Critical
+```
+
+## R0 — Minimal
+
+Examples:
+
+* documentation,
+* comments,
+* formatting,
+* generated metadata,
+* reversible internal changes.
+
+May permit high autonomy.
+
+---
+
+## R1 — Routine
+
+Examples:
+
+* normal feature development,
+* ordinary bug fixes,
+* non-critical refactoring.
+
+Typically permits agent execution with automated verification and human or policy-controlled approval.
+
+---
+
+## R2 — Significant
+
+Examples:
+
+* authentication,
+* authorization,
+* persistent data migrations,
+* security controls,
+* externally visible API changes,
+* significant infrastructure modifications.
+
+Requires explicit additional review and authorization.
+
+---
+
+## R3 — Critical
+
+Examples:
+
+* destructive production operations,
+* credential or identity infrastructure,
+* irreversible migrations,
+* safety-critical systems,
+* critical security infrastructure,
+* major production architecture changes.
+
+Requires strong human authority boundaries.
+
+Organizations MAY define additional risk levels.
+
+---
+
+# 11. Human Authority Model
+
+Human participation SHALL be concentrated where human judgment has the highest value.
+
+Humans SHOULD own:
+
+### Intent acceptance
+
+Does this work actually need to happen?
+
+### Strategic prioritization
+
+Should this work happen now?
+
+### Ambiguous requirements
+
+What does the organization actually want?
+
+### Architectural trade-offs
+
+Which competing qualities matter most?
+
+### Policy exceptions
+
+Should a rule be overridden?
+
+### Risk acceptance
+
+Is remaining risk acceptable?
+
+### High-impact release authorization
+
+Should the change affect operational reality?
+
+Humans SHOULD NOT be required to manually perform deterministic clerical work merely because historic processes required it.
+
+---
+
+# 12. Agent Authority Model
+
+Agents MAY be granted capabilities for:
+
+```text
+repository reading
+repository search
+dependency analysis
+planning
+source modification
+test creation
+test execution
+build execution
+documentation
+static analysis
+PR creation
+review
+incident analysis
+staging deployment
+```
+
+Agents SHOULD receive capabilities through a controlled capability broker.
+
+Credentials SHOULD be:
+
+* scoped,
+* short-lived,
+* task-specific,
+* environment-specific,
+* auditable.
+
+Agents SHOULD NOT receive standing production credentials merely because production actions might eventually be needed.
+
+---
+
+# 13. Policy Model
+
+Policies SHALL be divided into at least three categories.
+
+## Advisory policy
+
+Provides reasoning guidance.
+
+```text
+Prefer existing abstractions.
+```
+
+## Testable policy
+
+Can be automatically evaluated.
+
+```text
+Every public API endpoint must have an integration test.
+```
+
+## Enforced invariant
+
+Cannot be violated through the permitted execution environment.
+
+```text
+Agent execution credentials cannot deploy to production.
+```
+
+The system SHOULD progressively convert important advisory rules into testable or enforced policies.
+
+---
+
+# 14. Intent Stage
+
+The system SHALL support intent originating from:
+
+```text
+human request
+product feedback
+issue
+ticket
+incident
+monitoring signal
+security finding
+research hypothesis
+regulatory obligation
+agent discovery
+```
+
+An intent artifact SHOULD contain:
+
+```text
+Problem
+Motivation
+Desired outcome
+Affected stakeholders
+Constraints
+Non-goals
+Known risks
+Open questions
+Success criteria
+Source
+```
+
+AI MAY assist in creating `intent`.
+
+Acceptance of significant intent SHOULD remain a human authority action.
+
+---
+
+# 15. Specification Stage
+
+The specification process SHALL transform accepted intent into implementable requirements.
+
+Agents MAY synthesize specifications using:
+
+```text
+intent
+repository
+architecture
+existing requirements
+ADRs
+policies
+security standards
+UX standards
+operational history
+tests
+previous implementations
+```
+
+The resulting specification SHOULD contain:
+
+```text
+Functional requirements
+Non-functional requirements
+Constraints
+Interfaces
+Security requirements
+Operational requirements
+Failure behavior
+Acceptance criteria
+Open questions
+Risk classification
+```
+
+The agent SHALL surface unresolved contradictions rather than silently choosing between authoritative policies.
+
+---
+
+# 16. Planning Stage
+
+Implementation SHOULD begin in read-only investigation mode.
+
+The planning agent MAY inspect:
+
+```text
+repository
+dependency graph
+architecture
+tests
+APIs
+schemas
+history
+related work
+```
+
+but SHOULD NOT mutate the working system before plan acceptance when policy requires an approved plan.
+
+A plan SHOULD identify:
+
+```text
+Affected components
+Proposed modifications
+Order of execution
+Dependencies
+Migration requirements
+Tests
+Evaluations
+Expected evidence
+Risks
+Alternatives
+Rollback strategy
+```
+
+---
+
+# 17. Execution Stage
+
+Upon authorization to execute, the system SHALL provision an isolated execution environment.
+
+Recommended model:
+
+```text
+Work Unit
+   ↓
+Ephemeral Workspace
+   ↓
+Scoped Credentials
+   ↓
+Agent
+   ↓
+Tool Broker
+   ↓
+Repository / Build / Test systems
+```
+
+Execution SHOULD be sandboxed.
+
+The agent SHALL receive only the capabilities required for the work.
+
+Every meaningful action SHOULD produce provenance.
+
+---
+
+# 18. Verification Stage
+
+Verification SHALL be treated as a separate lifecycle concern from implementation.
+
+Possible evidence:
+
+```text
+unit-test results
+integration-test results
+end-to-end results
+build output
+type-check results
+lint results
+static analysis
+security scan
+benchmark
+screenshot
+schema validation
+migration verification
+runtime trace
+model evaluation
+manual verification
+```
+
+Verification rules SHOULD derive directly from specification acceptance criteria.
+
+The ideal relationship is:
+
+```text
+Requirement
+    ↓
+Verification criterion
+    ↓
+Test / Eval
+    ↓
+Evidence
+```
+
+---
+
+# 19. Independent Review Stage
+
+Agent-generated changes SHOULD receive independent evaluation.
+
+The reviewer SHOULD receive:
+
+```text
+Intent
+Specification
+Plan
+Diff
+Tests
+Evidence
+Policies
+Architecture context
+```
+
+The reviewer SHOULD evaluate:
+
+```text
+correctness
+specification compliance
+security
+architecture
+maintainability
+test adequacy
+policy compliance
+unintended changes
+```
+
+Where possible, the reviewing agent SHOULD be logically independent from the execution context.
+
+---
+
+# 20. Authorization Stage
+
+Authorization is an explicit grant of authority.
+
+An authorization record SHALL identify:
+
+```text
+Subject
+Action
+Target
+Scope
+Authority source
+Conditions
+Timestamp
+Evidence considered
+Expiration if applicable
+```
+
+Example:
+
+```text
+AUTH-48
+
+subject:
+  deployment-workflow-12
+
+action:
+  deploy
+
+target:
+  production/api-service
+
+authorized_by:
+  human:release-owner
+
+conditions:
+  - REV-82 accepted
+  - EVID-512 valid
+  - security-gate passed
+```
+
+Authorization MUST NOT be inferred merely from successful execution of earlier stages.
+
+---
+
+# 21. Deployment Stage
+
+Deployment SHOULD proceed automatically once all required gates have passed, unless policy requires further human intervention.
+
+A mature pipeline may therefore look like:
+
+```text
+Verified change
+      ↓
+Review accepted
+      ↓
+Authorization
+      ↓
+Deploy staging
+      ↓
+Health checks
+      ↓
+Canary
+      ↓
+Observe
+      ↓
+Production promotion
+```
+
+Contemporary CI/CD platforms already support this model. For example, GitHub environments can require human reviewers, prevent self-approval, restrict branches, delay deployment, withhold environment secrets until approval, and use external automated protection rules.
+
+---
+
+# 22. Observation Stage
+
+A deployment SHALL NOT represent the end of the engineering lifecycle.
+
+The system SHOULD collect:
+
+```text
+logs
+metrics
+traces
+errors
+SLO/SLA results
+user feedback
+security events
+performance
+cost
+behavioral evaluation
+business outcomes
+```
+
+Observation SHOULD be linked to the release that produced the observed behavior.
+
+---
+
+# 23. Incident Feedback Loop
+
+Operational incidents SHOULD create structured engineering input automatically.
+
+Example:
+
+```text
+Production alert
+      ↓
+OBS-932
+      ↓
+Agent investigation
+      ↓
+INC-118
+      ↓
+Root-cause hypothesis
+      ↓
+Human or policy acceptance
+      ↓
+INT-440
+      ↓
+SPEC
+      ↓
+PLAN
+      ↓
+FIX
+      ↓
+TEST
+      ↓
+EVIDENCE
+      ↓
+RELEASE
+```
+
+Confirmed incidents SHOULD result in new permanent regression protection whenever practical.
+
+---
+
+# 24. Engineering Learning Loop
+
+The system SHALL support improvement of itself.
+
+Examples:
+
+```text
+Repeated implementation error
+    → improve repository instructions
+
+Repeated architectural violation
+    → create static rule
+
+Security mistake
+    → create policy + test
+
+Production regression
+    → create evaluation
+
+Recurring manual procedure
+    → automate workflow
+
+Agent lacks required information
+    → improve artifact model
+
+Repeated inappropriate automation
+    → strengthen authority gate
+```
+
+The AIEOS therefore evolves alongside the software it governs.
+
+---
+
+# 25. Application Architecture
+
+The recommended implementation is a dedicated **Engineering Control Plane**.
+
+```text
+┌───────────────────────────────────────────────────────┐
+│            AI-NATIVE ENGINEERING CONTROL PLANE        │
+│                                                       │
+│  ┌──────────────────┐    ┌────────────────────────┐   │
+│  │ Workflow Engine  │    │ Artifact Registry      │   │
+│  │ / State Machine  │    │ + Relationship Graph   │   │
+│  └─────────┬────────┘    └────────────┬───────────┘   │
+│            │                          │               │
+│  ┌─────────▼────────┐    ┌────────────▼───────────┐   │
+│  │ Policy Engine    │    │ Provenance / Audit     │   │
+│  └─────────┬────────┘    └────────────────────────┘   │
+│            │                                          │
+│  ┌─────────▼────────┐    ┌────────────────────────┐   │
+│  │ Authority Engine │    │ Human Approval Inbox   │   │
+│  └─────────┬────────┘    └────────────────────────┘   │
+│            │                                          │
+│  ┌─────────▼──────────────────────────────────────┐   │
+│  │             Agent Orchestrator                 │   │
+│  │                                                │   │
+│  │ Planner | Implementer | Reviewer | Investigator│   │
+│  └─────────┬──────────────────────────────────────┘   │
+│            │                                          │
+│  ┌─────────▼────────┐    ┌────────────────────────┐   │
+│  │ Capability Broker│    │ Verification Engine    │   │
+│  └─────────┬────────┘    └────────────────────────┘   │
+│            │                                          │
+└────────────┼──────────────────────────────────────────┘
+             │
+             ▼
+┌───────────────────────────────────────────────────────┐
+│ Repository | CI/CD | Cloud | Issue Tracker | Runtime │
+│ Observability | Security | Docs | Databases | Agents │
+└───────────────────────────────────────────────────────┘
+```
+
+---
+
+# 26. Workflow Engine
+
+The workflow engine SHALL be deterministic.
+
+It SHALL own lifecycle state.
+
+Agents MAY recommend transitions.
+
+Agents MUST NOT directly mutate authoritative lifecycle state unless explicitly permitted by policy.
+
+The workflow engine SHALL determine whether:
+
+```text
+transition allowed?
+required artifacts present?
+required evidence valid?
+policy satisfied?
+authorization present?
+```
+
+---
+
+# 27. Artifact Registry
+
+The Artifact Registry SHALL maintain:
+
+```text
+stable identity
+artifact type
+version
+status
+authority
+origin
+relationships
+provenance
+validity
+location
+```
+
+Artifacts MAY physically live in:
+
+```text
+Git
+database
+issue tracker
+document system
+CI system
+external service
+```
+
+The registry SHALL distinguish an artifact's identity from its storage location.
+
+Anthropic's current AI-native SDLC guidance similarly recommends identifying one authoritative source of truth per artifact and maintaining explicit linkage where multiple systems coexist.
+
+---
+
+# 28. Policy Engine
+
+The policy engine SHALL answer questions such as:
+
+```text
+May this work enter execution?
+
+What evidence is mandatory?
+
+Does this require security review?
+
+May this agent modify these files?
+
+Can this change auto-merge?
+
+Who may approve this?
+
+Can this release enter staging?
+
+Can this release enter production?
+```
+
+Policies SHOULD be declarative.
+
+Example:
+
+```yaml
+policy: production-deployment
+
+when:
+  risk: R2
+
+requires:
+  review:
+    security: accepted
+
+  evidence:
+    integration-tests: passed
+    security-scan: passed
+
+  authorization:
+    human:
+      role: release-owner
+
+deny:
+  self_approval: true
+```
+
+---
+
+# 29. Capability Broker
+
+Agents SHALL interact with consequential external systems through a capability broker whenever practical.
+
+Instead of:
+
+```text
+Agent has GitHub token
+Agent has cloud admin key
+Agent has production credentials
+```
+
+prefer:
+
+```text
+Agent
+  ↓
+request capability
+  ↓
+Policy Engine
+  ↓
+Capability Broker
+  ↓
+short-lived scoped permission
+```
+
+This makes authority explicit and revocable.
+
+---
+
+# 30. Agent Orchestrator
+
+The system SHOULD support role-specialized agents.
+
+Possible roles:
+
+```text
+Intent Analyst
+Requirements Agent
+Architectural Analyst
+Planner
+Implementation Agent
+Test Agent
+Security Reviewer
+Code Reviewer
+Evidence Auditor
+Incident Investigator
+Documentation Agent
+```
+
+The system SHOULD NOT assume one giant agent should perform every function.
+
+---
+
+# 31. Human Approval Inbox
+
+Human interaction SHOULD be concentrated into a unified decision interface.
+
+Instead of requiring humans to manually monitor every stage, the system SHOULD present:
+
+```text
+Decision required
+
+Why it is required
+
+What changed
+
+Risk
+
+Open questions
+
+Agent recommendation
+
+Evidence
+
+Policy involved
+
+Available actions
+```
+
+For example:
+
+```text
+SPEC-42 requires approval.
+
+Reason:
+Authentication behavior changes.
+
+Risk:
+R2
+
+Open questions:
+1 unresolved migration issue
+
+Agent recommendation:
+Approve after migration issue is resolved.
+
+Actions:
+[Approve]
+[Reject]
+[Request Changes]
+[Escalate]
+```
+
+Human attention thus becomes event-driven rather than workflow-driven.
+
+---
+
+# 32. Automation Matrix
+
+Recommended default:
+
+| Activity                           | Default                                  |
+| ---------------------------------- | ---------------------------------------- |
+| Capture raw idea                   | Human or automated                       |
+| Generate structured intent         | Automated                                |
+| Accept consequential intent        | Human                                    |
+| Generate specification             | Automated                                |
+| Policy analysis                    | Automated                                |
+| Accept specification               | Human/risk-based                         |
+| Repository investigation           | Automated                                |
+| Generate plan                      | Automated                                |
+| Accept high-risk plan              | Human                                    |
+| Provision sandbox                  | Automated                                |
+| Implement                          | Automated                                |
+| Generate tests                     | Automated                                |
+| Execute tests                      | Automated                                |
+| Collect evidence                   | Automated                                |
+| Static policy enforcement          | Automated                                |
+| Independent agent review           | Automated                                |
+| Resolve ordinary review findings   | Automated                                |
+| Risk acceptance                    | Human                                    |
+| Merge low-risk change              | Policy-controlled                        |
+| Staging deployment                 | Automated                                |
+| Staging verification               | Automated                                |
+| Production deployment              | Policy-controlled                        |
+| High-risk production authorization | Human                                    |
+| Production monitoring              | Automated                                |
+| Incident detection                 | Automated                                |
+| Incident investigation             | Automated                                |
+| Accept consequential remediation   | Human/risk-based                         |
+| Update institutional knowledge     | Automated proposal + governed acceptance |
+
+The exact boundaries SHALL be configurable.
+
+---
+
+# 33. What MUST NOT Be Fully Automated by Default
+
+The AIEOS SHOULD NOT initially automate away:
+
+```text
+strategic intent
+organizational priorities
+ethical judgment
+ambiguous product decisions
+policy exceptions
+risk acceptance
+high-consequence irreversible actions
+critical production authorization
+```
+
+These may be AI-assisted.
+
+They should remain explicitly attributable to accountable human authorities unless an organization deliberately adopts another governance model.
+
+---
+
+# 34. Why Full Automation Is Not the Objective
+
+The optimization objective is not:
+
+```text
+maximize number of automated steps
+```
+
+It is:
+
+```text
+maximize safe autonomous throughput
+subject to:
+    correctness
+    governance
+    traceability
+    security
+    human authority
+```
+
+A workflow with 95% automation and excellent authority boundaries is preferable to 100% automation with unclear accountability.
+
+Likewise, a workflow with unnecessary human approvals is not inherently safer.
+
+Excessive human gates produce:
+
+```text
+rubber-stamping
+review fatigue
+queue buildup
+loss of attention
+slow feedback
+false sense of safety
+```
+
+Humans should appear where judgment creates substantial value.
+
+---
+
+# 35. Risk-Adaptive Workflow Example
+
+## R0
+
+```text
+Intent
+ ↓
+Agent spec
+ ↓
+Agent plan
+ ↓
+Implement
+ ↓
+Tests
+ ↓
+Independent review
+ ↓
+Policy engine
+ ↓
+Auto-merge
+```
+
+---
+
+## R1
+
+```text
+Intent
+ ↓
+Spec
+ ↓
+Plan
+ ↓
+Agent implementation
+ ↓
+Verification
+ ↓
+Independent review
+ ↓
+Human/code-owner approval
+ ↓
+Merge
+ ↓
+Automated deployment
+```
+
+---
+
+## R2
+
+```text
+Human accepted intent
+ ↓
+Spec
+ ↓
+Security/policy analysis
+ ↓
+Human accepted spec
+ ↓
+Plan
+ ↓
+Agent implementation
+ ↓
+Verification
+ ↓
+Independent technical review
+ ↓
+Security review
+ ↓
+Human authorization
+ ↓
+Staging
+ ↓
+Operational evidence
+ ↓
+Production authorization
+```
+
+---
+
+## R3
+
+```text
+Human intent
+ ↓
+Formal specification
+ ↓
+Architecture decision
+ ↓
+Multi-party review
+ ↓
+Approved plan
+ ↓
+Sandboxed execution
+ ↓
+Extensive verification
+ ↓
+Independent review
+ ↓
+Explicit risk acceptance
+ ↓
+Explicit release authorization
+ ↓
+Controlled rollout
+ ↓
+Continuous monitoring
+ ↓
+Automatic rollback where possible
+```
+
+---
+
+# 36. Provenance Requirements
+
+Every agent execution SHOULD record:
+
+```text
+agent identity
+model identity/version
+tooling
+input artifacts
+prompt/instructions
+policy versions
+repository commit
+environment
+started-at
+completed-at
+actions performed
+artifacts produced
+evidence produced
+```
+
+Every human decision SHOULD record:
+
+```text
+decision
+actor
+authority
+artifact
+timestamp
+reason if required
+```
+
+Every deployment SHOULD record:
+
+```text
+exact change
+environment
+authorization
+evidence
+deployment method
+runtime result
+```
+
+---
+
+# 37. Essential Invariants
+
+The initial implementation SHOULD enforce at least:
+
+### INV-001
+
+No work without identifiable intent.
+
+### INV-002
+
+No consequential implementation without traceable specification or approved exception.
+
+### INV-003
+
+No high-risk implementation without accepted plan.
+
+### INV-004
+
+No claim of correctness without evidence.
+
+### INV-005
+
+No consequential deployment without satisfying applicable verification policy.
+
+### INV-006
+
+No high-risk production deployment without valid authorization.
+
+### INV-007
+
+No agent may manufacture its own authority.
+
+### INV-008
+
+No policy exception without provenance.
+
+### INV-009
+
+No authoritative state transition without an audit record.
+
+### INV-010
+
+No production incident closes without disposition.
+
+---
+
+# 38. Failure Modes
+
+The system SHALL explicitly protect against:
+
+## Automation theater
+
+The workflow looks automated but humans still perform hidden manual reconciliation.
+
+## Agent self-certification
+
+The same agent generates work and declares it correct without external evidence.
+
+## Authority leakage
+
+An agent receives credentials broader than its authorized role.
+
+## Stale institutional knowledge
+
+Agents follow outdated architecture or policy.
+
+## Spec drift
+
+Implementation no longer corresponds to accepted intent.
+
+## Evidence gaming
+
+Tests demonstrate something passed without proving the actual requirement.
+
+## Human rubber-stamping
+
+Approval volume exceeds meaningful human attention.
+
+## Runaway execution
+
+Agents continue retries or modifications without bounded execution policy.
+
+## Silent policy conflict
+
+Contradictory requirements are arbitrarily resolved.
+
+## Duplicate authority
+
+Two systems claim authoritative ownership of the same engineering fact.
+
+## Lost provenance
+
+No one can reconstruct why a change occurred.
+
+---
+
+# 39. Minimum Viable AIEOS
+
+The first useful implementation SHOULD NOT attempt full autonomy.
+
+The MVP should implement:
+
+```text
+1. Work-unit identity
+
+2. Intent artifact
+
+3. Specification artifact
+
+4. Plan artifact
+
+5. Explicit lifecycle state
+
+6. Git integration
+
+7. Agent execution adapter
+
+8. Automated test execution
+
+9. Evidence collection
+
+10. Independent review
+
+11. Human approval gate
+
+12. Provenance
+
+13. Policy-controlled state transitions
+```
+
+The MVP lifecycle:
+
+```text
+Human creates intent
+        ↓
+System structures intent
+        ↓
+Human accepts
+        ↓
+Agent generates spec
+        ↓
+Human accepts
+        ↓
+Agent generates plan
+        ↓
+Human or policy accepts
+        ↓
+Agent implements in sandbox
+        ↓
+System executes verification
+        ↓
+Independent agent reviews
+        ↓
+Human receives evidence packet
+        ↓
+Human approves
+        ↓
+PR merges
+```
+
+This alone would constitute a functional AI-native engineering workflow.
+
+---
+
+# 40. Second Increment
+
+Add:
+
+```text
+risk classification
+policy engine
+artifact graph
+automated plan acceptance for low-risk work
+automated merge for R0
+security review agent
+short-lived capabilities
+CI/CD integration
+staging deployment
+```
+
+---
+
+# 41. Third Increment
+
+Add:
+
+```text
+production authorization
+deployment orchestration
+observability integration
+incident ingestion
+automated incident investigation
+regression-generation loop
+evaluation framework
+organizational learning
+```
+
+---
+
+# 42. Mature System
+
+Eventually:
+
+```text
+Observation
+     ↓
+System detects engineering opportunity
+     ↓
+Agent investigates
+     ↓
+Intent proposal
+     ↓
+Policy decides whether human acceptance required
+     ↓
+Specification
+     ↓
+Plan
+     ↓
+Execution
+     ↓
+Verification
+     ↓
+Independent review
+     ↓
+Policy / human authorization
+     ↓
+Deployment
+     ↓
+Observation
+```
+
+The application itself operates the lifecycle.
+
+Humans interact primarily at decision boundaries.
+
+---
+
+# 43. Human Experience
+
+The mature user experience SHOULD therefore not resemble a conventional project-management application.
+
+The primary human interface becomes:
+
+```text
+What requires my judgment?
+```
+
+rather than:
+
+```text
+What task should I manually push to the next status?
+```
+
+A dashboard might contain:
+
+```text
+Needs your decision        3
+Running autonomously      14
+Blocked by policy          2
+Verification failures      1
+Observing in production    5
+Completed today           11
+```
+
+Selecting an item should present the complete trace:
+
+```text
+Intent
+ ↓
+Requirements
+ ↓
+Decision history
+ ↓
+Plan
+ ↓
+Changes
+ ↓
+Evidence
+ ↓
+Reviews
+ ↓
+Current requested decision
+```
+
+---
+
+# 44. Definition of Ready
+
+A work unit is **Ready for Autonomous Execution** when:
+
+* intent is accepted;
+* applicable requirements are explicit;
+* contradictions are resolved or surfaced;
+* risk is classified;
+* required architecture decisions exist;
+* execution plan exists;
+* acceptance criteria are testable;
+* required tools are available;
+* required execution capabilities are authorized;
+* applicable policies are known;
+* execution can occur in a bounded environment.
+
+---
+
+# 45. Definition of Done
+
+A work unit is **Done** when:
+
+* accepted intent is satisfied;
+* requirements are traceably implemented;
+* verification criteria pass;
+* required evidence exists;
+* required reviews are accepted;
+* required authorization exists;
+* deployment has reached its target state;
+* operational verification has completed;
+* documentation and knowledge artifacts are updated;
+* provenance is complete;
+* unresolved residual risks are explicitly recorded;
+* follow-up work has been created where necessary.
+
+---
+
+# 46. System Success Metrics
+
+The AIEOS SHOULD measure more than velocity.
+
+Recommended metrics:
+
+```text
+Intent → production lead time
+
+Human attention minutes / change
+
+Agent autonomous completion rate
+
+Plan rejection rate
+
+Post-plan specification churn
+
+First-pass verification rate
+
+Agent review defect discovery rate
+
+Human review defect discovery rate
+
+Escaped defect rate
+
+Production rollback rate
+
+Security regression rate
+
+Policy violation rate
+
+Human override rate
+
+Automation exception rate
+
+Artifact traceability completeness
+
+Evidence completeness
+
+Mean time from incident → verified remediation
+
+Repeated agent mistake rate
+
+Cost per verified change
+```
+
+The objective is not simply more generated code.
+
+The objective is:
+
+```text
+more verified engineering outcome
+per unit of human attention
+without increasing unacceptable risk
+```
+
+---
+
+# 47. Architectural North Star
+
+The AIEOS SHOULD eventually make the following query answerable at any moment:
+
+> **Why is the system in its current state, what evidence supports that state, what changed it, who or what was authorized to make that change, what requirements does it satisfy, and what would be affected if we changed it again?**
+
+That requires integrating:
+
+```text
+Identity
+Semantics
+Intent
+Requirements
+Architecture
+Decisions
+Source
+Execution
+Evidence
+Authority
+Provenance
+Deployment
+Observation
+History
+```
+
+into one coherent engineering model.
+
+---
+
+# 48. Final Operating Model
+
+The complete system can be summarized as:
+
+```text
+                       HUMAN AUTHORITY
+                            │
+                    intent / judgment
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────────┐
+│                 ENGINEERING CONTROL PLANE                  │
+│                                                            │
+│ Identity         Workflow          Policy                  │
+│ Provenance       Artifact Graph    Authority               │
+│ Knowledge        Verification      Observability           │
+│                                                            │
+│                    ┌────────────┐                           │
+│                    │   Intent   │                           │
+│                    └─────┬──────┘                           │
+│                          ▼                                  │
+│                    Specification                            │
+│                          ↓                                  │
+│                        Plan                                 │
+│                          ↓                                  │
+│                  Agent Execution                            │
+│                          ↓                                  │
+│                    Verification                             │
+│                          ↓                                  │
+│                       Review                                │
+│                          ↓                                  │
+│                    Authorization                            │
+│                          ↓                                  │
+│                     Deployment                             │
+│                          ↓                                  │
+│                    Observation                              │
+│                          │                                  │
+│                          └───────────→ Intent                │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+                     OPERATIONAL REALITY
+```
+
+The fundamental division of responsibility is:
+
+```text
+Humans:
+    decide what should become true
+    establish priorities
+    resolve ambiguity
+    choose meaningful trade-offs
+    accept consequential risk
+    grant consequential authority
+
+Agents:
+    investigate
+    synthesize
+    plan
+    implement
+    test
+    review
+    diagnose
+    propose
+
+Deterministic systems:
+    constrain
+    execute workflows
+    enforce invariants
+    collect evidence
+    maintain state
+    control capabilities
+    record provenance
+
+The AIEOS:
+    coordinates all three.
+```
+
+---
+
+# 49. Central Thesis
+
+The purpose of an AI-native engineering system is not to remove humans from software engineering.
+
+It is to remove humans from the parts of software engineering where human attention is unnecessary while making human involvement **more explicit, more informed, and more authoritative** where judgment matters.
+
+The desired evolution is:
+
+```text
+Human performs workflow
+        ↓
+Human assisted by AI
+        ↓
+AI performs tasks
+        ↓
+Application orchestrates AI tasks
+        ↓
+Application operates engineering lifecycle
+        ↓
+Humans govern the lifecycle
+```
+
+The optimal destination is therefore not:
+
+```text
+Fully Autonomous Software Factory
+```
+
+but:
+
+```text
+Governed Autonomous Engineering System
+```
+
+—a persistent engineering control plane capable of moving software from intent through implementation into verified operational reality while preserving human judgment, explicit authority, evidence, provenance, and control.

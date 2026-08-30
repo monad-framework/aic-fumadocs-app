@@ -1,0 +1,207 @@
+---
+title: Why Monad Has Four Publication Domains
+description: Why documentation, journal entries, changelogs, and editorial articles should remain separate records even when they describe the same project.
+article:
+  id: ART-2026-08-30-001
+  type: blog
+  status: published
+  published: 2026-08-30
+  author: Thomas Carter
+  audience:
+    - Builders
+    - Architects
+    - Historians
+  topics:
+    - engineering knowledge
+    - documentation architecture
+    - publication systems
+  featured: true
+  readingMinutes: 7
+  related:
+    - label: Monad Documentation
+      href: /docs
+    - label: Engineering Journal
+      href: /journal
+    - label: Changelogs
+      href: /changelogs
+    - label: Publication-domain change record
+      href: /changelogs/2026-08-30-001-publication-domains
+---
+
+A software project can publish many things that look deceptively similar.
+
+A document can explain architecture.
+
+A journal entry can describe an architectural discovery.
+
+A changelog can announce that the architecture changed.
+
+An essay can explain why the architectural distinction matters.
+
+All four may discuss the same subject.
+
+That does not mean they are the same kind of record.
+
+## The problem with one undifferentiated knowledge base
+
+When every project record is treated as generic documentation, readers inherit a hidden classification problem.
+
+They must ask questions such as:
+
+- Is this page current?
+- Was this an idea or an accepted decision?
+- Is this describing work in progress?
+- Did this actually ship?
+- Is this an explanation, evidence, or a requirement?
+- If two pages disagree, which one wins?
+
+The content may be individually well written and still create a poor knowledge system because the reader has to infer what kind of truth each page is trying to represent.
+
+That problem becomes more serious as the corpus grows.
+
+It becomes more serious again when AI systems consume the same corpus.
+
+Retrieval can find a relevant paragraph without knowing whether that paragraph is an obsolete observation, a current specification, or an editorial interpretation.
+
+## Four records, four jobs
+
+Monad's public knowledge base now separates four publication domains.
+
+### Documentation: what is true now?
+
+[Documentation](/docs) is the current authoritative explanation of the system.
+
+A reader should be able to enter the docs without reconstructing the entire history of the project.
+
+When the system changes, the documentation changes with it.
+
+History is valuable, but current documentation should not force readers to distinguish old truth from new truth on every page.
+
+### Journal: what happened while doing the work?
+
+The [Engineering Journal](/journal) preserves the record closer to the work itself.
+
+It can contain uncertainty.
+
+It can contain wrong assumptions.
+
+It can contain failed experiments, partial discoveries, and decisions that have not yet become formal decisions.
+
+That is not a weakness of the Journal. It is its purpose.
+
+A historical engineering record becomes less useful if every entry is rewritten later to make the final architecture appear inevitable.
+
+### Changelogs: what changed at a meaningful boundary?
+
+[Changelogs](/changelogs) answer a different question.
+
+A reader looking at a change record should not need to reconstruct the engineering process to determine whether something changed, whether it was breaking, or whether migration is required.
+
+The Changelog compresses many underlying activities into an externally meaningful delta.
+
+The Journal may contain fifty entries that eventually produce one release note.
+
+That asymmetry is useful.
+
+### Articles: what should readers understand about this?
+
+Articles provide editorial distance.
+
+They can synthesize the Journal, current documentation, formal artifacts, implementation work, and external research into something designed primarily for understanding.
+
+That is what this article is doing.
+
+It is not the specification for the publication system.
+
+It is not the historical log of how the separation was implemented.
+
+It is not the release record announcing that the separation occurred.
+
+It is the explanation of why the separation is valuable.
+
+## The same event can legitimately produce several records
+
+Suppose an implementation experiment reveals that semantic identity must be independent from file identity.
+
+That development may produce:
+
+1. a Journal entry describing the observation,
+2. an experiment or evidence artifact,
+3. an ADR accepting the architectural consequence,
+4. a specification defining the resulting contract,
+5. updated System documentation describing the current model,
+6. a Changelog entry when user-visible behavior changes,
+7. and an Article explaining why semantic identity matters in a broader engineering context.
+
+This can look like duplication if the only unit of analysis is topic.
+
+It is not duplication if the records answer different questions.
+
+The goal is not to eliminate repetition at any cost.
+
+The goal is to prevent semantic ambiguity.
+
+## Authority is part of information architecture
+
+The strongest reason for the separation is not visual organization.
+
+It is authority.
+
+If a Journal entry says:
+
+> We currently think X is the right model.
+
+and the accepted specification later says Y, the system should not ask readers—or an AI agent—to guess which statement governs implementation.
+
+The record type helps answer that question before content comparison even begins.
+
+Likewise, an essay can advocate for a future direction without accidentally changing the current system contract.
+
+A Changelog can announce a release without becoming the canonical technical explanation of the released behavior.
+
+Structure carries meaning.
+
+## Editorial content benefits from the boundary too
+
+Keeping Articles separate protects editorial freedom.
+
+A Blog post can be exploratory or argumentative.
+
+A Research article can expose uncertainty and conclude that evidence is insufficient.
+
+A White Paper can propose a system direction that has not yet been accepted.
+
+Those publications become more useful when they do not have to pretend to be normative technical documentation.
+
+The project can communicate ideas before governance turns them into requirements.
+
+## This is also a test of Monad's thesis
+
+Monad is concerned with preserving engineering knowledge and the relationships between its representations.
+
+That makes its own public knowledge base an unusually useful test subject.
+
+If we cannot distinguish current truth, historical observation, release boundaries, formal evidence, and editorial interpretation in the project that is explicitly studying those problems, that would be important evidence against the approach.
+
+The publication-domain split is therefore more than website organization.
+
+It is a small instance of the larger architectural question:
+
+> Can a software project preserve not only information, but enough meaning about that information for humans and machines to use it correctly?
+
+The four domains are an attempt to make one part of that meaning explicit.
+
+## The rule going forward
+
+The practical rule is simple:
+
+- If it defines or explains current Monad behavior, put it in Documentation.
+- If it records the engineering process as it happened, put it in the Journal.
+- If it communicates a meaningful released or published change, put it in Changelogs.
+- If it exists primarily to explain, investigate, synthesize, or argue, publish it as an Article.
+
+Formal artifacts remain their own inspectable engineering record beneath Documentation's Artifacts section.
+
+The boundaries will evolve as the project does.
+
+But making the distinctions explicit now is cheaper than trying to reconstruct them after hundreds or thousands of pages exist.

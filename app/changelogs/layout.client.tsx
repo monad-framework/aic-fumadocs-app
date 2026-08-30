@@ -1,5 +1,8 @@
 'use client';
+
+import type { ComponentProps } from 'react';
 import * as Base from 'fumadocs-ui/components/sidebar/base';
+import { cn } from '@/lib/cn';
 
 export function SidebarSeparator({ className, style, children, ...props }: ComponentProps<'p'>) {
   const depth = Base.useFolderDepth();

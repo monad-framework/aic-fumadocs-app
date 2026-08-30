@@ -1,0 +1,290 @@
+---
+title: How the Journal Works
+description: The authoring contract for Monad Engineering Journal entries: identity, metadata, chronology, status, structure, and cross-linking rules.
+---
+
+The Engineering Journal is a working historical record, so its authoring rules optimize for **traceability and chronology without pretending every observation is authoritative**.
+
+This page defines the contract every Journal entry should follow.
+
+## Entry identity
+
+Every entry receives two related identifiers.
+
+### Filename
+
+```text
+YYYY-MM-DD-NNN-short-slug.mdx
+```
+
+Example:
+
+```text
+2026-08-30-001-establishing-the-engineering-journal.mdx
+```
+
+### Durable journal ID
+
+```text
+JRN-YYYY-MM-DD-NNN
+```
+
+Example:
+
+```text
+JRN-2026-08-30-001
+```
+
+The filename provides natural chronology and a readable URL. The journal ID provides a compact durable reference that can be cited from artifacts, articles, Building Monad installments, issues, or future tooling.
+
+If multiple entries are created on the same date, increment `NNN` in publication order.
+
+## Required entry metadata
+
+Journal entry metadata lives under the `journal` frontmatter key.
+
+```yaml
+---
+title: Short descriptive title
+description: One-sentence summary of the engineering event or finding.
+journal:
+  id: JRN-2026-08-30-001
+  date: 2026-08-30
+  kind: investigation
+  status: working
+  phase: architecture
+  topics:
+    - semantic-model
+    - authority
+  related:
+    - label: Building Monad
+      href: /docs/building-monad
+    - label: System
+      href: /docs/system
+---
+```
+
+Utility pages such as this format guide do not need a `journal` object. Actual journal entries should always include one.
+
+## Metadata fields
+
+### `id`
+
+A durable identifier in this exact form:
+
+```text
+JRN-YYYY-MM-DD-NNN
+```
+
+Do not change an entry ID merely because the title or interpretation changes later.
+
+### `date`
+
+The publication or record date in ISO form:
+
+```text
+YYYY-MM-DD
+```
+
+Use the date that best identifies when the recorded engineering work occurred. If a retrospective entry covers older work, use the retrospective publication date and explain the historical period in the body.
+
+### `updated`
+
+Optional ISO date recording a meaningful later edit.
+
+Use it when the entry receives substantive context, a resolution note, or a supersession annotation. Do not update it for trivial spelling or formatting changes.
+
+### `kind`
+
+One of:
+
+| Kind | Use it for |
+| --- | --- |
+| `observation` | A notable engineering fact, discovery, or emerging pattern. |
+| `investigation` | A question being researched or analyzed. |
+| `experiment` | A deliberate test intended to produce evidence. |
+| `implementation` | Construction, integration, debugging, migration, or other implementation work. |
+| `failure` | A failed approach, regression, incident, or falsified assumption worth preserving. |
+| `decision-in-progress` | A decision being worked through before it becomes authoritative. |
+| `retrospective` | A deliberately backward-looking account written after the events described. |
+
+`decision-in-progress` is intentionally distinct from an accepted ADR. Journal may record the reasoning that leads to a decision, but the accepted decision belongs in the authoritative artifact set.
+
+### `status`
+
+One of:
+
+| Status | Meaning |
+| --- | --- |
+| `working` | The matter remains active, provisional, or unresolved. |
+| `resolved` | The immediate work or question reached a stable conclusion. |
+| `superseded` | Later work materially replaced the position or outcome recorded here. |
+| `retrospective` | The entry was intentionally authored after the period it describes. |
+
+A resolved journal entry is still not authoritative merely because it is resolved.
+
+### `phase`
+
+Optional project phase:
+
+- `inception`
+- `domain-discovery`
+- `product-definition`
+- `architecture`
+- `specification`
+- `implementation`
+- `verification`
+- `release-and-evolution`
+
+Use the phase when the entry clearly belongs to one. Omit it rather than forcing ambiguous work into a phase.
+
+### `topics`
+
+A small set of stable subject labels used to make later indexing and cross-entry analysis possible.
+
+Prefer project concepts such as:
+
+```text
+identity
+authority
+provenance
+execution
+reconciliation
+local-first
+ai-interaction
+verification
+build-system
+documentation
+```
+
+Avoid creating a new near-synonym when an existing topic already describes the subject.
+
+### `related`
+
+Explicit links to records that materially contextualize the entry.
+
+Typical targets include:
+
+- accepted requirements,
+- specifications,
+- ADRs,
+- experiments,
+- evidence,
+- reviews,
+- System documentation,
+- Building Monad installments or essays,
+- relevant articles,
+- repository resources.
+
+Related links are bidirectional in intent even when only one side has been authored yet. When a later artifact or narrative publication depends materially on a Journal entry, add the reverse link when practical.
+
+## Recommended entry structure
+
+Journal entries should remain flexible enough to capture real work, but most entries benefit from this order.
+
+```markdown
+## Context
+
+What were we working on, and why did it matter?
+
+## What happened
+
+What work, investigation, experiment, failure, or observation occurred?
+
+## What we learned
+
+What changed in our understanding?
+
+## Current position
+
+What do we believe or intend now? Clearly distinguish provisional conclusions from accepted authority.
+
+## Artifacts and evidence
+
+What formal records, commits, tests, experiments, or external evidence are connected to this entry?
+
+## Open questions
+
+What remains unresolved?
+
+## Next
+
+What is the next concrete piece of work?
+```
+
+Do not force empty headings into an entry. Use only the sections that make the record clearer.
+
+## Resolution and supersession
+
+Journal history should not be rewritten merely to make earlier reasoning appear correct.
+
+If later work changes the outcome:
+
+1. preserve the original entry;
+2. update `status` to `resolved` or `superseded` when appropriate;
+3. set `updated`;
+4. add a short resolution or supersession note near the top or bottom of the entry;
+5. link to the later entry, artifact, or System page that establishes the new state.
+
+This keeps the historical record intelligible without allowing stale conclusions to masquerade as current truth.
+
+## Chronological ordering
+
+Journal files live directly under `content/journal/` and are sorted newest-first using Fumadocs' reversed-rest page-tree convention.
+
+Because filenames begin with `YYYY-MM-DD-NNN`, lexical reverse order is also chronological reverse order.
+
+The organizational rule is therefore simple:
+
+```text
+content/journal/
+├── index.mdx
+├── format.mdx
+├── 2026-08-30-001-establishing-the-engineering-journal.mdx
+├── 2026-08-31-001-example-entry.mdx
+└── ...
+```
+
+Do not create year/month folders until the volume of entries makes them materially useful. Flat date-prefixed files preserve simple URLs, simple ordering, and low authoring friction.
+
+## Relationship to Building Monad
+
+Journal is **source material**, not a subsection of Building Monad.
+
+A journal entry may capture five hours of debugging, a failed design, or a provisional hypothesis. A Building Monad installment may later synthesize several weeks of those records into a coherent narrative.
+
+That distinction is intentional:
+
+```text
+Journal
+  close to the work
+  chronological
+  granular
+  provisional
+
+Building Monad
+  close to the story
+  curated
+  synthesized
+  interpretive
+```
+
+Building Monad may cite Journal. Journal may link forward to the installment or essay that later interprets the work. Neither needs to live inside the other's route hierarchy.
+
+## Relationship to Artifacts and System
+
+The Journal can record the emergence of a requirement, ADR, experiment, or specification, but it does not replace that artifact.
+
+Likewise, it can explain how a current System behavior came to exist, but it does not define the current System behavior.
+
+Use this authority order when records disagree:
+
+```text
+accepted authoritative artifact / current System documentation
+                    ↓
+             takes precedence over
+                    ↓
+              Journal history
+```
+
+The value of Journal is not that it is authoritative. Its value is that it preserves the engineering path that authoritative records alone cannot reconstruct.

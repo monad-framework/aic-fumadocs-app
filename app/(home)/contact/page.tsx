@@ -14,19 +14,20 @@ export default function ContactPage() {
       description="Use the channel that matches the kind of question, report, or contribution you want to make."
     >
       <section>
-        <h2>Project questions and discussion</h2>
+        <h2>Project questions, proposals, and engineering work</h2>
         <p>
-          Use <a href="https://github.com/orgs/monad-framework/discussions">Monad Framework Discussions</a> for questions,
-          design discussion, feedback, and topics that benefit from a public conversation.
+          Use the <a href="https://github.com/monad-framework/monad/issues">Monad issue tracker</a> for actionable questions,
+          proposals, defects, or engineering work in Monad itself. GitHub Discussions is not currently enabled on the Monad
+          repository, so the site does not direct readers to a Discussions URL that may not exist.
         </p>
       </section>
 
       <section>
-        <h2>Monad bugs and engineering work</h2>
+        <h2>Good reports are reproducible</h2>
         <p>
-          For defects or actionable work in Monad itself, use the
-          <a href="https://github.com/monad-framework/monad/issues"> Monad issue tracker</a>. Include enough reproduction,
-          environment, expected behavior, and evidence for someone else to evaluate the report.
+          Include enough environment, reproduction, expected behavior, actual behavior, and evidence for someone else to
+          evaluate the report. When a question is architectural or requirements-related, link the artifact or documentation
+          that frames the disagreement.
         </p>
       </section>
 
@@ -42,9 +43,9 @@ export default function ContactPage() {
       <section>
         <h2>Security-sensitive information</h2>
         <p>
-          Do not post exploitable security details in a public discussion or issue. Prefer GitHub's private security-reporting
-          facilities for the affected repository when available. If private reporting is not available, open a minimal public
-          issue asking a maintainer for a private contact channel without including the vulnerability details.
+          Do not post exploitable security details in a public issue. Prefer GitHub's private security-reporting facilities for
+          the affected repository when available. If private reporting is not available, open a minimal public issue asking a
+          maintainer for a private contact channel without including the vulnerability details.
         </p>
       </section>
 

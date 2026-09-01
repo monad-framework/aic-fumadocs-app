@@ -4,15 +4,15 @@ const footerNavigation = {
   explore: [
     { label: "Start Here", href: "/" },
     { label: "Building Monad", href: "/building-monad" },
-    { label: "System", href: "/system" },
-    { label: "Artifacts", href: "/artifacts" },
+    { label: "System", href: "/docs/system" },
+    { label: "Artifacts", href: "/docs/artifacts" },
   ],
 
   project: [
-    { label: "About", href: "/about" },
+    { label: "About", href: "/docs/about" },
     { label: "Project Roadmap", href: "/roadmap" },
     { label: "Engineering Process", href: "/process" },
-    { label: "Changelog", href: "/changelog" },
+    { label: "Changelog", href: "/changelogs" },
   ],
 
   follow: [
@@ -37,8 +37,8 @@ const footerNavigation = {
 
   community: [
     {
-      label: "GitHub Discussions",
-      href: "https://github.com/orgs/monad-framework/discussions",
+      label: "Monad Issues",
+      href: "https://github.com/monad-framework/monad/issues",
       external: true,
     },
     {
@@ -176,6 +176,15 @@ export function SiteFooter() {
                   focus:border-fd-primary
                   focus:ring-2 focus:ring-fd-primary/20
                 "
+              />
+
+              <input
+                type="text"
+                name="company"
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+                aria-hidden="true"
               />
 
               <button

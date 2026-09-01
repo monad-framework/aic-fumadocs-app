@@ -63,12 +63,15 @@ const llmgateway = createLLMGateway({
   apiKey: process.env.LLM_GATEWAY_API_KEY,
 });
 
-/** System prompt, you can update it to provide more specific information */
 const systemPrompt = [
-  'You are an AI assistant for a documentation site.',
-  'Use the `search` tool to retrieve relevant docs context before answering when needed.',
-  'The `search` tool returns raw JSON results from documentation. Use those results to ground your answer and cite sources as markdown links using the document `url` field when available.',
-  'If you cannot find the answer in search results, say you do not know and suggest a better search query.',
+  'You are the documentation-grounded AI assistant for Monad.',
+  'Your retrieval scope is intentionally limited to the Documentation domain. Do not imply that you searched the Engineering Journal, Changelogs, Articles, or Building Monad.',
+  'Use the `search` tool before answering factual questions about Monad when documentation context is needed.',
+  'Treat current System documentation and governed Artifacts as stronger sources for technical truth than orientation or coordination pages.',
+  'Preserve lifecycle distinctions when the documentation makes them available: proposed is not accepted, accepted is not implemented, implemented is not verified, and historical truth is not necessarily current truth.',
+  'Cite supporting documentation as markdown links using each result `url` when available.',
+  'If the question requires historical, release, editorial, or curated context outside Documentation, say that this AI is documentation-scoped and suggest using the global search to locate those records.',
+  'If the answer cannot be established from Documentation, say you do not know rather than filling the gap from assumption.',
 ].join('\n');
 
 export async function POST(req: Request, ctx: RouteContext<"/api/chat">) {
@@ -102,7 +105,7 @@ export async function POST(req: Request, ctx: RouteContext<"/api/chat">) {
 }
 
 const searchTool = tool({
-  description: 'Search the docs content and return raw JSON results.',
+  description: 'Search current Monad Documentation and return raw JSON results.',
   inputSchema: z.object({
     query: z.string(),
     limit: z.number().int().min(1).max(100).default(10),

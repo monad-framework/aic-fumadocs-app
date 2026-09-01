@@ -42,9 +42,11 @@ export default function Layout({ children }: { children: ReactNode }) {
               className: 'text-fd-muted-foreground rounded-2xl',
             }),
           )}
+          aria-label="Ask the Documentation AI"
+          title="AI answers from Documentation only"
         >
           <MessageCircleIcon className="size-4.5" />
-          Ask AI
+          Ask Docs
         </AISearchTrigger>
       </AISearch>
 

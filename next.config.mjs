@@ -28,6 +28,11 @@ const config = {
         destination: '/changelogs',
         permanent: true,
       },
+      {
+        source: '/subscribe',
+        destination: '/newsletter',
+        permanent: true,
+      },
     ];
   },
 };

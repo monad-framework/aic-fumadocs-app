@@ -1,0 +1,861 @@
+---
+title: "Syncing the Monad Repos with the Blog"
+description: "a plan for keeping the blog information updated in real time as changes occur in the Monad repo"
+---
+
+This site that follows the creation and evolution of [Monad](https://github.com/monad-framework/monad/) , while this site itself is in a repo at [blog](https://github.com/monad-framework/aic-fumadocs-app). We wanted to keep the information on this site in sync with the Monad repo without having to add an inordinate amount of extra documentation work as we were already producing documentation, and we wanted it to work such that when changes occur in the [Monad](https://github.com/monad-framework/monad/) repo they would be automatically updated in the [blog](https://github.com/monad-framework/aic-fumadocs-app) repo. We wanted the [blog](https://github.com/monad-framework/aic-fumadocs-app) repo to accurately and correctly reflect the actual state and status of the [Monad](https://github.com/monad-framework/monad/) repo in real time
+
+After inspecting both repositories, we are deciding to treat this as a **first-class projection of Monad**, not as ordinary documentation synchronization.
+
+The fundamental relationship should be:
+
+> **`monad` is authoritative. `aic-fumadocs-app` is a governed public read model of Monad.**
+
+That distinction is important as the website should never independently decide what Monad's current status is.
+
+## 1. What the repositories already tell us
+
+Monad already has architectural precedents for exactly this kind of system.
+
+Its `document-sync.yml` verifies that human-facing documents and generated semantic companions remain synchronized on PRs and pushes to `main`.
+
+It also has a machine workflow projection that regenerates a machine representation, verifies it, and commits the resulting projection.
+
+And its GitHub tracking synchronization already treats the backlog and `engineering/work-packets/**` as inputs to an operational projection into GitHub issues, milestones, and hierarchy.
+
+That last workflow exposes one thing We will address during this work: it currently triggers automatically only for `stabilization/**` branches rather than `main`.  If GitHub state is meant to be part of the public "current state," we need to make its authority and synchronization semantics explicit.
+
+The current MVP backlog is already rich enough to serve as one authoritative input. It contains the current status, Product Goal, forecast release gate, epic roadmap, Work Packet schedule, features, and stories.
+
+Meanwhile, `aic-fumadocs-app` is a Next.js/Fumadocs application with deterministic build, type-checking, and Biome validation commands that we can use as publication gates.
+
+So we do not need to invent a completely new model. Instead, we will extend Monad's existing idea of **projections**.
+
+---
+
+# 2. The target architecture
+
+We recommend this :
+
+```text
+                       AUTHORITATIVE SYSTEM
+                    monad-framework/monad
+                              │
+                              │
+             canonical artifacts / backlog /
+             work packets / releases / machine
+             state / verification / GitHub state
+                              │
+                              ▼
+                 Monad Publication Projection
+                  deterministic + versioned
+                              │
+                    source SHA + provenance
+                              │
+                              ▼
+                    repository_dispatch
+                              │
+                              ▼
+              monad-framework/aic-fumadocs-app
+                              │
+                ┌─────────────┴──────────────┐
+                │                            │
+                ▼                            ▼
+        Generated public state       Editorial content
+        and artifact mirrors         essays / narrative
+                │                            │
+                └─────────────┬──────────────┘
+                              ▼
+                       Fumadocs build
+                              │
+                    validation + drift gate
+                              │
+                              ▼
+                         deployment
+```
+
+The crucial new abstraction is:
+
+## **Monad Publication Projection**
+
+It is the contract defining exactly which facts Monad exposes to external consumers such as the website.
+
+This is better than "sync these two repositories" because it prevents the website repository from becoming accidentally authoritative.
+
+---
+
+# 3. Divide website content into three classes
+
+This is probably the most important design decision.
+
+### A. Authoritative synchronized content
+
+This content should be generated or mirrored and **must never be manually edited in the website repository**.
+
+Examples:
+
+* specifications
+* requirements
+* ADRs
+* policies
+* schemas
+* verification records
+* release information
+* traceability records
+* accepted reviews
+* current roadmap data
+* current Work Packet state
+
+The website version should carry provenance such as:
+
+```yaml
+generated: true
+source_repository: monad-framework/monad
+source_path: product/backlog/MVP-BACKLOG.md
+source_commit: 8f51b...
+source_updated_at: 2026-09-01T...
+projection_version: "1"
+```
+
+Every generated page can display something like:
+
+> Current as of Monad commit `8f51b27`.
+
+That gives us an auditable chain:
+
+```text
+website statement
+    ↓
+generated record
+    ↓
+Monad source path
+    ↓
+Monad commit SHA
+```
+
+### B. Derived current-state content
+
+Some website pages should not simply mirror a file. They should **compute a public read model** from several Monad sources.
+
+Examples:
+
+* `/project/now`
+* `/project/status`
+* `/project/roadmap`
+* `/project/work-packets`
+* `/project/releases`
+* `/project/risks`
+* `/project/open-questions`
+* overall completion/progress indicators
+
+For example:
+
+```text
+MVP-BACKLOG.md
++ Work Packets
++ verification state
++ releases
++ relevant GitHub state
+        ↓
+public project-state.json
+        ↓
+Project / Status page
+```
+
+The website should not contain hand-maintained text saying:
+
+> EPIC-006 is currently active.
+
+Instead it should render that fact from generated state.
+
+### C. Editorial/historical content
+
+These stay human-authored:
+
+* blog articles
+* essays
+* commentary
+* historical explanations
+* design retrospectives
+* "why we did this" articles
+
+They should **not be silently rewritten whenever Monad changes**.
+
+Instead, historical articles should be anchored to a source snapshot:
+
+```yaml
+monad_snapshot: 8f51b27...
+```
+
+The site can then show:
+
+> This article describes Monad as it existed at commit `8f51b27`.
+> View current project state →
+
+That prevents an old article from becoming factually misleading merely because Monad evolved.
+
+---
+
+# 4. Build the publication contract inside Monad
+
+We will add something like:
+
+```text
+monad/
+├── publication/
+│   └── website/
+│       ├── projection.yaml
+│       └── README.md
+│
+├── schemas/
+│   └── publication/
+│       └── site-state.schema.json
+│
+├── scripts/
+│   └── export-site-state.py
+│
+└── .github/
+    └── workflows/
+        └── publish-site-state.yml
+```
+
+`projection.yaml` defines what is public and how it maps.
+
+Conceptually:
+
+```yaml
+version: 1
+
+consumer:
+  repository: monad-framework/aic-fumadocs-app
+
+artifacts:
+  requirements:
+    source: ...
+    destination: artifacts/requirements
+
+  decisions:
+    source: ...
+    destination: artifacts/decisions
+
+project:
+  backlog:
+    source: product/backlog/MVP-BACKLOG.md
+
+  work_packets:
+    source: engineering/work-packets
+```
+
+This is important because we should **not bury synchronization policy in a shell script**.
+
+The mapping itself becomes governed engineering knowledge.
+
+---
+
+# 5. Monad should produce a canonical machine-readable state
+
+The exporter should generate something like:
+
+```text
+site-state/
+├── manifest.json
+├── project.json
+├── roadmap.json
+├── work-packets.json
+├── releases.json
+├── risks.json
+├── open-questions.json
+├── artifacts.json
+└── provenance.json
+```
+
+For example:
+
+```json
+{
+  "schemaVersion": 1,
+  "repository": "monad-framework/monad",
+  "branch": "main",
+  "commit": "8f51b27...",
+  "project": {
+    "productGoal": "PG-001",
+    "status": "Proposed rolling-wave baseline",
+    "forecastReleaseGate": "2026-11-08"
+  }
+}
+```
+
+The values come directly from Monad—not from AI interpretation.
+
+This matters because **the synchronization layer must be deterministic**.
+
+AI can later help draft:
+
+> "This week Monad completed..."
+
+but AI should not be responsible for deciding the authoritative value of:
+
+```text
+Current Work Packet
+Release status
+Accepted ADR
+Current requirement
+Verification state
+```
+
+---
+
+# 6. Event-driven synchronization
+
+When `main` changes in Monad:
+
+```yaml
+on:
+  push:
+    branches:
+      - main
+```
+
+the new `publish-site-state.yml` should:
+
+1. Check out the exact commit.
+2. Run existing Monad integrity checks relevant to publication.
+3. Run `export-site-state.py`.
+4. Validate the output against the publication schema.
+5. Calculate the projection manifest.
+6. Send a `repository_dispatch` event to `aic-fumadocs-app`.
+
+Payload:
+
+```json
+{
+  "event_type": "monad_state_changed",
+  "client_payload": {
+    "repository": "monad-framework/monad",
+    "sha": "8f51b27...",
+    "projection_version": 1
+  }
+}
+```
+
+Critically, **do not send the actual generated state as trusted payload data**.
+
+Send the SHA.
+
+The website sync process should retrieve Monad at exactly that SHA and regenerate/verify the projection itself.
+
+That gives us cryptographic identity of the state being published.
+
+---
+
+# 7. The Fumadocs repository consumes the projection
+
+Add approximately:
+
+```text
+aic-fumadocs-app/
+├── content/
+│   ├── generated/
+│   │   └── monad/
+│   │       ├── manifest.json
+│   │       ├── project.json
+│   │       ├── roadmap.json
+│   │       └── ...
+│   │
+│   └── docs/
+│       ├── artifacts/
+│       └── project/
+│
+├── scripts/
+│   ├── sync-monad.ts
+│   └── verify-monad-sync.ts
+│
+├── .monad-sync-state.json
+│
+└── .github/workflows/
+    └── sync-monad.yml
+```
+
+I strongly recommend separating:
+
+```text
+content/generated/monad/
+```
+
+from:
+
+```text
+content/docs/
+```
+
+where practical.
+
+Then authored Fumadocs pages can be presentation shells:
+
+```tsx
+<ProjectStatus data={projectState} />
+```
+
+rather than having a GitHub Action constantly rewrite entire MDX pages.
+
+For artifacts that should be exact mirrors, generated MDX under the existing `/artifacts` hierarchy is appropriate.
+
+---
+
+# 8. Make the sync self-verifying
+
+The target repository should record:
+
+```json
+{
+  "sourceRepository": "monad-framework/monad",
+  "sourceBranch": "main",
+  "sourceSha": "8f51b27...",
+  "projectionVersion": 1
+}
+```
+
+Then CI establishes the invariant:
+
+```text
+website.monad_source_sha
+        ==
+SHA used to generate current public projection
+```
+
+And, once synchronization settles:
+
+```text
+latest publishable Monad SHA
+        ==
+deployed website source SHA
+```
+
+That gives you a measurable definition of "the website is current."
+
+---
+
+# 9. Handle deletion correctly
+
+This is frequently missed in repository synchronization systems.
+
+Suppose Monad deletes:
+
+```text
+ADR-0042
+```
+
+The sync cannot merely copy changed files.
+
+It must understand the **entire authoritative inventory**.
+
+So `manifest.json` should contain every projected artifact:
+
+```json
+{
+  "artifacts": [
+    {
+      "id": "ADR-0041",
+      "path": "...",
+      "sha256": "..."
+    },
+    {
+      "id": "ADR-0043",
+      "path": "...",
+      "sha256": "..."
+    }
+  ]
+}
+```
+
+Anything previously synchronized but no longer in the manifest is removed from the generated website corpus.
+
+Thus synchronization handles:
+
+```text
+create
+modify
+rename
+move
+delete
+```
+
+correctly.
+
+---
+
+# 10. Add reconciliation, not just events
+
+GitHub events can fail.
+
+Actions can be cancelled.
+
+Credentials can expire.
+
+Deployments can fail.
+
+Therefore event-driven synchronization alone is insufficient.
+
+Add a scheduled reconciliation workflow in `aic-fumadocs-app`, perhaps every five minutes:
+
+```yaml
+schedule:
+  - cron: "*/5 * * * *"
+```
+
+It asks:
+
+```text
+What is the current publishable Monad main SHA?
+
+What Monad SHA does the website currently represent?
+```
+
+If:
+
+```text
+source SHA != synchronized SHA
+```
+
+it runs synchronization again.
+
+So you get:
+
+```text
+push event
+     │
+     ├──────────────► immediate synchronization
+     │
+     │
+     ▼
+periodic reconciliation
+     │
+     └──────────────► catches anything missed
+```
+
+This gives the system eventual self-repair.
+
+---
+
+# 11. "Real time" needs two mechanisms
+
+There is an important distinction here.
+
+A statically generated website cannot literally update instantaneously when another repository changes.
+
+The pipeline:
+
+```text
+commit
+→ action
+→ sync
+→ build
+→ deploy
+```
+
+will always introduce some latency.
+
+For documents, architecture, artifacts, roadmap, etc., **event-driven near-real-time** is appropriate.
+
+We will target an SLO such as:
+
+> 95% of accepted Monad state changes visible publicly within 2–3 minutes.
+
+But some information really can be live:
+
+* current `main` SHA
+* latest CI state
+* latest release
+* open PR count
+* current build status
+* latest merged PR
+* current synchronization lag
+
+Those should be delivered through a small runtime Next.js endpoint/component:
+
+```text
+GitHub
+  ↓
+Next.js server endpoint
+  ↓
+15–30 second cache
+  ↓
+Fumadocs Status UI
+```
+
+Thus:
+
+### Static authoritative projection
+
+For:
+
+```text
+requirements
+ADRs
+specifications
+roadmap
+work packets
+architecture
+verification
+```
+
+### Live operational projection
+
+For:
+
+```text
+HEAD
+CI
+PRs
+releases
+sync status
+```
+
+Together, this is much closer to what you mean by **accurately reflecting Monad in real time**.
+
+---
+
+# 12. The site should expose its own freshness
+
+We will add a visible indicator to the site:
+
+```text
+Monad state
+
+Source: monad-framework/monad
+Commit: 8f51b27
+Synchronized: 34 seconds ago
+Status: Current
+```
+
+And define states such as:
+
+```text
+CURRENT
+SYNCING
+STALE
+FAILED
+```
+
+For example:
+
+```text
+0–5 min behind     CURRENT/SYNCING
+5–10 min behind    STALE
+>10 min behind     FAILED
+```
+
+If the system becomes stale, **do not continue presenting stale state as though it were current**.
+
+Show:
+
+> Current project data is temporarily behind the Monad repository.
+> Website snapshot: `8f51b27`
+> Monad current state: `a97c241`
+
+That is much better governance than silently being wrong.
+
+---
+
+# 13. Add an evolution feed
+
+Because this site specifically follows **the creation and evolution of Monad**, We will add another projection:
+
+```text
+Monad Evolution Stream
+```
+
+Generated from:
+
+* merged PRs
+* releases
+* accepted ADRs
+* significant specification changes
+* Work Packet transitions
+* milestone changes
+* major verification outcomes
+
+For example:
+
+```text
+2026-09-01
+
+09:42  WP-MVP-0004 moved to Complete
+09:31  ADR-0017 accepted
+08:54  PR #183 merged
+08:22  SPEC-SEM-004 amended
+```
+
+This gives the site an automatically maintained factual engineering journal.
+
+Then human-written articles explain **why those changes matter**.
+
+That separation is extremely valuable:
+
+```text
+machine: what happened
+human/AI-assisted editorial: why it matters
+```
+
+---
+
+# 14. We will not use these approaches
+
+We will specifically avoid:
+
+**Git submodules.** They solve repository inclusion, not semantic synchronization or state derivation.
+
+**Blind `rsync`/directory copying.** It cannot distinguish authoritative, derived, machine, historical, and editorial information.
+
+**Having the website scrape Markdown independently.** That gives you two implementations interpreting Monad semantics.
+
+**Automatically asking an LLM to summarize every commit and publishing that as truth.** AI-generated narrative can be useful, but not as the authoritative status layer.
+
+**Duplicating status values manually.** The moment both repositories contain an editable `status:`, drift becomes inevitable.
+
+---
+
+# 15. Authentication/security model
+
+We will use a GitHub App rather than a broad Personal Access Token.
+
+Permissions approximately:
+
+### Monad
+
+```text
+Contents: read
+Metadata: read
+Actions/checks: read if needed
+```
+
+### Fumadocs
+
+```text
+Contents: write
+Actions: write/trigger as needed
+Pull requests: write if using auto-merge
+```
+
+The source repository only needs to **signal** the consumer.
+
+The Fumadocs repository should perform its own synchronization and write its own files.
+
+That avoids giving Monad's workflow broad cross-repository write privileges.
+
+---
+
+# 16. Commit every synchronization
+
+We will preserve the result in Git.
+
+Example:
+
+```text
+chore(sync): project Monad state at 8f51b27
+```
+
+with commit body:
+
+```text
+Source: monad-framework/monad
+Source SHA: 8f51b27...
+Projection: v1
+```
+
+That means the website repository itself becomes a historical record of what it published.
+
+You can answer:
+
+> What did the website say Monad's state was on August 20?
+
+by inspecting Git history.
+
+---
+
+# 17. Acceptance criteria
+
+We will consider the system complete only when these invariants hold:
+
+1. **Monad is the only authority** for synchronized engineering state.
+2. Every generated website artifact identifies its exact Monad source.
+3. Every synchronization identifies an exact Monad commit SHA.
+4. Identical Monad state produces identical projected state.
+5. Source deletions propagate correctly.
+6. Out-of-order webhook events cannot regress the website.
+7. Failed synchronization never masquerades as current state.
+8. Missed events self-heal through reconciliation.
+9. Manual changes to generated content cause CI failure.
+10. The Fumadocs build, type-check, and lint must pass before publication.
+11. Historical articles remain historical rather than being rewritten.
+12. Live operational status identifies its freshness.
+13. A user can trace a website fact back to the governing Monad artifact.
+14. The site can report the difference between its synchronized SHA and Monad's current publishable SHA.
+15. The entire mechanism is reproducible locally.
+
+---
+
+# 18. Implementation sequence I recommend
+
+We will implement this as six deliberate increments:
+
+| Phase                       | Work                                                                      |
+| --------------------------- | ------------------------------------------------------------------------- |
+| **1. Publication contract** | Identify authoritative Monad sources and define projection schema/mapping |
+| **2. Exporter**             | Implement deterministic `export-site-state` inside Monad                  |
+| **3. Consumer**             | Implement Fumadocs generated-data boundary and sync script                |
+| **4. Eventing**             | Add GitHub `repository_dispatch` and automatic target update              |
+| **5. Integrity**            | Add drift detection, reconciliation, provenance, stale-state handling     |
+| **6. Live layer**           | Add live HEAD/CI/PR/release/sync-status components                        |
+
+We will **not begin with the GitHub Action**.
+
+The GitHub Action is merely transport.
+
+The first thing to define is:
+
+> **What, exactly, constitutes the public projection of Monad, which source controls every fact, and how is that fact represented?**
+
+That is very consistent with the direction Monad itself has already taken.
+
+---
+
+## The larger architectural implication
+
+I think this should eventually become more than a special integration for the blog.
+
+Monad already has the concept of machine projections.
+
+What we are describing is effectively another projection class:
+
+```text
+Canonical governed engineering knowledge
+                │
+        ┌───────┼─────────┐
+        ▼       ▼         ▼
+     Machine   GitHub    Publication
+    Projection Projection Projection
+                            │
+                            ▼
+                         Website
+```
+
+We will therefore model this as a **Monad Publication Projection**, with the Fumadocs site merely being its first consumer.
+
+That makes the solution extensible later to:
+
+```text
+Fumadocs
+customer portals
+release sites
+API documentation
+status dashboards
+investor/project dashboards
+package registries
+external knowledge systems
+AI-readable public context
+```
+
+rather than hard-coding "`monad` → `aic-fumadocs-app` sync."
+
+The next thing we will do is to **formally design the Publication Projection Contract and produce the exact source-to-destination mapping between the two repositories**. That will tell us, path by path, what gets mirrored, derived, rendered live, left editorial, or deliberately excluded. After that, the GitHub Actions implementation becomes comparatively straightforward.

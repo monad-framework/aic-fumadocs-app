@@ -4,7 +4,10 @@ import { SiteNavbar } from '@/components/site-navbar';
 import SiteSearchDialog from '@/components/site-search-dialog';
 
 import './global.css';
-import { Inter } from 'next/font/google';
+import { Inter, Raleway } from 'next/font/google';
+import { cn } from "@/lib/utils";
+
+const raleway = Raleway({subsets:['latin'],variable:'--font-sans'});
 
 const inter = Inter({
   subsets: ['latin'],
@@ -14,7 +17,7 @@ const themeInitScript = `(function(){try{var t=localStorage.getItem('theme')||'s
 
 export default function Layout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en" className={inter.className} suppressHydrationWarning>
+    <html lang="en" className={cn(inter.className, "font-sans", raleway.variable)} suppressHydrationWarning>
       <head>
         <script id="theme-init" dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>

@@ -1,0 +1,1527 @@
+---
+title: "Task: Formalize the Monad AI-Driven Engineering Operating Model"
+description: "A version structured specifically to paste into another LLM as an implementation/design instruction."
+---
+# Task: Formalize the Monad AI-Driven Engineering Operating Model
+
+You are working on **Monad**, an Engineering Knowledge Compilation Platform with a repository-native **Engineering Operating System (EOS)**.
+
+Your task is to formally derive and integrate a **Monad AI-Driven Engineering Operating Model** from the intersection of:
+
+1. the current Monad architecture,
+2. the current Monad Engineering Operating System,
+3. the useful principles of AI-Driven Development Lifecycle approaches such as AWS AI-DLC,
+4. the existing Monad decision in `ADR-0006-eos-sovereignty-and-external-sdlc-assimilation.md`.
+
+Do **not** replace Monad's architecture, EOS, semantic model, authority system, lifecycle model, or canonical state with AI-DLC or any other external methodology.
+
+The goal is to make Monad explicitly **AI-driven in workflow initiative and execution while remaining EOS-governed, human-sovereign in consequential decision authority, and evidence-driven in acceptance**.
+
+---
+
+# 1. Core Architectural Position
+
+The target operating model is:
+
+> **AI drives the work. EOS governs the work. Humans govern consequential meaning and authority. Evidence governs acceptance.**
+
+Formally:
+
+```text
+Monad AI-Driven Engineering Operating Model
+=
+Monad Semantic Authority
++ EOS Governance
++ AI-Driven Workflow Initiative
++ Bounded AI Execution
++ Human Sovereignty
++ Evidence-Based Closure
+```
+
+The following invariants are fundamental:
+
+```text
+AI initiative != AI authority
+```
+
+```text
+AI output != canonical engineering truth
+```
+
+An AI may:
+
+* analyze;
+* inspect;
+* reason;
+* propose;
+* plan;
+* decompose work;
+* identify ambiguity;
+* ask for clarification;
+* generate alternatives;
+* recommend decisions;
+* generate engineering artifacts;
+* execute authorized work;
+* invoke authorized tools;
+* test;
+* gather evidence;
+* perform review where policy permits;
+* recommend the next lifecycle action.
+
+An AI does **not** gain consequential authority merely because it possesses sufficient context, has high confidence, or performs the majority of the engineering work.
+
+Consequential decisions remain subject to Monad's explicit authority system.
+
+---
+
+# 2. Target Engineering Loop
+
+Formalize the following as the normal AI-driven engineering control loop:
+
+```text
+INTENT
+  ↓
+CONTEXT COMPILATION
+  ↓
+PLAN
+  ↓
+CLARIFY
+  ↓
+DECIDE
+  ↓
+AUTHORIZE
+  ↓
+EXECUTE
+  ↓
+VERIFY
+  ↓
+REVIEW
+  ↓
+INTEGRATE / RELEASE / OPERATE
+  ↓
+OBSERVE
+  ↓
+LEARN
+  ↓
+REPLAN
+```
+
+A shorter inner loop is:
+
+```text
+PROPOSE
+→ CLARIFY
+→ DECIDE
+→ APPROVE
+→ EXECUTE
+→ VERIFY
+```
+
+This inner AI-driven loop operates **inside EOS**.
+
+It does not replace EOS.
+
+---
+
+# 3. Relationship to EOS
+
+The Monad Engineering Operating System currently contains eight permanent lifecycle layers:
+
+```text
+EOSB — Bootstrap
+EOSP — Planning
+EOSE — Execution
+EOSV — Verification
+EOSR — Review
+EOSC — Change Control
+EOSL — Release Lifecycle
+EOSM — Maintenance
+```
+
+Do **not** create a ninth EOS layer for AI.
+
+The AI-driven operating model is a cross-cutting operating model spanning those layers.
+
+Use the following mapping:
+
+```text
+EOSB
+Establish policy, semantic context, agent/harness configuration,
+authority boundaries, validators, security controls, and execution capabilities.
+
+EOSP
+AI elaborates intent, compiles relevant engineering context,
+identifies ambiguity, proposes decisions, derives an adaptive engineering pathway,
+decomposes work, and proposes dependency-aware PI/WC/WP structure.
+
+EOSE
+AI or another executor performs authorized work within bounded execution contracts,
+capability limits, repository scope, worktree/branch isolation, and autonomy policy.
+
+EOSV
+Results are validated using deterministic validators and independently auditable evidence.
+Executor assertions and self-tests are evidence inputs but are not sufficient proof by themselves.
+
+EOSR
+Humans and/or sufficiently independent review agents determine conformity,
+resolve disagreement, assess tradeoffs, and exercise acceptance authority.
+
+EOSC
+Any implementation discovery requiring a requirement, specification,
+architecture, policy, security, or authorized-scope change leaves execution
+and enters governed change control.
+
+EOSL
+Accepted and verified changes enter governed release activity.
+
+EOSM
+Operational, maintenance, defect, incident, performance, and usage evidence
+feeds future planning and engineering-context compilation.
+```
+
+Preserve the existing EOS normal delivery loop:
+
+```text
+EOSP → EOSE → EOSV → EOSR
+```
+
+and controlled evolution loop:
+
+```text
+EOSE / EOSV / EOSR
+→ EOSC
+→ EOSP / EOSE
+→ EOSV
+→ EOSR
+```
+
+---
+
+# 4. Human and AI Responsibility Model
+
+Use the following asymmetric responsibility model.
+
+| Function                                      | Primary Actor                               | Rule                                       |
+| --------------------------------------------- | ------------------------------------------- | ------------------------------------------ |
+| State desired outcomes                        | Accountable human/product authority         | AI may elaborate                           |
+| Compile engineering context                   | Monad + AI                                  | Must derive from governed knowledge        |
+| Propose engineering pathway                   | AI                                          | Advisory until authorized                  |
+| Determine workflow breadth/depth              | AI proposes                                 | Policy or accountable human may override   |
+| Discover ambiguity                            | AI                                          | Material ambiguity must be surfaced        |
+| Develop alternatives                          | AI                                          | Advisory                                   |
+| Evaluate alternatives                         | AI + humans                                 | AI may perform deep analysis               |
+| Make consequential decisions                  | Accountable human authority                 | Record through existing decision semantics |
+| Grant authority                               | Authorized human/policy mechanism           | Explicit and bounded                       |
+| Decompose authorized work                     | AI + EOSP                                   | Results become Monad planning objects      |
+| Execute                                       | AI/automation/native tools/humans           | Bounded by EOSE                            |
+| Self-check                                    | Executor                                    | Not final proof                            |
+| Verify                                        | EOSV                                        | Evidence-based                             |
+| Review                                        | Independent human/agent according to policy | Reviewer provenance required               |
+| Accept material risk                          | Human authority                             | Never inferred from AI confidence          |
+| Change architecture/governance/product intent | Appropriate human authority                 | Governed decision/change process           |
+| Record provenance                             | EOS                                         | Mandatory                                  |
+| Learn from results                            | Monad + AI                                  | Derived knowledge until governed           |
+
+Do not justify human authority solely on the basis that humans currently possess more context.
+
+Human sovereignty exists because of **accountability, governance, delegated authority, risk ownership, and responsibility for irreversible consequences**.
+
+This distinction must remain valid even if future AI systems possess greater analytical capability than humans.
+
+---
+
+# 5. AI-DLC Principles to Assimilate
+
+Assimilate useful external AI-DLC concepts into Monad-native semantics.
+
+## Adopt
+
+Adopt these concepts:
+
+* AI initiates workflow analysis.
+* AI creates initial plans.
+* AI actively identifies missing information.
+* AI asks targeted clarification questions.
+* AI presents options and consequences.
+* Humans decide consequential matters.
+* AI resumes work after decisions/authorization.
+* AI executes approved plans.
+* Workflow breadth adapts to the work.
+* Workflow depth adapts to complexity and risk.
+* Context persists across lifecycle activities.
+* Decisions and approvals are explicit.
+* Work is traceable end to end.
+* Verification and review are distinct from implementation.
+* AI may recommend the next engineering action rather than waiting passively for individual prompts.
+
+## Adapt
+
+Adapt these concepts instead of copying external terminology:
+
+```text
+External persistent AI context
+→ Monad semantic graph + governed memory + bounded context packages
+
+External unit of work
+→ Monad Work Packet
+
+External dependency planning
+→ EOSP dependency graph
+
+External decision record
+→ DEC-* and/or ADR
+
+External approval record
+→ APR-*
+
+External execution evidence
+→ EXEC-* / EVID-* / event ledger
+
+External agent role
+→ provider-neutral Monad execution/review role
+
+External lifecycle stage
+→ existing EOS layer/activity
+
+External AI steering files
+→ Monad governed policy/context/execution contracts
+```
+
+## Reject as Canonical Concepts
+
+Do not introduce duplicate canonical concepts for:
+
+* a second AI lifecycle;
+* external Units of Work;
+* Bolts;
+* a separate AI task hierarchy;
+* a separate AI dependency graph;
+* a separate AI approval system;
+* a separate AI evidence store;
+* an `.ai-dlc/` or `.ai-sdlc/` canonical state directory;
+* raw conversation history as canonical engineering state;
+* provider-specific lifecycle semantics;
+* model-specific authority.
+
+---
+
+# 6. Adaptive Engineering Workflow
+
+Introduce the concept of an **adaptive engineering pathway**.
+
+The pathway represents the engineering activities necessary to move from an intent to an accepted outcome.
+
+The pathway must be derived from factors including:
+
+* requested outcome;
+* current repository state;
+* applicable requirements;
+* specifications;
+* ADRs;
+* policy;
+* lifecycle state;
+* dependencies;
+* risk;
+* complexity;
+* uncertainty;
+* reversibility;
+* security implications;
+* operational implications;
+* data/privacy implications;
+* existing evidence;
+* stale or missing evidence;
+* required autonomy;
+* cost constraints;
+* available executors/harnesses;
+* provider constraints.
+
+The AI may recommend:
+
+* which activities are required;
+* which optional activities are unnecessary;
+* which activities need deeper rigor;
+* where clarification is necessary;
+* where a decision is blocking;
+* what research is needed;
+* what work can execute concurrently;
+* where independent review is required.
+
+However:
+
+```text
+adaptive workflow != unrestricted lifecycle mutation
+```
+
+Mandatory EOS gates cannot be silently skipped.
+
+Every omission, additional activity, or change in rigor that materially affects governed work must be explainable.
+
+---
+
+# 7. Normative Operating Invariants
+
+Use the following invariants as the initial normative baseline.
+
+## MADEOM-I01 — Intent Traceability
+
+Every governed engineering execution MUST trace to an authorized engineering intent or outcome.
+
+## MADEOM-I02 — Initiative Without Authority
+
+AI MAY initiate analysis, planning, clarification, recommendations, and proposed workflow transitions without thereby obtaining authority to approve those transitions.
+
+## MADEOM-I03 — Ambiguity Escalation
+
+AI MUST surface material ambiguity instead of silently resolving product, architecture, security, governance, legal, ethical, operational, or irreversible decisions.
+
+## MADEOM-I04 — Adaptive Pathway
+
+The engineering pathway MUST adapt to intent, complexity, risk, lifecycle state, dependencies, available evidence, and uncertainty rather than always following an identical sequence.
+
+## MADEOM-I05 — Explainable Rigor
+
+Skipped, reordered, added, or deepened engineering activities MUST be explainable when they affect governed work.
+
+## MADEOM-I06 — Native Decision Authority
+
+Consequential decisions MUST resolve through existing Monad authority and existing Decision, Approval, ADR, Change Request, or equivalent native semantics.
+
+## MADEOM-I07 — No Probabilistic Promotion
+
+No AI-generated statement becomes canonical engineering truth merely because an AI generated it, repeated it, or expressed high confidence.
+
+## MADEOM-I08 — Bounded Execution
+
+Execution MUST occur within an authorized Work Packet, scope, capability boundary, environment, execution contract, and permitted autonomy level.
+
+## MADEOM-I09 — Governing Drift
+
+Material governing-input drift MUST invalidate or suspend the active execution contract and route work back through planning or change control as appropriate.
+
+## MADEOM-I10 — Independent Evidence
+
+Executor assertions, completion summaries, and self-tests MUST NOT constitute sufficient proof of correctness by themselves.
+
+## MADEOM-I11 — Independent Review
+
+Independent review MUST be enforceable according to policy, consequence, risk, executor identity, and applicable separation-of-duties requirements.
+
+## MADEOM-I12 — Reconstructability
+
+Consequential planning, decisions, approvals, executions, verification, reviews, changes, and resulting artifacts MUST be reconstructably traceable.
+
+## MADEOM-I13 — Transcript Non-Authority
+
+Raw model transcripts MUST NOT be required canonical engineering state.
+
+## MADEOM-I14 — Provider Neutrality
+
+AI provider, model, harness, or vendor identity MUST NOT become semantic or governance authority.
+
+## MADEOM-I15 — Progressive Autonomy
+
+Increased execution authority MUST be earned through evidence, explicitly granted, bounded, observable, and reversibly revocable.
+
+## MADEOM-I16 — Evidence Feedback
+
+Operational and engineering evidence SHOULD inform future context compilation and planning but MUST NOT automatically become normative truth.
+
+---
+
+# 8. Existing Monad Requirements to Amend
+
+Modify the current product requirements rather than creating duplicate requirements where existing owners already exist.
+
+## FR-007 — Produce bounded agent context
+
+Amend to require context packages to include, where applicable:
+
+* governing engineering intent;
+* current lifecycle state;
+* unresolved decisions;
+* applicable `DEC-*`;
+* applicable `APR-*`;
+* adaptive pathway;
+* rationale for pathway breadth/depth;
+* autonomy level;
+* executor permissions;
+* governing constraints;
+* applicable evidence;
+* stale evidence warnings;
+* context provenance;
+* context fingerprint;
+* required validation and review contracts.
+
+## FR-012 — Unify memory, intelligence, and execution
+
+Amend to explicitly represent the loop:
+
+```text
+intent
+→ context
+→ plan
+→ clarify
+→ decide
+→ authorize
+→ execute
+→ verify
+→ observe
+→ learn
+→ replan
+```
+
+State explicitly that AI may drive progression through this loop while canonical transitions remain EOS-governed.
+
+## FR-013 — Maintain anti-hallucination engineering memory
+
+Amend to establish that persistent AI context must be reconstructed from:
+
+* canonical engineering knowledge;
+* derived governed knowledge;
+* explicit decisions;
+* approvals;
+* evidence;
+* execution history;
+* classified memory.
+
+Raw conversation context must not silently become canonical.
+
+## FR-014 — Orchestrate dependency-aware agent work
+
+Amend to require:
+
+* an authorized adaptive pathway;
+* dispatch-frontier derivation;
+* dependency closure;
+* decision closure;
+* required approval closure;
+* policy compliance;
+* concurrency/conflict analysis;
+* automatic blocking where required authority is missing.
+
+AI may recommend or calculate dispatch.
+
+AI may not self-authorize blocked work.
+
+## FR-015 — Enforce progressive autonomy
+
+Amend with the explicit rule:
+
+```text
+initiative != authority
+```
+
+An AI may have high initiative in analysis and planning while retaining low execution authority.
+
+Autonomy levels regulate capabilities and binding action, not whether AI may reason or propose.
+
+## FR-016 — Support cross-harness review
+
+Amend to require:
+
+* executor identity;
+* reviewer identity;
+* model/provider/harness provenance;
+* configurable independence requirements;
+* disagreement capture;
+* disposition rules;
+* prohibition against circular self-approval when independence is required.
+
+## FR-023 — Declarative governance, change control, and audit
+
+Amend to include durable representation of:
+
+* AI-proposed plans;
+* plan revisions;
+* material clarification questions;
+* resulting answers where governance-relevant;
+* decisions;
+* approvals;
+* denials;
+* authority;
+* pathway changes;
+* replan events;
+* escalation;
+* execution authorization;
+* review disposition.
+
+## FR-024 — Operational health and execution observability
+
+Amend to include observability for:
+
+* selected pathway;
+* pathway stage/activity;
+* number of replans;
+* clarification count;
+* blocked-decision duration;
+* approval latency;
+* execution duration;
+* executor identity;
+* reviewer identity;
+* provider/model/harness where applicable;
+* verification state;
+* rework rate;
+* autonomous/manual intervention points.
+
+## QR-008 — Progressive trust
+
+Clarify that trust governs authority and capability grants.
+
+It does not determine whether AI is allowed to analyze or propose.
+
+## QR-010 — Auditability
+
+Add reconstruction requirements for:
+
+* AI-generated plan proposals;
+* material clarification cycles;
+* decisions and approvals;
+* pathway modifications;
+* model/executor provenance where applicable.
+
+---
+
+# 9. New Functional Requirement
+
+Create exactly one new product-level functional requirement for the missing concern.
+
+## FR-037 — Provide Adaptive AI-Driven Engineering Workflow Planning
+
+Use this normative intent:
+
+> Monad MUST derive or assist in deriving a proposed engineering pathway from stated intent, governed repository context, lifecycle state, risk, complexity, dependencies, outstanding decisions, applicable evidence, and policy. The pathway MAY select, omit, reorder, parallelize, or deepen optional engineering activities where permitted, but MUST preserve mandatory EOS authority, lifecycle, security, verification, and governance invariants. Pathway rationale MUST be inspectable. Consequential decisions and unresolved material ambiguity MUST be surfaced for authorized disposition. Execution MUST NOT proceed beyond authority actually granted.
+
+Add acceptance criteria covering at least:
+
+1. low-risk reversible change;
+2. architecture-affecting change;
+3. unresolved product ambiguity;
+4. security-sensitive change;
+5. independent review requirement;
+6. blocked dependency;
+7. governing-input drift;
+8. provider unavailable;
+9. human denial of a proposed decision;
+10. autonomous execution within an already-authorized low-risk Work Packet.
+
+---
+
+# 10. ADR Governance
+
+Monad's ADR policy states that accepted ADR decision meaning is immutable.
+
+Therefore:
+
+## ADR-0006
+
+Do **not** materially rewrite:
+
+```text
+architecture/decisions/ADR-0006-eos-sovereignty-and-external-sdlc-assimilation.md
+```
+
+ADR-0006 remains governing architectural authority.
+
+It establishes:
+
+* EOS sovereignty;
+* one lifecycle/control plane;
+* Monad-native assimilation;
+* bounded autonomy;
+* human sovereignty;
+* deterministic-first evaluation;
+* independent review;
+* provider/harness replaceability;
+* native evidence and authority;
+* optional external interoperability.
+
+A non-semantic `Related:` reference may later point from ADR-0006 to the new ADR.
+
+## Create ADR-0007
+
+Create:
+
+```text
+architecture/decisions/ADR-0007-ai-driven-engineering-operating-model.md
+```
+
+Recommended title:
+
+```text
+ADR-0007 — AI-Driven Engineering as the Default EOS Operating Model
+```
+
+The decision must establish:
+
+> Monad SHALL treat AI-driven, human-governed engineering as the preferred operating model for engineering activities where suitable AI capability is available. AI may initiate workflow analysis, propose adaptive engineering pathways, seek clarification, generate artifacts, and execute authorized work. EOS remains the sole lifecycle and control plane. Accountable human authority retains consequential decision rights. Deterministic policy, verification evidence, and governed review control authorization and acceptance. AI-assisted and bounded-autonomous execution remain valid autonomy profiles inside this model rather than competing development methodologies.
+
+ADR-0007 MUST NOT supersede ADR-0006.
+
+The relationship is:
+
+```text
+ADR-0006
+External methodology assimilation and EOS sovereignty
+
+        ↓ constrains
+
+ADR-0007
+Monad-native AI-driven engineering operating model
+```
+
+---
+
+# 11. New Operating Model Artifact
+
+Create:
+
+```text
+engineering/lifecycle/EOS-AI-0001-ai-driven-engineering-operating-model.md
+```
+
+Recommended title:
+
+```text
+Monad AI-Driven Engineering Operating Model
+```
+
+Recommended artifact ID:
+
+```text
+EOS-AI-0001
+```
+
+This artifact should be governance-authoritative.
+
+It defines:
+
+* purpose;
+* scope;
+* principles;
+* responsibility model;
+* adaptive pathway;
+* AI initiative;
+* human authority;
+* decision and approval integration;
+* EOS layer mapping;
+* operating loops;
+* execution boundaries;
+* escalation;
+* verification;
+* independent review;
+* provenance;
+* learning;
+* autonomy;
+* failure handling;
+* conformance expectations.
+
+It must explicitly state:
+
+```text
+EOS-AI-0001 is not a ninth EOS lifecycle layer.
+```
+
+It is a cross-cutting operating model over EOSB/EOSP/EOSE/EOSV/EOSR/EOSC/EOSL/EOSM.
+
+---
+
+# 12. Existing EOS and Governance Artifacts to Amend
+
+Amend the following artifacts.
+
+## `engineering/lifecycle/README.md`
+
+Add:
+
+* MADEOM/EOS-AI-0001 as a cross-layer operating model;
+* the inner AI-driven loop;
+* explicit statement that EOS remains authoritative;
+* relationship between normal delivery loop and AI-driven loop.
+
+## `engineering/lifecycle/EOSP-planning.md`
+
+Add:
+
+* AI-driven intent elaboration;
+* semantic context compilation;
+* adaptive pathway proposal;
+* uncertainty detection;
+* clarification generation;
+* decision closure;
+* approval closure;
+* risk/complexity-aware rigor;
+* work decomposition;
+* pathway revision/replanning.
+
+## `engineering/lifecycle/EOSE-execution.md`
+
+Generalize the current Codex-centric conceptual model.
+
+Introduce a provider-neutral **executor/harness role**.
+
+Retain `./scripts/eos codex` as an adapter or convenience command if desired.
+
+Execution contracts should include:
+
+* Work Packet;
+* governing artifact fingerprint;
+* context fingerprint;
+* approved plan/pathway fingerprint;
+* autonomy level;
+* capability grants;
+* allowed/forbidden paths;
+* tool permissions;
+* provider/model/harness identity where applicable;
+* validation contract;
+* completion-report contract.
+
+## `engineering/lifecycle/EOSV-verification-v2.md`
+
+Add:
+
+* executor provenance;
+* provider/model/harness/config provenance where relevant;
+* approved-plan fingerprint;
+* context fingerprint;
+* verification independence metadata;
+* explicit rule that executor self-verification is not sufficient independent evidence where policy requires independence.
+
+## `engineering/lifecycle/EOSR-review.md`
+
+Add:
+
+* human review;
+* independent agent review;
+* cross-harness review;
+* reviewer independence policy;
+* executor/reviewer conflict rules;
+* disagreement capture;
+* human disposition for unresolved consequential disagreement.
+
+## `engineering/lifecycle/EOSC-change-control.md`
+
+Add the rule:
+
+If AI execution discovers that completing work correctly requires changing:
+
+* requirements;
+* architecture;
+* specifications;
+* policy;
+* security constraints;
+* accepted risk;
+* public contracts;
+* authorized scope,
+
+execution MUST stop or suspend and a governed proposal/Change Request MUST be created.
+
+The AI must not silently modify the execution plan to absorb the change.
+
+## `governance/planning-engine.md`
+
+Add:
+
+* adaptive pathway representation;
+* pathway rationale;
+* complexity classification;
+* risk classification;
+* missing-decision detection;
+* missing-approval detection;
+* optional-stage selection;
+* dispatch readiness;
+* parallelization eligibility;
+* replan triggers.
+
+## `governance/execution-engine.md`
+
+Add:
+
+* generic executor identity;
+* harness identity;
+* model/provider identity when applicable;
+* plan fingerprint;
+* context fingerprint;
+* autonomy grant;
+* capability grant;
+* approval requirements;
+* drift detection;
+* revocation;
+* resume/retry semantics.
+
+## `governance/policy-engine.md`
+
+Extend the constrained predicate vocabulary with concepts such as:
+
+```text
+required_decision_resolved
+required_approval_granted
+autonomy_level_at_least
+autonomy_level_at_most
+executor_capability_allowed
+reviewer_independent
+no_material_ambiguity
+pathway_approved
+plan_fingerprint_current
+context_fingerprint_current
+governing_inputs_current
+risk_class_permits_autonomy
+human_sovereign_approval_present
+```
+
+Do not allow arbitrary executable policy code merely to support AI workflows.
+
+## `governance/authority.md`
+
+Add an explicit actor concept for:
+
+```text
+AI / Automation Actor
+```
+
+Such an actor may:
+
+* exercise delegated capabilities;
+* create advisory output;
+* perform permitted execution;
+* perform permitted review;
+* produce evidence;
+* request decisions;
+* request approvals.
+
+It cannot independently possess `L4_HUMAN_SOVEREIGN` authority.
+
+Do not hard-code the assumption that all decisions must always be human forever.
+
+Instead distinguish:
+
+* ordinary delegated/reversible machine decisions;
+* binding governed decisions;
+* human-sovereign decisions.
+
+## `governance/decision-process.md`
+
+Define AI participation in each step.
+
+Recommended mapping:
+
+```text
+Frame        → AI may propose
+Drivers      → AI may discover/analyze
+Evidence     → AI may gather/classify
+Options      → AI may generate
+Evaluate     → AI may deeply analyze
+Consult      → AI may facilitate
+Decide       → according to authority class
+Implement    → AI may execute if authorized
+Verify       → independent evidence
+```
+
+Class 2/3 and human-sovereign decisions remain governed by accountable authority.
+
+## `engineering/definition-of-ready.md`
+
+Add readiness checks for:
+
+* adaptive pathway present when required;
+* pathway rationale inspectable;
+* material ambiguities resolved;
+* unresolved ambiguity converted to bounded research/decision work;
+* required decisions closed;
+* required approvals granted;
+* autonomy level valid;
+* execution context fingerprintable;
+* executor capabilities available;
+* review-independence requirements known.
+
+---
+
+# 13. Existing Artifacts That Should Not Be Semantically Changed
+
+Do not change the fundamental meaning of:
+
+```text
+governance/canonical-state-model.md
+```
+
+There must remain exactly one canonical representation of current EOS operational state.
+
+Do not create AI lifecycle state beside it.
+
+Do not create a competing AI event store, task store, approval store, or decision store.
+
+Do not modify deterministic ingestion/kernel specifications merely to support AI workflow orchestration.
+
+The AI-driven operating model belongs above the deterministic knowledge kernel.
+
+---
+
+# 14. New Specifications
+
+Create exactly these three initial specifications unless analysis demonstrates an existing approved specification already owns the concern.
+
+## `FUN-AIENG-0001 — Adaptive Engineering Workflow`
+
+Suggested path:
+
+```text
+specifications/functional/FUN-AIENG-0001-adaptive-engineering-workflow.md
+```
+
+Define:
+
+* intent ingestion;
+* context compilation;
+* complexity/risk assessment;
+* pathway generation;
+* optional vs mandatory activities;
+* clarification;
+* material ambiguity;
+* decision requirements;
+* approval requirements;
+* pathway revision;
+* replan triggers;
+* dependency-aware parallelization;
+* escalation;
+* workflow completion.
+
+## `IFC-AIENG-0001 — Engineering Agent Contract`
+
+Suggested path:
+
+```text
+specifications/interfaces/IFC-AIENG-0001-engineering-agent-contract.md
+```
+
+Define a provider-neutral contract for:
+
+```text
+context
+→ plan
+→ clarification
+→ authorization
+→ execution
+→ result
+→ evidence
+→ review
+```
+
+Include:
+
+* executor identity;
+* reviewer identity;
+* provider/model/harness identity;
+* input fingerprints;
+* output fingerprints;
+* repository revision;
+* allowed capabilities;
+* allowed paths;
+* forbidden paths;
+* time/cost/resource budgets;
+* validation commands;
+* result schema;
+* evidence links;
+* cancellation;
+* retries;
+* failure states;
+* resumption;
+* provenance.
+
+## `SEC-AIENG-0001 — Autonomy, Authority, and Approval Gates`
+
+Suggested path:
+
+```text
+specifications/security/SEC-AIENG-0001-autonomy-authority-and-approval-gates.md
+```
+
+Define:
+
+* autonomy levels;
+* authority classes;
+* delegated capability;
+* human-sovereign boundaries;
+* approval gates;
+* denial;
+* expiration;
+* revocation;
+* reviewer independence;
+* executor/reviewer separation;
+* fail-closed behavior;
+* privilege escalation;
+* tool escalation;
+* scope escalation;
+* emergency authority;
+* rollback;
+* audit requirements.
+
+---
+
+# 15. Specification Baseline
+
+Amend:
+
+```text
+specifications/baseline.md
+```
+
+The current artifact contains unresolved `TBD` sections.
+
+Use the amendment to establish traceability from:
+
+```text
+FR-007
+FR-012
+FR-013
+FR-014
+FR-015
+FR-016
+FR-023
+FR-024
+FR-037
+QR-008
+QR-010
+```
+
+to:
+
+```text
+FUN-AIENG-0001
+IFC-AIENG-0001
+SEC-AIENG-0001
+EOS-AI-0001
+ADR-0007
+```
+
+Do not make unrelated MVP specifications depend on AI workflow machinery unless required by actual semantics.
+
+---
+
+# 16. Do Not Introduce New Canonical Entity Families Unless Proven Necessary
+
+The existing EOS canonical domain model already contains:
+
+```text
+DEC-*  Decision
+APR-*  Approval
+DEP-*  Dependency
+TRC-*  TraceEdge
+EVID-* Evidence
+REV-*  Review
+WP-*   Work Packet
+WC-*   Work Cycle
+PI-*   Program Increment
+CR-*   Change Request
+```
+
+Use these before inventing anything new.
+
+Do not create:
+
+```text
+AI-PLAN-*
+AI-DECISION-*
+AI-APPROVAL-*
+AI-EVIDENCE-*
+AI-TASK-*
+AI-CONTEXT-*
+AI-WORKFLOW-*
+```
+
+as first-class canonical entities merely because AI is involved.
+
+A plan should normally compile into existing Monad planning entities and relationships.
+
+A clarification should normally become one of:
+
+* resolved context;
+* requirement clarification;
+* decision;
+* research work;
+* risk;
+* Change Request.
+
+A consequential decision becomes:
+
+```text
+DEC-*
+```
+
+An approval becomes:
+
+```text
+APR-*
+```
+
+Execution results become existing execution/evidence/provenance records.
+
+---
+
+# 17. AI-Assisted and AI-Autonomous Development
+
+Do not treat AI-assisted and AI-autonomous development as competing lifecycle models.
+
+Model them as autonomy profiles within the same operating model.
+
+Formally:
+
+```text
+AI-assisted engineering ⊂ Monad AI-Driven Engineering Operating Model
+```
+
+```text
+bounded AI-autonomous engineering ⊂ Monad AI-Driven Engineering Operating Model
+```
+
+Examples:
+
+## Advisory
+
+AI:
+
+* inspects;
+* reasons;
+* recommends;
+* drafts.
+
+Human performs and approves execution.
+
+## Supervised Execution
+
+AI:
+
+* plans;
+* asks questions;
+* implements;
+* tests.
+
+Human authorizes major transitions and reviews results.
+
+## Bounded Autonomous Execution
+
+AI:
+
+* plans within accepted intent;
+* decomposes work;
+* dispatches eligible work;
+* implements;
+* tests;
+* collects evidence;
+* opens a pull request.
+
+Human remains responsible for defined consequential approvals.
+
+## Higher Autonomy
+
+May eventually include broader automatic integration or release activity only where:
+
+* authority explicitly permits;
+* objective reliability evidence exists;
+* independent verification exists;
+* policy permits;
+* risk class permits;
+* rollback exists;
+* revocation remains possible.
+
+---
+
+# 18. Fundamental Accountability Requirement
+
+The target property of Monad is not merely:
+
+```text
+human in the loop
+```
+
+The stronger property is:
+
+```text
+governed delegation with reconstructable accountability
+```
+
+At any consequential point Monad should be able to answer:
+
+```text
+What outcome was being pursued?
+
+What canonical engineering knowledge governed the work?
+
+What plan was proposed?
+
+What uncertainty was identified?
+
+What decisions were required?
+
+Who or what made each decision?
+
+Under what authority?
+
+What approvals were granted?
+
+What capability was delegated?
+
+Which executor performed the work?
+
+Which model/provider/harness was used, if applicable?
+
+What exact context was supplied?
+
+What repository state existed?
+
+What changed?
+
+Did implementation remain within scope?
+
+What verification ran?
+
+What evidence was produced?
+
+Who or what reviewed it?
+
+Was the reviewer sufficiently independent?
+
+What disagreement occurred?
+
+Who accepted the result?
+
+What later evidence invalidated or superseded earlier conclusions?
+```
+
+If Monad can reconstruct those answers, AI autonomy can increase without sacrificing governance.
+
+---
+
+# 19. Implementation Order
+
+Perform the work in this order.
+
+## Phase 1 — Architectural Decision
+
+Create:
+
+```text
+ADR-0007-ai-driven-engineering-operating-model.md
+```
+
+Do not change implementation yet.
+
+## Phase 2 — Operating Model
+
+Create:
+
+```text
+EOS-AI-0001-ai-driven-engineering-operating-model.md
+```
+
+## Phase 3 — Requirement Change
+
+Amend the identified requirements and introduce:
+
+```text
+FR-037
+```
+
+Use governed change control.
+
+## Phase 4 — Specification Baseline
+
+Amend:
+
+```text
+SPEC-BASE-0001
+```
+
+## Phase 5 — Specifications
+
+Create:
+
+```text
+FUN-AIENG-0001
+IFC-AIENG-0001
+SEC-AIENG-0001
+```
+
+## Phase 6 — EOS Governance Amendments
+
+Amend the EOS/governance artifacts identified above.
+
+## Phase 7 — Machine Contracts
+
+Only after the normative artifacts stabilize, derive:
+
+* schema changes if actually necessary;
+* policy predicates;
+* context-contract schema;
+* execution-contract schema;
+* result/evidence schema additions;
+* harness adapters;
+* CLI behavior.
+
+## Phase 8 — Implementation Planning
+
+Create the appropriate:
+
+```text
+PI
+→ WC
+→ WP
+```
+
+structure.
+
+Do not allow specification work to silently broaden already-authorized MVP Work Packets.
+
+---
+
+# 20. Required Conformance Scenarios
+
+The final design must demonstrate at least the following scenarios.
+
+## Scenario A — Small Safe Change
+
+A low-risk documentation/code change should receive a lightweight pathway.
+
+The system should not manufacture unnecessary architecture reviews.
+
+## Scenario B — Ambiguous Product Requirement
+
+AI discovers two materially different interpretations.
+
+It must:
+
+```text
+stop assumption
+→ surface ambiguity
+→ present alternatives
+→ request decision
+→ record decision
+→ replan
+→ continue
+```
+
+## Scenario C — Architecture Change Discovered During Execution
+
+AI discovers the approved implementation cannot succeed without changing an accepted architectural boundary.
+
+It must:
+
+```text
+stop/suspend EOSE
+→ propose governed change
+→ enter EOSC
+→ obtain decision
+→ update governing artifacts
+→ replan
+→ reauthorize
+→ resume
+```
+
+It must not silently alter architecture.
+
+## Scenario D — Autonomous Low-Risk Work
+
+A Work Packet explicitly permits bounded autonomous execution.
+
+AI should be able to:
+
+```text
+compile context
+→ plan
+→ execute
+→ test
+→ collect evidence
+→ prepare review
+```
+
+without repeated human prompting.
+
+## Scenario E — Security-Sensitive Change
+
+The adaptive pathway must automatically increase rigor and require appropriate authority/review.
+
+## Scenario F — Independent Review
+
+The executor cannot satisfy a policy requiring independent review by reviewing itself under another prompt.
+
+Identity/provenance must be examined.
+
+## Scenario G — Governing Drift
+
+A requirement or ADR changes after execution begins.
+
+The execution contract becomes stale and must not continue silently.
+
+## Scenario H — AI Provider Failure
+
+Provider failure must not corrupt canonical engineering state.
+
+Another compatible harness may resume from governed state and evidence.
+
+## Scenario I — Human Denial
+
+AI proposes a decision and the accountable human denies it.
+
+The system must preserve the denial and derive a new valid path instead of repeatedly trying to obtain the preferred answer.
+
+## Scenario J — Evidence Invalidates Prior Plan
+
+Verification reveals an assumption was incorrect.
+
+The system routes back through planning/change control as appropriate rather than forcing completion of the obsolete plan.
+
+---
+
+# 21. Design Constraints
+
+Maintain these constraints throughout the work.
+
+1. EOS remains the sole lifecycle/control plane.
+2. `.eos/state/current.json` remains the sole current operational state authority.
+3. Canonical engineering artifacts remain authoritative according to Monad governance.
+4. AI-generated material is not authoritative merely because it was generated.
+5. Humans retain explicitly defined sovereign decision classes.
+6. Low-consequence delegated decisions may eventually be machine-resolvable where policy explicitly allows.
+7. The deterministic semantic kernel must remain independent of LLM output.
+8. AI providers and harnesses must remain replaceable.
+9. Raw transcripts are not mandatory canonical artifacts.
+10. Every autonomous capability must be observable and revocable.
+11. Every meaningful action must preserve provenance.
+12. Deterministic validation should precede probabilistic judgment where possible.
+13. Do not create duplicate task, lifecycle, graph, approval, evidence, or decision systems.
+14. Preserve local-first and offline-capable core operation.
+15. Preserve compatibility with human-only operation when AI is unavailable or intentionally disabled.
+
+---
+
+# 22. Desired End State
+
+The final Monad engineering model should behave as follows:
+
+A human states an outcome.
+
+Monad compiles the relevant governed engineering context.
+
+AI analyzes that context and proposes the most appropriate engineering pathway.
+
+AI identifies decisions it cannot legitimately make.
+
+Humans clarify, decide, approve, reject, constrain, or redirect where their authority is required.
+
+AI converts the resulting governed intent into actionable planning structures.
+
+EOS authorizes bounded execution.
+
+AI, automation, native tools, or humans execute the authorized work.
+
+EOSV produces reproducible evidence.
+
+Independent review evaluates conformity where required.
+
+Human or delegated governance authority accepts consequential outcomes.
+
+All decisions, approvals, executions, evidence, review, and changes remain reconstructably traceable.
+
+The resulting operating model should make AI proactive without making it sovereign, make humans authoritative without requiring them to manually orchestrate every engineering step, and allow autonomy to increase without creating an ungoverned second software-development lifecycle.
+
+The intended result is:
+
+> **Monad as an Engineering Knowledge Compilation Platform whose Engineering Operating System supports an AI-driven, human-governed, evidence-closed engineering execution model.**

@@ -20,6 +20,9 @@ export default function Layout({ children }: LayoutProps<'/'>) {
     <html lang="en" className={cn(inter.className, "font-sans", raleway.variable)} suppressHydrationWarning>
       <head>
         <script id="theme-init" dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <link rel="alternate" type="application/rss+xml" title="AIC Engineering RSS" href="/rss.xml" />
+        <link rel="alternate" type="application/atom+xml" title="AIC Engineering Atom" href="/atom.xml" />
+        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
       </head>
       <body className="flex min-h-screen flex-col">
         <RootProvider

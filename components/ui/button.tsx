@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-const buttonVariants = cva(
+const buttonVariantStyles = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-semibold tracking-widest whitespace-nowrap uppercase transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
   {
     variants: {
@@ -38,16 +38,42 @@ const buttonVariants = cva(
   }
 )
 
+type ButtonVariantProps = VariantProps<typeof buttonVariantStyles>
+type ButtonVariant = Exclude<ButtonVariantProps["variant"], null | undefined>
+type ButtonColor = ButtonVariant | "primary"
+
+type ButtonVariantsInput = ButtonVariantProps & {
+  color?: ButtonColor | null
+  className?: string
+}
+
+function buttonVariants({
+  variant,
+  color,
+  size,
+  className,
+}: ButtonVariantsInput = {}) {
+  const resolvedVariant =
+    variant ?? (color === "primary" ? "default" : color ?? undefined)
+
+  return buttonVariantStyles({
+    variant: resolvedVariant,
+    size,
+    className,
+  })
+}
+
 function Button({
   className,
-  variant = "default",
-  size = "default",
+  variant,
+  color,
+  size,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, color, size, className }))}
       {...props}
     />
   )

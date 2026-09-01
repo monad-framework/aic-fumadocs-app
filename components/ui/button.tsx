@@ -65,15 +65,20 @@ function buttonVariants({
 
 function Button({
   className,
-  variant,
-  color,
-  size,
+  variant = "default",
+  size = "default",
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariantStyles>) {
+  const variantClassName = buttonVariantStyles({ variant, size })
+
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, color, size, className }))}
+      className={
+        typeof className === "function"
+          ? (state) => cn(variantClassName, className(state))
+          : cn(variantClassName, className)
+      }
       {...props}
     />
   )
